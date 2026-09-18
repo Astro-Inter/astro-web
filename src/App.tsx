@@ -1,9 +1,7 @@
+import LoginPage from './pages/Login'
+
 function App() {
-  return (
-    <main>
-      <h1>Painel React</h1>
-    </main>
-  )
+  return <LoginPage />
 }
 
 export default App
