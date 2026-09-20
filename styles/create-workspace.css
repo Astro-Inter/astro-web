@@ -1,0 +1,71 @@
+.create-workspace-page .welcome-content h2 {
+  max-width: none;
+}
+
+.create-workspace-page .welcome-content p {
+  max-width: none;
+}
+
+.workspace-code-form {
+  display: grid;
+  margin-top: clamp(1.8rem, 2.5vw, 2.2rem);
+}
+
+.workspace-code-fields {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(0.35rem, 0.5vw, 0.45rem);
+  width: calc(100% + 2rem);
+  min-width: 0;
+  margin: 0 -1rem;
+  padding: 0;
+  border: 0;
+}
+
+.workspace-code-cell {
+  min-width: 0;
+}
+
+.workspace-code-fields input {
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 0;
+  border: 1.7px solid #77718c;
+  border-radius: var(--astro-control-radius);
+  outline: none;
+  color: var(--astro-text);
+  background: transparent;
+  font-size: clamp(1.1rem, 1.4vw, 1.28rem);
+  font-weight: 500;
+  text-align: center;
+  caret-color: var(--astro-text);
+}
+
+.workspace-code-fields input:focus {
+  border-color: #c8c3d2;
+  box-shadow: 0 0 0 1px rgb(200 195 210 / 30%);
+}
+
+.workspace-code-form button {
+  margin-top: clamp(1.3rem, 2vw, 1.7rem);
+}
+
+.workspace-code-feedback {
+  margin: 0.75rem 0 0;
+  color: #c8c3d2;
+  font-size: var(--astro-label-font-size);
+  line-height: 1.35;
+  text-align: center;
+}
+
+.workspace-code-feedback[role="alert"] {
+  color: #f4bdc0;
+}
+
+@media (max-width: 600px) {
+  .workspace-code-fields {
+    width: 100%;
+    margin-inline: 0;
+  }
+}

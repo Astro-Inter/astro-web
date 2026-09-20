@@ -1,3 +1,4 @@
+import { Link, useNavigate } from 'react-router-dom'
 import AstroIcon from '../AstroIcon'
 
 const features = [
@@ -7,6 +8,8 @@ const features = [
 ] as const
 
 function PaymentSummary() {
+  const navigate = useNavigate()
+
   return (
     <aside className="payment-summary" aria-label="Resumo da assinatura">
       <h2>Principais funcionalidades</h2>
@@ -28,12 +31,12 @@ function PaymentSummary() {
           <strong>R$ 10 reais</strong>
         </div>
 
-        <button className="finish-payment-button" type="button">
+        <button className="finish-payment-button" onClick={() => navigate('/createWorkspace')} type="button">
           Finalizar compra
         </button>
 
         <p className="workspace-key-link">
-          Já tem uma chave do workspace? <a href="#verify-workspace">Verificar</a>
+          Já tem uma chave do workspace? <Link to="/createWorkspace">Verificar</Link>
         </p>
       </div>
     </aside>

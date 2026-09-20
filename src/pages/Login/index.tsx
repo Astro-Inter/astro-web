@@ -3,7 +3,10 @@ import { AnimatedWelcome, AstroBrand, HelpLink, LoginForm } from '../../componen
 function LoginPage() {
   return (
     <main className="login-page">
-      <AnimatedWelcome />
+      <AnimatedWelcome
+        title="Seja bem-vindo ao Astro!"
+        description="Insira suas credenciais para entrar no seu workspace."
+      />
 
       <section className="login-panel" aria-labelledby="login-title">
         <div className="login-card">

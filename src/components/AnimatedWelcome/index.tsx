@@ -1,4 +1,11 @@
-function AnimatedWelcome() {
+import type { ReactNode } from 'react'
+
+interface AnimatedWelcomeProps {
+  title: ReactNode
+  description: ReactNode
+}
+
+function AnimatedWelcome({ title, description }: AnimatedWelcomeProps) {
   return (
     <section className="login-welcome" aria-label="Boas-vindas">
       <div className="welcome-orb" aria-hidden="true">
@@ -6,8 +13,8 @@ function AnimatedWelcome() {
       </div>
 
       <div className="welcome-content">
-        <h2>Seja bem-vindo ao Astro!</h2>
-        <p>Insira suas credenciais para entrar no seu workspace.</p>
+        <h2>{title}</h2>
+        <p>{description}</p>
       </div>
     </section>
   )

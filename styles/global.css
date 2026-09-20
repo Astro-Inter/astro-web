@@ -96,16 +96,19 @@ a {
 
 
 .login-form button:hover,
+.workspace-code-form button:hover,
 .finish-payment-button:hover {
   background: #a500d9;
 }
 
 .login-form button:active,
+.workspace-code-form button:active,
 .finish-payment-button:active {
   transform: translateY(1px);
 }
 
 .login-form button:focus-visible,
+.workspace-code-form button:focus-visible,
 .forgot-link:focus-visible,
 .workspace-link a:focus-visible,
 .help-link:focus-visible {

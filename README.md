@@ -1,6 +1,6 @@
 # Astro Web
 
-Aplicação React + TypeScript com Vite e React Router. Atualmente contém a tela de login, a tela de método de pagamento e o modal de explicação da cobrança.
+Aplicação React + TypeScript com Vite e React Router. Atualmente contém as telas de login, método de pagamento e criação de workspace, além do modal de explicação da cobrança.
 
 ## Executar
 
@@ -32,6 +32,7 @@ src/
 styles/                       CSS fora de src/ (regra do projeto)
   global.css                   tokens, reset e estilos compartilhados
   login.css                    estilos da tela de login
+  create-workspace.css         campos de código da criação de workspace
   payment.css                  estilos da tela de pagamento
   payment-layout.css           proporções e adaptações do pagamento
   charge-explanation.css      estilos do modal de cobrança
@@ -39,4 +40,4 @@ styles/                       CSS fora de src/ (regra do projeto)
 
 As pastas reservadas não contêm implementações artificiais: seus arquivos `index.ts` apenas preservam a estrutura até haver uma necessidade real. Todos os arquivos dentro de `src/` são `.ts` ou `.tsx`.
 
-As rotas existentes são `/` (login) e `/paymentMethod` (pagamento). Os formulários ainda são apenas a interface; não há autenticação, processamento de pagamento ou API implementados. Copie `.env.example` para uma configuração local somente quando existir um serviço a conectar.
+As rotas existentes são `/` (login), `/paymentMethod` (pagamento) e `/createWorkspace` (código de criação). Os formulários ainda não têm autenticação, processamento de pagamento ou API implementados. A tela de código aceita a digitação e a colagem dos seis dígitos, mas a verificação depende de um serviço futuro. Copie `.env.example` para uma configuração local somente quando existir um serviço a conectar.

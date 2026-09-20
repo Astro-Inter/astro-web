@@ -166,7 +166,8 @@
   text-decoration: underline;
 }
 
-.login-form button {
+.login-form button,
+.workspace-code-form button {
   width: 100%;
   min-height: var(--astro-action-height);
   margin-top: clamp(0.95rem, 1.22vw, 1.1rem);
@@ -268,7 +269,8 @@
   font-size: clamp(0.875rem, 1.08vw, 1rem);
 }
 
-.login-card .login-form button {
+.login-card .login-form button,
+.login-card .workspace-code-form button {
   font-size: clamp(0.85rem, 1.04vw, 0.95rem);
 }
 
