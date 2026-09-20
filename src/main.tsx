@@ -5,13 +5,17 @@ import '@fontsource/montserrat/700.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import AppRoutes from './routes'
+import App from './App'
 import '../styles/global.css'
+import '../styles/login.css'
+import '../styles/payment.css'
+import '../styles/payment-layout.css'
+import '../styles/charge-explanation.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <AppRoutes />
+      <App />
     </BrowserRouter>
   </StrictMode>,
 )

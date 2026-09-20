@@ -1,2 +1,2 @@
-// Páginas da aplicação serão exportadas por este módulo.
-export {}
+export { default as LoginPage } from './Login'
+export { default as PaymentMethodPage } from './PaymentMethod'

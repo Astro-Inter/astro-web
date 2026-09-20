@@ -1,7 +1,4 @@
-import AnimatedWelcome from '../../components/AnimatedWelcome'
-import AstroBrand from '../../components/AstroBrand'
-import HelpLink from '../../components/HelpLink'
-import LoginForm from '../../components/LoginForm'
+import { AnimatedWelcome, AstroBrand, HelpLink, LoginForm } from '../../components'
 
 function LoginPage() {
   return (

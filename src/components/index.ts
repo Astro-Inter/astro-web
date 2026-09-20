@@ -1,2 +1,8 @@
-// Componentes reutilizáveis serão exportados por este módulo.
-export {}
+export { default as AnimatedWelcome } from './AnimatedWelcome'
+export { default as AstroBrand } from './AstroBrand'
+export { default as AstroIcon } from './AstroIcon'
+export { default as ChargeExplanationModal } from './ChargeExplanationModal'
+export { default as HelpLink } from './HelpLink'
+export { default as LoginForm } from './LoginForm'
+export { default as PaymentMethodForm } from './PaymentMethodForm'
+export { default as PaymentSummary } from './PaymentSummary'

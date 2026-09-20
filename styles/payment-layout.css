@@ -1,0 +1,316 @@
+/* O pagamento usa os mesmos tamanhos visuais do login, que é reduzido a 90%. */
+.payment-stage {
+  --astro-control-height: calc(clamp(2.9rem, 4vw, 3.55rem) * 0.9);
+  --astro-control-radius: 0.405rem;
+  --astro-control-padding: 0 0.9rem;
+  --astro-control-font-size: calc(clamp(0.83rem, 1.02vw, 0.93rem) * 0.9);
+  --astro-label-font-size: calc(clamp(0.875rem, 1.1vw, 1rem) * 0.9);
+  --astro-heading-font-size: calc(clamp(1.75rem, 2.22vw, 2rem) * 0.9);
+  --astro-subtitle-font-size: calc(clamp(1rem, 1.25vw, 1.125rem) * 0.9);
+  --astro-action-height: calc(clamp(2.8rem, 3.45vw, 3.1rem) * 0.9);
+  --astro-placeholder: #aaa6b8;
+  /* O login aplica scale(0.9) ao card; aqui usamos o tamanho visual equivalente. */
+  --payment-body-font-size: var(--astro-label-font-size);
+  --payment-link-font-size: calc(clamp(0.875rem, 1.08vw, 1rem) * 0.9);
+}
+
+.payment-field {
+  gap: 0.225rem;
+}
+
+.payment-field label,
+.payment-heading p,
+.payment-method-option,
+.feature-list li,
+.payment-total,
+.payment-info-link,
+.workspace-key-link {
+  font-weight: 400;
+}
+
+.payment-heading h1,
+.payment-summary h2,
+.finish-payment-button {
+  font-weight: 600;
+}
+
+.payment-email-field {
+  width: min(100%, clamp(17.55rem, 22.5vw, 20.25rem));
+}
+
+/* A composição acompanha a largura inteira e conserva as alturas do frame. */
+@media (min-width: 851px) {
+  .payment-page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    min-height: 100svh;
+    width: 100%;
+    padding: 0;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  .payment-stage {
+    --payment-unit: 0.107526882svh;
+    --payment-card-unit: var(--payment-unit);
+    --payment-x-unit: 0.069444444vw;
+    --payment-y-offset: 0px;
+    position: relative;
+    width: 100%;
+    height: 100svh;
+    flex: none;
+  }
+
+  .payment-content {
+    position: absolute;
+    top: calc(66 * var(--payment-unit) + var(--payment-y-offset));
+    left: calc(88 * var(--payment-x-unit));
+    width: calc(650 * var(--payment-x-unit));
+  }
+
+  .payment-back-button {
+    width: calc(60 * var(--payment-unit));
+    height: calc(60 * var(--payment-unit));
+    margin-left: calc(-14 * var(--payment-unit));
+    border-radius: calc(16 * var(--payment-unit));
+  }
+
+  .payment-back-button svg {
+    width: calc(23 * var(--payment-unit));
+    height: calc(23 * var(--payment-unit));
+    stroke-width: 2;
+  }
+
+  .payment-heading {
+    margin: calc(60 * var(--payment-unit)) 0 calc(38 * var(--payment-unit));
+  }
+
+  .payment-heading h1 {
+    letter-spacing: -0.035em;
+  }
+
+  .payment-heading p {
+    margin-top: calc(6 * var(--payment-unit));
+  }
+
+  .payment-form {
+    width: 100%;
+  }
+
+  .payment-field {
+    gap: 0.225rem;
+  }
+
+  .payment-field label {
+    line-height: 1.2;
+  }
+
+  .payment-divider {
+    margin: calc(41 * var(--payment-unit)) 0 calc(41 * var(--payment-unit));
+  }
+
+  .payment-method-options {
+    gap: calc(25 * var(--payment-unit));
+  }
+
+  .payment-method-option {
+    height: calc(65 * var(--payment-unit));
+    gap: calc(10 * var(--payment-unit));
+    padding: 0 calc(28 * var(--payment-unit));
+  }
+
+  .card-symbol {
+    width: calc(20 * var(--payment-unit));
+    height: calc(15 * var(--payment-unit));
+  }
+
+  .pix-symbol {
+    width: calc(18 * var(--payment-unit));
+    height: calc(18 * var(--payment-unit));
+  }
+
+  .card-fields,
+  .pix-fields {
+    gap: calc(13 * var(--payment-unit));
+    margin-top: calc(14 * var(--payment-unit));
+  }
+
+  .card-details-row {
+    gap: calc(25 * var(--payment-unit));
+  }
+
+  .security-icon {
+    right: calc(14 * var(--payment-unit));
+    width: calc(16 * var(--payment-unit));
+    height: calc(12 * var(--payment-unit));
+  }
+
+  .payment-info-link {
+    margin-top: calc(16 * var(--payment-unit));
+  }
+
+  .payment-aside {
+    position: absolute;
+    top: calc(183 * var(--payment-unit) + var(--payment-y-offset));
+    right: calc(89 * var(--payment-x-unit));
+    left: auto;
+    display: block;
+    width: calc(515 * var(--payment-x-unit));
+    height: calc(560 * var(--payment-unit));
+  }
+
+  .payment-summary {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: calc(66 * var(--payment-unit)) calc(66 * var(--payment-x-unit));
+    padding-top: calc(72 * var(--payment-card-unit));
+    border-radius: calc(40 * var(--payment-unit));
+  }
+
+  .payment-summary h2 {
+    font-size: var(--astro-heading-font-size);
+    white-space: nowrap;
+  }
+
+  .feature-list {
+    gap: calc(26 * var(--payment-card-unit));
+    margin: calc(50 * var(--payment-card-unit)) 0 calc(48 * var(--payment-card-unit));
+  }
+
+  .feature-list li {
+    gap: calc(12 * var(--payment-unit));
+  }
+
+  .feature-icon {
+    width: calc(22 * var(--payment-unit));
+    height: calc(22 * var(--payment-unit));
+  }
+
+  .summary-divider {
+    margin-bottom: calc(44 * var(--payment-card-unit));
+  }
+
+  .payment-total {
+    white-space: nowrap;
+  }
+
+  .finish-payment-button {
+    height: var(--astro-action-height);
+    margin-top: calc(14 * var(--payment-card-unit));
+    border-radius: var(--astro-control-radius);
+  }
+
+  .workspace-key-link {
+    margin-top: calc(20 * var(--payment-card-unit));
+  }
+
+}
+
+@media (min-width: 851px) and (max-width: 1100px) {
+  .payment-summary h2 {
+    font-size: clamp(1.0625rem, 1.875vw, 1.6875rem);
+  }
+
+  .workspace-key-link {
+    white-space: normal;
+  }
+}
+
+/* Janelas largas e baixas não devem esticar as colunas além do frame base. */
+@media (min-width: 1101px) and (max-height: 850px) {
+  .payment-stage {
+    --payment-unit: clamp(0.69px, 0.092svh, 0.82px);
+    --payment-x-unit: min(0.069444444vw, 1px);
+    --payment-y-offset: calc(50svh - 465 * var(--payment-unit));
+    --payment-compact-card-height: max(calc(560 * var(--payment-unit)), clamp(390px, calc(35.6vw - 20px), 450px));
+    --payment-card-unit: calc(var(--payment-compact-card-height) / 560);
+    width: min(100%, 1440px);
+  }
+
+  .payment-back-button {
+    width: 3.125rem;
+    height: 3.125rem;
+    margin-left: -0.875rem;
+    border-radius: 0.875rem;
+  }
+
+  .payment-back-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .payment-heading {
+    margin-top: max(0px, calc(120 * var(--payment-unit) - 50px));
+  }
+
+  .payment-aside {
+    height: var(--payment-compact-card-height);
+  }
+
+  .payment-summary {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-bottom: calc(58 * var(--payment-card-unit));
+  }
+
+  .payment-summary h2 {
+    font-size: min(var(--astro-heading-font-size), clamp(1.0625rem, 1.875vw, 1.6875rem));
+  }
+
+  .feature-list {
+    margin-top: calc(44 * var(--payment-card-unit));
+    margin-bottom: calc(42 * var(--payment-card-unit));
+  }
+
+  .workspace-key-link {
+    margin-top: calc(16 * var(--payment-card-unit));
+  }
+
+  .payment-stage > .help-link {
+    position: fixed;
+    right: 3.5rem;
+    bottom: 2rem;
+    top: auto;
+  }
+}
+
+@media (max-width: 850px) {
+  .payment-stage {
+    position: relative;
+    width: 100%;
+    max-width: 40rem;
+    margin-inline: auto;
+  }
+
+  .payment-method-options,
+  .card-details-row {
+    gap: 0.75rem;
+  }
+
+  .payment-method-option {
+    height: var(--astro-control-height);
+    padding-inline: 1rem;
+  }
+
+  .payment-summary {
+    width: 100%;
+    min-height: 0;
+    padding: clamp(1.5rem, 5vw, 2.5rem);
+  }
+
+  .payment-summary h2 {
+    font-size: clamp(1.15rem, 4vw, 1.5rem);
+  }
+
+  .workspace-key-link {
+    white-space: normal;
+  }
+
+  .payment-stage > .help-link {
+    right: 0;
+    bottom: -4.5rem;
+  }
+}

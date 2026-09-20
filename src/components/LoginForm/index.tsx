@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 function LoginForm() {
   return (
     <>
@@ -38,7 +40,7 @@ function LoginForm() {
 
       <p className="workspace-link">
         Não tem uma conta?{' '}
-        <a href="#create-workspace">Criar workspace</a>
+        <Link to="/paymentMethod">Criar workspace</Link>
       </p>
     </>
   )
