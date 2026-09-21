@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import PasswordField from '../PasswordField'
 
 interface PasswordValues {
@@ -12,6 +13,7 @@ interface PasswordVisibility {
 }
 
 function CreatePasswordForm() {
+  const navigate = useNavigate()
   const [values, setValues] = useState<PasswordValues>({ password: '', confirmation: '' })
   const [visible, setVisible] = useState<PasswordVisibility>({ password: false, confirmation: false })
 
@@ -30,7 +32,7 @@ function CreatePasswordForm() {
         <p>Defina sua senha de acesso.</p>
       </header>
 
-      <form autoComplete="off" className="create-password-form" onSubmit={(event) => event.preventDefault()} noValidate>
+      <form autoComplete="off" className="create-password-form" onSubmit={(event) => { event.preventDefault(); navigate('/includeCompanyInformation') }} noValidate>
         <PasswordField
           id="new-password"
           label="Senha"

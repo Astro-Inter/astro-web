@@ -40,6 +40,12 @@
 
 /* A composição acompanha a largura inteira e conserva as alturas do frame. */
 @media (min-width: 851px) {
+  .payment-stage .payment-back-button {
+    position: relative;
+    top: calc(7.1svh - 66 * var(--payment-unit) - var(--payment-y-offset));
+    left: var(--payment-back-margin);
+  }
+
   .payment-page {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -56,6 +62,9 @@
     --payment-card-unit: var(--payment-unit);
     --payment-x-unit: 0.069444444vw;
     --payment-y-offset: 0px;
+    --payment-stage-offset: 0px;
+    --payment-back-margin: calc(14 * var(--payment-unit));
+    --payment-content-left: calc(7.1svh + var(--astro-back-inline-offset) - var(--payment-stage-offset));
     position: relative;
     width: 100%;
     height: 100svh;
@@ -65,7 +74,7 @@
   .payment-content {
     position: absolute;
     top: calc(66 * var(--payment-unit) + var(--payment-y-offset));
-    left: calc(88 * var(--payment-x-unit));
+    left: var(--payment-content-left);
     width: calc(650 * var(--payment-x-unit));
   }
 
@@ -153,7 +162,7 @@
   .payment-aside {
     position: absolute;
     top: calc(183 * var(--payment-unit) + var(--payment-y-offset));
-    right: calc(89 * var(--payment-x-unit));
+    right: var(--payment-content-left);
     left: auto;
     display: block;
     width: calc(515 * var(--payment-x-unit));
@@ -224,6 +233,8 @@
     --payment-unit: clamp(0.69px, 0.092svh, 0.82px);
     --payment-x-unit: min(0.069444444vw, 1px);
     --payment-y-offset: calc(50svh - 465 * var(--payment-unit));
+    --payment-stage-offset: max(0px, (100vw - 1440px) / 2);
+    --payment-back-margin: 0.875rem;
     --payment-compact-card-height: max(calc(560 * var(--payment-unit)), clamp(390px, calc(35.6vw - 20px), 450px));
     --payment-card-unit: calc(var(--payment-compact-card-height) / 560);
     width: min(100%, 1440px);
@@ -278,11 +289,23 @@
 }
 
 @media (max-width: 850px) {
+  .payment-stage .payment-back-button {
+    position: relative;
+    left: 0.9rem;
+  }
+
   .payment-stage {
+    --payment-mobile-content-shift: calc(2rem + var(--astro-back-inline-offset) - max(1.5rem, (100vw - 40rem) / 2) + clamp(0px, (100vw - 688px) / 2, 0.5rem));
     position: relative;
     width: 100%;
     max-width: 40rem;
     margin-inline: auto;
+  }
+
+  .payment-content {
+    position: relative;
+    left: var(--payment-mobile-content-shift);
+    width: calc(100% - max(0px, var(--payment-mobile-content-shift)));
   }
 
   .payment-method-options,
