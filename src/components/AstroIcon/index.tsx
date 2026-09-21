@@ -13,6 +13,7 @@ type AstroIconName =
   | 'receipt'
   | 'report'
   | 'security'
+  | 'upload'
 
 interface AstroIconProps {
   className?: string
@@ -34,6 +35,10 @@ function AstroIcon({ className, name }: AstroIconProps) {
 
   if (name === 'back') {
     return <svg {...commonProps} viewBox="0 0 24 24"><path d="m14.5 5-7 7 7 7" /></svg>
+  }
+
+  if (name === 'upload') {
+    return <svg {...commonProps} viewBox="0 0 24 24"><path d="M12 16V3m0 0L7.5 7.5M12 3l4.5 4.5M4 16.5v3h16v-3" /></svg>
   }
 
   if (name === 'eye') {

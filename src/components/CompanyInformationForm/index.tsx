@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { CompanyInformation } from '../../types/company'
 import { formatCnpj } from '../../utils/cnpj'
 
 function CompanyInformationForm() {
+  const navigate = useNavigate()
   const [company, setCompany] = useState<CompanyInformation>({ name: '', cnpj: '' })
 
   return (
@@ -12,7 +14,7 @@ function CompanyInformationForm() {
         <p>Preencha os dados para continuar.</p>
       </header>
 
-      <form className="company-information-form" noValidate onSubmit={(event) => event.preventDefault()}>
+      <form className="company-information-form" noValidate onSubmit={(event) => { event.preventDefault(); navigate('/attachExcelFile') }}>
         <div className="field-group">
           <label htmlFor="company-name">Nome da empresa</label>
           <input

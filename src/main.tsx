@@ -12,9 +12,11 @@ import '../styles/create-workspace.css'
 import '../styles/access-key-verified.css'
 import '../styles/create-password.css'
 import '../styles/include-company-information.css'
+import '../styles/attach-excel-file.css'
 import '../styles/payment.css'
 import '../styles/payment-layout.css'
 import '../styles/charge-explanation.css'
+import '../styles/spreadsheet-explanation.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

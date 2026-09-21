@@ -1,4 +1,5 @@
 export { default as AccessKeyVerifiedPage } from './AccessKeyVerified'
+export { default as AttachExcelFilePage } from './AttachExcelFile'
 export { default as CreateWorkspacePage } from './CreateWorkspace'
 export { default as CreatePasswordPage } from './CreatePassword'
 export { default as IncludeCompanyInformationPage } from './IncludeCompanyInformation'

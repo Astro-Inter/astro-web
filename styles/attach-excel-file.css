@@ -1,0 +1,186 @@
+.attach-excel-page {
+  position: relative;
+  display: grid;
+  min-height: 100svh;
+  padding: 3rem 1.5rem;
+  place-items: center;
+  background: var(--astro-background);
+}
+
+.attach-excel-content {
+  --attach-inner-scale: 0.9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 44vw, 40rem);
+  text-align: center;
+}
+
+.attach-excel-heading {
+  width: 100%;
+  margin: 0;
+}
+
+.attach-excel-heading p {
+  line-height: 1.3;
+}
+
+.attach-excel-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: clamp(1.5rem, 2.1vw, 1.9rem);
+}
+
+.attach-excel-dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: clamp(12.5rem, 29svh, 16.75rem);
+  padding: 1.75rem 1rem;
+  border: 2px dashed var(--astro-orb-accent);
+  border-radius: 0.65rem;
+  color: var(--astro-text);
+  background: #30264b;
+  text-align: center;
+  transition: border-color 160ms ease;
+}
+
+.attach-excel-dropzone.is-dragging {
+  border-color: #b229df;
+}
+
+.attach-excel-continue:focus-visible,
+.attach-excel-select-button:focus-visible,
+.attach-excel-model-link:focus-visible {
+  outline: 2px solid var(--astro-link);
+  outline-offset: 4px;
+}
+
+.attach-excel-dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.attach-excel-drop-title {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: calc(var(--astro-subtitle-font-size) * var(--attach-inner-scale));
+  font-weight: 500;
+}
+
+.attach-excel-drop-subtitle,
+.attach-excel-formats {
+  color: #b0abbd;
+  font-size: calc(var(--astro-label-font-size) * var(--attach-inner-scale));
+  font-weight: 400;
+}
+
+.attach-excel-drop-subtitle {
+  margin-top: calc(0.35rem * var(--attach-inner-scale));
+}
+
+.attach-excel-select-button,
+.attach-excel-continue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, calc(20.25rem * var(--attach-inner-scale)));
+  min-height: calc(var(--astro-action-height) * var(--attach-inner-scale));
+  border: 0;
+  border-radius: var(--astro-control-radius);
+  color: #fff;
+  background: var(--astro-orb-accent);
+  font-size: calc(clamp(0.85rem, 1.04vw, 0.95rem) * var(--attach-inner-scale));
+  font-weight: 600;
+}
+
+.attach-excel-select-button {
+  gap: calc(0.75rem * var(--attach-inner-scale));
+  margin-top: calc(1.5rem * var(--attach-inner-scale));
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.attach-excel-select-button:hover {
+  background: var(--astro-orb-accent-hover);
+}
+
+.attach-excel-select-button:active {
+  transform: translateY(1px);
+}
+
+.attach-excel-select-button svg {
+  width: calc(1.35rem * var(--attach-inner-scale));
+  height: calc(1.35rem * var(--attach-inner-scale));
+}
+
+.attach-excel-formats {
+  margin-top: calc(0.65rem * var(--attach-inner-scale));
+}
+
+.attach-excel-continue {
+  margin-top: 1.25rem;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.attach-excel-continue:hover {
+  background: var(--astro-orb-accent-hover);
+}
+
+.attach-excel-continue:active {
+  transform: translateY(1px);
+}
+
+.attach-excel-model-link {
+  margin-top: 0.6rem;
+  padding: 0;
+  border: 0;
+  color: var(--astro-link);
+  background: transparent;
+  cursor: pointer;
+  font-size: calc(clamp(0.875rem, 1.08vw, 1rem) * var(--attach-inner-scale));
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.attach-excel-model-link:hover {
+  text-decoration: underline;
+}
+
+.attach-excel-feedback {
+  margin: 0.75rem 0 0;
+  color: #e9bcc9;
+  font-size: var(--astro-label-font-size);
+}
+
+@media (max-width: 850px) {
+  .attach-excel-page {
+    padding: 6rem 1.5rem;
+  }
+
+  .attach-excel-content {
+    width: min(100%, 40rem);
+  }
+
+  .attach-excel-page .help-link {
+    right: 1.5rem;
+    bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .attach-excel-desktop-break {
+    display: none;
+  }
+
+  .attach-excel-dropzone {
+    min-height: 15rem;
+  }
+}
