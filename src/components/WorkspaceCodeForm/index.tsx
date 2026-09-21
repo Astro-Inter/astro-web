@@ -1,23 +1,17 @@
 import { useRef, useState } from 'react'
 import type { ClipboardEvent, FormEvent, KeyboardEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 const CODE_LENGTH = 6
 
-interface Feedback {
-  message: string
-  isError: boolean
-}
-
 function WorkspaceCodeForm() {
+  const navigate = useNavigate()
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''))
-  const [feedback, setFeedback] = useState<Feedback | null>(null)
   const inputRefs = useRef<Array<HTMLInputElement | null>>([])
 
   function updateDigit(index: number, value: string) {
     const digit = value.replace(/\D/g, '').slice(-1)
     setDigits((current) => current.map((item, position) => position === index ? digit : item))
-    setFeedback(null)
 
     if (digit && index < CODE_LENGTH - 1) inputRefs.current[index + 1]?.focus()
   }
@@ -42,21 +36,13 @@ function WorkspaceCodeForm() {
       for (const [offset, digit] of [...pastedDigits].entries()) next[index + offset] = digit
       return next
     })
-    setFeedback(null)
     inputRefs.current[Math.min(index + pastedDigits.length, CODE_LENGTH - 1)]?.focus()
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const firstEmpty = digits.findIndex((digit) => !digit)
-    if (firstEmpty !== -1) {
-      setFeedback({ message: 'Digite os seis números do código enviado por e-mail.', isError: true })
-      inputRefs.current[firstEmpty]?.focus()
-      return
-    }
-
-    setFeedback({ message: 'A verificação de código ainda não está disponível.', isError: false })
+    navigate('/accessKeyVerified')
   }
 
   return (
@@ -75,7 +61,6 @@ function WorkspaceCodeForm() {
                 Dígito {index + 1} de {CODE_LENGTH} do código
               </label>
               <input
-                aria-invalid={feedback?.isError ?? false}
                 autoComplete={index === 0 ? 'one-time-code' : 'off'}
                 id={`workspace-code-${index}`}
                 inputMode="numeric"
@@ -93,11 +78,6 @@ function WorkspaceCodeForm() {
         </fieldset>
 
         <button type="submit">Verificar código</button>
-        {feedback && (
-          <p className="workspace-code-feedback" role={feedback.isError ? 'alert' : 'status'}>
-            {feedback.message}
-          </p>
-        )}
       </form>
 
       <p className="workspace-link">

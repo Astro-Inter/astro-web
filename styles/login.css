@@ -167,7 +167,8 @@
 }
 
 .login-form button,
-.workspace-code-form button {
+.workspace-code-form button,
+.access-verified-button {
   width: 100%;
   min-height: var(--astro-action-height);
   margin-top: clamp(0.95rem, 1.22vw, 1.1rem);
@@ -241,7 +242,8 @@
 
 }
 
-.login-card {
+.login-card,
+.access-verified-content {
   --astro-control-height: clamp(2.9rem, 4vw, 3.55rem);
   --astro-control-font-size: clamp(0.83rem, 1.02vw, 0.93rem);
   --astro-label-font-size: clamp(0.875rem, 1.1vw, 1rem);
@@ -249,7 +251,9 @@
   --astro-subtitle-font-size: clamp(1rem, 1.25vw, 1.125rem);
   --astro-action-height: clamp(2.8rem, 3.45vw, 3.1rem);
   --astro-placeholder: #aaa6b8;
+}
 
+.login-card {
   width: min(100%, clamp(19.5rem, 25vw, 22.5rem));
   transform: scale(0.9);
   transform-origin: center;
@@ -270,7 +274,8 @@
 }
 
 .login-card .login-form button,
-.login-card .workspace-code-form button {
+.login-card .workspace-code-form button,
+.access-verified-button {
   font-size: clamp(0.85rem, 1.04vw, 0.95rem);
 }
 

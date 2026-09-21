@@ -51,18 +51,6 @@
   margin-top: clamp(1.3rem, 2vw, 1.7rem);
 }
 
-.workspace-code-feedback {
-  margin: 0.75rem 0 0;
-  color: #c8c3d2;
-  font-size: var(--astro-label-font-size);
-  line-height: 1.35;
-  text-align: center;
-}
-
-.workspace-code-feedback[role="alert"] {
-  color: #f4bdc0;
-}
-
 @media (max-width: 600px) {
   .workspace-code-fields {
     width: 100%;

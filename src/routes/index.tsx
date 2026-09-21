@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
-import { CreateWorkspacePage, LoginPage, PaymentMethodPage } from '../pages'
+import { AccessKeyVerifiedPage, CreateWorkspacePage, LoginPage, PaymentMethodPage } from '../pages'
 
 function AppRoutes() {
   return (
@@ -7,6 +7,7 @@ function AppRoutes() {
       <Route path="/" element={<LoginPage />} />
       <Route path="/paymentMethod" element={<PaymentMethodPage />} />
       <Route path="/createWorkspace" element={<CreateWorkspacePage />} />
+      <Route path="/accessKeyVerified" element={<AccessKeyVerifiedPage />} />
     </Routes>
   )
 }
