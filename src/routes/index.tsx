@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
-import { AccessKeyVerifiedPage, AttachExcelFilePage, CreatePasswordPage, CreateWorkspacePage, IncludeCompanyInformationPage, LoginPage, PaymentMethodPage } from '../pages'
+import { AccessKeyVerifiedPage, AttachExcelFilePage, CreatePasswordPage, CreateWorkspacePage, IncludeCompanyInformationPage, LoadingScreenPage, LoginPage, PaymentMethodPage } from '../pages'
 
 function AppRoutes() {
   return (
@@ -11,6 +11,7 @@ function AppRoutes() {
       <Route path="/createPassword" element={<CreatePasswordPage />} />
       <Route path="/includeCompanyInformation" element={<IncludeCompanyInformationPage />} />
       <Route path="/attachExcelFile" element={<AttachExcelFilePage />} />
+      <Route path="/loadingScreen" element={<LoadingScreenPage />} />
     </Routes>
   )
 }

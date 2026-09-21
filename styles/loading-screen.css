@@ -1,0 +1,262 @@
+.loading-screen-page {
+  position: relative;
+  display: grid;
+  min-height: 100svh;
+  padding: 2rem 1.5rem;
+  place-items: center;
+  background: var(--astro-background);
+}
+
+.loading-screen-header {
+  position: fixed;
+  z-index: 1;
+  top: clamp(2rem, 7vh, 4rem);
+  right: 0;
+  left: 0;
+  transform: scale(0.9);
+  transform-origin: center top;
+}
+
+.loading-screen-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-planet {
+  /* One full lap. The export implies 3.2s (4 x 0.8s), eased off slightly here.
+     The orbit and the ring wobble both derive from this. */
+  --loading-planet-lap: 5s;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1.4rem, 2.5vw, 2rem);
+}
+
+.loading-planet-svg {
+  width: clamp(11rem, 19vw, 14rem);
+  height: auto;
+  overflow: visible;
+}
+
+/* Ring and moon swing together, so the moon can never leave the ring. Both
+   copies run the identical animation, keeping the halves either side of the
+   sphere in phase. */
+.loading-planet-wobble {
+  transform-box: view-box;
+  transform-origin: 215px 187px;
+  animation: loading-planet-wobble var(--loading-planet-lap) linear infinite;
+}
+
+/* Figma gives the ring as a border-box: 356 x 56.762 with a 10px border, which
+   insets equally on both axes, so the band is a uniform 10 wide. */
+.loading-planet-ring {
+  fill: none;
+  stroke: #8f00c4;
+  stroke-width: 13;
+  stroke-linecap: round;
+}
+
+/* Position is sampled from the ellipse itself every 15deg, so the moon rides
+   the ring instead of cutting chords between the four Figma states. Origin is
+   pinned to the viewBox so scale() grows the moon about its own centre, which
+   sits at (0, 0) in the shape's local coordinates. */
+.loading-planet-moon {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  animation-duration: var(--loading-planet-lap);
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+/* Front copy is layered over the sphere, back copy under it. The handover
+   happens at the left and right tips, where the moon is clear of the sphere,
+   so the swap is invisible. */
+.loading-planet-moon--front {
+  animation-name: loading-planet-orbit, loading-planet-show-front;
+  animation-timing-function: linear, steps(1, end);
+}
+
+.loading-planet-moon--back {
+  animation-name: loading-planet-orbit, loading-planet-show-back;
+  animation-timing-function: linear, steps(1, end);
+}
+
+.loading-planet-label {
+  display: inline-flex;
+  align-items: baseline;
+  margin: 0;
+  color: var(--astro-text);
+  font-size: clamp(1.1rem, 1.5vw, 1.35rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.loading-planet-dots {
+  display: inline-block;
+  width: 1.6em;
+  text-align: left;
+  white-space: pre;
+}
+
+.loading-planet-dots::after {
+  content: "";
+  animation: loading-planet-dots 1.6s steps(1, end) infinite;
+}
+
+/* back (top) -> left -> front (bottom) -> right -> back, on the ring's
+   centreline a=173 / b=23.381. Sizes hit Figma's 19 / 49 / 73 / 49 exactly at
+   the quarter points. */
+@keyframes loading-planet-orbit {
+  0% { transform: translate(215px, 163.619px) scale(0.388); }
+  4.1667% { transform: translate(164.53px, 164.416px) scale(0.409); }
+  8.3333% { transform: translate(117.5px, 166.751px) scale(0.47); }
+  12.5% { transform: translate(77.114px, 170.467px) scale(0.567); }
+  16.6667% { transform: translate(46.125px, 175.309px) scale(0.694); }
+  20.8333% { transform: translate(26.644px, 180.949px) scale(0.842); }
+  25% { transform: translate(20px, 187px) scale(1); }
+  29.1667% { transform: translate(26.644px, 193.051px) scale(1.127); }
+  33.3333% { transform: translate(46.125px, 198.69px) scale(1.245); }
+  37.5% { transform: translate(77.114px, 203.533px) scale(1.346); }
+  41.6667% { transform: translate(117.5px, 207.249px) scale(1.424); }
+  45.8333% { transform: translate(164.53px, 209.584px) scale(1.473); }
+  50% { transform: translate(215px, 210.381px) scale(1.49); }
+  54.1667% { transform: translate(265.47px, 209.584px) scale(1.473); }
+  58.3333% { transform: translate(312.5px, 207.249px) scale(1.424); }
+  62.5% { transform: translate(352.886px, 203.533px) scale(1.346); }
+  66.6667% { transform: translate(383.875px, 198.691px) scale(1.245); }
+  70.8333% { transform: translate(403.356px, 193.051px) scale(1.127); }
+  75% { transform: translate(410px, 187px) scale(1); }
+  79.1667% { transform: translate(403.356px, 180.949px) scale(0.842); }
+  83.3333% { transform: translate(383.875px, 175.309px) scale(0.694); }
+  87.5% { transform: translate(352.886px, 170.467px) scale(0.567); }
+  91.6667% { transform: translate(312.5px, 166.751px) scale(0.47); }
+  95.8333% { transform: translate(265.47px, 164.416px) scale(0.409); }
+  100% { transform: translate(215px, 163.619px) scale(0.388); }
+}
+
+/* Swings around the spec's resting 2.532deg, peaking as the moon reaches the
+   left tip. Amplitude is the magnitude that recurs in the export
+   (-0.092 / -0.095 / -0.097rad = 5.44deg). */
+@keyframes loading-planet-wobble {
+  0% { transform: rotate(2.532deg); }
+  4.1667% { transform: rotate(3.941deg); }
+  8.3333% { transform: rotate(5.253deg); }
+  12.5% { transform: rotate(6.381deg); }
+  16.6667% { transform: rotate(7.246deg); }
+  20.8333% { transform: rotate(7.79deg); }
+  25% { transform: rotate(7.975deg); }
+  29.1667% { transform: rotate(7.79deg); }
+  33.3333% { transform: rotate(7.246deg); }
+  37.5% { transform: rotate(6.381deg); }
+  41.6667% { transform: rotate(5.253deg); }
+  45.8333% { transform: rotate(3.941deg); }
+  50% { transform: rotate(2.532deg); }
+  54.1667% { transform: rotate(1.123deg); }
+  58.3333% { transform: rotate(-0.19deg); }
+  62.5% { transform: rotate(-1.317deg); }
+  66.6667% { transform: rotate(-2.182deg); }
+  70.8333% { transform: rotate(-2.726deg); }
+  75% { transform: rotate(-2.911deg); }
+  79.1667% { transform: rotate(-2.726deg); }
+  83.3333% { transform: rotate(-2.182deg); }
+  87.5% { transform: rotate(-1.317deg); }
+  91.6667% { transform: rotate(-0.19deg); }
+  95.8333% { transform: rotate(1.123deg); }
+  100% { transform: rotate(2.532deg); }
+}
+/* Front arc: left -> front -> right */
+@keyframes loading-planet-show-front {
+  0% {
+    visibility: hidden;
+  }
+
+  25% {
+    visibility: visible;
+  }
+
+  75%,
+  100% {
+    visibility: hidden;
+  }
+}
+
+/* Back arc: right -> back -> left */
+@keyframes loading-planet-show-back {
+  0% {
+    visibility: visible;
+  }
+
+  25% {
+    visibility: hidden;
+  }
+
+  75%,
+  100% {
+    visibility: visible;
+  }
+}
+
+@keyframes loading-planet-dots {
+  0% {
+    content: "";
+  }
+
+  25% {
+    content: ".";
+  }
+
+  50% {
+    content: "..";
+  }
+
+  75% {
+    content: "...";
+  }
+
+  100% {
+    content: "";
+  }
+}
+
+@media (max-width: 850px) {
+  .loading-screen-header {
+    transform: none;
+  }
+}
+
+@media (max-height: 550px) {
+  .loading-screen-page {
+    min-height: 35rem;
+  }
+
+  .loading-screen-header {
+    position: absolute;
+    top: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-planet-wobble,
+  .loading-planet-moon {
+    animation: none;
+  }
+
+  .loading-planet-wobble {
+    transform: rotate(2.532deg);
+  }
+
+  .loading-planet-moon--back {
+    visibility: hidden;
+  }
+
+  .loading-planet-moon--front {
+    transform: translate(42px, 187px) scale(1);
+  }
+
+  .loading-planet-dots::after {
+    content: "...";
+    animation: none;
+  }
+}

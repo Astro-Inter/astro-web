@@ -17,6 +17,7 @@ import '../styles/payment.css'
 import '../styles/payment-layout.css'
 import '../styles/charge-explanation.css'
 import '../styles/spreadsheet-explanation.css'
+import '../styles/loading-screen.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
