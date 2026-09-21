@@ -134,7 +134,8 @@
   font-weight: 400;
 }
 
-.login-form {
+.login-form,
+.create-password-form {
   display: flex;
   flex-direction: column;
   gap: clamp(0.65rem, 0.833vw, 0.75rem);
@@ -167,6 +168,7 @@
 }
 
 .login-form button,
+.create-password-form button[type="submit"],
 .workspace-code-form button,
 .access-verified-button {
   width: 100%;
@@ -263,7 +265,8 @@
   gap: 0.25rem;
 }
 
-.login-card .login-form {
+.login-card .login-form,
+.login-card .create-password-form {
   gap: clamp(0.75rem, 1.04vw, 0.95rem);
 }
 
@@ -274,6 +277,7 @@
 }
 
 .login-card .login-form button,
+.login-card .create-password-form button[type="submit"],
 .login-card .workspace-code-form button,
 .access-verified-button {
   font-size: clamp(0.85rem, 1.04vw, 0.95rem);

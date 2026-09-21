@@ -4,6 +4,8 @@ type AstroIconName =
   | 'calendar'
   | 'document'
   | 'expiry'
+  | 'eye'
+  | 'eye-off'
   | 'help'
   | 'active'
   | 'mapping'
@@ -32,6 +34,14 @@ function AstroIcon({ className, name }: AstroIconProps) {
 
   if (name === 'back') {
     return <svg {...commonProps} viewBox="0 0 24 24"><path d="m14.5 5-7 7 7 7" /></svg>
+  }
+
+  if (name === 'eye') {
+    return <svg {...commonProps} viewBox="0 0 24 24"><path d="M2.5 12s3.5-5.5 9.5-5.5 9.5 5.5 9.5 5.5-3.5 5.5-9.5 5.5S2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="2.5" /></svg>
+  }
+
+  if (name === 'eye-off') {
+    return <svg {...commonProps} viewBox="0 0 24 24"><path d="M3 3l18 18M9.7 6.8a10.7 10.7 0 0 1 2.3-.3c6 0 9.5 5.5 9.5 5.5a14 14 0 0 1-3.4 3.8M6.2 8.1A14 14 0 0 0 2.5 12s3.5 5.5 9.5 5.5a10.7 10.7 0 0 0 2.2-.2M10.3 10.3a2.5 2.5 0 0 0 3.4 3.4" /></svg>
   }
 
   if (name === 'document') {

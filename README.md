@@ -1,6 +1,6 @@
 # Astro Web
 
-Aplicação React + TypeScript com Vite e React Router. Atualmente contém as telas de login, método de pagamento, criação de workspace e chave verificada, além do modal de explicação da cobrança.
+Aplicação React + TypeScript com Vite e React Router. Atualmente contém as telas de login, método de pagamento, criação de workspace, chave verificada e criação de senha, além do modal de explicação da cobrança.
 
 ## Executar
 
@@ -34,6 +34,7 @@ styles/                       CSS fora de src/ (regra do projeto)
   login.css                    estilos da tela de login
   create-workspace.css         campos de código da criação de workspace
   access-key-verified.css      tela de confirmação da chave
+  create-password.css          tela de criação de senha
   payment.css                  estilos da tela de pagamento
   payment-layout.css           proporções e adaptações do pagamento
   charge-explanation.css      estilos do modal de cobrança
@@ -41,4 +42,4 @@ styles/                       CSS fora de src/ (regra do projeto)
 
 As pastas reservadas não contêm implementações artificiais: seus arquivos `index.ts` apenas preservam a estrutura até haver uma necessidade real. Todos os arquivos dentro de `src/` são `.ts` ou `.tsx`.
 
-As rotas existentes são `/` (login), `/paymentMethod` (pagamento), `/createWorkspace` (código de criação) e `/accessKeyVerified` (confirmação). Os formulários ainda não têm autenticação, processamento de pagamento ou API implementados. A tela de código aceita a digitação e a colagem dos seis dígitos; o botão de verificação encaminha para a confirmação visual mesmo com os campos vazios, sem validar o código em um serviço. O botão "Começar" aguarda a definição da próxima etapa do fluxo. Copie `.env.example` para uma configuração local somente quando existir um serviço a conectar.
+As rotas existentes são `/` (login), `/paymentMethod` (pagamento), `/createWorkspace` (código de criação), `/accessKeyVerified` (confirmação) e `/createPassword` (criação de senha). Os formulários ainda não têm autenticação, processamento de pagamento ou API implementados. A tela de código aceita a digitação e a colagem dos seis dígitos; o botão de verificação encaminha para a confirmação visual mesmo com os campos vazios, sem validar o código em um serviço. "Começar" abre a tela de senha; "Continuar" ainda não executa validação, salvamento ou navegação. Copie `.env.example` para uma configuração local somente quando existir um serviço a conectar.

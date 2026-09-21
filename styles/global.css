@@ -3,6 +3,7 @@
   --astro-orb-base: #272149;
   --astro-orb-mid: #4f1479;
   --astro-orb-accent: #8f00c4;
+  --astro-orb-accent-hover: #7b00aa;
   --astro-field: #444252;
   --astro-placeholder: #807e8f;
   --astro-text: #f8f7fc;
@@ -96,13 +97,15 @@ a {
 
 
 .login-form button:hover,
+.create-password-form button[type="submit"]:hover,
 .workspace-code-form button:hover,
 .access-verified-button:hover,
 .finish-payment-button:hover {
-  background: #a500d9;
+  background: var(--astro-orb-accent-hover);
 }
 
 .login-form button:active,
+.create-password-form button[type="submit"]:active,
 .workspace-code-form button:active,
 .access-verified-button:active,
 .finish-payment-button:active {
@@ -110,6 +113,7 @@ a {
 }
 
 .login-form button:focus-visible,
+.create-password-form button[type="submit"]:focus-visible,
 .workspace-code-form button:focus-visible,
 .access-verified-button:focus-visible,
 .forgot-link:focus-visible,

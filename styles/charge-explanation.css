@@ -154,7 +154,7 @@
 }
 
 .charge-explanation-confirm:hover {
-  background: #a500d9;
+  background: var(--astro-orb-accent-hover);
 }
 
 .charge-explanation-confirm:active {
