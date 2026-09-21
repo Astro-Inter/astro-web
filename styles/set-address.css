@@ -1,0 +1,379 @@
+.set-address-page {
+  position: relative;
+  display: grid;
+  min-height: 100svh;
+  padding: 1.5rem;
+  place-items: center;
+  background: var(--astro-background);
+}
+
+.set-address-content {
+  --address-scale: 0.9;
+  --address-action-width: calc(20.25rem * var(--address-scale));
+  --astro-control-height: clamp(2.9rem, 4vw, 3.55rem);
+  --astro-control-font-size: clamp(0.83rem, 1.02vw, 0.93rem);
+  --astro-label-font-size: clamp(0.875rem, 1.1vw, 1rem);
+  --astro-action-height: clamp(2.8rem, 3.45vw, 3.1rem);
+  width: min(100%, 54rem);
+  text-align: center;
+}
+
+.set-address-heading {
+  margin: 0;
+}
+
+.set-address-heading p {
+  line-height: 1.3;
+}
+
+.set-address-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: clamp(1.5rem, 2.3vw, 2.1rem);
+}
+
+.set-address-carousel {
+  /* O conteúdo da etapa é 0,9 do padrão que já está em 0,9. */
+  --address-scale: 0.81;
+  position: relative;
+  width: calc(100% - 6rem);
+}
+
+.set-address-card {
+  padding: 2.07rem 2.925rem;
+  border-radius: 1.35rem;
+  color: var(--astro-text);
+  background: #171332;
+  text-align: left;
+}
+
+.set-address-card-header,
+.set-address-card-identification {
+  display: flex;
+  align-items: center;
+}
+
+.set-address-card-header {
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.set-address-card-identification {
+  flex: 1;
+  gap: calc(1rem * var(--address-scale));
+  min-width: 0;
+}
+
+.set-address-card-identification > div {
+  min-width: 0;
+}
+
+.set-address-building {
+  display: grid;
+  flex: none;
+  width: calc(3rem * var(--address-scale));
+  height: calc(3rem * var(--address-scale));
+  place-items: center;
+  border-radius: var(--astro-control-radius);
+  color: #d3cfdd;
+  background: #454255;
+}
+
+.set-address-building svg {
+  width: 60%;
+  height: 60%;
+}
+
+.set-address-card h2,
+.set-address-card p {
+  margin: 0;
+}
+
+.set-address-card h2 {
+  font-size: calc(1.25rem * var(--address-scale));
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.set-address-card-identification p {
+  margin-top: 0.15rem;
+  color: #beb8ca;
+  font-size: calc(1.125rem * var(--address-scale));
+  line-height: 1.25;
+}
+
+.set-address-remove {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: auto;
+  min-height: calc(var(--astro-action-height) * var(--address-scale));
+  padding: 0 1.1rem;
+  border: 0;
+  border-radius: var(--astro-control-radius);
+  color: #fff;
+  background: #e65a61;
+  cursor: pointer;
+  font-size: calc(clamp(0.85rem, 1.04vw, 0.95rem) * var(--address-scale));
+}
+
+.set-address-remove:hover {
+  background: #c9474e;
+}
+
+.set-address-remove svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.set-address-fields {
+  display: grid;
+  gap: calc(1.2rem * var(--address-scale));
+  margin-top: calc(1.75rem * var(--address-scale));
+}
+
+.set-address-row {
+  display: grid;
+  gap: calc(1rem * var(--address-scale));
+}
+
+.set-address-row--first {
+  grid-template-columns: 1.8fr 1fr 1fr;
+}
+
+.set-address-row--middle {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.set-address-row--last {
+  grid-template-columns: 1fr 2fr;
+}
+
+.set-address-card .field-group {
+  min-width: 0;
+  gap: 0.45rem;
+}
+
+.set-address-card .field-group label {
+  font-size: calc(var(--astro-label-font-size) * var(--address-scale));
+}
+
+.set-address-card .field-group input {
+  height: calc(var(--astro-control-height) * var(--address-scale));
+  padding-inline: calc(1rem * var(--address-scale));
+  font-size: calc(var(--astro-control-font-size) * var(--address-scale));
+}
+
+.set-address-card .field-group input::placeholder {
+  color: #aaa6b8;
+}
+
+.set-address-arrow {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  width: calc(2.5rem * var(--address-scale));
+  height: calc(2.5rem * var(--address-scale));
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: var(--astro-control-radius);
+  color: #d3cfdd;
+  background: #444252;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.set-address-arrow:hover:not(:disabled) {
+  background: #555266;
+}
+
+.set-address-arrow:disabled {
+  visibility: hidden;
+}
+
+.set-address-arrow svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.set-address-arrow--previous {
+  left: -3rem;
+}
+
+.set-address-arrow--next {
+  right: -3rem;
+}
+
+.set-address-add {
+  --address-scale: 0.81;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  width: min(100%, calc(20.25rem * var(--address-scale)));
+  min-height: calc(var(--astro-action-height) * var(--address-scale));
+  margin-top: clamp(0.6rem, 0.9vw, 0.9rem);
+  padding: 0.25rem 1rem;
+  border: 1.5px dashed #a377b5;
+  border-radius: var(--astro-control-radius);
+  color: #e5b6ee;
+  background: transparent;
+  cursor: pointer;
+  font-size: calc(clamp(0.85rem, 1.04vw, 0.95rem) * var(--address-scale));
+  font-weight: 600;
+}
+
+.set-address-add:hover {
+  background: rgb(163 119 181 / 12%);
+}
+
+.set-address-add svg {
+  width: 1.08rem;
+  height: 1.08rem;
+}
+
+.set-address-finish {
+  width: min(100%, var(--address-action-width));
+  min-height: calc(var(--astro-action-height) * var(--address-scale));
+  margin-top: clamp(1.75rem, 2.5vw, 2rem);
+  border: 0;
+  border-radius: var(--astro-control-radius);
+  color: #fff;
+  background: var(--astro-orb-accent);
+  cursor: pointer;
+  font-size: calc(clamp(0.85rem, 1.04vw, 0.95rem) * var(--address-scale));
+  font-weight: 600;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.set-address-finish:hover {
+  background: var(--astro-orb-accent-hover);
+}
+
+.set-address-finish:active {
+  transform: translateY(1px);
+}
+
+.set-address-arrow:focus-visible,
+.set-address-add:focus-visible,
+.set-address-remove:focus-visible,
+.set-address-finish:focus-visible {
+  outline: 2px solid var(--astro-link);
+  outline-offset: 4px;
+}
+
+@media (max-width: 850px) {
+  .set-address-page {
+    padding: 1.5rem;
+  }
+
+  .set-address-page .help-link {
+    right: 1.5rem;
+    bottom: 1.5rem;
+  }
+
+  .set-address-carousel {
+    width: calc(100% - 3rem);
+  }
+
+  .set-address-arrow--previous {
+    left: -2.25rem;
+  }
+
+  .set-address-arrow--next {
+    right: -2.25rem;
+  }
+
+  .set-address-card {
+    padding: 1.85rem 2rem;
+  }
+}
+
+@media (min-width: 601px) and (max-height: 700px) {
+  .set-address-page {
+    padding-block: 1rem;
+  }
+
+  .set-address-form {
+    margin-top: 1rem;
+  }
+
+  .set-address-card {
+    padding-top: 1.65rem;
+    padding-bottom: 1.65rem;
+  }
+
+  .set-address-fields {
+    gap: 0.85rem;
+    margin-top: 1.15rem;
+  }
+
+  .set-address-add {
+    margin-top: 0.5rem;
+  }
+
+  .set-address-finish {
+    margin-top: 1.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .set-address-desktop-break {
+    display: none;
+  }
+
+  .set-address-page {
+    padding-inline: 0.75rem;
+  }
+
+  .set-address-carousel {
+    width: calc(100% - 3.5rem);
+  }
+
+  .set-address-arrow--previous {
+    left: -1.75rem;
+  }
+
+  .set-address-arrow--next {
+    right: -1.75rem;
+  }
+
+  .set-address-arrow {
+    width: 1.55rem;
+    height: 2rem;
+  }
+
+  .set-address-card {
+    padding: 1.4rem 1.25rem;
+  }
+
+  .set-address-card-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .set-address-row--first,
+  .set-address-row--middle,
+  .set-address-row--last {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .set-address-row--first .field-group:first-child,
+  .set-address-row--middle .field-group:last-child,
+  .set-address-row--last .field-group:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .set-address-remove {
+    width: fit-content;
+  }
+
+  .set-address-remove svg {
+    flex: none;
+  }
+}

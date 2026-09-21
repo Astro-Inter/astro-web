@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent, FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import AstroIcon from '../AstroIcon'
 import SpreadsheetExplanationModal from '../SpreadsheetExplanationModal'
 
@@ -8,13 +9,13 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024
 interface SpreadsheetSelection {
   file: File | null
   error: string
-  submitted: boolean
 }
 
 function AttachExcelFileForm() {
+  const navigate = useNavigate()
   const inputRef = useRef<HTMLInputElement>(null)
   const explanationTrigger = useRef<HTMLButtonElement>(null)
-  const [selection, setSelection] = useState<SpreadsheetSelection>({ file: null, error: '', submitted: false })
+  const [selection, setSelection] = useState<SpreadsheetSelection>({ file: null, error: '' })
   const [dragging, setDragging] = useState(false)
   const [isExplanationOpen, setIsExplanationOpen] = useState(false)
 
@@ -27,16 +28,16 @@ function AttachExcelFileForm() {
     if (!file) return
 
     if (!/\.(xlsx|xls)$/i.test(file.name)) {
-      setSelection({ file: null, error: 'Selecione uma planilha .xlsx ou .xls.', submitted: false })
+      setSelection({ file: null, error: 'Selecione uma planilha .xlsx ou .xls.' })
       return
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      setSelection({ file: null, error: 'A planilha deve ter no máximo 10 MB.', submitted: false })
+      setSelection({ file: null, error: 'A planilha deve ter no máximo 10 MB.' })
       return
     }
 
-    setSelection({ file, error: '', submitted: false })
+    setSelection({ file, error: '' })
   }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -52,12 +53,7 @@ function AttachExcelFileForm() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!selection.file) {
-      setSelection((current) => ({ ...current, error: 'Selecione uma planilha para continuar.' }))
-      return
-    }
-
-    setSelection((current) => ({ ...current, error: '', submitted: true }))
+    navigate('/setAddress')
   }
 
   return (
@@ -102,7 +98,6 @@ function AttachExcelFileForm() {
         </div>
 
         {selection.error && <p className="attach-excel-feedback" role="alert">{selection.error}</p>}
-        {selection.submitted && <p className="attach-excel-feedback" role="status">Planilha selecionada e pronta para a próxima etapa.</p>}
 
         <button className="attach-excel-continue" type="submit">Continuar</button>
         <button

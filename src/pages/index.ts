@@ -6,3 +6,4 @@ export { default as IncludeCompanyInformationPage } from './IncludeCompanyInform
 export { default as LoadingScreenPage } from './LoadingScreen'
 export { default as LoginPage } from './Login'
 export { default as PaymentMethodPage } from './PaymentMethod'
+export { default as SetAddressPage } from './SetAddress'
