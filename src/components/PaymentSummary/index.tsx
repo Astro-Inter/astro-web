@@ -1,5 +1,6 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import AstroIcon from '../AstroIcon'
+import PurpleButton from '../PurpleButton'
 
 const features = [
   { label: 'Mapeamento de NRs', icon: 'mapping' },
@@ -7,8 +8,11 @@ const features = [
   { label: 'Relatórios de conformidade', icon: 'report' },
 ] as const
 
-function PaymentSummary() {
-  const navigate = useNavigate()
+interface PaymentSummaryProps {
+  onCompletePurchase: () => void
+}
+
+function PaymentSummary({ onCompletePurchase }: PaymentSummaryProps) {
 
   return (
     <aside className="payment-summary" aria-label="Resumo da assinatura">
@@ -17,8 +21,10 @@ function PaymentSummary() {
       <ul className="feature-list">
         {features.map((feature) => (
           <li key={feature.label}>
-            <AstroIcon className="feature-icon" name={feature.icon} />
-            {feature.label}
+            <span className="feature-icon-slot">
+              <AstroIcon className="feature-icon" name={feature.icon} />
+            </span>
+            <span className="feature-label">{feature.label}</span>
           </li>
         ))}
       </ul>
@@ -31,9 +37,9 @@ function PaymentSummary() {
           <strong>R$ 10 reais</strong>
         </div>
 
-        <button className="finish-payment-button" onClick={() => navigate('/createWorkspace')} type="button">
+        <PurpleButton className="finish-payment-button" onClick={onCompletePurchase}>
           Finalizar compra
-        </button>
+        </PurpleButton>
 
         <p className="workspace-key-link">
           Já tem uma chave do workspace? <Link to="/createWorkspace">Verificar</Link>

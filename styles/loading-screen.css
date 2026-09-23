@@ -35,7 +35,7 @@
 }
 
 .loading-planet-svg {
-  width: clamp(11rem, 19vw, 14rem);
+  width: clamp(12rem, 21vw, 15.5rem);
   height: auto;
   overflow: visible;
 }
@@ -84,17 +84,19 @@
 }
 
 .loading-planet-label {
-  display: inline-flex;
-  align-items: baseline;
+  position: relative;
   margin: 0;
   color: var(--astro-text);
-  font-size: clamp(1.1rem, 1.5vw, 1.35rem);
+  font-size: var(--astro-heading-font-size);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
 }
 
 .loading-planet-dots {
-  display: inline-block;
+  position: absolute;
+  left: 100%;
+  top: 0;
   width: 1.6em;
   text-align: left;
   white-space: pre;
@@ -223,17 +225,6 @@
 @media (max-width: 850px) {
   .loading-screen-header {
     transform: none;
-  }
-}
-
-@media (max-height: 550px) {
-  .loading-screen-page {
-    min-height: 35rem;
-  }
-
-  .loading-screen-header {
-    position: absolute;
-    top: 1.5rem;
   }
 }
 

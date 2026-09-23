@@ -1,20 +1,38 @@
 .charge-explanation-modal {
-  width: min(708px, calc(100vw - 2rem));
-  max-height: calc(100svh - 2rem);
+  /* Compensa o zoom nos limites para manter 1rem de margem visível no celular. */
+  width: min(44.25rem, calc((100vw - 2rem) / var(--astro-popup-zoom)));
+  max-height: calc((100svh - 2rem) / var(--astro-popup-zoom));
   margin: auto;
-  padding: 44px 60px 42px;
+  padding: 2.75rem 3.75rem 2.625rem;
   overflow-y: auto;
   border: 0;
-  border-radius: 10px;
+  border-radius: 0.625rem;
   color: #f8f7fc;
   background: #332754;
   box-shadow: 0 16px 44px rgb(0 0 0 / 22%);
   font-family: "Montserrat", sans-serif;
-  zoom: 0.9;
+  zoom: var(--astro-popup-zoom);
+  opacity: 0;
+  transform: translateY(18px) scale(0.98);
+}
+
+.charge-explanation-modal[open] {
+  animation: rise-in 0.22s ease forwards;
 }
 
 .charge-explanation-modal::backdrop {
-  background: rgb(0 0 0 / 43%);
+  background: rgb(0 0 0 / 25%);
+  animation: backdrop-fade 0.2s ease both;
+}
+
+@keyframes backdrop-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .charge-explanation-modal h2,
@@ -46,10 +64,10 @@
 
 .charge-explanation-highlight {
   display: flex;
-  gap: 24px;
-  margin-top: 41px;
-  padding: 28px 30px;
-  border-radius: 16px;
+  gap: 1.5rem;
+  margin-top: 2.5625rem;
+  padding: 1.75rem 1.875rem;
+  border-radius: 1rem;
   background: #211c3d;
 }
 
@@ -61,16 +79,15 @@
 }
 
 .charge-explanation-highlight-icon {
-  width: 55px;
-  height: 55px;
-  border-radius: 7px;
+  width: 3.4375rem;
+  height: 3.4375rem;
+  border-radius: 0.4375rem;
   color: #fff;
   background: #a82ade;
 }
 
-.charge-explanation-highlight-icon svg {
-  width: 30px;
-  height: 30px;
+.charge-explanation-highlight-icon .astro-icon {
+  height: 1.7rem;
 }
 
 .charge-explanation-highlight h3 {
@@ -102,15 +119,15 @@
 }
 
 .charge-explanation-section-title {
-  margin-top: 34px !important;
+  margin-top: 2.125rem !important;
   font-size: calc(var(--astro-subtitle-font-size) * 1.2);
   font-weight: 600;
 }
 
 .charge-explanation-list {
   display: grid;
-  gap: 34px;
-  margin: 30px 0 0;
+  gap: 2.125rem;
+  margin: 1.875rem 0 0;
   padding: 0;
   list-style: none;
 }
@@ -118,52 +135,28 @@
 .charge-explanation-list li {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .charge-explanation-list-icon {
-  width: 54px;
-  height: 54px;
+  width: 3.375rem;
+  height: 3.375rem;
   border-radius: 50%;
   color: #fff;
   background: #564986;
 }
 
-.charge-explanation-list-icon svg {
-  width: 26px;
-  height: 26px;
+.charge-explanation-list-icon .astro-icon {
+  height: 1.55rem;
 }
 
 .charge-explanation-list li > div {
-  padding-top: 1px;
+  padding-top: 0.0625rem;
 }
 
+/* Geometria vem de .astro-action; o zoom do modal escala o botão junto. */
 .charge-explanation-confirm {
-  display: block;
-  width: 224px;
-  height: var(--astro-action-height);
-  margin: 36px auto 0;
-  border: 0;
-  border-radius: var(--astro-control-radius);
-  color: #fff;
-  background: var(--astro-orb-accent);
-  cursor: pointer;
-  font-size: calc(clamp(0.85rem, 1.04vw, 0.95rem) * 0.9);
-  font-weight: 600;
-  transition: background 160ms ease, transform 160ms ease;
-}
-
-.charge-explanation-confirm:hover {
-  background: var(--astro-orb-accent-hover);
-}
-
-.charge-explanation-confirm:active {
-  transform: translateY(1px);
-}
-
-.charge-explanation-confirm:focus-visible {
-  outline: 2px solid var(--astro-link);
-  outline-offset: 4px;
+  margin: 2.25rem auto 0;
 }
 
 /* Compacta apenas os intervalos internos para preservar o respiro das bordas. */
@@ -246,10 +239,6 @@
   .charge-explanation-list-icon {
     width: 42px;
     height: 42px;
-  }
-
-  .charge-explanation-confirm {
-    width: min(100%, 224px);
   }
 }
 

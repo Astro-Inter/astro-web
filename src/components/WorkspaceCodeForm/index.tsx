@@ -1,11 +1,17 @@
 import { useRef, useState } from 'react'
 import type { ClipboardEvent, FormEvent, KeyboardEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import PageHeading from '../PageHeading'
+import PurpleButton from '../PurpleButton'
 
 const CODE_LENGTH = 6
+const CODE_POSITIONS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'] as const
 
-function WorkspaceCodeForm() {
-  const navigate = useNavigate()
+interface WorkspaceCodeFormProps {
+  onVerified: () => void
+}
+
+function WorkspaceCodeForm({ onVerified }: WorkspaceCodeFormProps) {
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''))
   const inputRefs = useRef<Array<HTMLInputElement | null>>([])
 
@@ -42,21 +48,18 @@ function WorkspaceCodeForm() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    navigate('/accessKeyVerified')
+    onVerified()
   }
 
   return (
     <>
-      <header className="login-heading">
-        <h1 id="create-workspace-title">Criar workspace</h1>
-        <p>Insira o código para iniciar.</p>
-      </header>
+      <PageHeading description="Insira o código para iniciar." title="Criar workspace" titleId="create-workspace-title" />
 
       <form className="workspace-code-form" onSubmit={handleSubmit}>
         <fieldset className="workspace-code-fields">
           <legend className="sr-only">Código de verificação enviado por e-mail</legend>
-          {digits.map((digit, index) => (
-            <div className="workspace-code-cell" key={index}>
+          {CODE_POSITIONS.map((position, index) => (
+            <div className="workspace-code-cell" key={position}>
               <label className="sr-only" htmlFor={`workspace-code-${index}`}>
                 Dígito {index + 1} de {CODE_LENGTH} do código
               </label>
@@ -71,13 +74,13 @@ function WorkspaceCodeForm() {
                 pattern="[0-9]*"
                 ref={(element) => { inputRefs.current[index] = element }}
                 type="text"
-                value={digit}
+                value={digits[index]}
               />
             </div>
           ))}
         </fieldset>
 
-        <button type="submit">Verificar código</button>
+        <PurpleButton className="astro-form-action" type="submit">Verificar código</PurpleButton>
       </form>
 
       <p className="workspace-link">

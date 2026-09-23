@@ -1,6 +1,7 @@
 import AstroIcon from '../AstroIcon'
 
 interface PasswordFieldProps {
+  autoComplete?: string
   id: string
   label: string
   placeholder: string
@@ -10,14 +11,15 @@ interface PasswordFieldProps {
   onToggleVisibility: () => void
 }
 
-function PasswordField({ id, label, placeholder, value, visible, onChange, onToggleVisibility }: PasswordFieldProps) {
+function PasswordField({ autoComplete = 'off', id, label, placeholder, value, visible, onChange, onToggleVisibility }: PasswordFieldProps) {
   return (
     <div className="field-group">
       <label htmlFor={id}>{label}</label>
       <div className="password-input">
         <input
-          autoComplete="off"
+          autoComplete={autoComplete}
           id={id}
+          maxLength={128}
           name={id}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
@@ -31,7 +33,10 @@ function PasswordField({ id, label, placeholder, value, visible, onChange, onTog
           onClick={onToggleVisibility}
           type="button"
         >
-          <AstroIcon name={visible ? 'eye' : 'eye-off'} />
+          <span className={`password-icon-stack${visible ? ' is-visible' : ''}`} aria-hidden="true">
+            <AstroIcon className="password-icon password-icon--closed" name="eye-off" />
+            <AstroIcon className="password-icon password-icon--open" name="eye" />
+          </span>
         </button>
       </div>
     </div>

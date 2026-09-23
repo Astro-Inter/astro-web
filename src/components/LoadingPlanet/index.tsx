@@ -2,33 +2,7 @@ interface LoadingPlanetProps {
   label?: string
 }
 
-/*
- * Geometry from the Figma dev-mode export (node 2235-5161).
- *
- * Ring, given as a border-box:
- *   width 356  height 56.762  border 10px solid #8F00C4  rotate(2.532deg)
- * So outer a=178 b=28.381, inner a=168 b=18.381. The border insets by 10 on
- * both axes, meaning the band is a uniform 10 wide - a stroke, not a tapered
- * annulus - riding the centreline a=173, b=23.381.
- *
- * "Group 22" is the moon. Its relative translates plus width/height resolve to
- * four states per lap (4 x 0.8s in the export), sizes chaining 19 -> 49 -> 73
- * -> 49: it swells at the front of the orbit and shrinks at the back, so the
- * orbit is a perspective projection.
- *
- * Moon sizes and the ring share Figma's unit system, which pins the sphere:
- * measuring the close-up two ways (sphere vs ring width, and front moon vs
- * sphere) both give r = 105.4 / 106.0, hence R=106.
- *
- * The ring and the moon sit in one wobbling group, with the moon's path defined
- * on the un-tilted ellipse, so the moon stays locked to the ring however the
- * ring swings. Interpolating the four Figma states directly would instead cut
- * straight chords across the ellipse and drift off the ring mid-segment.
- *
- * The sphere sits outside the wobble so its shading stays put. "Subtract"
- * tracks the moon at w/h = 31.997/48.995 = 0.6531, which for a lune cut from a
- * circle solves to an offset of d = 0.6123r, applied at 45deg on both bodies.
- */
+
 function LoadingPlanet({ label = 'Carregando' }: LoadingPlanetProps) {
   return (
     <div className="loading-planet" role="status" aria-live="polite">

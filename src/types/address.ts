@@ -9,3 +9,11 @@ export interface WorkspaceUnitAddress {
   number: string
   complement: string
 }
+
+export interface WorkspaceAddressState {
+  units: WorkspaceUnitAddress[]
+  activeId: number
+  nextId: number
+}
+
+export type WorkspaceAddressField = Exclude<keyof WorkspaceUnitAddress, 'id'>

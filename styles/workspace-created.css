@@ -1,0 +1,38 @@
+.workspace-created-page {
+  display: grid;
+  min-height: 100svh;
+  padding: 2rem 1.5rem;
+  place-items: center;
+  background: var(--astro-background);
+}
+
+.workspace-created-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, calc(34rem * var(--astro-scale)));
+  text-align: center;
+  animation: rise-in 0.5s ease both;
+}
+
+.workspace-created-illustration {
+  display: block;
+  width: min(calc(23.5rem * var(--astro-scale)), 100%);
+  height: auto;
+  margin-top: calc(0.9rem * var(--astro-scale));
+  animation: rise-in 0.7s ease both;
+}
+
+.workspace-created-button {
+  margin-top: calc(clamp(2.5rem, 3.33vw, 3rem) * var(--astro-scale));
+}
+
+@media (max-width: 600px) {
+  .workspace-created-page {
+    padding-block: 3rem;
+  }
+
+  .workspace-created-illustration {
+    width: min(calc(20rem * var(--astro-scale)), 100%);
+  }
+}

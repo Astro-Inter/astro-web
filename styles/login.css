@@ -15,6 +15,7 @@
   padding: clamp(3.5rem, 4.44vw, 4rem);
   isolation: isolate;
   overflow: visible;
+  animation: rise-in 0.55s ease both;
 }
 
 .welcome-orb {
@@ -62,6 +63,8 @@
   }
 }
 
+/* Escala 0.9 pelo caminho do transform: cartão centralizado, a caixa real não
+   afeta o layout em volta. */
 .welcome-content {
   width: min(100%, 34rem);
   transform: scale(0.9);
@@ -96,8 +99,12 @@
   padding: 3rem clamp(3.5rem, 4.44vw, 4rem);
 }
 
+/* Escala 0.9 pelos tokens (.astro-scale-90 no JSX), não por transform: a
+   animação de entrada rise-in anima transform e, com fill-mode both, o estado
+   final scale(1) sobrescreveria um transform: scale(0.9) declarado aqui. */
 .login-card {
-  width: min(100%, clamp(20rem, 26.4vw, 23.75rem));
+  width: min(100%, var(--astro-action-width));
+  animation: rise-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .astro-brand {
@@ -107,14 +114,14 @@
 
 .astro-brand img {
   display: block;
-  width: min(13.25rem, 70vw);
+  width: min(calc(12.5rem * var(--astro-scale)), 68vw);
   height: auto;
   object-fit: contain;
   image-rendering: auto;
 }
 
 .login-heading {
-  margin-top: clamp(1.5rem, 2vw, 1.8rem);
+  margin-top: calc(clamp(1.5rem, 2vw, 1.8rem) * var(--astro-scale));
   text-align: center;
 }
 
@@ -128,7 +135,7 @@
 }
 
 .login-heading p {
-  margin: clamp(0.35rem, 0.5vw, 0.45rem) 0 0;
+  margin: calc(clamp(0.35rem, 0.5vw, 0.45rem) * var(--astro-scale)) 0 0;
   color: var(--astro-text-muted);
   font-size: var(--astro-subtitle-font-size);
   font-weight: 400;
@@ -139,22 +146,13 @@
 .company-information-form {
   display: flex;
   flex-direction: column;
-  gap: clamp(0.65rem, 0.833vw, 0.75rem);
-  margin-top: clamp(2rem, 2.67vw, 2.4rem);
+  gap: calc(clamp(0.75rem, 1.04vw, 0.95rem) * var(--astro-scale));
+  margin-top: calc(clamp(2rem, 2.67vw, 2.4rem) * var(--astro-scale));
 }
 
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-
-.forgot-link,
-.workspace-link a {
-  font-size: clamp(0.76rem, 0.944vw, 0.85rem);
-  font-weight: 400;
-  text-decoration: none;
+/* Respiro entre o último campo e a ação do formulário. */
+.astro-form-action {
+  margin-top: calc(clamp(0.95rem, 1.22vw, 1.1rem) * var(--astro-scale));
 }
 
 .forgot-link {
@@ -168,30 +166,9 @@
   text-decoration: underline;
 }
 
-.login-form button,
-.create-password-form button[type="submit"],
-.company-information-form button[type="submit"],
-.workspace-code-form button,
-.access-verified-button {
-  width: 100%;
-  min-height: var(--astro-action-height);
-  margin-top: clamp(0.95rem, 1.22vw, 1.1rem);
-  border: 0;
-  border-radius: 0.45rem;
-  color: #fff;
-  background: var(--astro-orb-accent);
-  cursor: pointer;
-  font-size: clamp(0.78rem, 0.977vw, 0.88rem);
-  font-weight: 600;
-  transition: background 160ms ease, transform 160ms ease;
-}
-
-
 .workspace-link {
-  margin: clamp(0.65rem, 0.888vw, 0.8rem) 0 0;
+  margin: calc(clamp(0.65rem, 0.888vw, 0.8rem) * var(--astro-scale)) 0 0;
   color: var(--astro-text-muted);
-  font-size: clamp(0.75rem, 0.933vw, 0.84rem);
-  font-weight: 400;
   text-align: center;
 }
 
@@ -199,16 +176,16 @@
   color: var(--astro-link);
 }
 
-
 @media (max-width: 850px) {
   .login-page {
     display: block;
-    overflow: visible;
+    overflow-x: clip;
   }
 
   .login-welcome {
     min-height: 19rem;
     padding: 2.5rem 1.5rem;
+    overflow: hidden;
   }
 
   .welcome-orb {
@@ -232,61 +209,12 @@
 
   .login-panel {
     min-height: calc(100svh - 19rem);
-    padding: 3.5rem 1.5rem 7rem;
+    padding: 5rem 1.5rem;
   }
+}
 
-  .login-card {
-    transform: none;
+@media (max-width: 600px) {
+  .astro-brand img {
+    width: min(9.75rem, 42vw);
   }
-
-  .help-link {
-    right: 1.5rem;
-    bottom: 2.5rem;
-  }
-
-}
-
-.login-card,
-.access-verified-content {
-  --astro-control-height: clamp(2.9rem, 4vw, 3.55rem);
-  --astro-control-font-size: clamp(0.83rem, 1.02vw, 0.93rem);
-  --astro-label-font-size: clamp(0.875rem, 1.1vw, 1rem);
-  --astro-heading-font-size: clamp(1.75rem, 2.22vw, 2rem);
-  --astro-subtitle-font-size: clamp(1rem, 1.25vw, 1.125rem);
-  --astro-action-height: clamp(2.8rem, 3.45vw, 3.1rem);
-  --astro-placeholder: #aaa6b8;
-}
-
-.login-card {
-  width: min(100%, clamp(19.5rem, 25vw, 22.5rem));
-  transform: scale(0.9);
-  transform-origin: center;
-}
-
-.login-card .field-group {
-  gap: 0.25rem;
-}
-
-.login-card .login-form,
-.login-card .create-password-form,
-.login-card .company-information-form {
-  gap: clamp(0.75rem, 1.04vw, 0.95rem);
-}
-
-.login-card .forgot-link,
-.login-card .workspace-link,
-.login-card .workspace-link a {
-  font-size: clamp(0.875rem, 1.08vw, 1rem);
-}
-
-.login-card .login-form button,
-.login-card .create-password-form button[type="submit"],
-.login-card .company-information-form button[type="submit"],
-.login-card .workspace-code-form button,
-.access-verified-button {
-  font-size: clamp(0.85rem, 1.04vw, 0.95rem);
-}
-
-.astro-brand img {
-  width: min(12.5rem, 68vw);
 }

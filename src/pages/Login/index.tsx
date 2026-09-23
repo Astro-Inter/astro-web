@@ -9,7 +9,7 @@ function LoginPage() {
       />
 
       <section className="login-panel" aria-labelledby="login-title">
-        <div className="login-card">
+        <div className="login-card astro-scale-90">
           <AstroBrand />
           <LoginForm />
         </div>

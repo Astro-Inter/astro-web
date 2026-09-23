@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import PasswordField from '../PasswordField'
+import PageHeading from '../PageHeading'
+import PurpleButton from '../PurpleButton'
 
 interface PasswordValues {
   password: string
@@ -12,8 +13,11 @@ interface PasswordVisibility {
   confirmation: boolean
 }
 
-function CreatePasswordForm() {
-  const navigate = useNavigate()
+interface CreatePasswordFormProps {
+  onContinue: () => void
+}
+
+function CreatePasswordForm({ onContinue }: CreatePasswordFormProps) {
   const [values, setValues] = useState<PasswordValues>({ password: '', confirmation: '' })
   const [visible, setVisible] = useState<PasswordVisibility>({ password: false, confirmation: false })
 
@@ -27,12 +31,9 @@ function CreatePasswordForm() {
 
   return (
     <>
-      <header className="login-heading">
-        <h1 id="create-password-title">Crie sua senha</h1>
-        <p>Defina sua senha de acesso.</p>
-      </header>
+      <PageHeading description="Defina sua senha de acesso." title="Crie sua senha" titleId="create-password-title" />
 
-      <form autoComplete="off" className="create-password-form" onSubmit={(event) => { event.preventDefault(); navigate('/includeCompanyInformation') }} noValidate>
+      <form autoComplete="off" className="create-password-form" onSubmit={(event) => { event.preventDefault(); onContinue() }} noValidate>
         <PasswordField
           id="new-password"
           label="Senha"
@@ -52,7 +53,7 @@ function CreatePasswordForm() {
           visible={visible.confirmation}
         />
 
-        <button type="submit">Continuar</button>
+        <PurpleButton className="astro-form-action" type="submit">Continuar</PurpleButton>
       </form>
     </>
   )

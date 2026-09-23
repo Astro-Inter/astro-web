@@ -1,11 +1,7 @@
+/* Só o pano de fundo: quem compõe as colunas é .payment-stage. */
 .payment-page {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1.265fr) minmax(0, 1fr);
-  gap: clamp(3rem, 7.1vw, 6.4rem);
   min-height: 100svh;
-  padding: clamp(2.5rem, 4.5vw, 4.1rem) clamp(2rem, 6.05vw, 5.45rem);
-  overflow: hidden;
   background: var(--astro-background);
 }
 
@@ -13,31 +9,35 @@
   min-width: 0;
 }
 
+/* back-button.svg já inclui a borda e a seta. */
 .payment-back-button {
+  position: fixed;
+  z-index: 2;
+  top: clamp(1.5rem, 7.5vh, 3.5rem);
+  left: clamp(1.5rem, 5.5vw, 3.5rem);
   display: grid;
-  width: clamp(3rem, 4.17vw, 3.75rem);
-  height: clamp(3rem, 4.17vw, 3.75rem);
-  margin-left: -0.9rem;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
   place-items: center;
-  border: 1px solid var(--astro-text);
-  border-radius: 1rem;
-  color: var(--astro-text);
+  border: 0;
+  border-radius: 0.65rem;
   background: transparent;
   cursor: pointer;
+  transition: background-color 160ms ease;
 }
 
-.payment-back-button svg {
-  width: 1.45rem;
-  height: 1.45rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.5;
+.payment-back-button:hover {
+  background: rgb(255 255 255 / 10%);
+}
+
+.payment-back-button .astro-icon {
+  width: 100%;
+  height: 100%;
 }
 
 .payment-heading {
-  margin: clamp(2.4rem, 4.1vw, 3.7rem) 0 2.1rem;
+  margin: 0 0 calc(clamp(1.5rem, 2.4vw, 2.1rem) * var(--astro-scale));
 }
 
 .payment-heading h1 {
@@ -61,13 +61,7 @@
 }
 
 .payment-email-field {
-  width: min(100%, 23.75rem);
-}
-
-.payment-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+  width: min(100%, var(--astro-action-width));
 }
 
 .payment-divider,
@@ -102,6 +96,7 @@
   background: var(--astro-field);
   cursor: pointer;
   font-size: var(--astro-control-font-size);
+  font-weight: 400;
   text-align: left;
 }
 
@@ -111,26 +106,24 @@
 
 .payment-method-option:focus-visible,
 .payment-back-button:focus-visible,
-.finish-payment-button:focus-visible,
 .payment-info-link:focus-visible,
 .workspace-key-link a:focus-visible {
   outline: 2px solid var(--astro-link);
   outline-offset: 4px;
 }
 
-.card-symbol {
-  width: 1.25rem;
-  height: 0.95rem;
-  color: var(--astro-text);
-}
-
+.card-symbol,
 .pix-symbol {
-  width: 1.15rem;
-  height: 1.15rem;
-  color: #31c8b7;
+  height: var(--astro-icon-sm);
+  flex: none;
 }
 
-.card-fields {
+.card-symbol {
+  height: calc(1.35rem * var(--astro-scale));
+}
+
+.card-fields,
+.pix-fields {
   display: grid;
   gap: 0.75rem;
   margin-top: 0.9rem;
@@ -153,17 +146,9 @@
 .security-icon {
   position: absolute;
   top: 50%;
-  right: 0.85rem;
-  width: 1rem;
-  height: 0.75rem;
-  color: #c8c3d2;
+  right: calc(0.85rem * var(--astro-scale));
+  height: var(--astro-icon-sm);
   transform: translateY(-50%);
-}
-
-.pix-fields {
-  display: grid;
-  gap: 0.75rem;
-  margin-top: 0.9rem;
 }
 
 .payment-info-link {
@@ -174,10 +159,7 @@
   color: var(--astro-link);
   background: none;
   cursor: pointer;
-  font-size: var(--payment-link-font-size);
-  font-weight: 400;
   text-align: left;
-  text-decoration: none;
 }
 
 .payment-info-link:hover {
@@ -192,7 +174,6 @@
 
 .payment-summary {
   width: 100%;
-  min-height: min(39vw, 35.1rem);
   padding: clamp(2rem, 4.55vw, 4.125rem);
   border-radius: 2.5rem;
   color: #e7e4ed;
@@ -218,20 +199,33 @@
 .feature-list li {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: calc(0.85rem * var(--astro-scale));
+  min-height: calc(1.65rem * var(--astro-scale));
   color: #e1dfe8;
-  font-size: var(--payment-body-font-size);
+  font-size: var(--astro-label-font-size);
+  font-weight: 400;
   line-height: 1.3;
 }
 
-.feature-icon {
-  display: inline-grid;
-  width: 1.35rem;
-  height: 1.35rem;
+.feature-icon-slot {
+  display: grid;
+  width: calc(1.6rem * var(--astro-scale));
+  height: calc(1.65rem * var(--astro-scale));
   flex: none;
   place-items: center;
-  color: #efedf3;
-  font-size: 1rem;
+}
+
+.feature-icon {
+  height: calc(1.4rem * var(--astro-scale));
+}
+
+.feature-icon.astro-icon--expiry {
+  height: calc(1.3rem * var(--astro-scale));
+}
+
+.feature-label {
+  min-width: 0;
+  transform: translateY(0.04em);
 }
 
 .summary-divider {
@@ -244,33 +238,22 @@
   justify-content: space-between;
   gap: 1rem;
   color: #e1dfe8;
-  font-size: var(--payment-body-font-size);
+  font-size: var(--astro-label-font-size);
+  font-weight: 400;
 }
 
 .payment-total strong {
   font-weight: 400;
 }
 
-.finish-payment-button {
-  width: 100%;
-  height: var(--astro-action-height);
-  margin-top: 0.8rem;
-  border: 0;
-  border-radius: var(--astro-control-radius);
-  color: #fff;
-  background: var(--astro-orb-accent);
-  cursor: pointer;
-  font-size: calc(clamp(0.85rem, 1.04vw, 0.95rem) * 0.9);
-  font-weight: 600;
-  transition: background 160ms ease, transform 160ms ease;
+.payment-summary .finish-payment-button {
+  margin: calc(1rem * var(--astro-scale)) auto 0;
 }
 
 .workspace-key-link {
-  margin: 0.7rem 0 0;
+  margin: calc(0.85rem * var(--astro-scale)) 0 0;
   color: #e1dfe8;
-  font-size: var(--payment-link-font-size);
   text-align: center;
-  white-space: nowrap;
 }
 
 .workspace-key-link a {
@@ -282,28 +265,19 @@
   text-decoration: underline;
 }
 
-
-@media (max-width: 850px) {
+@media (max-width: 980.99px) {
   .payment-page {
-    display: block;
-    min-height: 100svh;
-    padding: 2rem 1.5rem 6.5rem;
+    padding: clamp(8rem, 12vh, 9rem) clamp(1.75rem, 5vw, 3rem);
     overflow: visible;
-  }
-
-  .payment-heading {
-    margin-top: 2rem;
-  }
-
-  .payment-form {
-    width: 100%;
   }
 
   .payment-aside {
     margin-top: 2.5rem;
   }
+}
 
-  .payment-summary {
-    width: min(100%, 24rem);
+@media (max-width: 480px) {
+  .payment-back-button {
+    left: 1rem;
   }
 }

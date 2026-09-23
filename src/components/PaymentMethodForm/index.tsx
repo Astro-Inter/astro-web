@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import AstroIcon from '../AstroIcon'
 import ChargeExplanationModal from '../ChargeExplanationModal'
 import type { PaymentFormState, PaymentMethod } from '../../types'
+import { blockEmailWhitespaceInput, blockEmailWhitespaceKey, digitsOnly, formatCardExpiry, formatCardNumber, formatCpfCnpj, handleMaskedInput, sanitizeEmail } from '../../utils/inputFormatting'
 
 function PaymentMethodForm() {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('card')
@@ -38,8 +39,11 @@ function PaymentMethodForm() {
           <input
             autoComplete="email"
             id="payment-email"
+            maxLength={254}
             name="email"
-            onChange={(event) => updateField('email', event.target.value)}
+            onBeforeInput={blockEmailWhitespaceInput}
+            onChange={(event) => updateField('email', sanitizeEmail(event.target.value))}
+            onKeyDown={blockEmailWhitespaceKey}
             placeholder="seu.email@exemplo.com"
             type="email"
             value={formState.email}
@@ -78,8 +82,9 @@ function PaymentMethodForm() {
                 autoComplete="cc-number"
                 id="card-number"
                 inputMode="numeric"
+                maxLength={23}
                 name="card-number"
-                onChange={(event) => updateField('cardNumber', event.target.value)}
+                onChange={(event) => handleMaskedInput(event, formatCardNumber, (value) => updateField('cardNumber', value))}
                 placeholder="0000 0000 0000 0000"
                 value={formState.cardNumber}
               />
@@ -92,8 +97,9 @@ function PaymentMethodForm() {
                   autoComplete="cc-exp"
                   id="card-expiry"
                   inputMode="numeric"
+                  maxLength={7}
                   name="card-expiry"
-                  onChange={(event) => updateField('expiry', event.target.value)}
+                  onChange={(event) => handleMaskedInput(event, formatCardExpiry, (value) => updateField('expiry', value))}
                   placeholder="MM / AA"
                   value={formState.expiry}
                 />
@@ -105,8 +111,9 @@ function PaymentMethodForm() {
                     autoComplete="cc-csc"
                     id="card-security"
                     inputMode="numeric"
+                    maxLength={4}
                     name="card-security"
-                    onChange={(event) => updateField('securityCode', event.target.value)}
+                    onChange={(event) => updateField('securityCode', digitsOnly(event.target.value, 4))}
                     placeholder="CVV"
                     value={formState.securityCode}
                   />
@@ -123,9 +130,10 @@ function PaymentMethodForm() {
                 autoComplete="off"
                 id="pix-tax-id"
                 inputMode="numeric"
+                maxLength={18}
                 name="tax-id"
-                onChange={(event) => updateField('taxId', event.target.value)}
-                placeholder="0000 0000 0000 0000"
+                onChange={(event) => handleMaskedInput(event, formatCpfCnpj, (value) => updateField('taxId', value))}
+                placeholder="000.000.000-00"
                 value={formState.taxId}
               />
             </div>
@@ -135,6 +143,7 @@ function PaymentMethodForm() {
               <input
                 autoComplete="name"
                 id="pix-full-name"
+                maxLength={120}
                 name="full-name"
                 onChange={(event) => updateField('fullName', event.target.value)}
                 placeholder="Digite seu nome completo"

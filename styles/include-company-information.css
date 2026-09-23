@@ -1,14 +1,5 @@
-.include-company-page .company-information-form {
-  gap: clamp(0.75rem, 1.04vw, 0.95rem);
-}
-
-.include-company-page .field-group input:-webkit-autofill,
-.include-company-page .field-group input:-webkit-autofill:hover,
-.include-company-page .field-group input:-webkit-autofill:focus {
-  -webkit-text-fill-color: var(--astro-text);
-  box-shadow: 0 0 0 1000px var(--astro-field) inset;
-}
-
+/* Os tamanhos e o gap do formulário vêm de login.css; aqui só a respiração
+   extra da página no mobile. */
 @media (max-width: 850px) {
   .include-company-page {
     padding-top: 7rem;

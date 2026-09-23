@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import AstroIcon from '../AstroIcon'
+import PurpleButton from '../PurpleButton'
 
 interface SpreadsheetExplanationModalProps {
   onDismiss: () => void
@@ -32,7 +33,7 @@ function SpreadsheetExplanationModal({ onDismiss, open }: SpreadsheetExplanation
     <dialog
       aria-describedby="spreadsheet-explanation-subtitle"
       aria-labelledby="spreadsheet-explanation-title"
-      className="spreadsheet-explanation-modal"
+      className="spreadsheet-explanation-modal astro-scale-100"
       onClick={(event) => {
         if (event.target === event.currentTarget) event.currentTarget.close()
       }}
@@ -45,7 +46,7 @@ function SpreadsheetExplanationModal({ onDismiss, open }: SpreadsheetExplanation
       </p>
 
       <div className="spreadsheet-explanation-highlight">
-        <span className="spreadsheet-explanation-highlight-icon"><AstroIcon name="document" /></span>
+        <span className="spreadsheet-explanation-highlight-icon"><AstroIcon name="document" strokeScale={0.9} /></span>
         <div>
           <h3>Configuração rápida por planilha</h3>
           <p>Envie sua planilha e deixe o trabalho pesado com a gente. Organizamos as informações no Astro para agilizar seu dia a dia.</p>
@@ -94,13 +95,13 @@ function SpreadsheetExplanationModal({ onDismiss, open }: SpreadsheetExplanation
           </tbody>
         </table>
         <span className="spreadsheet-preview-download" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v3h16v-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <AstroIcon name="download" strokeScale={0.9} />
         </span>
       </div>
 
-      <button className="spreadsheet-explanation-confirm" onClick={() => dialogRef.current?.close()} type="button">
+      <PurpleButton className="spreadsheet-explanation-confirm" onClick={() => dialogRef.current?.close()}>
         Entendi
-      </button>
+      </PurpleButton>
     </dialog>
   )
 }

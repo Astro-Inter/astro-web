@@ -1,4 +1,4 @@
-import { AstroBrand } from '../../components'
+import { AstroBrand, PurpleButton } from '../../components'
 import { useNavigate } from 'react-router-dom'
 
 function AccessKeyVerifiedPage() {
@@ -6,7 +6,7 @@ function AccessKeyVerifiedPage() {
 
   return (
     <main className="access-verified-page">
-      <section className="access-verified-content" aria-labelledby="access-verified-title">
+      <section className="access-verified-content astro-scale-90" aria-labelledby="access-verified-title">
         <AstroBrand />
 
         <img
@@ -22,7 +22,7 @@ function AccessKeyVerifiedPage() {
           <p>Seu workspace está pronto. Siga os próximos passos<br className="access-verified-desktop-break" /> para personalizar a sua experiência.</p>
         </header>
 
-        <button className="access-verified-button" onClick={() => navigate('/createPassword')} type="button">Começar</button>
+        <PurpleButton className="access-verified-button" onClick={() => navigate('/createPassword')}>Começar</PurpleButton>
       </section>
     </main>
   )

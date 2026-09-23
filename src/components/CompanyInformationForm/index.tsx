@@ -1,48 +1,47 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import type { CompanyInformation } from '../../types/company'
 import { formatCnpj } from '../../utils/cnpj'
+import { handleMaskedInput } from '../../utils/inputFormatting'
+import FormField from '../FormField'
+import PageHeading from '../PageHeading'
+import PurpleButton from '../PurpleButton'
 
-function CompanyInformationForm() {
-  const navigate = useNavigate()
+interface CompanyInformationFormProps {
+  onContinue: () => void
+}
+
+function CompanyInformationForm({ onContinue }: CompanyInformationFormProps) {
   const [company, setCompany] = useState<CompanyInformation>({ name: '', cnpj: '' })
 
   return (
     <>
-      <header className="login-heading">
-        <h1 id="company-information-title">Dados da empresa</h1>
-        <p>Preencha os dados para continuar.</p>
-      </header>
+      <PageHeading description="Preencha os dados para continuar." title="Dados da empresa" titleId="company-information-title" />
 
-      <form className="company-information-form" noValidate onSubmit={(event) => { event.preventDefault(); navigate('/attachExcelFile') }}>
-        <div className="field-group">
-          <label htmlFor="company-name">Nome da empresa</label>
-          <input
+      <form className="company-information-form" noValidate onSubmit={(event) => { event.preventDefault(); onContinue() }}>
+        <FormField
             autoComplete="organization"
             id="company-name"
+            label="Nome da empresa"
             maxLength={120}
             onChange={(event) => setCompany((current) => ({ ...current, name: event.target.value }))}
             placeholder="Digite o nome da empresa"
             type="text"
             value={company.name}
           />
-        </div>
 
-        <div className="field-group">
-          <label htmlFor="company-cnpj">CNPJ</label>
-          <input
+        <FormField
             autoComplete="off"
             id="company-cnpj"
+            label="CNPJ"
             inputMode="numeric"
             maxLength={18}
-            onChange={(event) => setCompany((current) => ({ ...current, cnpj: formatCnpj(event.target.value) }))}
+            onChange={(event) => handleMaskedInput(event, formatCnpj, (cnpj) => setCompany((current) => ({ ...current, cnpj })))}
             placeholder="00.000.000/0000-00"
             type="text"
             value={company.cnpj}
           />
-        </div>
 
-        <button type="submit">Continuar</button>
+        <PurpleButton className="astro-form-action" type="submit">Continuar</PurpleButton>
       </form>
     </>
   )

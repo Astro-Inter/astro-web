@@ -10,6 +10,7 @@ import '../styles/global.css'
 import '../styles/login.css'
 import '../styles/create-workspace.css'
 import '../styles/access-key-verified.css'
+import '../styles/workspace-created.css'
 import '../styles/create-password.css'
 import '../styles/include-company-information.css'
 import '../styles/attach-excel-file.css'
@@ -19,6 +20,7 @@ import '../styles/charge-explanation.css'
 import '../styles/spreadsheet-explanation.css'
 import '../styles/loading-screen.css'
 import '../styles/set-address.css'
+import '../styles/not-found.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
