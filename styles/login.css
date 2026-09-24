@@ -1,0 +1,220 @@
+.login-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--astro-background);
+}
+
+.login-welcome {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  min-height: 100svh;
+  padding: clamp(3.5rem, 4.44vw, 4rem);
+  isolation: isolate;
+  overflow: visible;
+  animation: rise-in 0.55s ease both;
+}
+
+.welcome-orb {
+  position: absolute;
+  z-index: -1;
+  width: 190%;
+  aspect-ratio: 1;
+  top: 50%;
+  left: -90%;
+  filter: drop-shadow(0 0 1.25rem rgb(143 0 196 / 24%));
+  transform: translateY(-50%);
+}
+
+.welcome-orb-surface {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--astro-orb-base);
+}
+
+.welcome-orb-surface::after {
+  position: absolute;
+  inset: -28%;
+  background: radial-gradient(
+    ellipse 50% 50% at 82% 50%,
+    #4f1479 0%,
+    #44176c 30%,
+    #351c59 58%,
+    rgb(39 33 73 / 52%) 78%,
+    transparent 100%
+  );
+  content: "";
+  animation: orb-light 22s ease-in-out infinite;
+}
+
+@keyframes orb-light {
+  0%,
+  100% {
+    transform: translateY(46%);
+  }
+
+  50% {
+    transform: translateY(-46%);
+  }
+}
+
+/* Escala 0.9 pelo caminho do transform: cartão centralizado, a caixa real não
+   afeta o layout em volta. */
+.welcome-content {
+  width: min(100%, 34rem);
+  transform: scale(0.9);
+  transform-origin: left center;
+}
+
+.welcome-content h2 {
+  max-width: clamp(21.5rem, 27.5vw, 25rem);
+  margin: 0;
+  color: var(--astro-text);
+  font-size: clamp(2.35rem, 3.35vw, 3rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+}
+
+.welcome-content p {
+  max-width: 27rem;
+  margin: 1.05rem 0 0;
+  color: var(--astro-text-muted);
+  font-size: clamp(1.35rem, 2.1vw, 1.8rem);
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.login-panel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100svh;
+  padding: 3rem clamp(3.5rem, 4.44vw, 4rem);
+}
+
+/* Escala 0.9 pelos tokens (.astro-scale-90 no JSX), não por transform: a
+   animação de entrada rise-in anima transform e, com fill-mode both, o estado
+   final scale(1) sobrescreveria um transform: scale(0.9) declarado aqui. */
+.login-card {
+  width: min(100%, var(--astro-action-width));
+  animation: rise-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.astro-brand {
+  display: flex;
+  justify-content: center;
+}
+
+.astro-brand img {
+  display: block;
+  width: min(calc(12.5rem * var(--astro-scale)), 68vw);
+  height: auto;
+  object-fit: contain;
+  image-rendering: auto;
+}
+
+.login-heading {
+  margin-top: calc(clamp(1.5rem, 2vw, 1.8rem) * var(--astro-scale));
+  text-align: center;
+}
+
+.login-heading h1 {
+  margin: 0;
+  color: var(--astro-text);
+  font-size: var(--astro-heading-font-size);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+
+.login-heading p {
+  margin: calc(clamp(0.35rem, 0.5vw, 0.45rem) * var(--astro-scale)) 0 0;
+  color: var(--astro-text-muted);
+  font-size: var(--astro-subtitle-font-size);
+  font-weight: 400;
+}
+
+.login-form,
+.create-password-form,
+.company-information-form {
+  display: flex;
+  flex-direction: column;
+  gap: calc(clamp(0.75rem, 1.04vw, 0.95rem) * var(--astro-scale));
+  margin-top: calc(clamp(2rem, 2.67vw, 2.4rem) * var(--astro-scale));
+}
+
+/* Respiro entre o último campo e a ação do formulário. */
+.astro-form-action {
+  margin-top: calc(clamp(0.95rem, 1.22vw, 1.1rem) * var(--astro-scale));
+}
+
+.forgot-link {
+  align-self: flex-start;
+  margin-top: -0.05rem;
+  color: #c8c3d2;
+}
+
+.forgot-link:hover,
+.workspace-link a:hover {
+  text-decoration: underline;
+}
+
+.workspace-link {
+  margin: calc(clamp(0.65rem, 0.888vw, 0.8rem) * var(--astro-scale)) 0 0;
+  color: var(--astro-text-muted);
+  text-align: center;
+}
+
+.workspace-link a {
+  color: var(--astro-link);
+}
+
+@media (max-width: 850px) {
+  .login-page {
+    display: block;
+    overflow-x: clip;
+  }
+
+  .login-welcome {
+    min-height: 19rem;
+    padding: 2.5rem 1.5rem;
+    overflow: hidden;
+  }
+
+  .welcome-orb {
+    width: 170%;
+    top: 72%;
+    left: -62%;
+  }
+
+  .welcome-content {
+    align-self: flex-end;
+  }
+
+  .welcome-content h2 {
+    font-size: clamp(2rem, 9vw, 2.7rem);
+  }
+
+  .welcome-content p {
+    margin-top: 0.7rem;
+    font-size: 1.1rem;
+  }
+
+  .login-panel {
+    min-height: calc(100svh - 19rem);
+    padding: 5rem 1.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .astro-brand img {
+    width: min(9.75rem, 42vw);
+  }
+}

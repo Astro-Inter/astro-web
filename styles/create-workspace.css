@@ -1,0 +1,61 @@
+.create-workspace-page .welcome-content h2,
+.create-workspace-page .welcome-content p {
+  max-width: none;
+}
+
+.workspace-code-form {
+  display: grid;
+  margin-top: calc(clamp(1.8rem, 2.5vw, 2.2rem) * var(--astro-scale));
+}
+
+.workspace-code-fields {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: calc(clamp(0.35rem, 0.5vw, 0.45rem) * var(--astro-scale));
+  width: calc(100% + 2rem * var(--astro-scale));
+  min-width: 0;
+  margin: 0 calc(-1rem * var(--astro-scale));
+  padding: 0;
+  border: 0;
+}
+
+.workspace-code-cell {
+  min-width: 0;
+}
+
+.workspace-code-fields input {
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 0;
+  border: 1.7px solid #77718c;
+  border-radius: var(--astro-control-radius);
+  outline: none;
+  color: var(--astro-text);
+  background: transparent;
+  font-size: calc(clamp(1.1rem, 1.4vw, 1.28rem) * var(--astro-scale));
+  font-weight: 500;
+  text-align: center;
+  caret-color: var(--astro-text);
+}
+
+.workspace-code-fields input:focus {
+  border-color: #c8c3d2;
+  box-shadow: 0 0 0 1px rgb(200 195 210 / 30%);
+}
+
+/* O grid de dígitos pede mais respiro antes da ação do que os formulários. */
+.workspace-code-form .astro-form-action {
+  margin-top: calc(clamp(1.3rem, 2vw, 1.7rem) * var(--astro-scale));
+}
+
+@media (max-width: 600px) {
+  .create-workspace-desktop-break {
+    display: none;
+  }
+
+  .workspace-code-fields {
+    width: 100%;
+    margin-inline: 0;
+  }
+}

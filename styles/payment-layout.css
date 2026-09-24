@@ -1,0 +1,110 @@
+/* As duas colunas dividem a mesma linha do grid. O botão de voltar fica fora
+   do stage e não participa da altura usada para centralizá-las. */
+
+.payment-heading h1,
+.payment-summary h2,
+.finish-payment-button {
+  font-weight: 600;
+}
+
+@media (min-width: 981px) {
+  .payment-page {
+    display: block;
+    min-height: 100svh;
+    padding: 0;
+    overflow-x: clip;
+  }
+
+  .payment-stage {
+    --payment-summary-padding: clamp(1.75rem, 3.4vw, 3.15rem);
+    display: grid;
+    grid-template-columns: minmax(0, 39rem) calc(var(--astro-action-width) + var(--payment-summary-padding) + var(--payment-summary-padding));
+    align-items: stretch;
+    align-content: center;
+    justify-content: center;
+    gap: clamp(4rem, 7vw, 6rem);
+    width: min(100%, 90rem);
+    min-height: 100svh;
+    margin-inline: auto;
+    padding: clamp(7rem, 12vh, 8rem) clamp(5rem, 8vw, 8rem);
+  }
+
+  .payment-content,
+  .payment-aside {
+    min-width: 0;
+  }
+
+  .payment-aside {
+    align-self: stretch;
+  }
+
+  .payment-summary {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    padding: var(--payment-summary-padding);
+    border-radius: calc(2.25rem * var(--astro-scale));
+  }
+
+  .payment-summary h2 {
+    font-size: calc(var(--astro-heading-font-size) * 0.85);
+  }
+
+  .feature-list {
+    gap: calc(clamp(1.5rem, 2.1vw, 1.75rem) * var(--astro-scale));
+    margin: 0;
+  }
+
+  .summary-divider {
+    margin-bottom: 0;
+  }
+}
+
+/* Janelas baixas: comprime apenas os intervalos do formulário. */
+@media (min-width: 981px) and (max-height: 800px) {
+  .payment-divider {
+    margin-block: calc(1.5rem * var(--astro-scale));
+  }
+}
+
+@media (max-width: 980.99px) {
+  .payment-stage {
+    --payment-summary-padding: clamp(1.1rem, 4vw, 2.5rem);
+    position: relative;
+    width: 100%;
+    max-width: 40rem;
+    margin-inline: auto;
+  }
+
+  .payment-method-options,
+  .card-details-row {
+    gap: 0.75rem;
+  }
+
+  .payment-method-option {
+    height: var(--astro-control-height);
+    padding-inline: 1rem;
+  }
+
+  .payment-summary {
+    display: block;
+    width: min(100%, calc(var(--astro-action-width) + var(--payment-summary-padding) + var(--payment-summary-padding)));
+    height: auto;
+    min-height: 0;
+    padding: var(--payment-summary-padding);
+  }
+
+  .feature-list {
+    margin-block: 1.75rem;
+  }
+
+  .summary-divider {
+    margin-bottom: 1.5rem;
+  }
+
+  .payment-summary h2 {
+    font-size: clamp(1.15rem, 2.5vw, 1.35rem);
+  }
+}

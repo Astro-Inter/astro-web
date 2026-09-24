@@ -1,0 +1,16 @@
+.not-found-page {
+  display: grid;
+  min-height: 100svh;
+  padding: 2rem 1.5rem;
+  place-items: center;
+  background: var(--astro-background);
+}
+
+.not-found-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  width: min(100%, 32rem);
+  text-align: center;
+}

@@ -1,2 +1,11 @@
-// Páginas da aplicação serão exportadas por este módulo.
-export {}
+export { default as AccessKeyVerifiedPage } from './AccessKeyVerified'
+export { default as AttachExcelFilePage } from './AttachExcelFile'
+export { default as CreateWorkspacePage } from './CreateWorkspace'
+export { default as CreatePasswordPage } from './CreatePassword'
+export { default as IncludeCompanyInformationPage } from './IncludeCompanyInformation'
+export { default as LoadingScreenPage } from './LoadingScreen'
+export { default as LoginPage } from './Login'
+export { default as NotFoundPage } from './NotFound'
+export { default as PaymentMethodPage } from './PaymentMethod'
+export { default as SetAddressPage } from './SetAddress'
+export { default as WorkspaceCreatedPage } from './WorkspaceCreated'

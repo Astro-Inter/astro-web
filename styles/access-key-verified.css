@@ -1,0 +1,45 @@
+.access-verified-page {
+  display: grid;
+  min-height: 100svh;
+  padding: 2rem 1.5rem;
+  place-items: center;
+  background: var(--astro-background);
+}
+
+/* Escala 0.9 pelos tokens (.astro-scale-90 no JSX). Transform não serve aqui:
+   rise-in anima transform e o fill-mode both fixa scale(1) no fim. */
+.access-verified-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, calc(34rem * var(--astro-scale)));
+  text-align: center;
+  animation: rise-in 0.5s ease both;
+}
+
+.access-verified-illustration {
+  display: block;
+  width: min(calc(23.5rem * var(--astro-scale)), 100%);
+  height: auto;
+  margin-top: calc(0.9rem * var(--astro-scale));
+  animation: rise-in 0.7s ease both;
+}
+
+/* Geometria vem de .astro-action; aqui só o espaçamento da composição. */
+.access-verified-button {
+  margin-top: calc(clamp(2.5rem, 3.33vw, 3rem) * var(--astro-scale));
+}
+
+@media (max-width: 600px) {
+  .access-verified-page {
+    padding-block: 3rem;
+  }
+
+  .access-verified-illustration {
+    width: min(calc(20rem * var(--astro-scale)), 100%);
+  }
+
+  .access-verified-desktop-break {
+    display: none;
+  }
+}

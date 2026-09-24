@@ -1,0 +1,8 @@
+/* Os tamanhos e o gap do formulário vêm de login.css; aqui só a respiração
+   extra da página no mobile. */
+@media (max-width: 850px) {
+  .include-company-page {
+    padding-top: 7rem;
+    padding-bottom: 7rem;
+  }
+}
