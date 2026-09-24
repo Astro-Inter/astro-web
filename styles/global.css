@@ -313,6 +313,13 @@ main.payment-page {
   box-shadow: 0 0 0 1000px var(--astro-field) inset, 0 0 0 1px rgba(47, 46, 50, 0.22);
 }
 
+/* A seleção permanece dentro da paleta sem alterar a cor normal do texto. */
+input::selection,
+textarea::selection {
+  color: inherit;
+  background: #6c5994;
+}
+
 /* ============================================================================
    AÇÃO
    O botão roxo do produto. Era declarado seis vezes, com larguras

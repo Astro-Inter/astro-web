@@ -13,11 +13,12 @@ interface DataTableProps<Row> {
   ariaLabel: string
   columns: readonly DataTableColumn<Row>[]
   emptyMessage: string
+  getRowClassName?: (row: Row) => string | undefined
   getRowKey: (row: Row) => string
   rows: readonly Row[]
 }
 
-function DataTable<Row>({ ariaLabel, columns, emptyMessage, getRowKey, rows }: DataTableProps<Row>) {
+function DataTable<Row>({ ariaLabel, columns, emptyMessage, getRowClassName, getRowKey, rows }: DataTableProps<Row>) {
   return (
     <div className="astro-data-table-shell">
       <div className="astro-data-table-scroll" tabIndex={0} role="region" aria-label={`${ariaLabel}: deslize horizontalmente para ver todas as colunas`}>
@@ -30,7 +31,7 @@ function DataTable<Row>({ ariaLabel, columns, emptyMessage, getRowKey, rows }: D
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={getRowKey(row)}>
+              <tr className={getRowClassName?.(row)} key={getRowKey(row)}>
                 {columns.map((column) => {
                   const content = column.render(row)
                   return column.rowHeader

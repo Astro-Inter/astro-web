@@ -5,6 +5,7 @@ import AstroIcon from '../AstroIcon'
 interface ToolbarSelectOption {
   label: string
   triggerLabel?: string
+  tone?: 'default' | 'muted'
   value: string
 }
 
@@ -124,7 +125,7 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, o
           {options.map((option, index) => (
             <button
               aria-selected={option.value === value}
-              className="astro-toolbar-select-option"
+              className={`astro-toolbar-select-option${option.tone === 'muted' ? ' astro-toolbar-select-option--muted' : ''}`}
               key={option.value}
               onClick={() => choose(option.value)}
               ref={(element) => { optionRefs.current[index] = element }}

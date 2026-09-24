@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, DataTable, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import type { DataTableColumn } from '../../components/DataTable'
 import type { Position, PositionFormValues } from '../../types'
 
@@ -25,10 +25,14 @@ const initialPositions: Position[] = [
 
 const units = ['Sede 1', 'Sede 2']
 const statusFilterOptions = [
-  { value: '', label: 'Todos', triggerLabel: 'Status' },
+  { value: '', label: 'Todos', triggerLabel: 'Status', tone: 'muted' as const },
   { value: 'active', label: 'Ativo' },
   { value: 'inactive', label: 'Inativo' },
 ]
+
+type PositionDialogState =
+  | { kind: 'form'; position: Position | null }
+  | { kind: 'confirmation'; position: Position; values: PositionFormValues }
 
 function MainPositionScreenPage() {
   const dialogOriginRef = useRef<HTMLButtonElement | null>(null)
@@ -37,11 +41,29 @@ function MainPositionScreenPage() {
   const queuedActionsRef = useRef<(() => void) | null>(null)
   const [positions, setPositions] = useState<Position[]>(initialPositions)
   const [filters, setFilters] = useState({ search: '', status: '' })
-  const [dialog, setDialog] = useState<{ open: boolean; position: Position | null }>({ open: false, position: null })
+  const [dialog, setDialog] = useState<PositionDialogState | null>(null)
+  const [editorDimmed, setEditorDimmed] = useState(false)
+  const [editorClosing, setEditorClosing] = useState(false)
+  const [savedPositionId, setSavedPositionId] = useState<string | null>(null)
+  const saveAnimationTimerRef = useRef<number | null>(null)
   const [openActionsId, setOpenActionsId] = useState<string | null>(null)
   const [actionsMenuPosition, setActionsMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [feedback, setFeedback] = useState('')
   const { closing: actionsClosing, requestClose: requestActionsClose } = useAnimatedClose(160)
+
+  useEffect(() => () => {
+    if (saveAnimationTimerRef.current !== null) window.clearTimeout(saveAnimationTimerRef.current)
+  }, [])
+
+  function showSavedPosition(positionId: string, message: string) {
+    if (saveAnimationTimerRef.current !== null) window.clearTimeout(saveAnimationTimerRef.current)
+    setSavedPositionId(positionId)
+    setFeedback(message)
+    saveAnimationTimerRef.current = window.setTimeout(() => {
+      saveAnimationTimerRef.current = null
+      setSavedPositionId(null)
+    }, 900)
+  }
 
   const closeActions = useCallback((onFinished?: () => void, restoreFocus = true) => {
     requestActionsClose(() => {
@@ -97,25 +119,41 @@ function MainPositionScreenPage() {
   })
   const openPosition = visiblePositions.find((position) => position.id === openActionsId)
 
+  function closePositionForm() {
+    if (dialog?.kind === 'confirmation') return
+    setDialog(null)
+    setEditorDimmed(false)
+    setEditorClosing(false)
+    dialogOriginRef.current?.focus()
+  }
+
+  function checkDuplicatePosition(values: PositionFormValues, editingId?: string): string | null {
+    const name = values.name.trim().toLocaleLowerCase('pt-BR')
+    return positions.some((position) => position.id !== editingId && position.name.toLocaleLowerCase('pt-BR') === name)
+      ? 'Já existe um cargo com esse nome.'
+      : null
+  }
+
   function savePosition(values: PositionFormValues, editingId?: string): string | null {
     const name = values.name.trim()
-    const duplicate = positions.some((position) => position.id !== editingId && position.name.toLocaleLowerCase('pt-BR') === name.toLocaleLowerCase('pt-BR'))
-    if (duplicate) return 'Já existe um cargo com esse nome.'
+    const duplicateError = checkDuplicatePosition(values, editingId)
+    if (duplicateError) return duplicateError
 
     if (editingId) {
       setPositions((current) => current.map((position) => position.id === editingId
         ? { ...position, name, collaboratorCount: Number(values.collaboratorCount), unit: values.unit, active: values.active }
         : position))
-      setFeedback(`Cargo ${name} atualizado.`)
+      showSavedPosition(editingId, `Cargo ${name} atualizado.`)
     } else {
+      const newPositionId = crypto.randomUUID()
       setPositions((current) => [...current, {
-        id: crypto.randomUUID(),
+        id: newPositionId,
         name,
         collaboratorCount: Number(values.collaboratorCount),
         unit: values.unit,
         active: values.active,
       }])
-      setFeedback(`Cargo ${name} adicionado.`)
+      showSavedPosition(newPositionId, `Cargo ${name} adicionado.`)
     }
 
     return null
@@ -123,7 +161,7 @@ function MainPositionScreenPage() {
 
   function toggleStatus(position: Position) {
     setPositions((current) => current.map((item) => item.id === position.id ? { ...item, active: !item.active } : item))
-    setFeedback(`Cargo ${position.name} ${position.active ? 'desativado' : 'ativado'}.`)
+    showSavedPosition(position.id, `Cargo ${position.name} ${position.active ? 'desativado' : 'ativado'}.`)
   }
 
   const columns: DataTableColumn<Position>[] = [
@@ -137,7 +175,7 @@ function MainPositionScreenPage() {
     },
     {
       id: 'status', label: 'Status', width: '16.5%',
-      render: (position) => <span className={`position-status${position.active ? ' position-status--active' : ''}`}>{position.active ? 'Ativo' : 'Inativo'}</span>,
+      render: (position) => <span className={`position-status${position.active ? ' position-status--active' : ''}${position.id === savedPositionId ? ' position-status--saved' : ''}`}>{position.active ? 'Ativo' : 'Inativo'}</span>,
     },
     {
       id: 'actions', label: 'Ações', width: '13.5%', className: 'position-actions-cell',
@@ -199,7 +237,7 @@ function MainPositionScreenPage() {
           </header>
 
           <div aria-label="Ações e filtros dos cargos" className="position-toolbar" role="group">
-            <CompactPurpleButton onClick={(event) => { dialogOriginRef.current = event.currentTarget; setDialog({ open: true, position: null }) }} type="button">
+            <CompactPurpleButton onClick={(event) => { dialogOriginRef.current = event.currentTarget; setDialog({ kind: 'form', position: null }) }} type="button">
               <AstroIcon name="plus" />
               Adicionar cargo
             </CompactPurpleButton>
@@ -217,7 +255,7 @@ function MainPositionScreenPage() {
             </div>
           </div>
 
-          <DataTable ariaLabel="Cargos" columns={columns} emptyMessage="Nenhum cargo encontrado para esses filtros." getRowKey={(position) => position.id} rows={visiblePositions} />
+          <DataTable ariaLabel="Cargos" columns={columns} emptyMessage="Nenhum cargo encontrado para esses filtros." getRowClassName={(position) => position.id === savedPositionId ? 'astro-data-table-row--saved' : undefined} getRowKey={(position) => position.id} rows={visiblePositions} />
           <p className="sr-only" role="status">{feedback}</p>
         </section>
 
@@ -227,10 +265,10 @@ function MainPositionScreenPage() {
             closing={actionsClosing}
             id={`position-actions-${openPosition.id}`}
             items={[
-              { id: 'cancel', label: 'Cancelar', separatorAfter: true, onSelect: () => closeActions() },
+              { id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => closeActions() },
               { id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => closeActions(() => {
                 dialogOriginRef.current = actionsTriggerRef.current
-                setDialog({ open: true, position: openPosition })
+                setDialog({ kind: 'form', position: openPosition })
               }) },
               { id: 'manage-nrs', label: 'Gerenciar NRs', separatorAfter: true, onSelect: () => closeActions(() => {
                 setFeedback(`Gerenciamento de NRs para ${openPosition.name} estará disponível em breve.`)
@@ -247,12 +285,45 @@ function MainPositionScreenPage() {
         <AstroChat />
       </main>
 
-      {dialog.open && (
+      {dialog && (
         <PositionDialog
-          onClose={() => { setDialog({ open: false, position: null }); dialogOriginRef.current?.focus() }}
+          dimmed={editorDimmed}
+          onClose={closePositionForm}
+          onRequestConfirmation={(values, editingId) => {
+            const error = checkDuplicatePosition(values, editingId)
+            if (error) return error
+            if (!dialog.position) return 'Cargo não encontrado.'
+            setEditorDimmed(true)
+            setDialog({ kind: 'confirmation', position: dialog.position, values })
+            return null
+          }}
           onSave={savePosition}
+          open={!editorClosing}
           position={dialog.position}
           units={units}
+        />
+      )}
+      {dialog?.kind === 'confirmation' && (
+        <ConfirmationModal
+          confirmCloseDelay={60}
+          confirmLabel="Salvar"
+          onCancel={() => {
+            setEditorDimmed(false)
+            setDialog({ kind: 'form', position: dialog.position })
+          }}
+          onCancelRequest={() => setEditorDimmed(false)}
+          onConfirm={() => {
+            const error = savePosition(dialog.values, dialog.position.id)
+            if (!error) setEditorClosing(true)
+            return error
+          }}
+          onConfirmed={() => {
+            setDialog(null)
+            setEditorDimmed(false)
+            setEditorClosing(false)
+            requestAnimationFrame(() => dialogOriginRef.current?.focus())
+          }}
+          title="Deseja salvar as alterações deste cargo?"
         />
       )}
     </div>

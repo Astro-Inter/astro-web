@@ -19,10 +19,25 @@
 :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open]::backdrop { animation: astro-modal-backdrop-out 180ms ease-in both; }
 .astro-modal-title { margin: 0; font-size: var(--astro-heading-font-size); font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; }
 .astro-modal-title:focus { outline: none; }
+.astro-modal-actions { display: flex; justify-content: center; gap: 0.9rem; margin-top: 2.25rem; }
+.astro-modal-actions > button { flex: 1; width: min(100%, 16.7rem); max-width: 16.7rem; margin: 0; }
+.astro-modal-cancel { min-height: var(--astro-action-height); padding: 0 var(--astro-control-padding-inline); border: 0; border-radius: var(--astro-control-radius); color: var(--astro-text); background: #77718c; font: inherit; font-size: var(--astro-action-font-size); font-weight: 600; cursor: pointer; transition: color 180ms ease, background 180ms ease; }
+.astro-modal-cancel:hover { background: #8983a0; }
+.astro-modal :is(.astro-modal-cancel, .astro-action):focus-visible { outline: none; box-shadow: inset 0 0 0 2px rgb(248 247 252 / 70%); }
+.astro-confirmation-modal { --astro-modal-width: 43.3rem; }
+.astro-confirmation-modal[open] { animation: astro-confirmation-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.astro-confirmation-modal::backdrop { background: transparent; animation: none; }
+.astro-confirmation-modal .astro-modal-title { max-width: 31rem; }
+.astro-confirmation-error { margin: 1rem 0 0; color: #ffc4c8; font-size: 0.8rem; }
 
 @keyframes astro-modal-backdrop-fade {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes astro-confirmation-in {
+  from { opacity: 0; transform: translateY(0.4rem) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes astro-dialog-out {
@@ -43,4 +58,6 @@
 
 @media (max-width: 480px) {
   .astro-modal { padding: 1.5rem; }
+  .astro-modal-actions { flex-direction: column-reverse; align-items: stretch; }
+  .astro-modal-actions > button { width: 100%; max-width: none; }
 }

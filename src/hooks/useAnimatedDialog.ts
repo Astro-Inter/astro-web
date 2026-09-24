@@ -3,17 +3,19 @@ import { useAnimatedClose } from './useAnimatedClose'
 
 interface AnimatedDialogOptions {
   initialFocusRef?: RefObject<HTMLElement | null>
+  onDismissRequest?: () => void
   onClose: () => void
   open: boolean
 }
 
-export function useAnimatedDialog({ initialFocusRef, onClose, open }: AnimatedDialogOptions) {
+export function useAnimatedDialog({ initialFocusRef, onClose, onDismissRequest, open }: AnimatedDialogOptions) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const { closing, requestClose } = useAnimatedClose()
 
   const dismiss = useCallback(() => {
+    onDismissRequest?.()
     requestClose(() => dialogRef.current?.close())
-  }, [requestClose])
+  }, [onDismissRequest, requestClose])
 
   useEffect(() => {
     const dialog = dialogRef.current

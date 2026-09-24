@@ -6,13 +6,15 @@ interface AppModalProps {
   className?: string
   initialFocusRef?: RefObject<HTMLElement | null>
   onClose: () => void
+  onDismissRequest?: () => void
+  open?: boolean
   title: string
 }
 
-function AppModal({ children, className = '', initialFocusRef, onClose, title }: AppModalProps) {
+function AppModal({ children, className = '', initialFocusRef, onClose, onDismissRequest, open = true, title }: AppModalProps) {
   const titleId = useId()
   const titleRef = useRef<HTMLHeadingElement>(null)
-  const { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose } = useAnimatedDialog({ initialFocusRef: initialFocusRef ?? titleRef, onClose, open: true })
+  const { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose } = useAnimatedDialog({ initialFocusRef: initialFocusRef ?? titleRef, onClose, onDismissRequest, open })
 
   return (
     <dialog

@@ -6,19 +6,22 @@ import ToolbarSelect from '../ToolbarSelect'
 import AppModal from '../AppModal'
 
 const statusOptions = [
-  { value: '', label: 'Selecione o status' },
+  { value: '', label: 'Selecione o status', tone: 'muted' as const },
   { value: 'active', label: 'Ativo' },
   { value: 'inactive', label: 'Inativo' },
 ]
 
 interface PositionDialogProps {
+  dimmed?: boolean
   onClose: () => void
+  onRequestConfirmation: (values: PositionFormValues, editingId: string) => string | null
   onSave: (values: PositionFormValues, editingId?: string) => string | null
+  open?: boolean
   position: Position | null
   units: string[]
 }
 
-function PositionDialog({ onClose, onSave, position, units }: PositionDialogProps) {
+function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave, open = true, position, units }: PositionDialogProps) {
   const [values, setValues] = useState<PositionFormValues>(() => ({
     name: position?.name ?? '',
     collaboratorCount: String(position?.collaboratorCount ?? 0),
@@ -35,25 +38,28 @@ function PositionDialog({ onClose, onSave, position, units }: PositionDialogProp
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
-    const saveError = onSave({ ...values, name: values.name.trim() }, position?.id)
+    const preparedValues = { ...values, name: values.name.trim() }
+    const saveError = position
+      ? onRequestConfirmation(preparedValues, position.id)
+      : onSave(preparedValues)
     if (saveError) {
       setFormError(saveError)
       return
     }
 
-    dismiss()
+    if (!position) dismiss()
   }
 
   return (
-    <AppModal className="position-dialog" onClose={onClose} title={position ? 'Editar cargo' : 'Adicionar cargo'}>
-      {(dismiss) => <form noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
+    <AppModal className={`position-dialog${dimmed ? ' position-dialog--dimmed' : ''}`} onClose={onClose} open={open} title={position ? 'Editar cargo' : 'Adicionar cargo'}>
+      {(dismiss) => <form autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
         <div className="position-dialog-row">
           <div className="position-dialog-field">
             <label htmlFor="position-name">Nome do cargo</label>
             <input
               aria-describedby={errors.name ? 'position-name-error' : undefined}
               aria-invalid={Boolean(errors.name)}
-              autoComplete="organization-title"
+              autoComplete="off"
               id="position-name"
               maxLength={80}
               onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))}
@@ -80,8 +86,8 @@ function PositionDialog({ onClose, onSave, position, units }: PositionDialogProp
         </div>
         {formError && <p className="position-dialog-form-error" role="alert">{formError}</p>}
 
-        <div className="position-dialog-actions">
-          <button className="position-dialog-cancel" onClick={dismiss} type="button">Cancelar</button>
+        <div className="astro-modal-actions">
+          <button className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
           <PurpleButton type="submit">{position ? 'Salvar' : 'Adicionar'}</PurpleButton>
         </div>
       </form>}
