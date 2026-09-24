@@ -1,0 +1,32 @@
+import { useId, useRef, type ReactNode, type RefObject } from 'react'
+import { useAnimatedDialog } from '../../hooks/useAnimatedDialog'
+
+interface AppModalProps {
+  children: ReactNode | ((dismiss: () => void) => ReactNode)
+  className?: string
+  initialFocusRef?: RefObject<HTMLElement | null>
+  onClose: () => void
+  title: string
+}
+
+function AppModal({ children, className = '', initialFocusRef, onClose, title }: AppModalProps) {
+  const titleId = useId()
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  const { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose } = useAnimatedDialog({ initialFocusRef: initialFocusRef ?? titleRef, onClose, open: true })
+
+  return (
+    <dialog
+      aria-labelledby={titleId}
+      className={`astro-modal astro-scale-100${closing ? ' astro-dialog--closing' : ''}${className ? ` ${className}` : ''}`}
+      onCancel={handleCancel}
+      onClick={handleBackdropClick}
+      onClose={handleClose}
+      ref={dialogRef}
+    >
+      <h2 className="astro-modal-title" id={titleId} ref={titleRef} tabIndex={-1}>{title}</h2>
+      {typeof children === 'function' ? children(dismiss) : children}
+    </dialog>
+  )
+}
+
+export default AppModal

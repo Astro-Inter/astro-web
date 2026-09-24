@@ -1,6 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, DataTable, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { useAnimatedClose } from '../../hooks/useAnimatedClose'
+import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, DataTable, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import type { DataTableColumn } from '../../components/DataTable'
 import type { Position, PositionFormValues } from '../../types'
 
@@ -24,7 +25,7 @@ const initialPositions: Position[] = [
 
 const units = ['Sede 1', 'Sede 2']
 const statusFilterOptions = [
-  { value: '', label: 'Status' },
+  { value: '', label: 'Todos', triggerLabel: 'Status' },
   { value: 'active', label: 'Ativo' },
   { value: 'inactive', label: 'Inativo' },
 ]
@@ -33,32 +34,46 @@ function MainPositionScreenPage() {
   const dialogOriginRef = useRef<HTMLButtonElement | null>(null)
   const actionsTriggerRef = useRef<HTMLButtonElement | null>(null)
   const actionsPanelRef = useRef<HTMLDivElement | null>(null)
+  const queuedActionsRef = useRef<(() => void) | null>(null)
   const [positions, setPositions] = useState<Position[]>(initialPositions)
   const [filters, setFilters] = useState({ search: '', status: '' })
   const [dialog, setDialog] = useState<{ open: boolean; position: Position | null }>({ open: false, position: null })
   const [openActionsId, setOpenActionsId] = useState<string | null>(null)
   const [actionsMenuPosition, setActionsMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [feedback, setFeedback] = useState('')
+  const { closing: actionsClosing, requestClose: requestActionsClose } = useAnimatedClose(160)
+
+  const closeActions = useCallback((onFinished?: () => void, restoreFocus = true) => {
+    requestActionsClose(() => {
+      setOpenActionsId(null)
+      const queuedAction = queuedActionsRef.current
+      if (restoreFocus && !queuedAction) actionsTriggerRef.current?.focus()
+      const nextAction = queuedAction ?? onFinished
+      queuedActionsRef.current = null
+      nextAction?.()
+    })
+  }, [requestActionsClose])
 
   useEffect(() => {
     if (!openActionsId) return
 
     function closeOutside(event: PointerEvent) {
-      if (!(event.target instanceof Element) || !event.target.closest('[data-position-actions]')) {
-        setOpenActionsId(null)
+      if (event.target instanceof Element && event.target.closest('.position-actions-trigger')) return
+      if (!actionsPanelRef.current?.contains(event.target as Node) && !actionsTriggerRef.current?.contains(event.target as Node)) {
+        closeActions(undefined, false)
       }
     }
 
     window.addEventListener('pointerdown', closeOutside)
     window.addEventListener('scroll', closeOnScroll, true)
     window.addEventListener('resize', closeOnScroll)
-    function closeOnScroll() { setOpenActionsId(null) }
+    function closeOnScroll() { closeActions() }
     return () => {
       window.removeEventListener('pointerdown', closeOutside)
       window.removeEventListener('scroll', closeOnScroll, true)
       window.removeEventListener('resize', closeOnScroll)
     }
-  }, [openActionsId])
+  }, [closeActions, openActionsId])
 
   useLayoutEffect(() => {
     if (!openActionsId || !actionsTriggerRef.current || !actionsPanelRef.current) return
@@ -108,7 +123,6 @@ function MainPositionScreenPage() {
 
   function toggleStatus(position: Position) {
     setPositions((current) => current.map((item) => item.id === position.id ? { ...item, active: !item.active } : item))
-    setOpenActionsId(null)
     setFeedback(`Cargo ${position.name} ${position.active ? 'desativado' : 'ativado'}.`)
   }
 
@@ -133,7 +147,7 @@ function MainPositionScreenPage() {
           data-position-actions
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
-              setOpenActionsId(null)
+              closeActions()
               event.currentTarget.querySelector('button')?.focus()
             }
           }}
@@ -141,12 +155,28 @@ function MainPositionScreenPage() {
           <button
             aria-controls={openActionsId === position.id ? `position-actions-${position.id}` : undefined}
             aria-expanded={openActionsId === position.id}
+            aria-haspopup="menu"
             aria-label={`Ações para ${position.name}`}
             className="position-actions-trigger"
             onClick={(event) => {
+              if (openActionsId) {
+                if (openActionsId === position.id) {
+                  closeActions()
+                } else {
+                  const nextTrigger = event.currentTarget
+                  const openNext = () => {
+                    actionsTriggerRef.current = nextTrigger
+                    setActionsMenuPosition(null)
+                    setOpenActionsId(position.id)
+                  }
+                  if (actionsClosing) queuedActionsRef.current = openNext
+                  else closeActions(openNext, false)
+                }
+                return
+              }
               actionsTriggerRef.current = event.currentTarget
               setActionsMenuPosition(null)
-              setOpenActionsId((current) => current === position.id ? null : position.id)
+              setOpenActionsId(position.id)
             }}
             type="button"
           >
@@ -183,7 +213,7 @@ function MainPositionScreenPage() {
             />
 
             <div className="position-toolbar-selects">
-              <ToolbarSelect label="Filtrar por status" onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))} options={statusFilterOptions} value={filters.status} />
+              <ToolbarSelect label="Filtrar por status" onValueChange={(status) => setFilters((current) => ({ ...current, status }))} options={statusFilterOptions} value={filters.status} />
             </div>
           </div>
 
@@ -192,29 +222,25 @@ function MainPositionScreenPage() {
         </section>
 
         {openPosition && createPortal(
-          <div
-            className="position-actions-panel astro-scale-90"
-            data-position-actions
+          <OptionsPopup
+            ariaLabel={`Opções para ${openPosition.name}`}
+            closing={actionsClosing}
             id={`position-actions-${openPosition.id}`}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') {
-                setOpenActionsId(null)
-                actionsTriggerRef.current?.focus()
-              }
-            }}
-            ref={actionsPanelRef}
+            items={[
+              { id: 'cancel', label: 'Cancelar', separatorAfter: true, onSelect: () => closeActions() },
+              { id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => closeActions(() => {
+                dialogOriginRef.current = actionsTriggerRef.current
+                setDialog({ open: true, position: openPosition })
+              }) },
+              { id: 'manage-nrs', label: 'Gerenciar NRs', separatorAfter: true, onSelect: () => closeActions(() => {
+                setFeedback(`Gerenciamento de NRs para ${openPosition.name} estará disponível em breve.`)
+              }) },
+              { id: 'toggle-status', label: openPosition.active ? 'Inativar' : 'Ativar', tone: openPosition.active ? 'danger' : 'default', onSelect: () => closeActions(() => toggleStatus(openPosition)) },
+            ]}
+            onClose={() => closeActions()}
+            panelRef={actionsPanelRef}
             style={{ top: actionsMenuPosition?.top ?? 0, left: actionsMenuPosition?.left ?? 0, visibility: actionsMenuPosition ? 'visible' : 'hidden' }}
-          >
-            <button onClick={() => {
-              dialogOriginRef.current = actionsTriggerRef.current
-              setDialog({ open: true, position: openPosition })
-              setOpenActionsId(null)
-            }} type="button">Editar cargo</button>
-            <button onClick={() => {
-              toggleStatus(openPosition)
-              actionsTriggerRef.current?.focus()
-            }} type="button">{openPosition.active ? 'Desativar' : 'Ativar'} cargo</button>
-          </div>,
+          />,
           document.body,
         )}
 

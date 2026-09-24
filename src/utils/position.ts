@@ -4,9 +4,10 @@ export interface PositionValidationErrors {
   name?: string
   collaboratorCount?: string
   unit?: string
+  status?: string
 }
 
-export function validatePosition(values: PositionFormValues): PositionValidationErrors {
+export function validatePosition(values: PositionFormValues, status: string): PositionValidationErrors {
   const errors: PositionValidationErrors = {}
   const name = values.name.trim()
 
@@ -18,6 +19,7 @@ export function validatePosition(values: PositionFormValues): PositionValidation
   }
 
   if (!values.unit) errors.unit = 'Selecione uma unidade.'
+  if (status !== 'active' && status !== 'inactive') errors.status = 'Selecione o status.'
 
   return errors
 }

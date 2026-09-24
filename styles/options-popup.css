@@ -1,0 +1,56 @@
+.astro-options-popup {
+  position: fixed;
+  z-index: 20;
+  width: calc(13.2rem * var(--astro-popup-zoom));
+  padding: calc(1.5rem * var(--astro-popup-zoom)) calc(2.5rem * var(--astro-popup-zoom));
+  border: 0;
+  border-radius: calc(0.625rem * var(--astro-popup-zoom));
+  color: var(--astro-text);
+  background: #332754;
+  box-shadow: 0 16px 44px rgb(0 0 0 / 22%);
+  font-family: "Montserrat", sans-serif;
+  animation: astro-options-popup-in 160ms ease-out both;
+}
+
+.astro-options-popup-item {
+  position: relative;
+  display: block;
+  width: calc(100% + 1rem * var(--astro-popup-zoom));
+  min-height: calc(3.4rem * var(--astro-popup-zoom));
+  margin-inline: calc(-0.5rem * var(--astro-popup-zoom));
+  padding: 0 calc(0.5rem * var(--astro-popup-zoom));
+  border: 0;
+  border-radius: calc(0.35rem * var(--astro-popup-zoom));
+  color: var(--astro-text);
+  background: transparent;
+  font: inherit;
+  font-size: calc(var(--astro-label-font-size-base) * var(--astro-popup-zoom));
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.astro-options-popup-item--separated::after { position: absolute; right: 3px; bottom: 0; left: 3px; border-bottom: 1px solid #70628a; content: ''; }
+.astro-options-popup-item--danger { color: #e65a61; }
+.astro-options-popup-item:hover,
+.astro-options-popup-item:focus-visible { color: #fff; background: rgb(255 255 255 / 12%); outline: none; }
+.astro-options-popup-item--danger:hover,
+.astro-options-popup-item--danger:focus-visible { color: #e65a61; }
+
+@keyframes astro-options-popup-in {
+  from { opacity: 0; transform: translateY(-0.2rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.astro-options-popup--closing { pointer-events: none; animation: astro-options-popup-out 160ms ease-in both; }
+
+@keyframes astro-options-popup-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-0.2rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astro-options-popup { animation: none; transition: none; }
+}

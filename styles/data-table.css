@@ -1,6 +1,6 @@
 .astro-data-table-shell { --astro-data-table-radius: calc(1.6rem * var(--astro-scale)); --astro-data-table-surface: #211b40; --astro-data-table-divider: #322257; --astro-data-table-text: #c9c4d3; min-width: 0; overflow: hidden; border-radius: var(--astro-data-table-radius); background: var(--astro-data-table-surface); }
 .astro-data-table-scroll { max-height: calc(27.4rem * var(--astro-scale)); overflow: auto; overscroll-behavior: contain; }
-.astro-data-table-scroll:focus-visible { outline: 2px solid var(--astro-link); outline-offset: -2px; }
+.astro-data-table-scroll:focus-visible { outline: none; box-shadow: inset 0 0 0 1px var(--astro-focus-border); }
 .astro-data-table-scroll::-webkit-scrollbar { width: 0.55rem; height: 0.55rem; }
 .astro-data-table-scroll::-webkit-scrollbar-button { display: none; }
 .astro-data-table-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -13,8 +13,8 @@
 .astro-data-table tbody th { color: var(--astro-data-table-text, #c9c4d3); }
 .astro-truncated-text { display: block; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: clip; white-space: nowrap; }
 .astro-truncated-text[data-truncated="true"] { cursor: default; }
-.astro-truncated-tooltip { position: fixed; z-index: 2147483647; display: block; width: max-content; max-width: min(28rem, calc(100vw - 1rem)); padding: calc(0.85rem * var(--astro-scale)) calc(1rem * var(--astro-scale)); border: 0; border-radius: 0.625rem; color: #f8f7fc; background: #332754; box-shadow: 0 16px 44px rgb(0 0 0 / 22%); font-size: var(--astro-control-font-size, 0.9rem); line-height: 1.3; pointer-events: none; white-space: normal; overflow-wrap: anywhere; animation: astro-truncated-tooltip-in 140ms ease-out both; }
-@keyframes astro-truncated-tooltip-in { from { opacity: 0; transform: translateY(0.25rem) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.astro-truncated-tooltip { position: fixed; z-index: 2147483647; display: block; width: max-content; max-width: min(28rem, calc(100vw - 1rem)); padding: calc(0.85rem * var(--astro-scale)) calc(1rem * var(--astro-scale)); border: 0; border-radius: 0.625rem; color: #f8f7fc; background: #332754; box-shadow: 0 16px 44px rgb(0 0 0 / 22%); font-size: var(--astro-control-font-size, 0.9rem); line-height: 1.3; pointer-events: none; white-space: normal; overflow-wrap: anywhere; opacity: 0; transform: translateY(0.25rem) scale(0.98); transition: opacity 140ms ease, transform 140ms ease; }
+.astro-truncated-tooltip--visible { opacity: 1; transform: translateY(0) scale(1); }
 .astro-data-table-empty { padding: 2rem 1rem !important; color: var(--astro-data-table-text, #c9c4d3); text-align: center; }
 
 @media (max-width: 1050px) {

@@ -40,6 +40,8 @@
   --astro-text: #f8f7fc;
   --astro-text-muted: #888888;
   --astro-link: #00a7c7;
+  --astro-focus-border: rgb(248 247 252 / 65%);
+  --astro-focus-surface: rgb(255 255 255 / 11%);
 
   /* Valores base, sempre a 100%. Só estes devem ser editados. */
   --astro-control-height-base: clamp(2.9rem, 4vw, 3.55rem);
@@ -350,8 +352,8 @@ main.payment-page {
 }
 
 .astro-action:focus-visible {
-  outline: 2px solid var(--astro-link);
-  outline-offset: 4px;
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--astro-focus-border);
 }
 
 /* Secundária: mesma geometria, contorno tracejado. */
@@ -425,8 +427,9 @@ main.payment-page {
 .forgot-link:focus-visible,
 .workspace-link a:focus-visible,
 .help-link:focus-visible {
-  outline: 2px solid var(--astro-link);
-  outline-offset: 4px;
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
 }
 
 /* No canto inferior da página (ou do painel nas telas divididas). Assim o link

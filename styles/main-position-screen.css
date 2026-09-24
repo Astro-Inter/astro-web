@@ -30,7 +30,7 @@
 .position-toolbar .astro-action--compact { white-space: nowrap; }
 .position-toolbar .astro-action--compact .astro-icon--plus { filter: brightness(0) invert(1); }
 .position-toolbar-selects { display: flex; gap: calc(clamp(0.75rem, 1.04vw, 0.95rem) * var(--astro-scale)); margin-left: auto; }
-.position-actions-trigger:focus-visible, .position-actions-panel button:focus-visible { outline: 2px solid var(--astro-link); outline-offset: 3px; }
+.position-actions-trigger:focus-visible { outline: none; background: #68488f; box-shadow: inset 0 0 0 1px var(--astro-focus-border); }
 
 .position-status { display: inline-flex; align-items: center; justify-content: center; min-width: calc(8rem * var(--astro-scale)); min-height: calc(2.3rem * var(--astro-scale)); padding: calc(0.3rem * var(--astro-scale)) calc(1.4rem * var(--astro-scale)); border-radius: 999px; color: var(--astro-text); background: #696975; font-size: calc(var(--astro-label-font-size) * 1.05); font-weight: 500; text-align: center; }
 .position-status--active { background: #2f7143; }
@@ -43,33 +43,26 @@
   .position-actions-dots { --position-dot-size: round(nearest, max(4px, calc(0.24rem * var(--astro-scale))), 1px); --position-dot-gap: round(nearest, max(4px, calc(0.3rem * var(--astro-scale))), 1px); }
 }
 .position-actions-trigger:hover, .position-actions-trigger[aria-expanded="true"] { background: #68488f; }
-.position-actions-panel { position: fixed; z-index: 10; min-width: 11rem; padding: 0.35rem; border: 1px solid #675487; border-radius: var(--astro-control-radius); background: #30244e; box-shadow: 0 0.8rem 1.7rem rgb(0 0 0 / 30%); text-align: left; }
-.position-actions-panel button { display: block; width: 100%; padding: 0.55rem 0.65rem; border: 0; border-radius: var(--astro-control-radius); color: var(--astro-text); background: transparent; font-size: var(--astro-control-font-size); text-align: left; cursor: pointer; }
-.position-actions-panel button:hover { background: #4f3970; }
-.position-dialog { width: min(36rem, calc((100vw - 2rem) / var(--astro-popup-zoom))); max-height: calc((100dvh - 2rem) / var(--astro-popup-zoom)); margin: auto; overflow: auto; padding: 2.25rem 2.75rem; border: 0; border-radius: 0.625rem; color: var(--astro-text); background: #332754; box-shadow: 0 1rem 2.75rem rgb(0 0 0 / 22%); zoom: var(--astro-popup-zoom); }
-.position-dialog::backdrop { background: rgb(0 0 0 / 25%); }
-.position-dialog-heading { position: relative; display: flex; align-items: center; justify-content: center; padding-inline: 2rem; }
-.position-dialog h2 { margin: 0; font-size: var(--astro-heading-font-size); font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; text-align: center; }
-.position-dialog-subtitle { margin: calc(clamp(0.35rem, 0.5vw, 0.45rem) * var(--astro-scale)) 0 1.75rem; color: var(--position-text-muted); font-size: var(--astro-subtitle-font-size); line-height: normal; text-align: center; }
-.position-dialog-close { position: absolute; right: 0; display: grid; width: 2.25rem; height: 2.25rem; padding: 0; place-items: center; border: 0; border-radius: var(--astro-control-radius); background: transparent; cursor: pointer; }
-.position-dialog-close:hover { background: rgb(255 255 255 / 10%); }
-.position-dialog-close .astro-icon { height: var(--astro-icon-sm); }
-.position-dialog-field { display: flex; flex: 1; flex-direction: column; gap: var(--astro-field-gap); min-width: 0; margin-bottom: calc(clamp(0.75rem, 1.04vw, 0.95rem) * var(--astro-scale)); }
-.position-dialog-field label { color: #d3cfdd; font-size: var(--astro-label-font-size); font-weight: 400; line-height: 1.2; }
-.position-dialog-field input, .position-dialog-field select { width: 100%; min-height: var(--astro-control-height); padding: 0 var(--astro-control-padding-inline); border: 1px solid transparent; border-radius: var(--astro-control-radius); color: var(--astro-text); background: var(--astro-field); font-size: var(--astro-control-font-size); }
+.position-dialog { --astro-modal-width: 47.75rem; overflow: visible; }
+.position-dialog-row { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 0.9rem; margin-top: 2rem; }
+.position-dialog-field { display: flex; flex-direction: column; gap: var(--astro-field-gap); min-width: 0; }
+.position-dialog-field label,
+.position-dialog-label { color: #d3cfdd; font-size: var(--astro-label-font-size); font-weight: 400; line-height: 1.2; }
+.position-dialog-field input { width: 100%; min-height: var(--astro-control-height); padding: 0 var(--astro-control-padding-inline); border: 1px solid transparent; border-radius: var(--astro-control-radius); color: var(--astro-text); background: var(--astro-field); font-family: inherit; font-size: var(--astro-control-font-size); }
 .position-dialog-field input::placeholder { color: var(--astro-placeholder); }
-.position-dialog-field :is(input, select):focus { border-color: var(--astro-text-muted); box-shadow: 0 0 0 1px rgb(47 46 50 / 22%); outline: none; }
+.position-dialog-field input:focus { border-color: var(--astro-text-muted); box-shadow: 0 0 0 1px rgb(47 46 50 / 22%); outline: none; }
 .position-dialog-field input[aria-invalid="true"] { border-color: #f18188; }
-.position-dialog-field span, .position-dialog-form-error { color: #ffc4c8 !important; font-size: 0.8rem !important; }
-.position-dialog-form-error { margin: 0 0 1rem; }
-.position-dialog-row { display: flex; gap: calc(clamp(0.75rem, 1.04vw, 0.95rem) * var(--astro-scale)); }
-.position-dialog-check { display: inline-flex; align-items: center; gap: 0.55rem; margin-bottom: 1.6rem; color: #d3cfdd; font-size: var(--astro-label-font-size); font-weight: 400; line-height: 1.2; cursor: pointer; }
-.position-dialog-check input { width: var(--astro-icon-sm); height: var(--astro-icon-sm); accent-color: var(--astro-orb-accent); }
-.position-dialog-actions { display: flex; flex-direction: column-reverse; align-items: center; gap: calc(clamp(0.75rem, 1.04vw, 0.95rem) * var(--astro-scale)); margin-top: calc(clamp(0.95rem, 1.22vw, 1.1rem) * var(--astro-scale)); }
-.position-dialog-actions .astro-action { width: min(100%, var(--astro-action-width)); margin: 0; }
-.position-dialog-cancel { width: min(100%, var(--astro-action-width)); min-height: var(--astro-action-height); padding: 0 var(--astro-control-padding-inline); border: 1px solid #76698b; border-radius: var(--astro-control-radius); color: var(--astro-text); background: transparent; font-size: var(--astro-action-font-size); font-weight: 600; cursor: pointer; }
-.position-dialog-cancel:hover { background: #38304e; }
-.position-dialog :is(input, select, button):focus-visible { outline: 2px solid var(--astro-link); outline-offset: 2px; }
+.position-dialog-field [role="alert"],
+.position-dialog-form-error { color: #ffc4c8; font-size: 0.8rem; }
+.position-dialog-form-error { margin: 1rem 0 0; }
+.position-dialog-select { width: 100%; min-width: 0; height: var(--astro-control-height); }
+.position-dialog-select .astro-toolbar-select-trigger { height: var(--astro-control-height); }
+.position-dialog-select--placeholder .astro-toolbar-select-trigger > span { color: var(--astro-placeholder); }
+.position-dialog-actions { display: flex; justify-content: center; gap: 0.9rem; margin-top: 2.25rem; }
+.position-dialog-actions > button { flex: 1; width: min(100%, 16.7rem); max-width: 16.7rem; margin: 0; }
+.position-dialog-cancel { min-height: var(--astro-action-height); padding: 0 var(--astro-control-padding-inline); border: 0; border-radius: var(--astro-control-radius); color: var(--astro-text); background: #6c6689; font: inherit; font-size: var(--astro-action-font-size); font-weight: 600; cursor: pointer; }
+.position-dialog-cancel:hover { background: #7e789b; }
+.position-dialog :is(.position-dialog-cancel, .astro-action):focus-visible { outline: none; box-shadow: inset 0 0 0 2px rgb(248 247 252 / 70%); }
 
 @media (max-width: 1050px) {
   .position-toolbar { flex-wrap: wrap; }
@@ -96,9 +89,12 @@
   .position-toolbar .astro-action--compact, .position-toolbar .astro-toolbar-search { width: 100%; max-width: none; }
   .position-toolbar-selects { width: 100%; }
   .position-toolbar-selects .astro-toolbar-select { width: 100%; }
-  .position-dialog { padding: 1.5rem; }
-  .position-dialog-row { display: block; }
+  .position-dialog-row { grid-template-columns: 1fr; gap: 1rem; }
   .position-dialog-actions { flex-direction: column-reverse; align-items: stretch; }
-  .position-dialog-actions .astro-action, .position-dialog-cancel { width: 100%; }
+  .position-dialog-actions > button { width: 100%; max-width: none; }
+}
+
+@media (max-height: 500px) {
+  .position-dialog { overflow: auto; }
 }
 

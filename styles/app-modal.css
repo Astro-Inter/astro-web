@@ -1,0 +1,46 @@
+.astro-modal {
+  width: min(var(--astro-modal-width, 44.25rem), calc((100vw - 2rem) / var(--astro-popup-zoom)));
+  max-height: calc((100dvh - 2rem) / var(--astro-popup-zoom));
+  margin: auto;
+  overflow: auto;
+  padding: 2.75rem 3.75rem 2.625rem;
+  border: 0;
+  border-radius: 0.625rem;
+  color: var(--astro-text);
+  background: #332754;
+  box-shadow: 0 16px 44px rgb(0 0 0 / 22%);
+  font-family: "Montserrat", sans-serif;
+  zoom: var(--astro-popup-zoom);
+}
+
+.astro-modal[open] { animation: rise-in 0.22s ease both; }
+.astro-modal::backdrop { background: rgb(0 0 0 / 25%); animation: astro-modal-backdrop-fade 0.2s ease both; }
+:is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open] { pointer-events: none; animation: astro-dialog-out 180ms ease-in both; }
+:is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open]::backdrop { animation: astro-modal-backdrop-out 180ms ease-in both; }
+.astro-modal-title { margin: 0; font-size: var(--astro-heading-font-size); font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; }
+.astro-modal-title:focus { outline: none; }
+
+@keyframes astro-modal-backdrop-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes astro-dialog-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: translateY(0.4rem) scale(0.98); }
+}
+
+@keyframes astro-modal-backdrop-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open],
+  :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open]::backdrop,
+  .astro-modal[open], .astro-modal::backdrop { animation: none; }
+}
+
+@media (max-width: 480px) {
+  .astro-modal { padding: 1.5rem; }
+}

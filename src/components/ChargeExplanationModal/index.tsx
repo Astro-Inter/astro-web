@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import { useAnimatedDialog } from '../../hooks/useAnimatedDialog'
 import AstroIcon from '../AstroIcon'
 import PurpleButton from '../PurpleButton'
 
@@ -8,30 +9,17 @@ interface ChargeExplanationModalProps {
 }
 
 function ChargeExplanationModal({ onDismiss, open }: ChargeExplanationModalProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
-
-  useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-
-    if (open && !dialog.open) {
-      dialog.showModal()
-      dialog.scrollTop = 0
-      titleRef.current?.focus({ preventScroll: true })
-    }
-    if (!open && dialog.open) dialog.close()
-  }, [open])
+  const { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose } = useAnimatedDialog({ initialFocusRef: titleRef, onClose: onDismiss, open })
 
   return (
     <dialog
       aria-describedby="charge-explanation-subtitle"
       aria-labelledby="charge-explanation-title"
-      className="charge-explanation-modal astro-scale-100"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) event.currentTarget.close()
-      }}
-      onClose={onDismiss}
+      className={`charge-explanation-modal astro-scale-100${closing ? ' astro-dialog--closing' : ''}`}
+      onCancel={handleCancel}
+      onClick={handleBackdropClick}
+      onClose={handleClose}
       ref={dialogRef}
     >
       <h2 id="charge-explanation-title" ref={titleRef} tabIndex={-1}>Como funciona a cobrança do Astro?</h2>
@@ -63,7 +51,7 @@ function ChargeExplanationModal({ onDismiss, open }: ChargeExplanationModalProps
         </li>
       </ul>
 
-      <PurpleButton className="charge-explanation-confirm" onClick={() => dialogRef.current?.close()}>
+      <PurpleButton className="charge-explanation-confirm" onClick={dismiss}>
         Entendi
       </PurpleButton>
     </dialog>

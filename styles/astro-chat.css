@@ -42,7 +42,7 @@
 .astro-chat-form button { flex: none; width: 10cqw; height: 10cqw; padding: 0; border: 0; background: transparent; cursor: pointer; }
 .astro-chat-form button:disabled { opacity: 0.65; cursor: default; }
 .astro-chat-form button img { display: block; width: 100%; height: 100%; object-fit: contain; }
-.astro-chat button:focus-visible { outline: 2px solid var(--astro-link); outline-offset: 3px; }
+.astro-chat button:focus-visible { outline: none; filter: brightness(1.12); }
 .astro-chat .astro-chat-launcher:focus-visible { outline: none; background: #6c5994; }
 .astro-chat-form input:focus-visible { outline: none; box-shadow: none; background: #5b4a82; }
 
