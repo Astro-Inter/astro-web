@@ -19,6 +19,17 @@ type AstroIconName =
   | 'security'
   | 'trash'
   | 'upload'
+  | 'home'
+  | 'managers'
+  | 'collaborators'
+  | 'compliance'
+  | 'position'
+  | 'event-calendar'
+  | 'settings'
+  | 'search'
+  | 'chevron-down'
+  | 'close'
+  | 'dots'
 
 // Os arquivos têm proporções e espaços internos diferentes. O CSS define a
 // altura visual de cada uso; width: auto conserva a proporção original.
@@ -43,6 +54,18 @@ const iconFiles: Record<AstroIconName, { file: string; width: number; height: nu
   security: { file: 'wallet.svg', width: 29, height: 24 },
   trash: { file: 'trash.svg', width: 20, height: 22 },
   upload: { file: 'upload.svg', width: 24, height: 26 },
+  home: { file: 'home.svg', width: 27, height: 27 },
+  managers: { file: 'managers.svg', width: 27, height: 27 },
+  // O arquivo foi substituído mantendo o nome; a revisão invalida o cache anterior.
+  collaborators: { file: 'collaborators.svg?v=2', width: 29, height: 24 },
+  compliance: { file: 'compliance.svg?v=2', width: 27, height: 27 },
+  position: { file: 'positions.svg', width: 27, height: 27 },
+  'event-calendar': { file: 'calendar2.svg', width: 27, height: 27 },
+  settings: { file: 'settings.svg', width: 27, height: 29 },
+  search: { file: 'search.svg', width: 25, height: 25 },
+  'chevron-down': { file: 'chevron-down.svg', width: 22, height: 13 },
+  close: { file: 'across.svg', width: 21, height: 21 },
+  dots: { file: 'dots.svg', width: 21, height: 5 },
 }
 
 interface AstroIconProps {

@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
-import { AccessKeyVerifiedPage, AttachExcelFilePage, CreatePasswordPage, CreateWorkspacePage, IncludeCompanyInformationPage, LoadingScreenPage, LoginPage, NotFoundPage, PaymentMethodPage, SetAddressPage, WorkspaceCreatedPage } from '../pages'
+import { AccessKeyVerifiedPage, AttachExcelFilePage, CreatePasswordPage, CreateWorkspacePage, IncludeCompanyInformationPage, LoadingScreenPage, LoginPage, MainPositionScreenPage, NotFoundPage, PaymentMethodPage, SetAddressPage, WorkspaceCreatedPage } from '../pages'
 
 function AppRoutes() {
   return (
@@ -14,6 +14,7 @@ function AppRoutes() {
       <Route path="/loadingScreen" element={<LoadingScreenPage />} />
       <Route path="/setAddress" element={<SetAddressPage />} />
       <Route path="/workspaceCreated" element={<WorkspaceCreatedPage />} />
+      <Route path="/mainPositionScreen" element={<MainPositionScreenPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )

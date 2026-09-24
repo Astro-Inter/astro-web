@@ -1,3 +1,4 @@
 export type { WorkspaceAddressField, WorkspaceAddressState, WorkspaceUnitAddress } from './address'
 export type { CompanyInformation } from './company'
 export type { PaymentFormState, PaymentMethod } from './payment'
+export type { Position, PositionFormValues } from './position'

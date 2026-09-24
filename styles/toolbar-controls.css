@@ -1,0 +1,85 @@
+/* Controles compactos para barras de ações. Herdam a escala e as cores do produto. */
+.astro-action--compact {
+  width: max-content;
+  flex: none;
+}
+
+.astro-toolbar-search,
+.astro-toolbar-select select {
+  height: var(--astro-action-height);
+  border: 1px solid transparent;
+  border-radius: var(--astro-control-radius);
+  color: var(--astro-text);
+  background: var(--astro-field);
+  font-size: var(--astro-control-font-size);
+  font-weight: 400;
+}
+
+.astro-toolbar-search {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: calc(0.65rem * var(--astro-scale));
+  min-width: 10rem;
+  max-width: var(--astro-action-width);
+  padding: 0 var(--astro-control-padding-inline);
+}
+
+.astro-toolbar-search .astro-icon {
+  width: calc(1.3rem * var(--astro-scale));
+  height: calc(1.3rem * var(--astro-scale));
+}
+
+.astro-toolbar-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  appearance: none;
+  color: var(--astro-text);
+  background: transparent;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.astro-toolbar-search input::placeholder { color: var(--astro-placeholder); opacity: 1; }
+.astro-toolbar-search input::-webkit-search-cancel-button { display: none; }
+.astro-toolbar-search-clear { display: grid; flex: none; width: calc(1.7rem * var(--astro-scale)); height: calc(1.7rem * var(--astro-scale)); padding: 0; place-items: center; border: 0; border-radius: var(--astro-control-radius); background: transparent; cursor: pointer; }
+.astro-toolbar-search-clear:hover { background: rgb(255 255 255 / 10%); }
+.astro-toolbar-search-clear img { display: block; width: calc(0.95rem * var(--astro-scale)); height: calc(0.95rem * var(--astro-scale)); }
+.astro-toolbar-search-clear:focus-visible { outline: 2px solid var(--astro-link); outline-offset: 2px; }
+
+.astro-toolbar-select {
+  position: relative;
+  display: block;
+  min-width: 7.5rem;
+  height: var(--astro-action-height);
+}
+
+.astro-toolbar-select select {
+  width: 100%;
+  appearance: none;
+  padding: 0 calc(var(--astro-control-padding-inline) * 2.5) 0 var(--astro-control-padding-inline);
+  cursor: pointer;
+}
+
+.astro-toolbar-select .astro-icon {
+  position: absolute;
+  top: 50%;
+  right: var(--astro-control-padding-inline);
+  width: calc(1.3rem * var(--astro-scale));
+  height: auto;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.astro-toolbar-select option { background: var(--astro-field); }
+
+.astro-toolbar-search:focus-within,
+.astro-toolbar-select select:focus {
+  border-color: var(--astro-text-muted);
+  box-shadow: 0 0 0 1px rgb(47 46 50 / 22%);
+  outline: none;
+}

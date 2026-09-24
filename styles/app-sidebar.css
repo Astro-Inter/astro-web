@@ -1,0 +1,65 @@
+.app-sidebar {
+  --app-navigation-highlight: #38285f;
+  --app-sidebar-bottom-space: clamp(1.5rem, 3.2vh, 2.5rem);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100dvh;
+  padding: var(--app-sidebar-bottom-space) clamp(1.15rem, 2vw, 2.25rem);
+  padding-top: calc(var(--app-sidebar-bottom-space) + (var(--astro-control-height) - 1.8rem * var(--astro-scale)) / 2);
+  background: var(--astro-background);
+}
+
+.app-sidebar .astro-brand { margin: 0 0 clamp(2rem, 5vh, 3.25rem) 0.9rem; }
+.app-sidebar .astro-brand img { display: block; width: clamp(7rem, 10vw, 9.25rem); height: auto; }
+.app-navigation { flex: 1; }
+.app-navigation ul { display: flex; flex-direction: column; gap: 0.45rem; height: 100%; margin: 0; padding: 0; list-style: none; }
+.app-navigation li { min-width: 0; }
+.app-navigation-settings { margin-top: auto; }
+.app-navigation-link {
+  display: flex;
+  align-items: center;
+  gap: calc(clamp(0.7rem, 1vw, 0.95rem) * var(--astro-scale));
+  width: 100%;
+  min-height: var(--astro-control-height);
+  padding: calc(0.55rem * var(--astro-scale)) var(--astro-control-padding-inline);
+  border-radius: var(--astro-control-radius);
+  color: #f6f6f6;
+  font-size: var(--astro-subtitle-font-size);
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.app-navigation-icon { display: grid; flex: none; width: calc(1.8rem * var(--astro-scale)); height: calc(1.8rem * var(--astro-scale)); place-items: center; }
+.app-navigation-icon .astro-icon { width: calc(1.5rem * var(--astro-scale)); height: calc(1.5rem * var(--astro-scale)); object-fit: contain; }
+.app-navigation-icon .astro-icon--collaborators { width: calc(1.8rem * var(--astro-scale)); height: calc(1.8rem * var(--astro-scale)); }
+.app-navigation-icon .astro-icon--building,
+.app-navigation-icon .astro-icon--document,
+.app-navigation-icon .astro-icon--settings { width: calc(1.6rem * var(--astro-scale)); height: calc(1.6rem * var(--astro-scale)); }
+.app-navigation-icon .astro-icon--building { filter: brightness(0) invert(96.5%); }
+.app-navigation-label { display: inline-flex; align-items: center; min-height: calc(1.8rem * var(--astro-scale)); }
+.app-navigation-link--active { background: var(--app-navigation-highlight); }
+.app-navigation-link:not(.app-navigation-link--active):hover { background: var(--app-navigation-highlight); color: #f6f6f6; }
+.app-navigation-link--unavailable { cursor: pointer; }
+.app-navigation-link:focus-visible { outline: 2px solid var(--astro-link); outline-offset: 2px; }
+.app-mobile-header, .app-sidebar-backdrop { display: none; }
+
+.app-menu-toggle:focus-visible { outline: 2px solid var(--astro-link); outline-offset: 3px; }
+
+@media (max-width: 780px) {
+  .app-mobile-header { position: sticky; z-index: 8; top: 0; display: flex; align-items: center; gap: 1rem; height: 4.5rem; padding: 0 1.25rem; background: var(--astro-background); }
+  .app-mobile-header .astro-brand img { display: block; width: min(7.5rem, 42vw); height: auto; }
+  .app-menu-toggle { display: flex; flex-direction: column; justify-content: center; gap: 0.27rem; width: 2.5rem; height: 2.5rem; padding: 0.45rem; border: 0; border-radius: 0.35rem; background: transparent; cursor: pointer; }
+  .app-menu-toggle span { display: block; height: 2px; border-radius: 2px; background: #fff; }
+  .app-sidebar-backdrop { position: fixed; z-index: 8; inset: 4.5rem 0 0; display: block; width: 100%; border: 0; background: rgb(8 6 23 / 65%); }
+  .app-sidebar { position: fixed; z-index: 9; top: 4.5rem; bottom: 0; left: 0; width: min(17.5rem, 85vw); min-height: 0; overflow-y: auto; padding-top: 1.3rem; visibility: hidden; transform: translateX(-102%); transition: transform 180ms ease, visibility 180ms ease; }
+  .app-sidebar--open { visibility: visible; transform: translateX(0); }
+  .app-sidebar > .astro-brand { display: none; }
+  .app-navigation-settings { margin-top: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar { transition: none; }
+}
