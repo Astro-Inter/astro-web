@@ -9,7 +9,7 @@ interface AppModalProps {
   onClose: () => void
   onDismissRequest?: () => void
   open?: boolean
-  title: string
+  title: ReactNode
 }
 
 function AppModal({ children, className = '', dimmed = false, initialFocusRef, onClose, onDismissRequest, open = true, title }: AppModalProps) {

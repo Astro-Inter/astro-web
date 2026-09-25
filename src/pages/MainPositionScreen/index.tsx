@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, EditNrsDialog, NrsDialog, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, EditNrsDialog, NrRecommendationModal, NrsDialog, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import { defaultNrsRows } from '../../data/nrs'
 import type { DataTableColumn } from '../../components/DataTable'
-import type { Position, PositionFormValues } from '../../types'
+import type { NrsRow, Position, PositionFormValues } from '../../types'
 
 const initialPositions: Position[] = [
   { id: 'gerente', name: 'Gerente', collaboratorCount: 530, unit: 'Sede 1', active: true },
@@ -47,11 +47,19 @@ function MainPositionScreenPage() {
   const [nrsPosition, setNrsPosition] = useState<Position | null>(null)
   const [nrsEditing, setNrsEditing] = useState(false)
   const [nrsViewDimmed, setNrsViewDimmed] = useState(false)
+  const [nrsEditDimmed, setNrsEditDimmed] = useState(false)
+  const [nrsEditClosing, setNrsEditClosing] = useState(false)
+  const [pendingNrsIds, setPendingNrsIds] = useState<string[] | null>(null)
+  const [recommendation, setRecommendation] = useState<NrsRow | null>(null)
+  const [savedNrIds, setSavedNrIds] = useState<string[]>([])
+  const [pendingDeactivation, setPendingDeactivation] = useState<Position | null>(null)
   const [enabledNrsByPosition, setEnabledNrsByPosition] = useState<Record<string, string[]>>({})
   const [editorDimmed, setEditorDimmed] = useState(false)
   const [editorClosing, setEditorClosing] = useState(false)
   const [savedPositionId, setSavedPositionId] = useState<string | null>(null)
   const saveAnimationTimerRef = useRef<number | null>(null)
+  const nrsAnimationTimerRef = useRef<number | null>(null)
+  const changedNrsRef = useRef<string[]>([])
   const [openActionsId, setOpenActionsId] = useState<string | null>(null)
   const [actionsMenuPosition, setActionsMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [feedback, setFeedback] = useState('')
@@ -59,6 +67,7 @@ function MainPositionScreenPage() {
 
   useEffect(() => () => {
     if (saveAnimationTimerRef.current !== null) window.clearTimeout(saveAnimationTimerRef.current)
+    if (nrsAnimationTimerRef.current !== null) window.clearTimeout(nrsAnimationTimerRef.current)
   }, [])
 
   function showSavedPosition(positionId: string, message: string) {
@@ -281,7 +290,10 @@ function MainPositionScreenPage() {
                 setNrsViewDimmed(false)
                 setNrsPosition(openPosition)
               }) },
-              { id: 'toggle-status', label: openPosition.active ? 'Inativar' : 'Ativar', tone: openPosition.active ? 'danger' : 'default', onSelect: () => closeActions(() => toggleStatus(openPosition)) },
+              { id: 'toggle-status', label: openPosition.active ? 'Inativar' : 'Ativar', tone: openPosition.active ? 'danger' : 'default', onSelect: () => closeActions(() => {
+                if (openPosition.active) setPendingDeactivation(openPosition)
+                else toggleStatus(openPosition)
+              }) },
             ]}
             onClose={() => closeActions()}
             panelRef={actionsPanelRef}
@@ -294,6 +306,7 @@ function MainPositionScreenPage() {
           <NrsDialog
             contextLabel="Swift Pirituba"
             dimmed={nrsViewDimmed}
+            savedRowIds={savedNrIds}
             onClose={() => {
               setNrsPosition(null)
               requestAnimationFrame(() => actionsTriggerRef.current?.focus())
@@ -309,16 +322,29 @@ function MainPositionScreenPage() {
           <EditNrsDialog
             contextLabel="Swift Pirituba"
             enabledIds={enabledNrsByPosition[nrsPosition.id] ?? defaultEnabledNrs}
-            onCancel={() => setNrsEditing(false)}
-            onDismissRequest={() => setNrsViewDimmed(false)}
-            onSave={(enabledIds) => {
-              setEnabledNrsByPosition((current) => ({ ...current, [nrsPosition.id]: enabledIds }))
-              setFeedback(`NRs de ${nrsPosition.name} atualizadas.`)
+            dimmed={nrsEditDimmed}
+            onCancel={() => {
+              if (pendingNrsIds !== null) return
               setNrsEditing(false)
             }}
-            onRecommendationClick={(row) => setFeedback(`Recomendação de IA para ${row.code} selecionada.`)}
+            onDismissRequest={() => {
+              if (pendingNrsIds === null) setNrsViewDimmed(false)
+            }}
+            onRequestConfirmation={(enabledIds) => {
+              setPendingNrsIds(enabledIds)
+              setNrsEditDimmed(true)
+            }}
+            onRecommendationClick={setRecommendation}
+            open={!nrsEditClosing}
             positionName={nrsPosition.name}
-            recommendedIds={['nr1', 'nr2', 'nr4']}
+            recommendedIds={['nr1', 'nr2', 'nr4', 'nr6']}
+          />
+        )}
+        {recommendation && (
+          <NrRecommendationModal
+            description={recommendation.id === 'nr6' ? 'Recomendado para câmaras frias.' : `Recomendado para este cargo: ${recommendation.description.replace(/\n/g, ' ')}`}
+            onClose={() => setRecommendation(null)}
+            title={recommendation.id === 'nr6' ? 'NR6 - Segurança em instalações' : `${recommendation.code} - ${recommendation.description.split(/[.\n]/)[0]}`}
           />
         )}
 
@@ -364,6 +390,54 @@ function MainPositionScreenPage() {
             requestAnimationFrame(() => dialogOriginRef.current?.focus())
           }}
           title="Deseja salvar as alterações deste cargo?"
+        />
+      )}
+      {nrsPosition && pendingNrsIds !== null && (
+        <ConfirmationModal
+          confirmCloseDelay={60}
+          confirmLabel="Salvar"
+          onCancel={() => {
+            setPendingNrsIds(null)
+            setNrsEditDimmed(false)
+          }}
+          onCancelRequest={() => setNrsEditDimmed(false)}
+          onConfirm={() => {
+            const previousIds = enabledNrsByPosition[nrsPosition.id] ?? defaultEnabledNrs
+            const previousSet = new Set(previousIds)
+            const nextSet = new Set(pendingNrsIds)
+            const changedIds = defaultNrsRows.filter((row) => previousSet.has(row.id) !== nextSet.has(row.id)).map((row) => row.id)
+            setEnabledNrsByPosition((current) => ({ ...current, [nrsPosition.id]: pendingNrsIds }))
+            changedNrsRef.current = changedIds.length ? changedIds : defaultNrsRows.slice(0, 5).map((row) => row.id)
+            setFeedback(`NRs de ${nrsPosition.name} atualizadas.`)
+            setNrsEditClosing(true)
+            return null
+          }}
+          onConfirmed={() => {
+            setPendingNrsIds(null)
+            setNrsEditing(false)
+            setNrsEditClosing(false)
+            setNrsEditDimmed(false)
+            setNrsViewDimmed(false)
+            setSavedNrIds(changedNrsRef.current)
+            if (nrsAnimationTimerRef.current !== null) window.clearTimeout(nrsAnimationTimerRef.current)
+            nrsAnimationTimerRef.current = window.setTimeout(() => setSavedNrIds([]), 900)
+          }}
+          title="Deseja salvar as alterações das NRs deste cargo?"
+        />
+      )}
+      {pendingDeactivation && (
+        <ConfirmationModal
+          className="position-deactivation-modal"
+          confirmLabel="Inativar"
+          icon={<span aria-hidden="true" className="position-deactivation-icon"><img alt="" src="/icon/error-information.svg" /></span>}
+          onCancel={() => setPendingDeactivation(null)}
+          onConfirm={() => { toggleStatus(pendingDeactivation); return null }}
+          onConfirmed={() => {
+            setPendingDeactivation(null)
+            requestAnimationFrame(() => actionsTriggerRef.current?.focus())
+          }}
+          title="Tem certeza de que deseja inativar este cargo?"
+          tone="danger"
         />
       )}
     </div>

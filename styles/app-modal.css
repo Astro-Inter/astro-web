@@ -30,8 +30,14 @@
 .astro-confirmation-modal { --astro-modal-width: 43.3rem; }
 .astro-confirmation-modal[open] { animation: astro-confirmation-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .astro-confirmation-modal::backdrop { background: transparent; animation: none; }
+.position-deactivation-modal::backdrop { background: rgb(0 0 0 / 25%); animation: astro-modal-backdrop-fade 0.2s ease both; }
 .astro-confirmation-modal .astro-modal-title { max-width: 31rem; }
 .astro-confirmation-error { margin: 1rem 0 0; color: #ffc4c8; font-size: 0.8rem; }
+.astro-confirmation-modal--with-icon .astro-modal-title { display: flex; align-items: center; gap: 1rem; }
+.position-deactivation-icon { display: grid; place-items: center; width: 4.25rem; height: 4.25rem; flex: none; padding: 0.9rem; border-radius: 50%; background: #ffc8c8; }
+.position-deactivation-icon img { width: 2.45rem; height: 2.45rem; }
+.position-deactivation-modal .astro-action--danger { background: #eb6264; }
+.position-deactivation-modal .astro-action--danger:hover { background: #d95759; }
 
 @keyframes astro-modal-backdrop-fade {
   from { opacity: 0; }

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import AppModal from '../AppModal'
 import DataTable from '../DataTable'
 import PurpleButton from '../PurpleButton'
@@ -11,18 +11,19 @@ import type { NrsRow } from '../../types'
 interface EditNrsDialogProps {
   contextLabel?: string
   enabledIds: readonly string[]
+  dimmed?: boolean
   onCancel: () => void
   onRecommendationClick?: (row: NrsRow) => void
   onDismissRequest?: () => void
-  onSave: (enabledIds: string[]) => void
+  onRequestConfirmation: (enabledIds: string[]) => void
+  open?: boolean
   positionName: string
   recommendedIds?: readonly string[]
   rows?: readonly NrsRow[]
 }
 
-function EditNrsDialog({ contextLabel, enabledIds, onCancel, onDismissRequest, onRecommendationClick, onSave, positionName, recommendedIds = [], rows = defaultNrsRows }: EditNrsDialogProps) {
+function EditNrsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onDismissRequest, onRecommendationClick, onRequestConfirmation, open = true, positionName, recommendedIds = [], rows = defaultNrsRows }: EditNrsDialogProps) {
   const [form, setForm] = useState(() => ({ search: '', enabledIds: new Set(enabledIds) }))
-  const savedIdsRef = useRef<string[] | null>(null)
   const normalizedSearch = form.search.trim().toLocaleLowerCase('pt-BR')
   const visibleRows = useMemo(() => normalizedSearch
     ? rows.filter((row) => `${row.code} ${row.description}`.toLocaleLowerCase('pt-BR').includes(normalizedSearch))
@@ -66,12 +67,10 @@ function EditNrsDialog({ contextLabel, enabledIds, onCancel, onDismissRequest, o
   return (
     <AppModal
       className="nrs-dialog nrs-edit-dialog"
-      onClose={() => {
-        const savedIds = savedIdsRef.current
-        if (savedIds) onSave(savedIds)
-        else onCancel()
-      }}
+      dimmed={dimmed}
+      onClose={onCancel}
       onDismissRequest={onDismissRequest}
+      open={open}
       title={`Edite as NRs de ${positionName}${contextLabel ? ` da ${contextLabel}` : ''}`}
     >
       {(dismiss) => <>
@@ -104,8 +103,7 @@ function EditNrsDialog({ contextLabel, enabledIds, onCancel, onDismissRequest, o
           <div className="nrs-edit-footer-actions">
             <button className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
             <PurpleButton onClick={() => {
-              savedIdsRef.current = rows.filter((row) => form.enabledIds.has(row.id)).map((row) => row.id)
-              dismiss()
+              onRequestConfirmation(rows.filter((row) => form.enabledIds.has(row.id)).map((row) => row.id))
             }} type="button">Salvar</PurpleButton>
           </div>
         </div>

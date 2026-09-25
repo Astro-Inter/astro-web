@@ -16,9 +16,10 @@ interface NrsDialogProps {
   open?: boolean
   positionName: string
   rows?: readonly NrsRow[]
+  savedRowIds?: readonly string[]
 }
 
-function NrsDialog({ contextLabel, dimmed = false, onClose, onEdit, open = true, positionName, rows = defaultNrsRows }: NrsDialogProps) {
+function NrsDialog({ contextLabel, dimmed = false, onClose, onEdit, open = true, positionName, rows = defaultNrsRows, savedRowIds = [] }: NrsDialogProps) {
   const [search, setSearch] = useState('')
   const normalizedSearch = search.trim().toLocaleLowerCase('pt-BR')
   const visibleRows = useMemo(() => normalizedSearch
@@ -62,6 +63,7 @@ function NrsDialog({ contextLabel, dimmed = false, onClose, onEdit, open = true,
             ariaLabel="Normas Regulamentadoras"
             columns={columns}
             emptyMessage="Nenhuma NR encontrada."
+            getRowClassName={(row) => savedRowIds.includes(row.id) ? 'astro-data-table-row--saved' : undefined}
             getRowKey={(row) => row.id}
             rows={visibleRows}
           />
