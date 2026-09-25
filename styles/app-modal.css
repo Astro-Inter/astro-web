@@ -1,4 +1,5 @@
 .astro-modal {
+  position: relative;
   width: min(var(--astro-modal-width, 44.25rem), calc((100vw - 2rem) / var(--astro-popup-zoom)));
   max-height: calc((100dvh - 2rem) / var(--astro-popup-zoom));
   margin: auto;
@@ -14,6 +15,8 @@
 }
 
 .astro-modal[open] { animation: rise-in 0.22s ease both; }
+.astro-modal::after { position: absolute; z-index: 5; inset: 0; border-radius: inherit; background: rgb(0 0 0 / 22%); content: ''; pointer-events: none; opacity: 0; transition: opacity 280ms cubic-bezier(0.22, 0.61, 0.36, 1); }
+.astro-modal--dimmed::after { opacity: 1; }
 .astro-modal::backdrop { background: rgb(0 0 0 / 25%); animation: astro-modal-backdrop-fade 0.2s ease both; }
 :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open] { pointer-events: none; animation: astro-dialog-out 180ms ease-in both; }
 :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open]::backdrop { animation: astro-modal-backdrop-out 180ms ease-in both; }
@@ -51,6 +54,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .astro-modal::after { transition: none; }
   :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open],
   :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open]::backdrop,
   .astro-modal[open], .astro-modal::backdrop { animation: none; }

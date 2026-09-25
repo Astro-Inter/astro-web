@@ -2,3 +2,4 @@ export type { WorkspaceAddressField, WorkspaceAddressState, WorkspaceUnitAddress
 export type { CompanyInformation } from './company'
 export type { PaymentFormState, PaymentMethod } from './payment'
 export type { Position, PositionFormValues } from './position'
+export type { NrsRow } from './nrs'

@@ -52,6 +52,7 @@
   --astro-link-font-size-base: clamp(0.875rem, 1.08vw, 1rem);
   --astro-action-height-base: clamp(2.8rem, 3.45vw, 3.1rem);
   --astro-action-width-base: clamp(19.5rem, 25vw, 22.5rem);
+  --astro-compact-action-width-base: clamp(12rem, 18vw, 14.8rem);
   --astro-action-font-size-base: clamp(0.85rem, 1.04vw, 0.95rem);
   --astro-control-radius-base: 0.45rem;
   --astro-control-padding-inline-base: 1rem;
@@ -75,6 +76,7 @@
   --astro-link-font-size: calc(var(--astro-link-font-size-base) * var(--astro-scale));
   --astro-action-height: calc(var(--astro-action-height-base) * var(--astro-scale));
   --astro-action-width: calc(var(--astro-action-width-base) * var(--astro-scale));
+  --astro-compact-action-width: calc(var(--astro-compact-action-width-base) * var(--astro-scale));
   --astro-action-font-size: calc(var(--astro-action-font-size-base) * var(--astro-scale));
   --astro-control-radius: calc(var(--astro-control-radius-base) * var(--astro-scale));
   --astro-control-padding-inline: calc(var(--astro-control-padding-inline-base) * var(--astro-scale));
@@ -112,6 +114,7 @@
   --astro-link-font-size: calc(var(--astro-link-font-size-base) * var(--astro-scale));
   --astro-action-height: calc(var(--astro-action-height-base) * var(--astro-scale));
   --astro-action-width: calc(var(--astro-action-width-base) * var(--astro-scale));
+  --astro-compact-action-width: calc(var(--astro-compact-action-width-base) * var(--astro-scale));
   --astro-action-font-size: calc(var(--astro-action-font-size-base) * var(--astro-scale));
   --astro-control-radius: calc(var(--astro-control-radius-base) * var(--astro-scale));
   --astro-control-padding-inline: calc(var(--astro-control-padding-inline-base) * var(--astro-scale));

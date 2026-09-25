@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, EditNrsDialog, NrsDialog, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { defaultNrsRows } from '../../data/nrs'
 import type { DataTableColumn } from '../../components/DataTable'
 import type { Position, PositionFormValues } from '../../types'
 
@@ -24,6 +25,7 @@ const initialPositions: Position[] = [
 ]
 
 const units = ['Sede 1', 'Sede 2']
+const defaultEnabledNrs = defaultNrsRows.filter((row) => row.id !== 'nr4').map((row) => row.id)
 const statusFilterOptions = [
   { value: '', label: 'Todos', triggerLabel: 'Status', tone: 'muted' as const },
   { value: 'active', label: 'Ativo' },
@@ -42,6 +44,10 @@ function MainPositionScreenPage() {
   const [positions, setPositions] = useState<Position[]>(initialPositions)
   const [filters, setFilters] = useState({ search: '', status: '' })
   const [dialog, setDialog] = useState<PositionDialogState | null>(null)
+  const [nrsPosition, setNrsPosition] = useState<Position | null>(null)
+  const [nrsEditing, setNrsEditing] = useState(false)
+  const [nrsViewDimmed, setNrsViewDimmed] = useState(false)
+  const [enabledNrsByPosition, setEnabledNrsByPosition] = useState<Record<string, string[]>>({})
   const [editorDimmed, setEditorDimmed] = useState(false)
   const [editorClosing, setEditorClosing] = useState(false)
   const [savedPositionId, setSavedPositionId] = useState<string | null>(null)
@@ -271,7 +277,9 @@ function MainPositionScreenPage() {
                 setDialog({ kind: 'form', position: openPosition })
               }) },
               { id: 'manage-nrs', label: 'Gerenciar NRs', separatorAfter: true, onSelect: () => closeActions(() => {
-                setFeedback(`Gerenciamento de NRs para ${openPosition.name} estará disponível em breve.`)
+                setNrsEditing(false)
+                setNrsViewDimmed(false)
+                setNrsPosition(openPosition)
               }) },
               { id: 'toggle-status', label: openPosition.active ? 'Inativar' : 'Ativar', tone: openPosition.active ? 'danger' : 'default', onSelect: () => closeActions(() => toggleStatus(openPosition)) },
             ]}
@@ -280,6 +288,38 @@ function MainPositionScreenPage() {
             style={{ top: actionsMenuPosition?.top ?? 0, left: actionsMenuPosition?.left ?? 0, visibility: actionsMenuPosition ? 'visible' : 'hidden' }}
           />,
           document.body,
+        )}
+
+        {nrsPosition && (
+          <NrsDialog
+            contextLabel="Swift Pirituba"
+            dimmed={nrsViewDimmed}
+            onClose={() => {
+              setNrsPosition(null)
+              requestAnimationFrame(() => actionsTriggerRef.current?.focus())
+            }}
+            onEdit={() => {
+              setNrsViewDimmed(true)
+              setNrsEditing(true)
+            }}
+            positionName={nrsPosition.name}
+          />
+        )}
+        {nrsPosition && nrsEditing && (
+          <EditNrsDialog
+            contextLabel="Swift Pirituba"
+            enabledIds={enabledNrsByPosition[nrsPosition.id] ?? defaultEnabledNrs}
+            onCancel={() => setNrsEditing(false)}
+            onDismissRequest={() => setNrsViewDimmed(false)}
+            onSave={(enabledIds) => {
+              setEnabledNrsByPosition((current) => ({ ...current, [nrsPosition.id]: enabledIds }))
+              setFeedback(`NRs de ${nrsPosition.name} atualizadas.`)
+              setNrsEditing(false)
+            }}
+            onRecommendationClick={(row) => setFeedback(`Recomendação de IA para ${row.code} selecionada.`)}
+            positionName={nrsPosition.name}
+            recommendedIds={['nr1', 'nr2', 'nr4']}
+          />
         )}
 
         <AstroChat />

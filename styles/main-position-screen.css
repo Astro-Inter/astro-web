@@ -27,9 +27,10 @@
 
 .position-toolbar { display: flex; align-items: center; gap: calc(clamp(0.75rem, 1.04vw, 0.95rem) * var(--astro-scale)); margin-bottom: calc(clamp(1rem, 1.22vw, 1.1rem) * var(--astro-scale)); }
 .position-toolbar .astro-toolbar-search { max-width: var(--astro-action-width); }
-.position-toolbar .astro-action--compact { white-space: nowrap; }
+.position-toolbar .astro-action--compact { width: var(--astro-compact-action-width); white-space: nowrap; }
 .position-toolbar .astro-action--compact .astro-icon--plus { filter: brightness(0) invert(1); }
 .position-toolbar-selects { display: flex; gap: calc(clamp(0.75rem, 1.04vw, 0.95rem) * var(--astro-scale)); margin-left: auto; }
+.main-position-screen .astro-modal-actions > button { width: min(100%, var(--astro-compact-action-width)); max-width: var(--astro-compact-action-width); }
 .position-actions-trigger:focus-visible { outline: none; background: #68488f; box-shadow: inset 0 0 0 1px var(--astro-focus-border); }
 
 .position-status { display: inline-flex; align-items: center; justify-content: center; min-width: calc(8rem * var(--astro-scale)); min-height: calc(2.3rem * var(--astro-scale)); padding: calc(0.3rem * var(--astro-scale)) calc(1.4rem * var(--astro-scale)); border-radius: 999px; color: var(--astro-text); background: #696975; font-size: calc(var(--astro-label-font-size) * 1.05); font-weight: 500; text-align: center; }
@@ -50,8 +51,6 @@
 }
 .position-actions-trigger:hover, .position-actions-trigger[aria-expanded="true"] { background: #68488f; }
 .position-dialog { --astro-modal-width: 47.75rem; position: relative; overflow: visible; padding-bottom: 2.625rem; }
-.position-dialog::after { position: absolute; z-index: 1; inset: 0; border-radius: inherit; background: rgb(0 0 0 / 22%); content: ''; opacity: 0; pointer-events: none; transition: opacity 280ms cubic-bezier(0.22, 0.61, 0.36, 1); will-change: opacity; }
-.position-dialog--dimmed::after { opacity: 1; }
 .position-dialog-row { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 0.9rem; margin-top: 2rem; }
 .position-dialog-field { display: flex; flex-direction: column; gap: var(--astro-field-gap); min-width: 0; }
 .position-dialog-field label,
@@ -83,8 +82,8 @@
 @media (max-width: 780px) and (max-height: 620px) {
   .position-main { height: auto; min-height: calc(100dvh - 4.5rem); overflow: visible; }
   .position-content { max-height: none; }
-  .position-main .astro-data-table-shell { flex: none; max-height: min(45dvh, 20rem); }
-  .position-main .astro-data-table-scroll { max-height: min(45dvh, 20rem); }
+  .position-content > .astro-data-table-shell { flex: none; max-height: min(45dvh, 20rem); }
+  .position-content > .astro-data-table-shell > .astro-data-table-scroll { max-height: min(45dvh, 20rem); }
 }
 
 @media (max-width: 480px) {
@@ -92,6 +91,7 @@
   .position-toolbar .astro-action--compact, .position-toolbar .astro-toolbar-search { width: 100%; max-width: none; }
   .position-toolbar-selects { width: 100%; }
   .position-toolbar-selects .astro-toolbar-select { width: 100%; }
+  .main-position-screen .astro-modal-actions > button { width: 100%; max-width: none; }
   .position-dialog-row { grid-template-columns: 1fr; gap: 1rem; }
 }
 
@@ -100,7 +100,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .position-dialog::after,
   .position-status--saved { transition: none; animation: none; }
 }
 

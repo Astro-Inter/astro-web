@@ -30,6 +30,7 @@ type AstroIconName =
   | 'chevron-down'
   | 'close'
   | 'dots'
+  | 'pencil'
 
 // Os arquivos têm proporções e espaços internos diferentes. O CSS define a
 // altura visual de cada uso; width: auto conserva a proporção original.
@@ -66,12 +67,13 @@ const iconFiles: Record<AstroIconName, { file: string; width: number; height: nu
   'chevron-down': { file: 'chevron-down.svg', width: 22, height: 13 },
   close: { file: 'across.svg', width: 21, height: 21 },
   dots: { file: 'dots.svg', width: 21, height: 5 },
+  pencil: { file: 'pencil.svg', width: 24, height: 24 },
 }
 
 interface AstroIconProps {
   className?: string
   name: AstroIconName
-  strokeScale?: 0.9
+  strokeScale?: 0.9 | 1
 }
 
 function AstroIcon({ className, name, strokeScale }: AstroIconProps) {

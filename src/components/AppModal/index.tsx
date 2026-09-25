@@ -4,6 +4,7 @@ import { useAnimatedDialog } from '../../hooks/useAnimatedDialog'
 interface AppModalProps {
   children: ReactNode | ((dismiss: () => void) => ReactNode)
   className?: string
+  dimmed?: boolean
   initialFocusRef?: RefObject<HTMLElement | null>
   onClose: () => void
   onDismissRequest?: () => void
@@ -11,7 +12,7 @@ interface AppModalProps {
   title: string
 }
 
-function AppModal({ children, className = '', initialFocusRef, onClose, onDismissRequest, open = true, title }: AppModalProps) {
+function AppModal({ children, className = '', dimmed = false, initialFocusRef, onClose, onDismissRequest, open = true, title }: AppModalProps) {
   const titleId = useId()
   const titleRef = useRef<HTMLHeadingElement>(null)
   const { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose } = useAnimatedDialog({ initialFocusRef: initialFocusRef ?? titleRef, onClose, onDismissRequest, open })
@@ -19,7 +20,7 @@ function AppModal({ children, className = '', initialFocusRef, onClose, onDismis
   return (
     <dialog
       aria-labelledby={titleId}
-      className={`astro-modal astro-scale-100${closing ? ' astro-dialog--closing' : ''}${className ? ` ${className}` : ''}`}
+      className={`astro-modal astro-scale-100${closing ? ' astro-dialog--closing' : ''}${dimmed ? ' astro-modal--dimmed' : ''}${className ? ` ${className}` : ''}`}
       onCancel={handleCancel}
       onClick={handleBackdropClick}
       onClose={handleClose}

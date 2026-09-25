@@ -51,7 +51,7 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
   }
 
   return (
-    <AppModal className={`position-dialog${dimmed ? ' position-dialog--dimmed' : ''}`} onClose={onClose} open={open} title={position ? 'Editar cargo' : 'Adicionar cargo'}>
+    <AppModal className="position-dialog" dimmed={dimmed} onClose={onClose} open={open} title={position ? 'Editar cargo' : 'Adicionar cargo'}>
       {(dismiss) => <form autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
         <div className="position-dialog-row">
           <div className="position-dialog-field">
