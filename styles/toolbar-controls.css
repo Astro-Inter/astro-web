@@ -1,0 +1,153 @@
+/* Controles compactos para barras de ações. Herdam a escala e as cores do produto. */
+.astro-action--compact {
+  width: max-content;
+  flex: none;
+}
+
+.astro-toolbar-search,
+.astro-toolbar-select-trigger {
+  height: var(--astro-action-height);
+  border: 1px solid transparent;
+  border-radius: var(--astro-control-radius);
+  color: var(--astro-text);
+  background: var(--astro-field);
+  font-size: var(--astro-control-font-size);
+  font-weight: 400;
+}
+
+.astro-toolbar-search {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: calc(0.65rem * var(--astro-scale));
+  min-width: 10rem;
+  max-width: var(--astro-action-width);
+  padding: 0 var(--astro-control-padding-inline);
+}
+
+.astro-toolbar-search .astro-icon {
+  width: calc(1.3rem * var(--astro-scale));
+  height: calc(1.3rem * var(--astro-scale));
+}
+
+.astro-toolbar-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  appearance: none;
+  color: var(--astro-text);
+  background: transparent;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.astro-toolbar-search input::placeholder { color: var(--astro-placeholder); opacity: 1; }
+.astro-toolbar-search input::-webkit-search-cancel-button { display: none; }
+.astro-toolbar-search-clear { display: grid; flex: none; width: calc(1.7rem * var(--astro-scale)); height: calc(1.7rem * var(--astro-scale)); padding: 0; place-items: center; border: 0; border-radius: var(--astro-control-radius); background: transparent; cursor: pointer; }
+.astro-toolbar-search-clear:hover { background: rgb(255 255 255 / 10%); }
+.astro-toolbar-search-clear img { display: block; width: calc(0.95rem * var(--astro-scale)); height: calc(0.95rem * var(--astro-scale)); }
+.astro-toolbar-search-clear:focus-visible { outline: none; background: var(--astro-focus-surface); }
+
+.astro-toolbar-select {
+  position: relative;
+  display: block;
+  min-width: 7.5rem;
+  height: var(--astro-action-height);
+}
+
+.astro-toolbar-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(0.75rem * var(--astro-scale));
+  width: 100%;
+  padding: 0 var(--astro-control-padding-inline);
+  text-align: left;
+  cursor: pointer;
+}
+
+.astro-toolbar-select-trigger .astro-icon {
+  flex: none;
+  width: calc(1.1rem * var(--astro-scale));
+  height: auto;
+  transition: transform 160ms ease;
+}
+
+.astro-toolbar-select-trigger[aria-expanded="true"] .astro-icon { transform: rotate(180deg); }
+.astro-toolbar-select-trigger:disabled { cursor: not-allowed; opacity: 0.6; }
+
+.astro-toolbar-select-popover {
+  --astro-select-menu-scale: var(--astro-popup-zoom);
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  width: max(100%, calc(13.2rem * var(--astro-select-menu-scale)));
+  padding: calc(1.5rem * var(--astro-select-menu-scale)) calc(2.5rem * var(--astro-select-menu-scale));
+  border: 0;
+  border-radius: calc(0.625rem * var(--astro-select-menu-scale));
+  background: #332754;
+  box-shadow: 0 16px 44px rgb(0 0 0 / 22%);
+  animation: astro-toolbar-popover-in 160ms ease-out both;
+}
+
+.astro-modal .astro-toolbar-select-popover { --astro-select-menu-scale: 1; }
+
+.astro-toolbar-select[data-placement="above"] .astro-toolbar-select-popover {
+  top: auto;
+  bottom: calc(100% + 0.45rem);
+}
+
+.astro-toolbar-select-option {
+  position: relative;
+  display: block;
+  width: calc(100% + 1rem * var(--astro-select-menu-scale));
+  min-height: calc(3.4rem * var(--astro-select-menu-scale));
+  margin-inline: calc(-0.5rem * var(--astro-select-menu-scale));
+  padding: calc(0.4rem * var(--astro-select-menu-scale)) calc(0.5rem * var(--astro-select-menu-scale));
+  border: 0;
+  border-radius: 0;
+  color: #f6f6f6;
+  background: transparent;
+  font: inherit;
+  font-size: calc(var(--astro-label-font-size-base) * var(--astro-select-menu-scale));
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 180ms ease;
+}
+
+.astro-toolbar-select-option:not(:last-child)::after { position: absolute; right: 0; bottom: 0; left: 0; border-bottom: 1px solid #70628a; content: ''; }
+.astro-toolbar-select-option--muted { color: #bcbacc; }
+.astro-toolbar-select-option:hover,
+.astro-toolbar-select-option:focus-visible { color: #d9d9d9; background: transparent; outline: none; }
+.astro-toolbar-select-option--muted:hover,
+.astro-toolbar-select-option--muted:focus-visible { color: #a6a4b7; }
+
+@keyframes astro-toolbar-popover-in {
+  from { opacity: 0; transform: translateY(-0.25rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.astro-toolbar-select-popover--closing { pointer-events: none; animation: astro-toolbar-popover-out 160ms ease-in both; }
+
+@keyframes astro-toolbar-popover-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-0.25rem); }
+}
+
+.astro-toolbar-search:focus-within,
+.astro-toolbar-select-trigger:focus-visible {
+  border-color: var(--astro-text-muted);
+  box-shadow: 0 0 0 1px rgb(47 46 50 / 22%);
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astro-toolbar-select-popover { animation: none; }
+  .astro-toolbar-select-trigger .astro-icon { transition: none; }
+}

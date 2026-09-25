@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import { useAnimatedDialog } from '../../hooks/useAnimatedDialog'
 import AstroIcon from '../AstroIcon'
 import PurpleButton from '../PurpleButton'
 
@@ -14,30 +15,17 @@ const exampleRows = [
 ]
 
 function SpreadsheetExplanationModal({ onDismiss, open }: SpreadsheetExplanationModalProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
-
-  useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-
-    if (open && !dialog.open) {
-      dialog.showModal()
-      dialog.scrollTop = 0
-      titleRef.current?.focus({ preventScroll: true })
-    }
-    if (!open && dialog.open) dialog.close()
-  }, [open])
+  const { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose } = useAnimatedDialog({ initialFocusRef: titleRef, onClose: onDismiss, open })
 
   return (
     <dialog
       aria-describedby="spreadsheet-explanation-subtitle"
       aria-labelledby="spreadsheet-explanation-title"
-      className="spreadsheet-explanation-modal astro-scale-100"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) event.currentTarget.close()
-      }}
-      onClose={onDismiss}
+      className={`spreadsheet-explanation-modal astro-scale-100${closing ? ' astro-dialog--closing' : ''}`}
+      onCancel={handleCancel}
+      onClick={handleBackdropClick}
+      onClose={handleClose}
       ref={dialogRef}
     >
       <h2 id="spreadsheet-explanation-title" ref={titleRef} tabIndex={-1}>Como importar sua planilha?</h2>
@@ -99,7 +87,7 @@ function SpreadsheetExplanationModal({ onDismiss, open }: SpreadsheetExplanation
         </span>
       </div>
 
-      <PurpleButton className="spreadsheet-explanation-confirm" onClick={() => dialogRef.current?.close()}>
+      <PurpleButton className="spreadsheet-explanation-confirm" onClick={dismiss}>
         Entendi
       </PurpleButton>
     </dialog>

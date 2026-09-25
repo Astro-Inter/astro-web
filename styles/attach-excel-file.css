@@ -115,8 +115,9 @@
 }
 
 .attach-excel-model-link:focus-visible {
-  outline: 2px solid var(--astro-link);
-  outline-offset: 4px;
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
 }
 
 .attach-excel-feedback {
