@@ -385,18 +385,18 @@ function AstroChat() {
               onClick={toggleExpanded}
               type="button"
             >
-              <img alt="" className={`astro-chat-resize-icon${chat.expanded ? '' : ' astro-chat-resize-icon--active'}`} draggable={false} height="24" src="/icon/expand.svg" width="24" />
-              <img alt="" className={`astro-chat-resize-icon astro-chat-resize-icon--collapse${chat.expanded ? ' astro-chat-resize-icon--active' : ''}`} draggable={false} height="24" src="/icon/collapse.svg" width="24" />
+              <img alt="" className={`astro-chat-resize-icon${chat.expanded ? '' : ' astro-chat-resize-icon--active'}`} draggable={false} height="24" src={import.meta.env.BASE_URL + "icon/expand.svg"} width="24" />
+              <img alt="" className={`astro-chat-resize-icon astro-chat-resize-icon--collapse${chat.expanded ? ' astro-chat-resize-icon--active' : ''}`} draggable={false} height="24" src={import.meta.env.BASE_URL + "icon/collapse.svg"} width="24" />
             </button>
             <button aria-label="Fechar chat" className="astro-chat-header-button" onClick={closeChat} type="button">
-              <img alt="" height="21" src="/icon/across.svg" width="21" />
+              <img alt="" height="21" src={import.meta.env.BASE_URL + "icon/across.svg"} width="21" />
             </button>
           </header>
 
           <div className="astro-chat-body" ref={messagesRef}>
             {chat.messages.length === 0 ? (
               <div className="astro-chat-welcome">
-                <img alt="Robô Astro em um cenário espacial" className="astro-chat-illustration" height="181" src="/robot2.png" width="272" />
+                <img alt="Robô Astro em um cenário espacial" className="astro-chat-illustration" height="181" src={import.meta.env.BASE_URL + "robot2.png"} width="272" />
                 <p>Olá! Estou aqui para te ajudar a entender como a plataforma Astro funciona.</p>
                 <div aria-label="Perguntas sugeridas" className="astro-chat-suggestions">
                   {suggestions.map((suggestion) => (
@@ -407,12 +407,12 @@ function AstroChat() {
             ) : (
               <div aria-live="polite" className="astro-chat-messages" role="log">
                 <div className="astro-chat-message astro-chat-message--astro">
-                  <img alt="" aria-hidden="true" height="80" src="/robot3.png" width="80" />
+                  <img alt="" aria-hidden="true" height="80" src={import.meta.env.BASE_URL + "robot3.png"} width="80" />
                   <p>Olá! Estou aqui para te auxiliar na plataforma Astro.</p>
                 </div>
                 {chat.messages.map((message) => (
                   <div className={`astro-chat-message astro-chat-message--${message.author}`} key={message.id}>
-                    {message.author === 'astro' && <img alt="" aria-hidden="true" height="80" src="/robot3.png" width="80" />}
+                    {message.author === 'astro' && <img alt="" aria-hidden="true" height="80" src={import.meta.env.BASE_URL + "robot3.png"} width="80" />}
                     <p>{message.text}</p>
                   </div>
                 ))}
@@ -433,7 +433,7 @@ function AstroChat() {
               value={chat.draft}
             />
             <button aria-label="Enviar mensagem" disabled={!chat.draft.trim()} type="submit">
-              <img alt="" height="62" src="/icon/enter-chat.svg" width="62" />
+              <img alt="" height="62" src={import.meta.env.BASE_URL + "icon/enter-chat.svg"} width="62" />
             </button>
           </form>
         </section>
@@ -454,7 +454,7 @@ function AstroChat() {
           type="button"
         >
           <span aria-hidden="true" className="astro-chat-hint"><span>Fale com a IA do</span><strong>Astro!</strong></span>
-          <img alt="" draggable={false} height="92" src="/robot1.png" width="92" />
+          <img alt="" draggable={false} height="92" src={import.meta.env.BASE_URL + "robot1.png"} width="92" />
         </button>
       )}
     </div>

@@ -57,7 +57,7 @@ function EditNrsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onD
             title="Recomendação de IA"
             type="button"
           >
-            <img alt="" aria-hidden="true" className="nrs-edit-row-robot" draggable={false} src="/robot5.png" />
+            <img alt="" aria-hidden="true" className="nrs-edit-row-robot" draggable={false} src={import.meta.env.BASE_URL + "robot5.png"} />
           </button>
         )}
       </div>,
@@ -99,7 +99,7 @@ function EditNrsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onD
         </div>
 
         <div className="nrs-edit-footer">
-          <span className="nrs-edit-recommendation"><img alt="" aria-hidden="true" draggable={false} src="/robot4.png" />Recomendação de IA</span>
+          <span className="nrs-edit-recommendation"><img alt="" aria-hidden="true" draggable={false} src={import.meta.env.BASE_URL + "robot4.png"} />Recomendação de IA</span>
           <div className="nrs-edit-footer-actions">
             <button className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
             <PurpleButton onClick={() => {

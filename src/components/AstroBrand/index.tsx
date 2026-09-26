@@ -1,7 +1,7 @@
 function AstroBrand() {
   return (
     <div className="astro-brand">
-      <img src="/logo.png" alt="Astro" width="264" height="65" />
+      <img src={import.meta.env.BASE_URL + "logo.png"} alt="Astro" width="264" height="65" />
     </div>
   )
 }

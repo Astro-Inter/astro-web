@@ -429,7 +429,7 @@ function MainPositionScreenPage() {
         <ConfirmationModal
           className="position-deactivation-modal"
           confirmLabel="Inativar"
-          icon={<span aria-hidden="true" className="position-deactivation-icon"><img alt="" src="/icon/error-information.svg" /></span>}
+          icon={<span aria-hidden="true" className="position-deactivation-icon"><img alt="" src={import.meta.env.BASE_URL + "icon/error-information.svg"} /></span>}
           onCancel={() => setPendingDeactivation(null)}
           onConfirm={() => { toggleStatus(pendingDeactivation); return null }}
           onConfirmed={() => {
