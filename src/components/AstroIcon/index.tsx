@@ -78,7 +78,7 @@ interface AstroIconProps {
 
 function AstroIcon({ className, name, strokeScale }: AstroIconProps) {
   const icon = iconFiles[name]
-  const iconDirectory = strokeScale === 0.9 ? '/icon/stroke-90' : '/icon'
+  const iconDirectory = `${import.meta.env.BASE_URL}icon${strokeScale === 0.9 ? '/stroke-90' : ''}`
 
   return (
     <img
