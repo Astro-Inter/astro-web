@@ -11,7 +11,7 @@ function AccessKeyVerifiedPage() {
 
         <img
           className="access-verified-illustration"
-          src="/access-key-verified.png"
+          src={import.meta.env.BASE_URL + "access-key-verified.png"}
           alt=""
           width="474"
           height="332"

@@ -19,7 +19,7 @@ function ToolbarSearch({ id, label, className = '', onClear, value, ...inputProp
       <input id={inputId} ref={inputRef} type="search" value={value} {...inputProps} />
       {canClear && (
         <button aria-label="Limpar busca" className="astro-toolbar-search-clear" onClick={() => { onClear(); inputRef.current?.focus() }} type="button">
-          <img alt="" aria-hidden="true" height="21" src="/icon/across.png" width="21" />
+          <img alt="" aria-hidden="true" height="21" src={import.meta.env.BASE_URL + "icon/across.png"} width="21" />
         </button>
       )}
     </div>
