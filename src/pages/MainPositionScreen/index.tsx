@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, EditNrsDialog, NrRecommendationModal, NrsDialog, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, EditNrsDialog, NrsDialog, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import { defaultNrsRows } from '../../data/nrs'
 import type { DataTableColumn } from '../../components/DataTable'
-import type { NrsRow, Position, PositionFormValues } from '../../types'
+import type { Position, PositionFormValues } from '../../types'
 
 const initialPositions: Position[] = [
   { id: 'gerente', name: 'Gerente', collaboratorCount: 530, unit: 'Sede 1', active: true },
@@ -27,7 +27,7 @@ const initialPositions: Position[] = [
 const units = ['Sede 1', 'Sede 2']
 const defaultEnabledNrs = defaultNrsRows.filter((row) => row.id !== 'nr4').map((row) => row.id)
 const statusFilterOptions = [
-  { value: '', label: 'Todos', triggerLabel: 'Status', tone: 'muted' as const },
+  { value: '', label: 'Status', triggerLabel: 'Status', tone: 'muted' as const },
   { value: 'active', label: 'Ativo' },
   { value: 'inactive', label: 'Inativo' },
 ]
@@ -50,7 +50,6 @@ function MainPositionScreenPage() {
   const [nrsEditDimmed, setNrsEditDimmed] = useState(false)
   const [nrsEditClosing, setNrsEditClosing] = useState(false)
   const [pendingNrsIds, setPendingNrsIds] = useState<string[] | null>(null)
-  const [recommendation, setRecommendation] = useState<NrsRow | null>(null)
   const [savedNrIds, setSavedNrIds] = useState<string[]>([])
   const [pendingDeactivation, setPendingDeactivation] = useState<Position | null>(null)
   const [enabledNrsByPosition, setEnabledNrsByPosition] = useState<Record<string, string[]>>({})
@@ -304,7 +303,6 @@ function MainPositionScreenPage() {
 
         {nrsPosition && (
           <NrsDialog
-            contextLabel="Swift Pirituba"
             dimmed={nrsViewDimmed}
             savedRowIds={savedNrIds}
             onClose={() => {
@@ -320,7 +318,6 @@ function MainPositionScreenPage() {
         )}
         {nrsPosition && nrsEditing && (
           <EditNrsDialog
-            contextLabel="Swift Pirituba"
             enabledIds={enabledNrsByPosition[nrsPosition.id] ?? defaultEnabledNrs}
             dimmed={nrsEditDimmed}
             onCancel={() => {
@@ -334,20 +331,11 @@ function MainPositionScreenPage() {
               setPendingNrsIds(enabledIds)
               setNrsEditDimmed(true)
             }}
-            onRecommendationClick={setRecommendation}
             open={!nrsEditClosing}
             positionName={nrsPosition.name}
             recommendedIds={['nr1', 'nr2', 'nr4', 'nr6']}
           />
         )}
-        {recommendation && (
-          <NrRecommendationModal
-            description={recommendation.id === 'nr6' ? 'Recomendado para câmaras frias.' : `Recomendado para este cargo: ${recommendation.description.replace(/\n/g, ' ')}`}
-            onClose={() => setRecommendation(null)}
-            title={recommendation.id === 'nr6' ? 'NR6 - Segurança em instalações' : `${recommendation.code} - ${recommendation.description.split(/[.\n]/)[0]}`}
-          />
-        )}
-
         <AstroChat />
       </main>
 

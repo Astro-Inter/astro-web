@@ -17,13 +17,13 @@
 .astro-chat-header:focus-visible { outline: none; background: #6d5a96; }
 .astro-chat-window--dragging .astro-chat-header { cursor: grabbing; }
 .astro-chat-header-button { position: relative; display: grid; width: 8cqw; height: 8cqw; place-items: center; padding: 0; border: 0; border-radius: 1cqw; background: #ad9aef; cursor: pointer; transition: background 160ms ease; }
-.astro-chat-header-button:hover { background: #c5b5ff; }
+.astro-chat-header-button:hover { background: #9682d9; filter: none; }
 .astro-chat-header-button img { display: block; width: 4.5cqw; height: 4.5cqw; object-fit: contain; }
 .astro-chat-header-button--resize .astro-chat-resize-icon { position: absolute; inset: 0; margin: auto; opacity: 0; transform: scale(0.75) rotate(-16deg); pointer-events: none; transition: opacity 180ms ease, transform 180ms ease; }
 .astro-chat-header-button--resize .astro-chat-resize-icon--collapse { transform: scale(0.75) rotate(16deg); }
 .astro-chat-header-button--resize .astro-chat-resize-icon--active { opacity: 1; transform: scale(1) rotate(0); }
 .astro-chat-header-button:last-child img { width: 4cqw; height: 4cqw; }
-.astro-chat-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: #b2a6cb transparent; }
+.astro-chat-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .astro-chat-welcome { display: flex; flex-direction: column; justify-content: center; min-height: 100%; padding: 4cqw 7cqw; }
 .astro-chat-illustration { display: block; align-self: center; width: 58cqw; max-width: 100%; height: auto; margin-bottom: 2cqw; object-fit: contain; }
 .astro-chat-welcome p { margin: 0 0 2.5cqw; color: #332b4e; font-size: clamp(0.75rem, 4.1cqw, 1.03rem); font-weight: 600; line-height: 1.35; }
@@ -43,6 +43,7 @@
 .astro-chat-form button:disabled { opacity: 0.65; cursor: default; }
 .astro-chat-form button img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .astro-chat button:focus-visible { outline: none; filter: brightness(1.12); }
+.astro-chat .astro-chat-header-button:focus-visible { background: #9682d9; filter: none; }
 .astro-chat .astro-chat-launcher:focus-visible { outline: none; background: #6c5994; }
 .astro-chat-form input:focus-visible { outline: none; box-shadow: none; background: #5b4a82; }
 

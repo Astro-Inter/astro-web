@@ -17,7 +17,7 @@ const navigationItems: NavigationItem[] = [
   { label: 'Conformidade', icon: 'compliance' },
   { label: 'Unidades', icon: 'building' },
   { label: 'Cargos', icon: 'position', path: '/mainPositionScreen' },
-  { label: 'Formulários', icon: 'document' },
+  { label: 'Formulários', icon: 'document', path: '/createForms' },
   { label: 'Eventos', icon: 'event-calendar' },
   { label: 'Configurações', icon: 'settings', alignBottom: true },
 ]

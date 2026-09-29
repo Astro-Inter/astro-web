@@ -306,8 +306,6 @@
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    scrollbar-color: #5c5873 transparent;
-    scrollbar-width: thin;
   }
 
   .set-address-card {

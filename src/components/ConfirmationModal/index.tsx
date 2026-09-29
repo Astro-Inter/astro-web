@@ -31,7 +31,7 @@ function ConfirmationModal({ cancelLabel = 'Cancelar', className = '', confirmCl
       else onCancel()
     }} onDismissRequest={() => {
       if (!confirmedRef.current) onCancelRequest?.()
-    }} title={icon ? <>{icon}{title}</> : title}>
+    }} title={icon ? <><span className="astro-confirmation-title-icon">{icon}</span><span className="astro-confirmation-title-text">{title}</span></> : title}>
       {(dismiss) => <>
         {error && <p className="astro-confirmation-error" role="alert">{error}</p>}
         <div className="astro-modal-actions">

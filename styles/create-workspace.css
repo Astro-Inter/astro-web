@@ -40,8 +40,8 @@
 }
 
 .workspace-code-fields input:focus {
-  border-color: #c8c3d2;
-  box-shadow: 0 0 0 1px rgb(200 195 210 / 30%);
+  border-color: var(--astro-input-focus-border);
+  box-shadow: 0 0 0 1px rgb(109 104 145 / 30%);
 }
 
 /* O grid de dígitos pede mais respiro antes da ação do que os formulários. */
