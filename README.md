@@ -45,7 +45,8 @@ Fluxo de workspace:
 
 - /mainPositionScreen: cargos, filtros, criação/edição, status e associação de NRs. Os dados são locais e retornam aos mocks após reload. O chat tem respostas locais.
 - /createForms: perguntas de texto, opções, foto e data; cópia, exclusão e reordenação por arraste ou Alt + setas. Salva um exemplo em astro-created-form no navegador.
-- /editForms: edição de um formulário mockado com quatro tipos de pergunta e confirmações de saída/salvamento. As alterações ficam na instância atual da página.
+- /mainFormScreen: listagem mockada de formulários com cartões, busca, filtro de status, paginação, menu de edição e confirmação de exclusão. A exclusão altera somente a instância atual da listagem.
+- /editForms: edição de um formulário mockado com quatro tipos de pergunta e confirmações de saída/salvamento. Ao abrir pela listagem, usa o nome e a descrição do cartão selecionado. As alterações ficam na instância atual da página.
 - URLs desconhecidas abrem a página de erro com retorno ao início.
 
 As etapas de cadastro/pagamento mantêm a navegação demonstrativa. Login, recuperação de senha, suporte e itens do menu Em breve ainda dependem de implementação. /loadingScreen é uma transição por timer, não uma requisição.

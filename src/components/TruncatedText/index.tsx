@@ -3,9 +3,10 @@ import { createPortal } from 'react-dom'
 
 interface TruncatedTextProps {
   children: string
+  truncate?: boolean
 }
 
-function TruncatedText({ children }: TruncatedTextProps) {
+function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
   const tooltipId = useId()
   const elementRef = useRef<HTMLSpanElement>(null)
   const [displayText, setDisplayText] = useState(children)
@@ -21,6 +22,11 @@ function TruncatedText({ children }: TruncatedTextProps) {
     if (!element) return
 
     const update = () => {
+      if (!truncate) {
+        setDisplayText(children)
+        setTruncated(false)
+        return
+      }
       const width = element.clientWidth
       const context = document.createElement('canvas').getContext('2d')
       if (!context || width <= 0) return
@@ -54,7 +60,7 @@ function TruncatedText({ children }: TruncatedTextProps) {
     const observer = new ResizeObserver(update)
     observer.observe(element)
     return () => observer.disconnect()
-  }, [children])
+  }, [children, truncate])
 
   const updateTooltipPosition = useCallback(() => {
     const element = elementRef.current
@@ -72,7 +78,6 @@ function TruncatedText({ children }: TruncatedTextProps) {
   }, [])
 
   function showTooltip() {
-    if (!truncated) return
     if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
     updateTooltipPosition()
     setTooltipMounted(true)
@@ -124,7 +129,7 @@ function TruncatedText({ children }: TruncatedTextProps) {
     if (showTooltipFrameRef.current) cancelAnimationFrame(showTooltipFrameRef.current)
   }, [])
 
-  const tooltip = tooltipMounted && truncated && typeof document !== 'undefined'
+  const tooltip = tooltipMounted && typeof document !== 'undefined'
     ? createPortal(<span className={`astro-truncated-tooltip${tooltipVisible ? ' astro-truncated-tooltip--visible' : ''}`} id={tooltipId} onMouseEnter={showTooltip} onMouseLeave={hideTooltip} role="tooltip" style={{ left: tooltipPosition.left, top: tooltipPosition.top }}>{children}</span>, document.body)
     : null
 
@@ -132,7 +137,7 @@ function TruncatedText({ children }: TruncatedTextProps) {
     <span
       aria-label={children}
       aria-describedby={tooltipMounted ? tooltipId : undefined}
-      tabIndex={truncated ? 0 : undefined}
+      tabIndex={0}
       className="astro-truncated-text"
       data-truncated={truncated}
       ref={elementRef}

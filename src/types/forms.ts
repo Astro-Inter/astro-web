@@ -21,3 +21,15 @@ export interface CreateFormValues {
   deadline: string
   questions: FormQuestion[]
 }
+
+export type FormStatus = 'pending' | 'completed' | 'draft'
+
+export interface FormSummary {
+  id: string
+  name: string
+  description: string
+  questionCount: number
+  status: FormStatus
+  icon: 'document' | 'calendar' | 'feedback' | 'person-outline'
+  color: 'purple' | 'pink' | 'blue' | 'green'
+}

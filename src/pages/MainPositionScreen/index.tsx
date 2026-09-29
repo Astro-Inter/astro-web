@@ -189,7 +189,7 @@ function MainPositionScreenPage() {
     },
     {
       id: 'status', label: 'Status', width: '16.5%',
-      render: (position) => <span className={`position-status${position.active ? ' position-status--active' : ''}${position.id === savedPositionId ? ' position-status--saved' : ''}`}>{position.active ? 'Ativo' : 'Inativo'}</span>,
+      render: (position) => <span className={`position-status${position.active ? ' position-status--active' : ''}${position.id === savedPositionId ? ' position-status--saved' : ''}`}><TruncatedText truncate={false}>{position.active ? 'Ativo' : 'Inativo'}</TruncatedText></span>,
     },
     {
       id: 'actions', label: 'Ações', width: '13.5%', className: 'position-actions-cell',

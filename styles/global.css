@@ -520,6 +520,14 @@ textarea::selection {
 
 .route-loading { display: grid; min-height: 100dvh; padding: 2rem; place-items: center; color: var(--astro-text); background: var(--astro-background); }
 
+/* Animate page content, keeping the background and fixed controls opaque. */
+.astro-route-transition { min-height: 100dvh; }
+.astro-route-transition--exiting { pointer-events: none; }
+.astro-route-transition h1:focus { outline: none; }
+@keyframes astro-route-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes astro-route-exit { from { opacity: 1; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .astro-route-transition, .astro-route-transition--exiting { animation: none; } }
+
 :where(button, a, [tabindex]):focus-visible:not(:where(input, textarea, select, [tabindex="-1"])) {
   outline: 2px solid var(--astro-focus-border);
   outline-offset: 2px;

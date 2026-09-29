@@ -1,5 +1,5 @@
-import { Route, Routes } from 'react-router-dom'
-import { lazy, Suspense } from 'react'
+import { Route, Routes, useLocation } from 'react-router-dom'
+import { lazy, Suspense, useEffect, useRef, useState, useTransition } from 'react'
 import RouteLoading from '../components/RouteLoading'
 
 const AccessKeyVerifiedPage = lazy(() => import('../pages/AccessKeyVerified'))
@@ -12,15 +12,39 @@ const IncludeCompanyInformationPage = lazy(() => import('../pages/IncludeCompany
 const LoadingScreenPage = lazy(() => import('../pages/LoadingScreen'))
 const LoginPage = lazy(() => import('../pages/Login'))
 const MainPositionScreenPage = lazy(() => import('../pages/MainPositionScreen'))
+const MainFormScreenPage = lazy(() => import('../pages/MainFormScreen'))
 const NotFoundPage = lazy(() => import('../pages/NotFound'))
 const PaymentMethodPage = lazy(() => import('../pages/PaymentMethod'))
 const SetAddressPage = lazy(() => import('../pages/SetAddress'))
 const WorkspaceCreatedPage = lazy(() => import('../pages/WorkspaceCreated'))
 
 function AppRoutes() {
+  const location = useLocation()
+  const [displayedLocation, setDisplayedLocation] = useState(location)
+  const exiting = location.key !== displayedLocation.key
+  const [, startTransition] = useTransition()
+  const routeRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (location.key === displayedLocation.key) return
+    startTransition(() => {
+      setDisplayedLocation(location)
+    })
+  }, [location, displayedLocation.key, startTransition])
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    const heading = routeRef.current?.querySelector('h1')
+    if (heading) {
+      heading.tabIndex = -1
+      heading.focus({ preventScroll: true })
+    }
+  }, [displayedLocation.key])
+
   return (
     <Suspense fallback={<RouteLoading />}>
-      <Routes>
+    <div className={`astro-route-transition${exiting ? ' astro-route-transition--exiting' : ''}`} key={displayedLocation.key} ref={routeRef}>
+      <Routes location={displayedLocation}>
         <Route path="/" element={<LoginPage />} />
         <Route path="/paymentMethod" element={<PaymentMethodPage />} />
         <Route path="/createWorkspace" element={<CreateWorkspacePage />} />
@@ -32,10 +56,12 @@ function AppRoutes() {
         <Route path="/setAddress" element={<SetAddressPage />} />
         <Route path="/workspaceCreated" element={<WorkspaceCreatedPage />} />
         <Route path="/mainPositionScreen" element={<MainPositionScreenPage />} />
+        <Route path="/mainFormScreen" element={<MainFormScreenPage />} />
         <Route path="/createForms" element={<CreateFormsPage />} />
         <Route path="/editForms" element={<EditFormsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+    </div>
     </Suspense>
   )
 }

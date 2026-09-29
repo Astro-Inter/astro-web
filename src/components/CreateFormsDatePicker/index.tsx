@@ -8,6 +8,7 @@ interface CreateFormsDatePickerProps {
   onChange: (value: string) => void
   onValidityChange?: (valid: boolean) => void
   value: string
+  validate?: boolean
 }
 
 const weekdays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
@@ -63,7 +64,7 @@ function sameDate(first: Date | null, second: Date) {
   return first !== null && first.getFullYear() === second.getFullYear() && first.getMonth() === second.getMonth() && first.getDate() === second.getDate()
 }
 
-function CreateFormsDatePicker({ id, label, onChange, onValidityChange, value }: CreateFormsDatePickerProps) {
+function CreateFormsDatePicker({ id, label, onChange, onValidityChange, value, validate = true }: CreateFormsDatePickerProps) {
   const generatedId = useId()
   const calendarId = `${generatedId}-calendar`
   const containerRef = useRef<HTMLDivElement>(null)
@@ -80,7 +81,7 @@ function CreateFormsDatePicker({ id, label, onChange, onValidityChange, value }:
   const inputValue = inputDraft ?? formatInputDate(value)
   const invalidInput = inputValue !== '' && parseDisplayDate(inputValue) === null
   const [touched, setTouched] = useState(false)
-  const showError = invalidInput && (touched || inputValue.length === 10)
+  const showError = validate && invalidInput && (touched || inputValue.length === 10)
 
   const closeCalendar = useCallback((onFinished?: () => void, restoreFocus = false) => {
     requestClose(() => {
