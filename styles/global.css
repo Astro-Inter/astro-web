@@ -36,12 +36,12 @@
   --astro-orb-accent: #8f00c4;
   --astro-orb-accent-hover: #7b00aa;
   --astro-field: #444252;
-  --astro-placeholder: #aaa6b8;
+  --astro-placeholder: #b6b2c3;
   --astro-text: #f8f7fc;
   --astro-text-muted: #888888;
   --astro-link: #00a7c7;
   --astro-focus-border: rgb(248 247 252 / 65%);
-  --astro-input-focus-border: #6d6891;
+  --astro-input-focus-border: #918d99;
   --astro-focus-surface: rgb(255 255 255 / 11%);
   --astro-scrollbar-thumb: #573D93;
   --astro-scrollbar-thumb-hover: #4f3887;
@@ -216,7 +216,8 @@ html:has(dialog[open]) {
 }
 
 html:has(dialog.create-forms-exit-modal[open]),
-html:has(dialog.create-forms-add-modal[open]) {
+html:has(dialog.create-forms-add-modal[open]),
+html:has(dialog.edit-forms-save-modal[open]) {
   overflow-y: scroll;
 }
 
@@ -515,4 +516,11 @@ textarea::selection {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+.route-loading { display: grid; min-height: 100dvh; padding: 2rem; place-items: center; color: var(--astro-text); background: var(--astro-background); }
+
+:where(button, a, [tabindex]):focus-visible:not(:where(input, textarea, select, [tabindex="-1"])) {
+  outline: 2px solid var(--astro-focus-border);
+  outline-offset: 2px;
 }

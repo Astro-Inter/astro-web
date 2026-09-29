@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 interface ToggleSwitchProps {
   checked: boolean
   label: string
@@ -5,9 +7,11 @@ interface ToggleSwitchProps {
 }
 
 function ToggleSwitch({ checked, label, onChange }: ToggleSwitchProps) {
+  const inputId = useId()
   return (
-    <label className="astro-toggle-switch">
+    <label className="astro-toggle-switch" htmlFor={inputId}>
       <input
+        id={inputId}
         aria-label={label}
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}

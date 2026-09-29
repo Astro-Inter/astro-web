@@ -1,0 +1,11 @@
+.edit-forms-main { padding-bottom: calc(1rem * var(--astro-scale)); }
+.edit-forms-feedback { margin: calc(1rem * var(--astro-scale)) 0 0; color: #c8c3d2; font-size: var(--astro-label-font-size); }
+.edit-forms-feedback:empty { display: none; }
+.edit-forms-save-modal .astro-modal-title { max-width: 36rem; }
+.edit-forms-back-modal .astro-modal-title { max-width: 39rem; }
+
+@media (max-width: 480px) {
+  .edit-forms-main { padding-bottom: calc(0.5rem * var(--astro-scale)); }
+  .edit-forms-save-modal .astro-modal-title,
+  .edit-forms-back-modal .astro-modal-title { max-width: none; }
+}

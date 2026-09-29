@@ -8,7 +8,7 @@ interface NrRecommendationModalProps {
 
 function NrRecommendationModal({ description, onClose, title }: NrRecommendationModalProps) {
   return (
-    <AppModal className="nrs-recommendation-modal" onClose={onClose} title={title}>
+    <AppModal backdrop="transparent" className="nrs-recommendation-modal" onClose={onClose} title={title}>
       <p className="nrs-recommendation-description">{description}</p>
     </AppModal>
   )

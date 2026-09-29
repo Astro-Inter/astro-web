@@ -30,6 +30,7 @@ import '../styles/not-found.css'
 import '../styles/main-position-screen.css'
 import '../styles/nrs-dialog.css'
 import '../styles/create-forms.css'
+import '../styles/edit-forms.css'
 import '../styles/toggle-switch.css'
 
 createRoot(document.getElementById('root')!).render(

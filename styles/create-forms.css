@@ -132,7 +132,6 @@
 .create-forms-footer .astro-action { display: inline-flex; align-items: center; justify-content: center; gap: 0.75rem; width: var(--astro-compact-action-width); }
 .create-forms-footer .astro-action img { width: 1.25rem; height: 1.25rem; }
 .create-forms-add-modal { --astro-modal-width: calc(3 * var(--astro-compact-action-width) + 1.7rem + 7.5rem); }
-.create-forms-exit-modal::backdrop { background: rgb(0 0 0 / 25%); animation: astro-modal-backdrop-fade 0.2s ease both; }
 .create-forms-add-modal .astro-modal-title { margin: 0 0 1.6rem; font-size: var(--astro-heading-font-size); font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; }
 .create-forms-add-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-items: start; gap: 0.85rem; }
 .create-forms-add-grid > button { width: min(100%, var(--astro-compact-action-width)); min-height: var(--astro-action-height); }
@@ -209,3 +208,5 @@
   .create-forms-calendar-header h3, .create-forms-calendar-days--next, .create-forms-calendar-days--previous, .create-forms-calendar-day--selected { animation: none; }
   .create-forms-calendar-header button, .create-forms-calendar-footer button, .create-forms-calendar-day { transition: none; }
 }
+
+.create-forms-date-error { margin: 0.4rem 0 0; color: #ffc4c8; font-size: var(--astro-label-font-size); }

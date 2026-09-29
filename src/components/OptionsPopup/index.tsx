@@ -36,6 +36,7 @@ function OptionsPopup({ ariaLabel, closing = false, id, items, onClose, panelRef
       case 'Home': nextIndex = 0; break
       case 'End': nextIndex = items.length - 1; break
       case 'Escape':
+      case 'Tab':
         event.preventDefault()
         onClose()
         return

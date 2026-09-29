@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import AppModal from '../AppModal'
 import DataTable from '../DataTable'
@@ -42,6 +42,7 @@ function recommendationCopy(row: NrsRow) {
 }
 
 function EditNrsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onDismissRequest, onRequestConfirmation, open = true, positionName, recommendedIds = [], rows = defaultNrsRows }: EditNrsDialogProps) {
+  const tooltipId = useId()
   const [form, setForm] = useState(() => ({ search: '', enabledIds: new Set(enabledIds) }))
   const [recommendationTooltip, setRecommendationTooltip] = useState<RecommendationTooltipState | null>(null)
   const recommendationTooltipRef = useRef<HTMLDivElement>(null)
@@ -179,6 +180,7 @@ function EditNrsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onD
           onChange={(enabled) => toggleNr(row.id, enabled)}
         />
         {recommendedIds.includes(row.id) && <button
+          aria-describedby={recommendationTooltip?.row.id === row.id ? tooltipId : undefined}
           aria-label={`Ver recomendação de IA para ${row.code}`}
           className="nrs-edit-row-recommendation"
           onBlur={hideRecommendationTooltip}
@@ -186,6 +188,13 @@ function EditNrsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onD
           onFocus={(event) => showRecommendationTooltip(row, event.currentTarget)}
           onMouseEnter={(event) => showRecommendationTooltip(row, event.currentTarget)}
           onMouseLeave={hideRecommendationTooltip}
+          onKeyDown={(event) => {
+            if (event.key !== 'Escape' || !recommendationTooltip) return
+            event.preventDefault()
+            event.stopPropagation()
+            cancelTooltipHide()
+            setRecommendationTooltip(null)
+          }}
           type="button"
         >
           <img alt="" aria-hidden="true" className="nrs-edit-row-robot" draggable={false} src="/robot5.png" />
@@ -202,6 +211,7 @@ function EditNrsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onD
       onMouseEnter={cancelTooltipHide}
       onMouseLeave={hideRecommendationTooltip}
       role="tooltip"
+      id={tooltipId}
       ref={recommendationTooltipRef}
       style={{ left: recommendationTooltip.left, top: recommendationTooltip.top }}
     >
@@ -213,6 +223,7 @@ function EditNrsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onD
 
   return <>
     <AppModal
+      backdrop="transparent"
       className="nrs-dialog nrs-edit-dialog"
       dimmed={dimmed}
       onClose={onCancel}

@@ -10,35 +10,12 @@ import HelpLink from '../../components/HelpLink'
 import OptionsPopup from '../../components/OptionsPopup'
 import PurpleButton from '../../components/PurpleButton'
 import ToolbarSelect from '../../components/ToolbarSelect'
-import { defaultNrsRows } from '../../data/nrs'
+import { managerOptions, nrOptions, unitOptions } from '../../data/formOptions'
+import { makeQuestion, validateForm } from '../../utils/forms'
 import { animateRemoval } from '../../utils/animateRemoval'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import type { CreateFormValues, FormQuestion, FormQuestionKind } from '../../types/forms'
 
-const managerOptions = [
-  { value: '', label: 'Selecione o gestor', tone: 'muted' as const },
-  { value: 'Gerente', label: 'Gerente' },
-  { value: 'Diretor', label: 'Diretor' },
-  { value: 'Coordenador', label: 'Coordenador' },
-]
-const nrOptions = [
-  { value: '', label: 'Selecionar a NR', tone: 'muted' as const },
-  ...defaultNrsRows.map(({ code }) => ({ value: code, label: code })),
-]
-const unitOptions = [
-  { value: '', label: 'Selecionar a unidade', tone: 'muted' as const },
-  { value: 'Sede 1', label: 'Sede 1' },
-  { value: 'Sede 2', label: 'Sede 2' },
-]
-
-function makeQuestion(kind: FormQuestionKind): FormQuestion {
-  return {
-    id: crypto.randomUUID(), kind, title: '', answer: '',
-    options: kind === 'option' ? [{ id: crypto.randomUUID(), value: '' }, { id: crypto.randomUUID(), value: '' }] : [],
-    multiple: false, required: false,
-    ...(kind === 'photo' ? { maxFiles: 1, maxFileSizeMb: 10 } : {}),
-  }
-}
 
 const initialValues: CreateFormValues = { name: '', description: '', manager: '', nr: '', unit: '', deadline: '', questions: [] }
 type QuestionDropTarget = { id: string; position: 'before' | 'after' }
@@ -56,6 +33,7 @@ function CreateFormsPage() {
   const [dropTarget, setDropTarget] = useState<QuestionDropTarget | null>(null)
   const [previewQuestionOrder, setPreviewQuestionOrder] = useState<string[] | null>(null)
   const [feedback, setFeedback] = useState('')
+  const [deadlineValid, setDeadlineValid] = useState(true)
   const [error, setError] = useState('')
   const menuTriggerRef = useRef<HTMLButtonElement>(null)
   const menuPanelRef = useRef<HTMLDivElement>(null)
@@ -446,12 +424,8 @@ function CreateFormsPage() {
 
   function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!values.name.trim()) { setError('Digite o nome do formulário.'); return }
-    if (!values.manager) { setError('Selecione um gestor.'); return }
-    if (values.questions.length === 0) { setError('Adicione pelo menos uma pergunta.'); return }
-    if (values.questions.some((question) => !['nr', 'unit'].includes(question.kind) && !question.title.trim())) {
-      setError('Preencha o texto de todas as perguntas.'); return
-    }
+    const validationError = validateForm(values, deadlineValid)
+    if (validationError) { setError(validationError); return }
     try {
       window.localStorage.setItem('astro-created-form', JSON.stringify({ _versao: 1, values: { ...values, name: values.name.trim() } }))
       window.localStorage.removeItem('astro-create-forms-draft')
@@ -495,7 +469,7 @@ function CreateFormsPage() {
             <div className="create-forms-field"><span className="create-forms-label">Gestor</span><ToolbarSelect className="create-forms-select" label="Gestor" onValueChange={(manager) => setValues((current) => ({ ...current, manager }))} options={managerOptions} value={values.manager} /></div>
             <div className="create-forms-field"><span className="create-forms-label">NR (opcional)</span><ToolbarSelect className="create-forms-select" label="NR (opcional)" onValueChange={(nr) => setValues((current) => ({ ...current, nr }))} options={nrOptions} value={values.nr} /></div>
             <div className="create-forms-field"><span className="create-forms-label">Unidade (opcional)</span><ToolbarSelect className="create-forms-select" label="Unidade (opcional)" onValueChange={(unit) => setValues((current) => ({ ...current, unit }))} options={unitOptions} value={values.unit} /></div>
-            <div className="create-forms-field"><label htmlFor="create-forms-deadline">Data limite (opcional)</label><CreateFormsDatePicker id="create-forms-deadline" label="Data limite" onChange={(deadline) => setValues((current) => ({ ...current, deadline }))} value={values.deadline} /></div>
+            <div className="create-forms-field"><label htmlFor="create-forms-deadline">Data limite (opcional)</label><CreateFormsDatePicker id="create-forms-deadline" label="Data limite" onChange={(deadline) => setValues((current) => ({ ...current, deadline }))} onValidityChange={setDeadlineValid} value={values.deadline} /></div>
           </section>
 
           <div aria-label="Perguntas do formulário" className="create-forms-questions" role="list">
@@ -556,6 +530,8 @@ function CreateFormsPage() {
 
       {showAddQuestion && <AddQuestionCreateFormsModal onCancel={() => setShowAddQuestion(false)} onChoose={addQuestion} />}
       {showBackConfirmation && <ConfirmationModal
+        backdrop="dimmed"
+        preservePageScroll
         className="create-forms-exit-modal"
         confirmLabel="Sair"
         icon={<span aria-hidden="true" className="position-deactivation-icon"><img alt="" src="/icon/error-information.svg" /></span>}

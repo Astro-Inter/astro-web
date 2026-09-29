@@ -165,7 +165,7 @@
 .astro-toolbar-select-option:hover,
 .astro-toolbar-select-option:focus-visible { color: #c4bdd4; background: transparent; outline: none; }
 .astro-toolbar-select-option--muted:hover,
-.astro-toolbar-select-option--muted:focus-visible { color: #9994a6; }
+.astro-toolbar-select-option--muted:focus-visible { color: #9f9bad; }
 
 @keyframes astro-toolbar-popover-in {
   from { opacity: 0; transform: translateY(-0.25rem); }
@@ -191,3 +191,5 @@
   .astro-toolbar-select-options { transition: none; }
   .astro-toolbar-select-toggle .astro-icon { transition: none; }
 }
+
+.astro-toolbar-select-option:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; }

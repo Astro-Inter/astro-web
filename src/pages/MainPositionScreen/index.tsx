@@ -415,6 +415,7 @@ function MainPositionScreenPage() {
       )}
       {pendingDeactivation && (
         <ConfirmationModal
+          backdrop="dimmed"
           className="position-deactivation-modal"
           confirmLabel="Inativar"
           icon={<span aria-hidden="true" className="position-deactivation-icon"><img alt="" src="/icon/error-information.svg" /></span>}

@@ -6,6 +6,7 @@ interface CreateFormsDatePickerProps {
   id: string
   label: string
   onChange: (value: string) => void
+  onValidityChange?: (valid: boolean) => void
   value: string
 }
 
@@ -62,12 +63,13 @@ function sameDate(first: Date | null, second: Date) {
   return first !== null && first.getFullYear() === second.getFullYear() && first.getMonth() === second.getMonth() && first.getDate() === second.getDate()
 }
 
-function CreateFormsDatePicker({ id, label, onChange, value }: CreateFormsDatePickerProps) {
+function CreateFormsDatePicker({ id, label, onChange, onValidityChange, value }: CreateFormsDatePickerProps) {
   const generatedId = useId()
   const calendarId = `${generatedId}-calendar`
   const containerRef = useRef<HTMLDivElement>(null)
   const calendarRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const pendingFocusDate = useRef<string | null>(null)
   const selectedDate = parseIsoDate(value)
   const [inputDraft, setInputDraft] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
@@ -76,6 +78,9 @@ function CreateFormsDatePicker({ id, label, onChange, value }: CreateFormsDatePi
   const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(selectedDate ?? new Date()))
   const { closing, requestClose } = useAnimatedClose(160)
   const inputValue = inputDraft ?? formatInputDate(value)
+  const invalidInput = inputValue !== '' && parseDisplayDate(inputValue) === null
+  const [touched, setTouched] = useState(false)
+  const showError = invalidInput && (touched || inputValue.length === 10)
 
   const closeCalendar = useCallback((onFinished?: () => void, restoreFocus = false) => {
     requestClose(() => {
@@ -93,6 +98,10 @@ function CreateFormsDatePicker({ id, label, onChange, value }: CreateFormsDatePi
     const availableBelow = window.innerHeight - inputBounds.bottom - 20
     const availableAbove = inputBounds.top - 20
     setPlacement(calendarBounds.height > availableBelow && availableAbove > availableBelow ? 'above' : 'below')
+    if (pendingFocusDate.current) {
+      calendarRef.current?.querySelector<HTMLButtonElement>(`[data-date="${pendingFocusDate.current}"]`)?.focus({ preventScroll: true })
+      pendingFocusDate.current = null
+    }
   }, [closing, open, visibleMonth])
 
   useEffect(() => {
@@ -100,14 +109,14 @@ function CreateFormsDatePicker({ id, label, onChange, value }: CreateFormsDatePi
 
     function closeOnOutsidePointer(event: PointerEvent) {
       if (!containerRef.current?.contains(event.target as Node)) {
-        closeCalendar(() => setInputDraft(null))
+        closeCalendar()
       }
     }
 
     function closeOnEscape(event: globalThis.KeyboardEvent) {
       if (event.key !== 'Escape') return
       event.preventDefault()
-      closeCalendar(() => setInputDraft(null), true)
+      closeCalendar(undefined, true)
     }
 
     document.addEventListener('pointerdown', closeOnOutsidePointer)
@@ -118,9 +127,10 @@ function CreateFormsDatePicker({ id, label, onChange, value }: CreateFormsDatePi
     }
   }, [closeCalendar, open])
 
-  function openCalendar() {
+  function openCalendar(focusDay = false) {
     if (closing) return
     const dateToShow = parseDisplayDate(inputValue) ?? selectedDate ?? new Date()
+    if (focusDay) pendingFocusDate.current = toIsoDate(dateToShow)
     setVisibleMonth(startOfMonth(dateToShow))
     setOpen(true)
   }
@@ -129,9 +139,10 @@ function CreateFormsDatePicker({ id, label, onChange, value }: CreateFormsDatePi
     const formattedValue = formatDateDigits(nextValue)
     setInputDraft(formattedValue)
     const parsedDate = parseDisplayDate(formattedValue)
+    onChange(parsedDate ? toIsoDate(parsedDate) : '')
+    onValidityChange?.(formattedValue === '' || parsedDate !== null)
     if (parsedDate) {
       setInputDraft(null)
-      onChange(toIsoDate(parsedDate))
       setVisibleMonth(startOfMonth(parsedDate))
     }
   }
@@ -140,18 +151,19 @@ function CreateFormsDatePicker({ id, label, onChange, value }: CreateFormsDatePi
     const isoDate = toIsoDate(date)
     setInputDraft(null)
     onChange(isoDate)
+    onValidityChange?.(true)
     closeCalendar(undefined, true)
   }
 
   function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'ArrowDown' && !open) {
       event.preventDefault()
-      openCalendar()
+      openCalendar(true)
       return
     }
     if (event.key === 'Escape' && open) {
       event.preventDefault()
-      closeCalendar(() => setInputDraft(null), true)
+      closeCalendar(undefined, true)
     }
   }
 
@@ -167,10 +179,33 @@ function CreateFormsDatePicker({ id, label, onChange, value }: CreateFormsDatePi
     setVisibleMonth(new Date(year, month + offset, 1, 12))
   }
 
+  function moveDayWithKeyboard(event: KeyboardEvent<HTMLButtonElement>, date: Date) {
+    const offsets: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }
+    const next = new Date(date)
+    if (event.key in offsets) next.setDate(next.getDate() + offsets[event.key])
+    else if (event.key === 'Home') next.setDate(next.getDate() - (next.getDay() + 6) % 7)
+    else if (event.key === 'End') next.setDate(next.getDate() + 6 - (next.getDay() + 6) % 7)
+    else if (event.key === 'PageUp' || event.key === 'PageDown') {
+      const offset = event.key === 'PageUp' ? -1 : 1
+      next.setDate(1)
+      next.setMonth(next.getMonth() + offset)
+      next.setDate(Math.min(date.getDate(), new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate()))
+    } else return
+    event.preventDefault()
+    const button = calendarRef.current?.querySelector<HTMLButtonElement>(`[data-date="${toIsoDate(next)}"]`)
+    if (button) button.focus({ preventScroll: true })
+    else {
+      pendingFocusDate.current = toIsoDate(next)
+      setVisibleMonth(startOfMonth(next))
+    }
+  }
+
   return (
     <div className="create-forms-date-picker" data-placement={placement} ref={containerRef}>
       <div className="create-forms-date-control">
         <input
+          aria-describedby={showError ? `${id}-error` : undefined}
+          aria-invalid={showError}
           aria-controls={calendarId}
           aria-expanded={open && !closing}
           aria-haspopup="dialog"
@@ -178,7 +213,8 @@ function CreateFormsDatePicker({ id, label, onChange, value }: CreateFormsDatePi
           id={id}
           inputMode="numeric"
           onChange={(event) => updateInput(event.target.value)}
-          onClick={openCalendar}
+          onBlur={() => setTouched(true)}
+          onClick={() => openCalendar()}
           onKeyDown={handleInputKeyDown}
           placeholder="dd/mm/aaaa"
           ref={inputRef}
@@ -190,13 +226,14 @@ function CreateFormsDatePicker({ id, label, onChange, value }: CreateFormsDatePi
           aria-expanded={open && !closing}
           aria-label={open && !closing ? 'Fechar calendário' : `Abrir calendário de ${label.toLocaleLowerCase('pt-BR')}`}
           className="create-forms-date-trigger"
-          onClick={() => open ? closeCalendar(undefined, true) : openCalendar()}
+          onClick={() => open ? closeCalendar(undefined, true) : openCalendar(true)}
           onMouseDown={(event) => event.preventDefault()}
           type="button"
         >
           <AstroIcon name="calendar" />
         </button>
       </div>
+      {showError && <p className="create-forms-date-error" id={`${id}-error`} role="alert">Informe uma data válida no formato dd/mm/aaaa.</p>}
 
       {open && <div aria-label={`Calendário: ${label}`} className={`create-forms-calendar${closing ? ' create-forms-calendar--closing' : ''}`} id={calendarId} ref={calendarRef} role="dialog">
         <div className="create-forms-calendar-header">
@@ -220,7 +257,9 @@ function CreateFormsDatePicker({ id, label, onChange, value }: CreateFormsDatePi
               aria-pressed={isSelected}
               className={`create-forms-calendar-day${isSelected ? ' create-forms-calendar-day--selected' : ''}${isToday ? ' create-forms-calendar-day--today' : ''}`}
               key={date.getDate()}
+              data-date={toIsoDate(date)}
               onClick={() => chooseDate(date)}
+              onKeyDown={(event) => moveDayWithKeyboard(event, date)}
               type="button"
             >{date.getDate()}</button>
           })}

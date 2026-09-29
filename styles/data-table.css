@@ -43,3 +43,6 @@
   .astro-data-table-shell { display: flex; flex: 1; min-height: 0; }
   .astro-data-table-scroll { flex: 1; min-height: 0; max-height: none; }
 }
+
+.astro-truncated-text:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; }
+.astro-truncated-tooltip { pointer-events: auto; }

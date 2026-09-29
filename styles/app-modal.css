@@ -34,8 +34,6 @@
 .astro-confirmation-modal { --astro-modal-width: 43.3rem; }
 .astro-confirmation-modal:is(.position-deactivation-modal, .create-forms-exit-modal) { --astro-modal-width: 50rem; }
 .astro-confirmation-modal[open] { animation: rise-in 0.22s ease both; }
-.astro-confirmation-modal::backdrop { background: transparent; animation: none; }
-.position-deactivation-modal::backdrop { background: rgb(0 0 0 / 25%); animation: astro-modal-backdrop-fade 0.2s ease both; }
 .astro-confirmation-modal .astro-modal-title { max-width: 31rem; }
 .astro-confirmation-modal:is(.position-deactivation-modal, .create-forms-exit-modal) .astro-modal-title { max-width: 39rem; }
 .astro-confirmation-error { margin: 1rem 0 0; color: #ffc4c8; font-size: 0.8rem; }
@@ -81,3 +79,5 @@
   .astro-modal-actions { flex-direction: column-reverse; align-items: stretch; }
   .astro-modal-actions > button { width: 100%; max-width: none; }
 }
+
+.astro-modal[data-backdrop="transparent"]::backdrop { background: transparent; animation: none; }

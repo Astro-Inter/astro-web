@@ -77,7 +77,7 @@ function AppSidebar({ items = navigationItems }: AppSidebarProps) {
                 {item.path ? (
                   <NavLink
                     className={({ isActive }) => `app-navigation-link${isActive ? ' app-navigation-link--active' : ''}`}
-                    onClick={closeMenu}
+                    onClick={() => setOpen(false)}
                     to={item.path}
                   >
                     <span className="app-navigation-icon"><AstroIcon name={item.icon} /></span>

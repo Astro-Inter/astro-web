@@ -17,7 +17,7 @@ const questionKinds: { kind: FormQuestionKind; label: string; icon: string }[] =
 function AddQuestionCreateFormsModal({ onCancel, onChoose }: AddQuestionCreateFormsModalProps) {
   const selectedKindRef = useRef<FormQuestionKind | null>(null)
   return (
-    <AppModal className="create-forms-add-modal" onClose={() => {
+    <AppModal preservePageScroll className="create-forms-add-modal" onClose={() => {
       if (selectedKindRef.current) onChoose(selectedKindRef.current)
       else onCancel()
     }} title="Adicionar nova pergunta">

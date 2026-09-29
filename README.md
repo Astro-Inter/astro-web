@@ -1,56 +1,90 @@
 # Astro Web
 
-Protótipo de interface do Astro, feito com Vite, React, TypeScript e React Router.
+Protótipo de interface do Astro, feito com Vite, React, TypeScript e React Router. Os fluxos usam dados demonstrativos; autenticação, pagamento e cadastros não chamam uma API.
 
-## Executar
+## Executar e verificar
 
 ```bash
 npm install
 npm run dev
+npm run lint
+npm run build
 ```
 
-`npm run lint` verifica o código. `npm run build` executa a checagem de tipos e gera a versão de produção em `dist/`.
+O build verifica os tipos e gera dist/. O CI executa npm ci, lint e build em pull requests e pushes para main. O lint verifica regras de hooks e dependências dos efeitos. Se este ambiente Windows bloquear o carregador padrão do Vite com spawn EPERM, a verificação equivalente é:
+
+```bash
+node ./node_modules/typescript/bin/tsc -b
+node ./node_modules/vite/bin/vite.js build --configLoader native
+```
 
 ## Estrutura
 
 ```text
 public/                  imagens, logotipo e ícones acessados por URL
 src/
-  components/            componentes de interface; cada um tem pasta e index.tsx
-  hooks/                 estado e regras reutilizáveis, como useWorkspaceAddresses
-  pages/                 composição das telas; cada página tem pasta e index.tsx
-  routes/index.tsx       rotas, inclusive a página para caminhos desconhecidos
+  components/            componentes, cada um em pasta com index.tsx
+  data/                  mocks e opções compartilhadas
+  hooks/                 comportamento reutilizável de endereços e diálogos
+  pages/                 composição e estado das páginas
+  routes/index.tsx       rotas com lazy/Suspense por página e rota curinga
   types/                 entidades e contratos por domínio
-  utils/                 máscaras e validações sem dependência da interface
+  utils/                 máscaras, validações e utilitários compartilhados
   App.tsx                árvore de rotas
-  main.tsx               montagem do React e importação dos estilos
+  main.tsx               montagem e importação de estilos
 styles/                  CSS global e das telas, fora de src/
 ```
 
-`src/` contém apenas arquivos `.ts` e `.tsx`. Os arquivos estáticos ficam em `public/` e `styles/`. Não há módulo de serviço ou de autenticação porque o protótipo ainda não se conecta a uma API.
+src/ contém apenas .ts e .tsx. Não existe módulo de serviço ou autenticação porque o protótipo ainda não se conecta a uma API. .env.example reserva VITE_API_URL; variáveis VITE_ são públicas no navegador e não devem conter segredos.
 
-## Fluxo atual
+## Rotas e comportamento demonstrativo
 
-`/` → `/paymentMethod` → `/createWorkspace` → `/accessKeyVerified` → `/createPassword` → `/includeCompanyInformation` → `/attachExcelFile` → `/setAddress` → `/workspaceCreated` → `/loadingScreen`.
+Fluxo de workspace:
 
-Cada rota também pode ser aberta diretamente. Uma URL desconhecida abre a página **Página não encontrada**, com retorno para o início.
+/ → /paymentMethod → /createWorkspace → /accessKeyVerified → /createPassword → /includeCompanyInformation → /attachExcelFile → /setAddress → /workspaceCreated → /loadingScreen → /mainPositionScreen.
 
-Os formulários mantêm estado local e as páginas controlam a navegação. O endereço das unidades usa `useWorkspaceAddresses` para adicionar, remover, editar e alternar sedes sem mutar os dados. As máscaras de e-mail, CNPJ, CEP, cartão e demais campos ficam em `src/utils/`. A planilha aceita `.xlsx` e `.xls` de até 10 MB e mostra erro no DOM quando o arquivo não atende a esses limites.
+- /mainPositionScreen: cargos, filtros, criação/edição, status e associação de NRs. Os dados são locais e retornam aos mocks após reload. O chat tem respostas locais.
+- /createForms: perguntas de texto, opções, foto e data; cópia, exclusão e reordenação por arraste ou Alt + setas. Salva um exemplo em astro-created-form no navegador.
+- /editForms: edição de um formulário mockado com quatro tipos de pergunta e confirmações de saída/salvamento. As alterações ficam na instância atual da página.
+- URLs desconhecidas abrem a página de erro com retorno ao início.
 
-Este fluxo ainda é demonstrativo: login, pagamento, verificação da chave e finalização do workspace não chamam serviços externos nem persistem dados. A tela `/loadingScreen` é uma apresentação visual, não um estado de uma requisição. `.env.example` reserva `VITE_API_URL` para uma integração futura; não coloque chaves privadas em variáveis `VITE_`.
+As etapas de cadastro/pagamento mantêm a navegação demonstrativa. Login, recuperação de senha, suporte e itens do menu Em breve ainda dependem de implementação. /loadingScreen é uma transição por timer, não uma requisição.
+
+## Formulários e acessibilidade
+
+Criação e edição compartilham utils/forms.ts: validam nome, gestor, data, existência de perguntas, títulos e opções normais. A opção Outros é uma prévia de resposta e pode ficar vazia. Datas impossíveis ou incompletas não mantêm silenciosamente o prazo anterior; limpar o campo limpa o valor do formulário.
+
+As máscaras de email, CNPJ, CEP e cartão ficam em utils/. A seleção da planilha valida extensão .xlsx/.xls e limite de 10 MB; a etapa ainda permite avançar no fluxo mockado.
+
+Erros e confirmações gerais de createForms continuam destinados a leitores de tela durante esta fase mockada. Erros de data e de confirmação da edição são apresentados junto ao controle correspondente. Prévia de respostas e botão de carregar foto permanecem desabilitados e com opacidade reduzida.
+
+AppModal/ConfirmationModal usam opções explícitas backdrop e preservePageScroll. Confirmações independentes escurecem a página; confirmações sobre outro modal podem usar fundo transparente. O foco inicial é definido na abertura e não volta ao título quando a validação atualiza o diálogo.
+
+- Menus e seletores: setas, Home/End e Escape, foco visível e estados ARIA.
+- Calendário: setas entre dias, Home/End para semana, PageUp/PageDown para mês, Enter para escolher e Escape para fechar. A entrada manual continua disponível.
+- Texto truncado: Tab para receber foco quando há corte, tooltip associado por aria-describedby e Escape para fechar. Recomendações de NRs também têm associação ARIA e fechamento por Escape.
+- Placeholder ativo: #b6b2c3 sobre #444252, contraste superior a 4,5:1. Prévias desabilitadas conservam a opacidade definida para o protótipo.
+
+## Persistência
+
+createForms grava astro-created-form e astro-create-forms-draft com _versao: 1 e trata falhas de escrita. Ainda não existe coleção de formulários nem carga/migração desses registros. A recuperação de rascunho será definida posteriormente. EditForms, cargos, NRs e etapas do workspace usam estado local; não indicam persistência remota.
 
 ## Critérios DAD (14/05/2026)
 
-| Critério | Estado nesta versão |
+| Critério | Estado atual |
 | --- | --- |
-| M01–M04 | Estrutura Vite/React/TypeScript, componentes e páginas em pastas próprias, tipos de domínio e props tipadas. TypeScript em modo estrito; nenhum `any` em `src/`. |
-| M05 | Sem comunicação externa por enquanto. Quando houver API, concentrar as chamadas tipadas e o tratamento de erro em `src/services/`. |
-| M06–M08 | Estado local imutável; os efeitos dos diálogos têm dependências explícitas; listas que mudam usam identificadores estáveis. |
-| M09 | Nenhuma rota atual recebe parâmetros. Verificar presença com `useParams` se forem adicionados. |
-| M10 | Dez rotas do fluxo e rota curinga com retorno ao início. |
-| M11 | Estrutura semântica, labels e foco nos diálogos presentes. Auditoria completa de contraste, teclado e leitor de tela ainda pendente. |
-| M12 | Integração assíncrona ainda não implementada; loading, sucesso e erro deverão acompanhar cada operação real. |
-| M13 | Publicação em Vercel ou GitHub Pages e URL acessível ainda pendentes. |
-| M14 | O histórico atual tem 13 commits entre 16 e 21/09/2026; faltam 20 commits distribuídos por quatro semanas reais. Não criar commits artificiais. |
+| M01–M04 | Vite/React/TS estrito, somente TS/TSX em src, componentes/páginas em pastas próprias, props e domínio tipados, sem any. Lógica de perguntas e validação compartilhada. |
+| M05 | API ainda não integrada. Quando houver, usar serviços tipados e tratamento de erro em src/services. |
+| M06–M08 | Estados locais agrupados, atualizações imutáveis, efeitos com dependências verificadas pelo lint e ids estáveis nas listas dinâmicas. |
+| M09 | Nenhuma rota recebe parâmetros atualmente. |
+| M10 | React Router, navegação interna e rota curinga com retorno ao início. |
+| M11 | Correções de contraste, foco, teclado e tooltips realizadas. Certificação integral WCAG AA e validação com leitor de tela ainda não concluídas. |
+| M12 | Integrações assíncronas reais e seus estados dependem da API. Suspense apresenta carregamento dos módulos das páginas. |
+| M13 | Publicação segue pendente. |
+| M14 | Histórico em desenvolvimento; acompanhar 20 commits convencionais distribuídos por quatro semanas reais. |
 
-Os extras E01–E10 não foram assumidos como concluídos. Há validação do arquivo de planilha e gerenciamento de foco nos diálogos, mas a validação de todos os formulários e uma prova de acessibilidade completa ainda dependem de trabalho adicional. A integração com API, autenticação, pagamento e publicação devem ser planejados conforme as regras de produto e infraestrutura da equipe.
+E04 implementado com lazy/Suspense por página e chunks separados no build. E05 parcial: versão ao gravar, sem carga/migração. E08 tem validação de formulários, cargos e arquivo; cadastro mockado mantém seu comportamento definido. E10 tem melhorias de ARIA/foco/teclado, mas ainda precisa de demonstração com NVDA ou VoiceOver. Os demais extras não são declarados concluídos.
+
+## Verificação manual
+
+Conferir limpeza de prazo, datas inválidas, seleção pelo teclado, opções vazias, Outros, confirmação de edição e retorno de foco. Testar tooltips com Tab/Escape e NRs com modais aninhados. Verificar desktop e mobile, inclusive 360 px. Ainda não há suíte automatizada de fluxos nem prova completa com leitor de tela.

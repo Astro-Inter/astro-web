@@ -30,7 +30,6 @@ export function useAnimatedDialog({ initialFocusRef, onClose, onDismissRequest, 
         requestAnimationFrame(() => window.scrollTo(pageScroll.left, pageScroll.top))
         return
       }
-      initialFocusRef?.current?.focus({ preventScroll: true })
     } else if (dialog.open) {
       dismiss()
     }

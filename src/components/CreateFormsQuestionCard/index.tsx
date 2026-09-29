@@ -5,6 +5,7 @@ import CompactPurpleButton from '../CompactPurpleButton'
 import { useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import type { FormQuestion, FormQuestionKind } from '../../types/forms'
 import { animateRemoval } from '../../utils/animateRemoval'
+import { otherOptionsLast } from '../../utils/forms'
 
 interface CreateFormsQuestionCardProps {
   index: number
@@ -12,8 +13,8 @@ interface CreateFormsQuestionCardProps {
   onChange: (question: FormQuestion) => void
   onCopy: () => void
   onDelete: () => void
-  onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => void
-  onMove: (direction: -1 | 1) => void
+  onPointerDown?: (event: ReactPointerEvent<HTMLButtonElement>) => void
+  onMove?: (direction: -1 | 1) => void
 }
 
 const nrOptions = [
@@ -34,9 +35,6 @@ function questionHeading(kind: FormQuestionKind, index: number) {
   return `Pergunta ${index + 1}`
 }
 
-function otherOptionsLast(options: FormQuestion['options']) {
-  return [...options.filter((option) => !option.isOther), ...options.filter((option) => option.isOther)]
-}
 
 function CreateFormsQuestionCard({ index, question, onChange, onCopy, onDelete, onPointerDown, onMove }: CreateFormsQuestionCardProps) {
   const isAttachment = question.kind === 'nr' || question.kind === 'unit'
@@ -68,7 +66,8 @@ function CreateFormsQuestionCard({ index, question, onChange, onCopy, onDelete, 
 
   return (
     <section aria-label={questionHeading(question.kind, index)} className="create-forms-card create-forms-question-card">
-      <button
+      {onPointerDown && onMove && <>
+        <button
         aria-label={`Arrastar ${questionHeading(question.kind, index)} para reordenar. Use Alt e as setas para mover pelo teclado.`}
         className="create-forms-drag-handle"
         onPointerDown={onPointerDown}
@@ -88,8 +87,8 @@ function CreateFormsQuestionCard({ index, question, onChange, onCopy, onDelete, 
           <circle cx="4" cy="13" r="1.35" />
           <circle cx="12" cy="13" r="1.35" />
         </svg>
-      </button>
-      <button
+        </button>
+        <button
         aria-label={`Arrastar ${questionHeading(question.kind, index)} pela barra roxa superior. Use Alt e as setas para mover pelo teclado.`}
         className="create-forms-drag-bar-handle"
         onPointerDown={onPointerDown}
@@ -100,7 +99,8 @@ function CreateFormsQuestionCard({ index, question, onChange, onCopy, onDelete, 
         }}
         title="Segure a barra roxa para arrastar. Use Alt + seta para cima ou para baixo."
         type="button"
-      />
+        />
+      </>}
       <div className="create-forms-question-header">
         <h2>{questionHeading(question.kind, index)}</h2>
         <div className="create-forms-question-actions">
