@@ -104,8 +104,8 @@ function CreateFormsQuestionCard({ index, question, onChange, onCopy, onDelete, 
       <div className="create-forms-question-header">
         <h2>{questionHeading(question.kind, index)}</h2>
         <div className="create-forms-question-actions">
-          <button aria-label={`Duplicar ${questionHeading(question.kind, index)}`} onClick={onCopy} title="Duplicar" type="button"><img alt="" src="/icon/copy.svg" /></button>
-          <button aria-label={`Excluir ${questionHeading(question.kind, index)}`} onClick={onDelete} title="Excluir" type="button"><img alt="" src="/icon/trash.svg" /></button>
+          <button aria-label={`Duplicar ${questionHeading(question.kind, index)}`} onClick={onCopy} title="Duplicar" type="button"><img alt="" src={import.meta.env.BASE_URL + 'icon/copy.svg'} /></button>
+          <button aria-label={`Excluir ${questionHeading(question.kind, index)}`} onClick={onDelete} title="Excluir" type="button"><img alt="" src={import.meta.env.BASE_URL + 'icon/trash.svg'} /></button>
         </div>
       </div>
 
@@ -138,7 +138,7 @@ function CreateFormsQuestionCard({ index, question, onChange, onCopy, onDelete, 
                   <label className="sr-only" htmlFor={`${fieldId}-option-${option.id}`}>Opção {optionIndex + 1}</label>
                   <input id={`${fieldId}-option-${option.id}`} maxLength={80} onChange={(event) => updateOption(option.id, event.target.value)} placeholder={`Opção ${optionIndex + 1}`} value={option.value} />
                 </>}
-                <button aria-label={`Excluir opção ${option.isOther ? 'de resposta livre' : optionIndex + 1}`} disabled={question.options.length <= 2 || removingOptionId !== null} onClick={() => deleteOption(option.id)} type="button"><img alt="" src="/icon/trash.svg" /></button>
+                <button aria-label={`Excluir opção ${option.isOther ? 'de resposta livre' : optionIndex + 1}`} disabled={question.options.length <= 2 || removingOptionId !== null} onClick={() => deleteOption(option.id)} type="button"><img alt="" src={import.meta.env.BASE_URL + 'icon/trash.svg'} /></button>
               </div>
             ))}
             <div className="create-forms-option-links">

@@ -8,10 +8,10 @@ interface AddQuestionCreateFormsModalProps {
 }
 
 const questionKinds: { kind: FormQuestionKind; label: string; icon: string }[] = [
-  { kind: 'text', label: 'Texto', icon: '/icon/text.svg' },
-  { kind: 'option', label: 'Opção', icon: '/icon/option.svg' },
-  { kind: 'photo', label: 'Foto', icon: '/icon/paper4.svg' },
-  { kind: 'date', label: 'Data', icon: '/icon/calendar.svg' },
+  { kind: 'text', label: 'Texto', icon: 'text.svg' },
+  { kind: 'option', label: 'Opção', icon: 'option.svg' },
+  { kind: 'photo', label: 'Foto', icon: 'paper4.svg' },
+  { kind: 'date', label: 'Data', icon: 'calendar.svg' },
 ]
 
 function AddQuestionCreateFormsModal({ onCancel, onChoose }: AddQuestionCreateFormsModalProps) {
@@ -24,7 +24,7 @@ function AddQuestionCreateFormsModal({ onCancel, onChoose }: AddQuestionCreateFo
       {(dismiss) => <div className="create-forms-add-grid">
         {questionKinds.map(({ kind, label, icon }) => (
           <button className="create-forms-kind-button" key={kind} onClick={() => { selectedKindRef.current = kind; dismiss() }} type="button">
-            <img alt="" src={icon} /><span>{label}</span>
+            <img alt="" src={`${import.meta.env.BASE_URL}icon/${icon}`} /><span>{label}</span>
           </button>
         ))}
         <button className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>

@@ -11,7 +11,7 @@ function WorkspaceCreatedPage() {
 
         <img
           className="workspace-created-illustration"
-          src="/paper-create-workspace.png"
+          src={import.meta.env.BASE_URL + "paper-create-workspace.png"}
           alt=""
           width="1536"
           height="1024"
