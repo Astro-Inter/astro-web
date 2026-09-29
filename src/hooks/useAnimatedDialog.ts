@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type MouseEvent, type RefObject, type SyntheticEvent } from 'react'
+import { useCallback, useLayoutEffect, useRef, type MouseEvent, type RefObject, type SyntheticEvent } from 'react'
 import { useAnimatedClose } from './useAnimatedClose'
 
 interface AnimatedDialogOptions {
@@ -17,16 +17,19 @@ export function useAnimatedDialog({ initialFocusRef, onClose, onDismissRequest, 
     requestClose(() => dialogRef.current?.close())
   }, [onDismissRequest, requestClose])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const dialog = dialogRef.current
     if (!dialog) return
 
     if (open) {
       if (!dialog.open) {
+        const pageScroll = { left: window.scrollX, top: window.scrollY }
         dialog.showModal()
         dialog.scrollTop = 0
+        initialFocusRef?.current?.focus({ preventScroll: true })
+        requestAnimationFrame(() => window.scrollTo(pageScroll.left, pageScroll.top))
+        return
       }
-      initialFocusRef?.current?.focus({ preventScroll: true })
     } else if (dialog.open) {
       dismiss()
     }

@@ -36,11 +36,11 @@
 .astro-options-popup-item--muted { color: #bcbacc; }
 .astro-options-popup-item--separated::after { position: absolute; right: 0; bottom: 0; left: 0; border-bottom: 1px solid #70628a; content: ''; }
 .astro-options-popup-item:hover,
-.astro-options-popup-item:focus-visible { color: #d9d9d9; background: transparent; outline: none; }
+.astro-options-popup-item:focus-visible { color: #c4bdd4; background: transparent; outline: none; }
 .astro-options-popup-item--danger:hover,
-.astro-options-popup-item--danger:focus-visible { color: #d35659; }
+.astro-options-popup-item--danger:focus-visible { color: #cf4f53; }
 .astro-options-popup-item--muted:hover,
-.astro-options-popup-item--muted:focus-visible { color: #a6a4b7; }
+.astro-options-popup-item--muted:focus-visible { color: #9f9bad; }
 
 @keyframes astro-options-popup-in {
   from { opacity: 0; transform: translateY(-0.2rem); }
@@ -57,3 +57,5 @@
 @media (prefers-reduced-motion: reduce) {
   .astro-options-popup { animation: none; transition: none; }
 }
+
+.astro-options-popup-item:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; border-radius: var(--astro-control-radius); }

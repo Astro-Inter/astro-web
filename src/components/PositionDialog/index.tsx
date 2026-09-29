@@ -36,6 +36,7 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
     event.preventDefault()
     const nextErrors = validatePosition(values, status)
     setErrors(nextErrors)
+    setFormError('')
     if (Object.keys(nextErrors).length > 0) return
 
     const preparedValues = { ...values, name: values.name.trim() }
@@ -62,7 +63,11 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
               autoComplete="off"
               id="position-name"
               maxLength={80}
-              onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))}
+              onChange={(event) => {
+                setValues((current) => ({ ...current, name: event.target.value }))
+                setErrors((current) => ({ ...current, name: undefined }))
+                setFormError('')
+              }}
               placeholder="Digite o nome do cargo"
               value={values.name}
             />
@@ -71,12 +76,13 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
           <div className="position-dialog-field">
             <span className="position-dialog-label">Status</span>
             <ToolbarSelect
-              className={status ? 'position-dialog-select' : 'position-dialog-select position-dialog-select--placeholder'}
+              className={`position-dialog-select${status ? '' : ' position-dialog-select--placeholder'}${errors.status ? ' position-dialog-select--invalid' : ''}`}
               label="Status do cargo"
               onValueChange={(nextStatus) => {
                 setStatus(nextStatus)
                 setValues((current) => ({ ...current, active: nextStatus === 'active' }))
                 setErrors((current) => ({ ...current, status: undefined }))
+                setFormError('')
               }}
               options={statusOptions}
               value={status}

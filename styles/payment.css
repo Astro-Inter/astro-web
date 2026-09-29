@@ -66,7 +66,10 @@
 
 .payment-divider,
 .summary-divider {
+  display: block;
+  flex: none;
   height: 1px;
+  min-height: 1px;
   background: #aaa6b8;
   opacity: 0.8;
 }
@@ -104,7 +107,7 @@
   border-color: var(--astro-text);
 }
 
-.payment-method-option:focus-visible { outline: none; border-color: var(--astro-focus-border); background: #514d60; }
+.payment-method-option:focus-visible { outline: none; border-color: var(--astro-input-focus-border); background: #514d60; }
 .payment-back-button:focus-visible { outline: none; background: var(--astro-focus-surface); }
 .payment-info-link:focus-visible,
 .workspace-key-link a:focus-visible { outline: none; text-decoration: underline; text-underline-offset: 0.25em; }

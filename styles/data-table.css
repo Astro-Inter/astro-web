@@ -1,10 +1,6 @@
 .astro-data-table-shell { --astro-data-table-radius: calc(1.6rem * var(--astro-scale)); --astro-data-table-surface: #211b40; --astro-data-table-divider: #322257; --astro-data-table-text: #c9c4d3; min-width: 0; overflow: hidden; border-radius: var(--astro-data-table-radius); background: var(--astro-data-table-surface); }
 .astro-data-table-scroll { max-height: calc(27.4rem * var(--astro-scale)); overflow: auto; overscroll-behavior: contain; }
 .astro-data-table-scroll:focus-visible { outline: none; box-shadow: inset 0 0 0 1px var(--astro-focus-border); }
-.astro-data-table-scroll::-webkit-scrollbar { width: 0.55rem; height: 0.55rem; }
-.astro-data-table-scroll::-webkit-scrollbar-button { display: none; }
-.astro-data-table-scroll::-webkit-scrollbar-track { background: transparent; }
-.astro-data-table-scroll::-webkit-scrollbar-thumb { border: 2px solid var(--astro-data-table-surface); border-radius: 999px; background: #75688f; }
 .astro-data-table { width: 100%; min-width: var(--astro-data-table-min-width, 0px); table-layout: fixed; border-collapse: separate; border-spacing: 0; color: var(--astro-data-table-text, #c9c4d3); font-size: var(--astro-subtitle-font-size); line-height: 1.25; text-align: left; }
 .astro-data-table thead { position: sticky; z-index: 1; top: 0; background: var(--astro-data-table-surface); }
 .astro-data-table th, .astro-data-table td { height: calc(4.45rem * var(--astro-scale)); padding: calc(0.65rem * var(--astro-scale)) 4%; font-weight: 400; vertical-align: middle; }
@@ -47,3 +43,6 @@
   .astro-data-table-shell { display: flex; flex: 1; min-height: 0; }
   .astro-data-table-scroll { flex: 1; min-height: 0; max-height: none; }
 }
+
+.astro-truncated-text:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; }
+.astro-truncated-tooltip { pointer-events: auto; }

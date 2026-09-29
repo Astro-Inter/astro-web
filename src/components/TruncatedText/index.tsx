@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 interface TruncatedTextProps {
   children: string
+  truncate?: boolean
 }
 
-function TruncatedText({ children }: TruncatedTextProps) {
+function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
+  const tooltipId = useId()
   const elementRef = useRef<HTMLSpanElement>(null)
   const [displayText, setDisplayText] = useState(children)
   const [truncated, setTruncated] = useState(false)
@@ -20,6 +22,11 @@ function TruncatedText({ children }: TruncatedTextProps) {
     if (!element) return
 
     const update = () => {
+      if (!truncate) {
+        setDisplayText(children)
+        setTruncated(false)
+        return
+      }
       const width = element.clientWidth
       const context = document.createElement('canvas').getContext('2d')
       if (!context || width <= 0) return
@@ -53,9 +60,9 @@ function TruncatedText({ children }: TruncatedTextProps) {
     const observer = new ResizeObserver(update)
     observer.observe(element)
     return () => observer.disconnect()
-  }, [children])
+  }, [children, truncate])
 
-  function updateTooltipPosition() {
+  const updateTooltipPosition = useCallback(() => {
     const element = elementRef.current
     if (!element) return
 
@@ -68,10 +75,9 @@ function TruncatedText({ children }: TruncatedTextProps) {
       : Math.max(8, bounds.top - estimatedHeight - 8)
 
     setTooltipPosition({ left, top })
-  }
+  }, [])
 
   function showTooltip() {
-    if (!truncated) return
     if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
     updateTooltipPosition()
     setTooltipMounted(true)
@@ -81,13 +87,15 @@ function TruncatedText({ children }: TruncatedTextProps) {
     })
   }
 
-  function hideTooltip() {
+  const hideTooltip = useCallback(() => {
     if (!tooltipMounted) return
     if (showTooltipFrameRef.current) cancelAnimationFrame(showTooltipFrameRef.current)
-    setTooltipVisible(false)
     if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
-    hideTooltipTimeoutRef.current = setTimeout(() => setTooltipMounted(false), 140)
-  }
+    hideTooltipTimeoutRef.current = setTimeout(() => {
+      setTooltipVisible(false)
+      hideTooltipTimeoutRef.current = setTimeout(() => setTooltipMounted(false), 140)
+    }, 140)
+  }, [tooltipMounted])
 
   useEffect(() => {
     if (!tooltipVisible) return
@@ -100,27 +108,43 @@ function TruncatedText({ children }: TruncatedTextProps) {
       window.removeEventListener('resize', reposition)
       window.removeEventListener('scroll', reposition, true)
     }
-  }, [tooltipVisible])
+  }, [tooltipVisible, updateTooltipPosition])
+
+  useEffect(() => {
+    if (!tooltipMounted) return
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      event.stopPropagation()
+      if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
+      setTooltipVisible(false)
+      setTooltipMounted(false)
+    }
+    document.addEventListener('keydown', closeOnEscape, true)
+    return () => document.removeEventListener('keydown', closeOnEscape, true)
+  }, [tooltipMounted])
 
   useEffect(() => () => {
     if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
     if (showTooltipFrameRef.current) cancelAnimationFrame(showTooltipFrameRef.current)
   }, [])
 
-  const tooltip = tooltipMounted && truncated && typeof document !== 'undefined'
-    ? createPortal(<span className={`astro-truncated-tooltip${tooltipVisible ? ' astro-truncated-tooltip--visible' : ''}`} role="tooltip" style={{ left: tooltipPosition.left, top: tooltipPosition.top }}>{children}</span>, document.body)
+  const tooltip = tooltipMounted && typeof document !== 'undefined'
+    ? createPortal(<span className={`astro-truncated-tooltip${tooltipVisible ? ' astro-truncated-tooltip--visible' : ''}`} id={tooltipId} onMouseEnter={showTooltip} onMouseLeave={hideTooltip} role="tooltip" style={{ left: tooltipPosition.left, top: tooltipPosition.top }}>{children}</span>, document.body)
     : null
 
   return <>
     <span
       aria-label={children}
+      aria-describedby={tooltipMounted ? tooltipId : undefined}
+      tabIndex={0}
       className="astro-truncated-text"
       data-truncated={truncated}
       ref={elementRef}
       onBlur={hideTooltip}
       onFocus={showTooltip}
       onMouseEnter={showTooltip}
-      onMouseLeave={hideTooltip}
+      onMouseLeave={() => { if (document.activeElement !== elementRef.current) hideTooltip() }}
     >{displayText}{truncated ? '...' : ''}</span>
     {tooltip}
   </>

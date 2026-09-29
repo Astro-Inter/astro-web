@@ -35,12 +35,12 @@
 .app-navigation-icon { display: grid; flex: none; width: calc(1.8rem * var(--astro-scale)); height: calc(1.8rem * var(--astro-scale)); place-items: center; }
 .app-navigation-icon .astro-icon { width: auto; height: calc(1.5rem * var(--astro-scale)); max-width: 100%; object-fit: contain; }
 .app-navigation-icon .astro-icon--managers { height: calc(1.55rem * var(--astro-scale)); }
-.app-navigation-icon .astro-icon--collaborators { height: calc(1.4rem * var(--astro-scale)); }
-.app-navigation-icon .astro-icon--compliance { height: calc(1.45rem * var(--astro-scale)); }
+.app-navigation-icon .astro-icon--collaborators { height: calc(1.28rem * var(--astro-scale)); }
+.app-navigation-icon .astro-icon--compliance { height: calc(1.5rem * var(--astro-scale)); }
+.app-navigation-icon .astro-icon--building { height: calc(1.4rem * var(--astro-scale)); filter: brightness(0) invert(96.5%); }
 .app-navigation-icon .astro-icon--position { height: calc(1.53rem * var(--astro-scale)); }
 .app-navigation-icon .astro-icon--document { height: calc(1.62rem * var(--astro-scale)); }
 .app-navigation-icon .astro-icon--settings { height: calc(1.55rem * var(--astro-scale)); }
-.app-navigation-icon .astro-icon--building { filter: brightness(0) invert(96.5%); }
 .app-navigation-label { display: inline-flex; align-items: center; min-height: calc(1.8rem * var(--astro-scale)); }
 .app-navigation-link--active { background: var(--app-navigation-highlight); }
 .app-navigation-link:not(.app-navigation-link--active):hover { background: var(--app-navigation-highlight); color: #f6f6f6; }

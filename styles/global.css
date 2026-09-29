@@ -36,12 +36,16 @@
   --astro-orb-accent: #8f00c4;
   --astro-orb-accent-hover: #7b00aa;
   --astro-field: #444252;
-  --astro-placeholder: #aaa6b8;
+  --astro-placeholder: #b6b2c3;
   --astro-text: #f8f7fc;
   --astro-text-muted: #888888;
   --astro-link: #00a7c7;
   --astro-focus-border: rgb(248 247 252 / 65%);
+  --astro-input-focus-border: #918d99;
   --astro-focus-surface: rgb(255 255 255 / 11%);
+  --astro-scrollbar-thumb: #573D93;
+  --astro-scrollbar-thumb-hover: #4f3887;
+  --astro-scrollbar-thumb-active: #482f7b;
 
   /* Valores base, sempre a 100%. Só estes devem ser editados. */
   --astro-control-height-base: clamp(2.9rem, 4vw, 3.55rem);
@@ -177,6 +181,25 @@
   box-sizing: border-box;
 }
 
+*::-webkit-scrollbar { width: 0.55rem; height: 0.55rem; }
+*::-webkit-scrollbar-button { display: none; }
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  min-height: 2rem;
+  border: 2px solid transparent;
+  border-radius: 0;
+  background: var(--astro-scrollbar-thumb);
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--astro-scrollbar-thumb-hover); background-clip: padding-box; }
+*::-webkit-scrollbar-thumb:active { background: var(--astro-scrollbar-thumb-active); background-clip: padding-box; }
+
+@supports not selector(::-webkit-scrollbar) {
+  * { scrollbar-color: var(--astro-scrollbar-thumb) transparent; scrollbar-width: thin; }
+  *:hover { scrollbar-color: var(--astro-scrollbar-thumb-hover) transparent; }
+}
+
 /* Não force 320px: a barra vertical reduz a área útil em celulares pequenos. */
 html,
 body,
@@ -190,6 +213,12 @@ body,
    com o centro visível também nas rotas que precisam rolar. */
 html:has(dialog[open]) {
   overflow: hidden;
+}
+
+html:has(dialog.create-forms-exit-modal[open]),
+html:has(dialog.create-forms-add-modal[open]),
+html:has(dialog.edit-forms-save-modal[open]) {
+  overflow-y: scroll;
 }
 
 body {
@@ -230,12 +259,7 @@ button:hover,
 
 .help-link:hover,
 .help-link:focus-visible {
-  color: var(--astro-text);
-}
-
-.help-link:hover .help-icon,
-.help-link:focus-visible .help-icon {
-  filter: brightness(0) invert(98%);
+  color: #c4bdd4;
 }
 
 a {
@@ -295,7 +319,7 @@ main.payment-page {
 
 .field-group input:focus,
 .payment-field input:focus {
-  border-color: var(--astro-text-muted);
+  border-color: var(--astro-input-focus-border);
   box-shadow: 0 0 0 1px rgba(47, 46, 50, 0.22);
 }
 
@@ -312,7 +336,7 @@ main.payment-page {
 
 .field-group input:-webkit-autofill:focus,
 .payment-field input:-webkit-autofill:focus {
-  border-color: var(--astro-text-muted);
+  border-color: var(--astro-input-focus-border);
   box-shadow: 0 0 0 1000px var(--astro-field) inset, 0 0 0 1px rgba(47, 46, 50, 0.22);
 }
 
@@ -452,7 +476,7 @@ textarea::selection {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  color: #b8b8b8;
+  color: #f6f6f6;
   font-size: calc(var(--astro-subtitle-font-size-base) * 0.9);
   font-weight: 600;
   text-decoration: none;
@@ -460,10 +484,13 @@ textarea::selection {
 }
 
 .help-icon {
+  display: block;
+  width: calc(var(--astro-icon-md-base) * 0.9);
   height: calc(var(--astro-icon-md-base) * 0.9);
   flex: none;
-  filter: brightness(0) invert(72%);
-  transition: filter 180ms ease;
+  background-color: currentColor;
+  -webkit-mask: url('/icon/help.svg') center / contain no-repeat;
+  mask: url('/icon/help.svg') center / contain no-repeat;
 }
 
 .sr-only {
@@ -489,4 +516,19 @@ textarea::selection {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+.route-loading { display: grid; min-height: 100dvh; padding: 2rem; place-items: center; color: var(--astro-text); background: var(--astro-background); }
+
+/* Animate page content, keeping the background and fixed controls opaque. */
+.astro-route-transition { min-height: 100dvh; }
+.astro-route-transition--exiting { pointer-events: none; }
+.astro-route-transition h1:focus { outline: none; }
+@keyframes astro-route-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes astro-route-exit { from { opacity: 1; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .astro-route-transition, .astro-route-transition--exiting { animation: none; } }
+
+:where(button, a, [tabindex]):focus-visible:not(:where(input, textarea, select, [tabindex="-1"])) {
+  outline: 2px solid var(--astro-focus-border);
+  outline-offset: 2px;
 }

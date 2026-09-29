@@ -6,6 +6,7 @@ import AstroIcon from '../AstroIcon'
 export interface NavigationItem {
   label: string
   icon: ComponentProps<typeof AstroIcon>['name']
+  strokeScale?: ComponentProps<typeof AstroIcon>['strokeScale']
   path?: string
   alignBottom?: boolean
 }
@@ -13,11 +14,11 @@ export interface NavigationItem {
 const navigationItems: NavigationItem[] = [
   { label: 'Home', icon: 'home' },
   { label: 'Gestores', icon: 'managers' },
-  { label: 'Colaboradores', icon: 'collaborators' },
-  { label: 'Conformidade', icon: 'compliance' },
+  { label: 'Colaboradores', icon: 'collaborators', strokeScale: 0.9 },
+  { label: 'Conformidade', icon: 'compliance', strokeScale: 0.9 },
   { label: 'Unidades', icon: 'building' },
   { label: 'Cargos', icon: 'position', path: '/mainPositionScreen' },
-  { label: 'Formulários', icon: 'document' },
+  { label: 'Formulários', icon: 'document', path: '/mainFormScreen' },
   { label: 'Eventos', icon: 'event-calendar' },
   { label: 'Configurações', icon: 'settings', alignBottom: true },
 ]
@@ -77,15 +78,15 @@ function AppSidebar({ items = navigationItems }: AppSidebarProps) {
                 {item.path ? (
                   <NavLink
                     className={({ isActive }) => `app-navigation-link${isActive ? ' app-navigation-link--active' : ''}`}
-                    onClick={closeMenu}
+                    onClick={() => setOpen(false)}
                     to={item.path}
                   >
-                    <span className="app-navigation-icon"><AstroIcon name={item.icon} /></span>
+                    <span className="app-navigation-icon"><AstroIcon name={item.icon} strokeScale={item.strokeScale} /></span>
                     <span className="app-navigation-label">{item.label}</span>
                   </NavLink>
                 ) : (
                   <span className="app-navigation-link app-navigation-link--unavailable" title="Em breve">
-                    <span className="app-navigation-icon"><AstroIcon name={item.icon} /></span>
+                    <span className="app-navigation-icon"><AstroIcon name={item.icon} strokeScale={item.strokeScale} /></span>
                     <span className="app-navigation-label">{item.label}</span>
                   </span>
                 )}

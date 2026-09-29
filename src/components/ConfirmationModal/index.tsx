@@ -5,6 +5,8 @@ import PurpleButton from '../PurpleButton'
 interface ConfirmationModalProps {
   cancelLabel?: string
   className?: string
+  backdrop?: 'dimmed' | 'transparent'
+  preservePageScroll?: boolean
   confirmCloseDelay?: number
   confirmLabel: string
   icon?: ReactNode
@@ -16,7 +18,7 @@ interface ConfirmationModalProps {
   tone?: 'default' | 'danger'
 }
 
-function ConfirmationModal({ cancelLabel = 'Cancelar', className = '', confirmCloseDelay = 0, confirmLabel, icon, onCancel, onCancelRequest, onConfirm, onConfirmed, title, tone = 'default' }: ConfirmationModalProps) {
+function ConfirmationModal({ cancelLabel = 'Cancelar', className = '', backdrop = 'transparent', preservePageScroll = false, confirmCloseDelay = 0, confirmLabel, icon, onCancel, onCancelRequest, onConfirm, onConfirmed, title, tone = 'default' }: ConfirmationModalProps) {
   const confirmedRef = useRef(false)
   const confirmTimerRef = useRef<number | null>(null)
   const [error, setError] = useState('')
@@ -26,12 +28,12 @@ function ConfirmationModal({ cancelLabel = 'Cancelar', className = '', confirmCl
   }, [])
 
   return (
-    <AppModal className={`astro-confirmation-modal${icon ? ' astro-confirmation-modal--with-icon' : ''}${className ? ` ${className}` : ''}`} onClose={() => {
+    <AppModal backdrop={backdrop} preservePageScroll={preservePageScroll} className={`astro-confirmation-modal${icon ? ' astro-confirmation-modal--with-icon' : ''}${className ? ` ${className}` : ''}`} onClose={() => {
       if (confirmedRef.current) onConfirmed()
       else onCancel()
     }} onDismissRequest={() => {
       if (!confirmedRef.current) onCancelRequest?.()
-    }} title={icon ? <>{icon}{title}</> : title}>
+    }} title={icon ? <><span className="astro-confirmation-title-icon">{icon}</span><span className="astro-confirmation-title-text">{title}</span></> : title}>
       {(dismiss) => <>
         {error && <p className="astro-confirmation-error" role="alert">{error}</p>}
         <div className="astro-modal-actions">
