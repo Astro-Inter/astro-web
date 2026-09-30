@@ -170,7 +170,7 @@
   background: transparent;
   cursor: pointer;
   transform: translateY(-50%);
-  transition: background-color 160ms ease, box-shadow 160ms ease;
+  transition: background-color 220ms ease, box-shadow 220ms ease;
 }
 
 .set-address-arrow:hover:not(:disabled) {

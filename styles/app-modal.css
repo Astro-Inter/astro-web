@@ -28,7 +28,7 @@
 .astro-modal-actions > button { flex: 1; width: min(100%, 16.7rem); max-width: 16.7rem; margin: 0; }
 .charge-explanation-confirm,
 .spreadsheet-explanation-confirm { width: min(100%, 16.7rem); max-width: 16.7rem; min-height: var(--astro-action-height); }
-.astro-modal-cancel { min-height: var(--astro-action-height); padding: 0 var(--astro-control-padding-inline); border: 0; border-radius: var(--astro-control-radius); color: var(--astro-text); background: #6d6891; font: inherit; font-size: var(--astro-action-font-size); font-weight: 600; cursor: pointer; transition: color 180ms ease, background 180ms ease; }
+.astro-modal-cancel { min-height: var(--astro-action-height); padding: 0 var(--astro-control-padding-inline); border: 0; border-radius: var(--astro-control-radius); color: var(--astro-text); background: #6d6891; font: inherit; font-size: var(--astro-action-font-size); font-weight: 600; cursor: pointer; transition: color 220ms ease, background 220ms ease; }
 .astro-modal-cancel:hover { background: #625d82; filter: none; }
 .astro-modal :is(.astro-modal-cancel, .astro-action):focus-visible { outline: none; box-shadow: inset 0 0 0 2px rgb(248 247 252 / 70%); }
 .astro-confirmation-modal { --astro-modal-width: 43.3rem; }

@@ -159,11 +159,14 @@
   align-self: flex-start;
   margin-top: -0.05rem;
   color: #c8c3d2;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 220ms ease;
 }
 
 .forgot-link:hover,
 .workspace-link a:hover {
-  text-decoration: underline;
+  text-decoration-color: currentColor;
 }
 
 .workspace-link {
@@ -174,6 +177,9 @@
 
 .workspace-link a {
   color: var(--astro-link);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 220ms ease;
 }
 
 @media (max-width: 850px) {

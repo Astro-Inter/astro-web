@@ -48,7 +48,7 @@
 .astro-toolbar-search input::-webkit-search-cancel-button { display: none; }
 .astro-toolbar-search-clear { display: grid; flex: none; width: calc(1.7rem * var(--astro-scale)); height: calc(1.7rem * var(--astro-scale)); padding: 0; place-items: center; border: 0; border-radius: var(--astro-control-radius); background: transparent; cursor: pointer; }
 .astro-toolbar-search-clear:hover { background: transparent; }
-.astro-toolbar-search-clear img { display: block; width: calc(0.95rem * var(--astro-scale)); height: calc(0.95rem * var(--astro-scale)); transition: filter 140ms ease; }
+.astro-toolbar-search-clear img { display: block; width: calc(0.95rem * var(--astro-scale)); height: calc(0.95rem * var(--astro-scale)); transition: filter 220ms ease; }
 .astro-toolbar-search-clear:hover img { filter: brightness(0.8); }
 .astro-toolbar-search-clear:focus-visible { outline: none; background: var(--astro-focus-surface); }
 
@@ -157,7 +157,7 @@
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
-  transition: color 180ms ease;
+  transition: color 220ms ease;
 }
 
 .astro-toolbar-select-option:not(:last-child)::after { position: absolute; right: 0; bottom: 0; left: 0; border-bottom: 1px solid #70628a; content: ''; }

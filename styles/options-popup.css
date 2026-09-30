@@ -29,11 +29,13 @@
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
-  transition: color 180ms ease;
+  transition: color 220ms ease;
 }
 
 .astro-options-popup-item--danger { color: #eb6264; }
 .astro-options-popup-item--muted { color: #bcbacc; }
+.astro-options-popup-item--disabled { color: #aaa4b8; cursor: not-allowed; }
+.astro-options-popup-item--disabled:hover { color: #aaa4b8; }
 .astro-options-popup-item--separated::after { position: absolute; right: 0; bottom: 0; left: 0; border-bottom: 1px solid #70628a; content: ''; }
 .astro-options-popup-item:hover,
 .astro-options-popup-item:focus-visible { color: #c4bdd4; background: transparent; outline: none; }
