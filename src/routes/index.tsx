@@ -11,6 +11,7 @@ const EditFormsPage = lazy(() => import('../pages/EditForms'))
 const IncludeCompanyInformationPage = lazy(() => import('../pages/IncludeCompanyInformation'))
 const LoadingScreenPage = lazy(() => import('../pages/LoadingScreen'))
 const LoginPage = lazy(() => import('../pages/Login'))
+const MainHomeScreenPage = lazy(() => import('../pages/MainHomeScreen'))
 const MainPositionScreenPage = lazy(() => import('../pages/MainPositionScreen'))
 const MainFormScreenPage = lazy(() => import('../pages/MainFormScreen'))
 const NotFoundPage = lazy(() => import('../pages/NotFound'))
@@ -55,6 +56,7 @@ function AppRoutes() {
         <Route path="/loadingScreen" element={<LoadingScreenPage />} />
         <Route path="/setAddress" element={<SetAddressPage />} />
         <Route path="/workspaceCreated" element={<WorkspaceCreatedPage />} />
+        <Route path="/mainHomeScreen" element={<MainHomeScreenPage />} />
         <Route path="/mainPositionScreen" element={<MainPositionScreenPage />} />
         <Route path="/mainFormScreen" element={<MainFormScreenPage />} />
         <Route path="/createForms" element={<CreateFormsPage />} />

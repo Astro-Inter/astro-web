@@ -40,6 +40,10 @@
   --astro-text: #f8f7fc;
   --astro-text-muted: #888888;
   --astro-link: #00a7c7;
+  /* Cores de destaque com os nomes dos tokens do Figma. */
+  --astro-secondary-red: #dd006f;   /* secondaryred */
+  --astro-primary-green: #147a64;   /* primarygreen */
+  --astro-tertiary-blue: #539dd1;   /* tertiaryblue */
   --astro-focus-border: rgb(248 247 252 / 65%);
   --astro-input-focus-border: #918d99;
   --astro-focus-surface: rgb(255 255 255 / 11%);

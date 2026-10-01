@@ -35,6 +35,9 @@ type AstroIconName =
   | 'feedback'
   | 'file-plus'
   | 'warning'
+  | 'bell'
+  | 'person-plus'
+  | 'document-lines'
 
 // Os arquivos têm proporções e espaços internos diferentes. O CSS define a
 // altura visual de cada uso; width: auto conserva a proporção original.
@@ -76,6 +79,9 @@ const iconFiles: Record<AstroIconName, { file: string; width: number; height: nu
   feedback: { file: 'feedback.svg', width: 28, height: 28 },
   'file-plus': { file: 'paper5.svg', width: 24, height: 30 },
   warning: { file: 'error-information.svg', width: 45, height: 45 },
+  bell: { file: 'bell.svg', width: 38, height: 42 },
+  'person-plus': { file: 'person-plus.svg', width: 36, height: 35 },
+  'document-lines': { file: 'paper6.svg', width: 35, height: 35 },
 }
 
 interface AstroIconProps {

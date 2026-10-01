@@ -12,7 +12,7 @@ export interface NavigationItem {
 }
 
 const navigationItems: NavigationItem[] = [
-  { label: 'Home', icon: 'home' },
+  { label: 'Home', icon: 'home', path: '/mainHomeScreen' },
   { label: 'Gestores', icon: 'managers' },
   { label: 'Colaboradores', icon: 'collaborators', strokeScale: 0.9 },
   { label: 'Conformidade', icon: 'compliance', strokeScale: 0.9 },

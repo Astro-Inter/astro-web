@@ -6,7 +6,7 @@ function LoadingScreenPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const timer = window.setTimeout(() => navigate('/mainPositionScreen', { replace: true }), 2400)
+    const timer = window.setTimeout(() => navigate('/mainHomeScreen', { replace: true }), 2400)
     return () => window.clearTimeout(timer)
   }, [navigate])
 
