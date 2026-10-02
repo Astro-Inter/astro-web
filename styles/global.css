@@ -44,6 +44,8 @@
   --astro-secondary-red: #dd006f;   /* secondaryred */
   --astro-primary-green: #147a64;   /* primarygreen */
   --astro-tertiary-blue: #539dd1;   /* tertiaryblue */
+  --astro-quinary-green: #5aae67;   /* quinarygreen */
+  --astro-primary-error: #ff4d4d;   /* primaryerrorcolor */
   --astro-focus-border: rgb(248 247 252 / 65%);
   --astro-input-focus-border: #918d99;
   --astro-focus-surface: rgb(255 255 255 / 11%);

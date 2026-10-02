@@ -1,0 +1,23 @@
+.notification-modal .astro-modal-title { font-size: 1.39rem; letter-spacing: normal; line-height: 1.2; }
+.notification-modal-subtitle { margin: 0.51rem 0 2.06rem; color: #c4bdd4; font-size: 1.16rem; font-weight: 400; line-height: 1.2; }
+
+.notification-list { display: flex; flex-direction: column; gap: 0.86rem; margin: 0; padding: 0; list-style: none; }
+.notification-item { display: flex; align-items: center; gap: 1.14rem; min-width: 0; padding: 1.14rem; border-radius: 1.14rem; background: var(--astro-background); }
+.notification-item-icon { display: grid; flex: none; place-items: center; width: 3.73rem; height: 3.73rem; border-radius: 0.57rem; }
+.notification-item-icon .astro-icon { height: 1.97rem; }
+/* Cores usadas em notificationKindAppearance (src/data/notifications.ts). */
+.notification-item-icon--error { background: var(--astro-primary-error); }
+.notification-item-icon--blue { background: var(--astro-tertiary-blue); }
+.notification-item-icon--green { background: var(--astro-quinary-green); }
+.notification-item-copy { min-width: 0; flex: 1; }
+.notification-item h3 { margin: 0 0 0.51rem; font-size: 1.03rem; font-weight: 500; line-height: 1.2; overflow-wrap: anywhere; }
+.notification-item p { margin: 0; color: #b6b2c3; font-size: 0.93rem; font-weight: 400; line-height: 1.25; overflow-wrap: anywhere; }
+.notification-empty { margin: 0; padding: 2rem; border-radius: 1.14rem; color: #c4bdd4; background: var(--astro-background); font-size: 0.93rem; text-align: center; }
+
+.notification-modal .astro-modal-actions { margin-top: 2.06rem; }
+
+@media (max-width: 480px) {
+  .notification-modal-subtitle { margin-bottom: 1.5rem; }
+  .notification-item { gap: 1rem; padding: 1rem; }
+  .notification-modal .astro-modal-actions { margin-top: 1.75rem; }
+}

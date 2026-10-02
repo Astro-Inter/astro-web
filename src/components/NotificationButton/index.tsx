@@ -1,24 +1,13 @@
 import AstroIcon from '../AstroIcon'
 
 interface NotificationButtonProps {
-  onClick?: () => void
-  unreadCount?: number
+  onClick: () => void
 }
 
-function NotificationButton({ onClick, unreadCount = 0 }: NotificationButtonProps) {
-  const label = unreadCount > 0 ? `Notificações, ${unreadCount} não lidas` : 'Notificações'
-
+function NotificationButton({ onClick }: NotificationButtonProps) {
   return (
-    <button
-      aria-disabled={onClick ? undefined : true}
-      aria-label={label}
-      className={`notification-button${onClick ? '' : ' notification-button--unavailable'}`}
-      onClick={onClick}
-      title={onClick ? undefined : 'Em breve'}
-      type="button"
-    >
+    <button aria-haspopup="dialog" aria-label="Notificações" className="notification-button" onClick={onClick} type="button">
       <AstroIcon name="bell" />
-      {unreadCount > 0 && <span aria-hidden="true" className="notification-button-badge" />}
     </button>
   )
 }

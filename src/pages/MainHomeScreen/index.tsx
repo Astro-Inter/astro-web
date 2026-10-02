@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AppSidebar, AstroChat, ComplianceOverviewCard, NotificationButton, QuickActionCard, SummaryStatCard } from '../../components'
+import { AppSidebar, AstroChat, ComplianceOverviewCard, NotificationButton, NotificationModal, QuickActionCard, SummaryStatCard } from '../../components'
 import { mockComplianceOverview, mockSummaryStats, mockUserName, quickActions } from '../../data/home'
+import { mockNotifications } from '../../data/notifications'
 
 function MainHomeScreenPage() {
   const navigate = useNavigate()
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
 
   return (
     <div className="main-position-screen main-home-screen">
@@ -15,7 +18,7 @@ function MainHomeScreenPage() {
               <h1 id="home-title">Bem-vindo, {mockUserName}!</h1>
               <p>Administre acessos, acompanhe a atuação e gerencie os responsáveis por cada função no seu sistema.</p>
             </div>
-            <NotificationButton />
+            <NotificationButton onClick={() => setNotificationsOpen(true)} />
           </header>
 
           <section aria-labelledby="home-dashboards-title" className="home-section">
@@ -40,6 +43,7 @@ function MainHomeScreenPage() {
         </section>
         <AstroChat />
       </main>
+      {notificationsOpen && <NotificationModal notifications={mockNotifications} onClose={() => setNotificationsOpen(false)} />}
     </div>
   )
 }

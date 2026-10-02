@@ -10,9 +10,9 @@
   --home-card-radius: calc(0.85rem * var(--astro-scale));
   --home-card-padding-inline: calc(2rem * var(--astro-scale));
   --home-grid-gap: calc(1.5rem * var(--astro-scale));
-  --compliance-compliant: #5aae67;
+  --compliance-compliant: var(--astro-quinary-green);
   --compliance-expiring: #c2a44a;
-  --compliance-expired: #ff4d4d;
+  --compliance-expired: var(--astro-primary-error);
   /* Espaços verticais acompanham a altura da janela para a Home caber sem rolagem. */
   --home-gap: clamp(1rem, 3.4vh, calc(2.8rem * var(--astro-scale)));
   --home-section-gap: clamp(0.55rem, 1.4vh, calc(1.125rem * var(--astro-scale)));
@@ -28,11 +28,10 @@
 .main-home-screen .home-heading { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; margin-bottom: 0; }
 .home-heading-copy { flex: 1; min-width: 0; }
 
-.notification-button { position: relative; display: grid; flex: none; place-items: center; width: calc(3.1rem * var(--astro-scale)); height: calc(3.1rem * var(--astro-scale)); margin-right: calc(-0.555rem * var(--astro-scale)); padding: 0; border: 0; border-radius: var(--astro-control-radius); background: transparent; cursor: pointer; transition: background 160ms ease; }
+.notification-button { display: grid; flex: none; place-items: center; width: calc(3.1rem * var(--astro-scale)); height: calc(3.1rem * var(--astro-scale)); margin-right: calc(-0.555rem * var(--astro-scale)); padding: 0; border: 0; border-radius: var(--astro-control-radius); background: transparent; cursor: pointer; transition: background 160ms ease; }
 .notification-button .astro-icon { height: calc(2.2rem * var(--astro-scale)); }
 .notification-button:hover { background: var(--astro-focus-surface); }
 .notification-button:focus-visible { outline: none; background: var(--astro-focus-surface); box-shadow: inset 0 0 0 1px var(--astro-focus-border); }
-.notification-button-badge { position: absolute; top: 18%; right: 20%; width: calc(0.6rem * var(--astro-scale)); height: calc(0.6rem * var(--astro-scale)); border-radius: 50%; background: var(--compliance-expired); }
 
 .home-section { display: flex; flex-direction: column; gap: var(--home-section-gap); }
 .home-section > h2 { margin: 0; color: var(--astro-text); font-size: calc(1.625rem * var(--astro-scale)); font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
