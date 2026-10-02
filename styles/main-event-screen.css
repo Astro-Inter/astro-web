@@ -1,6 +1,4 @@
 .main-event-screen .position-content { max-width: 67rem; }
-.main-event-screen .position-toolbar .event-create-button:disabled { cursor: not-allowed; }
-.main-event-screen .position-toolbar .event-create-button:disabled:hover { background: var(--astro-orb-accent); }
 .main-event-screen .position-toolbar .astro-toolbar-search { max-width: var(--astro-action-width); }
 .main-event-screen .position-toolbar-selects > .astro-toolbar-select { width: calc(10.5rem * var(--astro-scale)); }
 
@@ -22,8 +20,8 @@
 .event-filter-dot--reminder { background: #a8733e; }
 .event-filter-label { flex: 1; min-width: 0; color: #d4cfe0; font-size: calc(var(--astro-label-font-size-base) * var(--astro-popup-zoom)); font-weight: 500; line-height: 1.25; }
 .event-filter-row .astro-toggle-switch { width: calc(3.1rem * var(--astro-popup-zoom)); height: calc(1.5rem * var(--astro-popup-zoom)); }
-@keyframes event-filter-in { from { opacity: 0; transform: translateY(-0.2rem); } to { opacity: 1; transform: translateY(0); } }
-@keyframes event-filter-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-0.2rem); } }
+@keyframes event-filter-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes event-filter-out { from { opacity: 1; } to { opacity: 0; } }
 
 .event-calendar-transition { min-width: 0; }
 .event-calendar-transition--animated { animation: rise-in 450ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
@@ -57,8 +55,9 @@
 .event-calendar-table tbody tr:last-child td { border-bottom: 1px solid #514669; }
 .event-calendar-day--outside .event-calendar-day-number { color: #77718c; }
 .event-calendar-day-number { display: block; line-height: 1.1; }
-.event-calendar-day-events { position: absolute; right: calc(0.2rem * var(--astro-scale)); bottom: calc(0.2rem * var(--astro-scale)); left: calc(0.2rem * var(--astro-scale)); display: grid; gap: calc(0.2rem * var(--astro-scale)); }
-.event-calendar-day--stacked .event-calendar-day-events { position: static; margin-top: calc(0.5rem * var(--astro-scale)); }
+.event-calendar-day-events { position: absolute; right: calc(0.2rem * var(--astro-scale)); bottom: calc(0.2rem * var(--astro-scale)); left: calc(0.2rem * var(--astro-scale)); display: flex; flex-direction: column; gap: calc(0.2rem * var(--astro-scale)); max-height: calc(4.6rem * var(--astro-scale)); overflow-x: hidden; overflow-y: auto; }
+.event-calendar-day-events > .event-calendar-item { flex: none; height: calc(2.2rem * var(--astro-scale)); }
+.event-calendar-table .event-calendar-day-events { top: calc(50% + (0.45rem * var(--astro-scale) + var(--astro-subtitle-font-size) * 1.1) / 2); bottom: auto; height: calc(4.6rem * var(--astro-scale)); transform: translateY(-50%); }
 .event-calendar-item { display: flex; align-items: center; justify-content: center; width: 100%; min-height: calc(2.2rem * var(--astro-scale)); overflow: hidden; padding: calc(0.45rem * var(--astro-scale)) calc(0.7rem * var(--astro-scale)); border: 0; border-radius: calc(0.2rem * var(--astro-scale)); color: #fff; font-family: inherit; font-size: var(--astro-control-font-size); font-weight: 500; line-height: 1.2; text-align: center; cursor: pointer; transition: filter 220ms ease; }
 .event-calendar-item-label { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .event-calendar-item--today { background: #176b54; }
@@ -67,7 +66,7 @@
 .event-calendar-item:not(.event-calendar-item--static):hover, .event-calendar-item[aria-expanded='true'] { filter: brightness(0.91); }
 .event-calendar-item--static { cursor: default; }
 .event-calendar-item:focus-visible { position: relative; z-index: 1; outline: 2px solid #f8f7fc; outline-offset: -2px; }
-.event-week-table { --event-week-hour-height: calc(3.15rem * var(--astro-scale)); width: 100%; min-width: 32rem; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+.event-week-table { --event-week-hour-height: calc(7.2rem * var(--astro-scale) + 1px); width: 100%; min-width: 32rem; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 .event-week-table thead th { position: sticky; top: 0; z-index: 1; height: calc(2.5rem * var(--astro-scale)); box-shadow: inset 0 -1px #514669; color: #bcb5d0; background: #211b40; font-size: var(--astro-label-font-size); font-weight: 500; text-align: center; }
 .event-week-table thead th:not(:first-child) { box-shadow: inset 1px 0 #514669, inset 0 -1px #514669; }
 .event-week-table thead th > span:not(.event-calendar-item) { display: block; color: #eeeaf5; font-size: var(--astro-label-font-size); font-weight: 600; }
@@ -75,8 +74,9 @@
 .event-week-table tbody tr { height: var(--event-week-hour-height); }
 .event-week-table tbody th { padding: calc(0.45rem * var(--astro-scale)) calc(0.35rem * var(--astro-scale)); border-bottom: 1px solid #514669; color: #aaa3bb; font-size: var(--astro-label-font-size); font-weight: 400; text-align: left; vertical-align: top; }
 .event-week-table td { position: relative; height: var(--event-week-hour-height); padding: calc(0.2rem * var(--astro-scale)); border-bottom: 1px solid #514669; border-left: 1px solid #514669; vertical-align: top; }
-.event-calendar-item--weekly { width: 100%; min-height: calc(1.8rem * var(--astro-scale)); padding: calc(0.3rem * var(--astro-scale)) calc(0.5rem * var(--astro-scale)); }
-.event-week-table td > .event-calendar-item + .event-calendar-item { margin-top: calc(0.2rem * var(--astro-scale)); }
+.event-calendar-item--weekly { width: 100%; min-height: calc(2.3rem * var(--astro-scale)); padding: calc(0.4rem * var(--astro-scale)) calc(0.5rem * var(--astro-scale)); }
+.event-week-cell-events { position: absolute; top: 50%; right: calc(0.2rem * var(--astro-scale)); left: calc(0.2rem * var(--astro-scale)); display: flex; flex-direction: column; gap: calc(0.4rem * var(--astro-scale)); height: calc(5rem * var(--astro-scale)); transform: translateY(-50%); overflow-x: hidden; overflow-y: auto; }
+.event-week-cell-events > .event-calendar-item { flex: none; height: calc(2.3rem * var(--astro-scale)); }
 .event-year-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(1rem * var(--astro-scale)); padding: 0 calc(0.25rem * var(--astro-scale)) calc(0.25rem * var(--astro-scale)); }
 .event-year-month { min-width: 0; padding: calc(0.8rem * var(--astro-scale)); border-radius: var(--astro-control-radius); background: #2c244e; }
 .event-year-month h3 { margin: 0 0 calc(0.55rem * var(--astro-scale)); color: #eeeaf5; font-size: var(--astro-subtitle-font-size); font-weight: 600; text-align: center; text-transform: capitalize; }

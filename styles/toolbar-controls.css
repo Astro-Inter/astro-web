@@ -168,15 +168,15 @@
 .astro-toolbar-select-option--muted:focus-visible { color: #9f9bad; }
 
 @keyframes astro-toolbar-popover-in {
-  from { opacity: 0; transform: translateY(-0.25rem); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .astro-toolbar-select-popover--closing { pointer-events: none; animation: astro-toolbar-popover-out 160ms ease-in both; }
 
 @keyframes astro-toolbar-popover-out {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-0.25rem); }
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 .astro-toolbar-search:focus-within,

@@ -48,15 +48,16 @@
   --astro-scrollbar-thumb-active: #482f7b;
 
   /* Valores base, sempre a 100%. Só estes devem ser editados. */
-  --astro-control-height-base: clamp(2.9rem, 4vw, 3.55rem);
+  /* 45px nas páginas a 90%, com fonte raiz de 16px. */
+  --astro-control-height-base: calc(2.8125rem / 0.9);
   --astro-control-font-size-base: clamp(0.83rem, 1.02vw, 0.93rem);
   --astro-label-font-size-base: clamp(0.875rem, 1.1vw, 1rem);
   --astro-heading-font-size-base: clamp(1.75rem, 2.22vw, 2rem);
   --astro-subtitle-font-size-base: clamp(1rem, 1.25vw, 1.125rem);
   --astro-link-font-size-base: clamp(0.875rem, 1.08vw, 1rem);
-  --astro-action-height-base: clamp(2.8rem, 3.45vw, 3.1rem);
+  --astro-action-height-base: var(--astro-control-height-base);
   --astro-action-width-base: clamp(19.5rem, 25vw, 22.5rem);
-  --astro-compact-action-width-base: clamp(12rem, 18vw, 14.8rem);
+  --astro-compact-action-width-base: calc(14.15625rem / 0.9);
   --astro-action-font-size-base: clamp(0.85rem, 1.04vw, 0.95rem);
   --astro-control-radius-base: 0.45rem;
   --astro-control-padding-inline-base: 1rem;
@@ -215,9 +216,7 @@ html:has(dialog[open]) {
   overflow: hidden;
 }
 
-html:has(dialog.create-forms-exit-modal[open]),
-html:has(dialog.create-forms-add-modal[open]),
-html:has(dialog.edit-forms-save-modal[open]) {
+html:has(dialog[data-page-scroll="preserve"][open]) {
   overflow-y: scroll;
 }
 

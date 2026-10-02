@@ -45,15 +45,15 @@
 .astro-options-popup-item--muted:focus-visible { color: #9f9bad; }
 
 @keyframes astro-options-popup-in {
-  from { opacity: 0; transform: translateY(-0.2rem); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .astro-options-popup--closing { pointer-events: none; animation: astro-options-popup-out 160ms ease-in both; }
 
 @keyframes astro-options-popup-out {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-0.2rem); }
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

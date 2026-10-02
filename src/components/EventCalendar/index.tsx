@@ -95,9 +95,14 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
           <thead><tr><th scope="col">Horário</th>{days.map((day, index) => <th key={day.date} scope="col">{weekdays[index]} <span>{day.day}</span></th>)}</tr></thead>
           <tbody>{hours.map(hour => <tr key={hour}>
             <th scope="row">{String(hour).padStart(2, '0')}:00</th>
-            {days.map(day => <td key={day.date}>
-              {(eventsByDate.get(day.date) ?? []).filter(event => eventOccursInHour(event, hour)).map(event => eventItem(event, false, true))}
-            </td>)}
+            {days.map(day => {
+              const hourlyEvents = (eventsByDate.get(day.date) ?? []).filter(event => eventOccursInHour(event, hour))
+              return <td key={day.date}>
+                <div aria-label={hourlyEvents.length > 2 ? `Eventos de ${eventDateLabel(day.date)} às ${String(hour).padStart(2, '0')}:00` : undefined} className="event-week-cell-events" role={hourlyEvents.length > 2 ? 'region' : undefined} tabIndex={hourlyEvents.length > 2 ? 0 : undefined}>
+                  {hourlyEvents.map(event => eventItem(event, false, true))}
+                </div>
+              </td>
+            })}
           </tr>)}</tbody>
         </table> : view === 'year' ? <div className="event-year-grid">
           {Array.from({ length: 12 }, (_, index) => {

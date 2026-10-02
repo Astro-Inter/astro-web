@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, ToggleSwitch, ToolbarSearch, ToolbarSelect } from '../../components'
 import EventCalendar from '../../components/EventCalendar'
 import EventOptionsModal from '../../components/EventOptionsModal'
+import CreateEventFlowModal from '../../components/CreateEventFlowModal'
 import { eventCategoryLabels, mockEvents } from '../../data/events'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { useAnimatedResults } from '../../hooks/useAnimatedResults'
@@ -37,6 +38,7 @@ function MainEventScreenPage() {
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [pendingDeletion, setPendingDeletion] = useState<CalendarEvent | null>(null)
   const [feedback, setFeedback] = useState('')
+  const [creatingEvent, setCreatingEvent] = useState(false)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const panelRef = useRef<HTMLDivElement | null>(null)
   const headingRef = useRef<HTMLHeadingElement | null>(null)
@@ -150,7 +152,7 @@ function MainEventScreenPage() {
             <p>Organize eventos, acompanhe as atividades e gerencie a criação e programação de cada evento.</p>
           </header>
           <div aria-label="Ações e filtros dos eventos" className="position-toolbar" role="group">
-            <CompactPurpleButton className="event-create-button" disabled title="A tela de criação de eventos será adicionada em breve" type="button"><AstroIcon name="plus" />Criar evento</CompactPurpleButton>
+            <CompactPurpleButton className="event-create-button" onClick={() => { setOpenId(null); setFilterOpen(false); setCreatingEvent(true) }} type="button"><AstroIcon name="plus" />Criar evento</CompactPurpleButton>
             <ToolbarSearch label="Buscar eventos" placeholder="Buscar eventos..." value={filters.search} onChange={event => setFilters(current => ({ ...current, search: event.target.value }))} onClear={() => setFilters(current => ({ ...current, search: '' }))} />
             <div className="position-toolbar-selects">
               <div className="event-filter-control" onBlur={event => { if (filterOpen && !event.currentTarget.contains(event.relatedTarget)) closeFilters() }} onKeyDown={handleFilterKeyDown} ref={filterControlRef}>
@@ -189,6 +191,7 @@ function MainEventScreenPage() {
         setPendingDeletion(null)
         requestAnimationFrame(() => headingRef.current?.focus())
       }} />}
+      {creatingEvent && <CreateEventFlowModal onClose={() => setCreatingEvent(false)} />}
     </div>
   )
 }

@@ -1,6 +1,5 @@
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { lazy, Suspense, useEffect, useRef, useState, useTransition } from 'react'
-import RouteLoading from '../components/RouteLoading'
 
 const AccessKeyVerifiedPage = lazy(() => import('../pages/AccessKeyVerified'))
 const AttachExcelFilePage = lazy(() => import('../pages/AttachExcelFile'))
@@ -43,7 +42,7 @@ function AppRoutes() {
   }, [displayedLocation.key])
 
   return (
-    <Suspense fallback={<RouteLoading />}>
+    <Suspense fallback={null}>
     <div className={`astro-route-transition${exiting ? ' astro-route-transition--exiting' : ''}`} key={displayedLocation.key} ref={routeRef}>
       <Routes location={displayedLocation}>
         <Route path="/" element={<LoginPage />} />

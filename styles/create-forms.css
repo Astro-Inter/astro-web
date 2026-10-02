@@ -119,7 +119,7 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
 .create-forms-photo-settings { display: flex; flex-wrap: wrap; align-items: center; gap: var(--create-forms-stack-gap) calc(1.4rem * var(--astro-scale)); margin-top: calc(var(--create-forms-stack-gap) + 1rem * var(--astro-scale)); }
 .create-forms-photo-setting { display: flex; align-items: center; gap: calc(0.45rem * var(--astro-scale)); }
 .create-forms-photo-size-setting > .create-forms-label { width: max-content; line-height: 1.2; text-align: right; }
-.create-forms-photo-select { box-sizing: border-box; flex: none; height: calc(2.25rem * var(--astro-scale)); min-height: calc(2.25rem * var(--astro-scale)); max-height: calc(2.25rem * var(--astro-scale)); min-width: 0; }
+.create-forms-photo-select { box-sizing: border-box; flex: none; height: var(--astro-control-height); min-height: var(--astro-control-height); max-height: var(--astro-control-height); min-width: 0; }
 .create-forms-photo-count-select { width: calc(4.6rem * var(--astro-scale)); }
 .create-forms-photo-size-select { width: calc(7.1rem * var(--astro-scale)); }
 .create-forms-photo-select .astro-toolbar-select-trigger { box-sizing: border-box; height: 100%; min-height: 0; max-height: 100%; padding: 0 calc(1.7rem * var(--astro-scale)) 0 calc(0.65rem * var(--astro-scale)); border: 1px solid transparent; border-radius: calc(0.2rem * var(--astro-scale)); color: #4b4657; background: #f6f5fa; font-size: var(--astro-control-font-size); cursor: pointer; }

@@ -14,11 +14,11 @@
   text-align: left;
   zoom: var(--astro-popup-zoom);
   opacity: 0;
-  transform: translateY(18px) scale(0.98);
+  transform: none;
 }
 
 .spreadsheet-explanation-modal[open] {
-  animation: rise-in 0.22s ease forwards;
+  animation: astro-form-modal-in 220ms ease both;
 }
 
 .spreadsheet-explanation-modal::backdrop {
@@ -87,7 +87,7 @@
 .spreadsheet-explanation-highlight p {
   margin-top: clamp(0.35rem, 0.5vw, 0.45rem);
   color: #beb8ca;
-  font-size: calc(var(--astro-subtitle-font-size) * 0.95);
+  font-size: var(--astro-subtitle-font-size);
   font-weight: 400;
   line-height: 1.3;
 }
