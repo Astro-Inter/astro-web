@@ -99,7 +99,7 @@
 .event-deletion-modal .astro-action--danger { background: #eb6264; }
 .event-deletion-modal .astro-action--danger:hover { background: #cf4f53; }
 
-@media (max-width: 780px) {
+@media (max-width: 1024px) {
   .main-event-screen .position-main { height: auto; min-height: calc(100dvh - 4.5rem); overflow: visible; padding-block: 2rem 5rem; }
   .main-event-screen .position-content { max-height: none; }
   .event-calendar-panel { height: 37rem; }
@@ -118,7 +118,7 @@
   .event-year-grid { grid-template-columns: 1fr; }
 }
 
-@media (max-height: 630px) and (min-width: 781px) {
+@media (max-height: 630px) and (min-width: 1025px) {
   .main-event-screen .position-main { padding-block: 2rem; }
 }
 

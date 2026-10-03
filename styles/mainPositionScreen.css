@@ -77,14 +77,14 @@
   .position-toolbar-selects { flex: none; }
 }
 
-@media (max-width: 780px) {
+@media (max-width: 1024px) {
   .main-position-screen { display: block; }
   .position-main { height: calc(100dvh - 4.5rem); min-height: 0; overflow: hidden; padding: 2.3rem clamp(1.25rem, 4vw, 2rem) 6rem; }
   .position-content { display: flex; flex-direction: column; align-self: stretch; max-height: 100%; min-height: 0; }
   .position-heading, .position-toolbar { flex: none; }
 }
 
-@media (max-width: 780px) and (max-height: 620px) {
+@media (max-width: 1024px) and (max-height: 620px) {
   .position-main { height: auto; min-height: calc(100dvh - 4.5rem); overflow: visible; }
   .position-content { max-height: none; }
   .position-content > .astro-data-table-shell { flex: none; max-height: min(45dvh, 20rem); }
@@ -108,4 +108,3 @@
   .astro-route-transition .position-content { animation: none; }
   .position-status--saved { transition: none; animation: none; }
 }
-

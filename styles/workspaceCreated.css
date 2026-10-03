@@ -16,11 +16,22 @@
 }
 
 .workspace-created-illustration {
+  position: relative;
   display: block;
   width: min(calc(23.5rem * var(--astro-scale)), 100%);
-  height: auto;
+  aspect-ratio: 1482 / 1001;
+  overflow: hidden;
   margin-top: calc(0.9rem * var(--astro-scale));
   animation: rise-in 0.7s ease both;
+}
+
+.workspace-created-image {
+  position: absolute;
+  width: calc(100% * 1536 / 1482);
+  max-width: none;
+  height: auto;
+  left: 0;
+  top: calc(-100% * 13 / 1001);
 }
 
 .workspace-created-button {

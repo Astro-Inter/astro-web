@@ -31,6 +31,7 @@ function AppSidebar({ items = navigationItems }: AppSidebarProps) {
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const sidebarRef = useRef<HTMLElement>(null)
 
   function closeMenu() {
     setOpen(false)
@@ -40,15 +41,41 @@ function AppSidebar({ items = navigationItems }: AppSidebarProps) {
   useEffect(() => {
     if (!open) return
 
+    const responsiveMenu = window.matchMedia('(max-width: 1024px)')
+    if (!responsiveMenu.matches) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    function closeOnResize() {
+      if (!responsiveMenu.matches) setOpen(false)
+    }
+
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setOpen(false)
         triggerRef.current?.focus()
       }
+      if (event.key === 'Tab') {
+        const links = Array.from(sidebarRef.current?.querySelectorAll<HTMLAnchorElement>('a[href]') ?? [])
+        const first = triggerRef.current
+        const last = links.at(-1)
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault()
+          last?.focus()
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault()
+          first?.focus()
+        }
+      }
     }
 
     window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
+    responsiveMenu.addEventListener('change', closeOnResize)
+    return () => {
+      window.removeEventListener('keydown', closeOnEscape)
+      responsiveMenu.removeEventListener('change', closeOnResize)
+      document.body.style.overflow = previousOverflow
+    }
   }, [open])
 
   return (
@@ -70,7 +97,7 @@ function AppSidebar({ items = navigationItems }: AppSidebarProps) {
 
       {open && <button aria-label="Fechar menu" className="app-sidebar-backdrop" onClick={closeMenu} tabIndex={-1} type="button" />}
 
-      <aside className={`app-sidebar astro-scale-90${open ? ' app-sidebar--open' : ''}`} id="app-navigation">
+      <aside ref={sidebarRef} className={`app-sidebar astro-scale-90${open ? ' app-sidebar--open' : ''}`} id="app-navigation">
         <AstroBrand />
         <nav aria-label="Menu principal" className="app-navigation">
           <ul>

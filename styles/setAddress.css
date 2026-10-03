@@ -15,6 +15,8 @@
   animation: rise-in 0.5s ease both;
 }
 
+.set-address-position { display: none; }
+
 .set-address-page .help-link {
   position: fixed;
 }
@@ -268,118 +270,74 @@
 }
 
 @media (max-width: 600px) {
-  .set-address-desktop-break {
-    display: none;
-  }
+  .set-address-desktop-break { display: none; }
 
   .set-address-page {
-    padding: 1.5rem 1rem;
+    height: auto;
+    min-height: 100svh;
+    padding: 2rem 1rem 6rem;
+    overflow: visible;
   }
 
-  .set-address-content {
-    display: flex;
-    flex-direction: column;
-    max-height: calc(100svh - 8rem);
-  }
+  .set-address-page .help-link { position: absolute; }
 
-  .set-address-heading {
-    flex: none;
-  }
+  .set-address-heading h1 { font-size: 1.5rem; }
+  .set-address-heading p { font-size: 0.9375rem; line-height: 1.5; }
 
-  .set-address-heading {
-    font-size: 0.9em;
-  }
-
-  .set-address-form {
-    flex: 1 1 auto;
-    min-height: 0;
-    margin-top: 1rem;
-  }
+  .set-address-form { margin-top: 1.5rem; }
 
   .set-address-carousel {
     display: grid;
-    flex: 1 1 auto;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
     grid-template-rows: max-content max-content;
-    width: calc(100% - 1rem);
-    column-gap: 1rem;
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    width: 100%;
+    gap: 0.75rem;
   }
 
   .set-address-card {
     grid-column: 1 / -1;
     grid-row: 1;
-    padding: 1.2rem 1.5rem;
+    padding: 1rem;
+    border-radius: 1.25rem;
   }
+
+  .set-address-card-body { zoom: 1; }
 
   .set-address-arrow {
     position: static;
     grid-row: 2;
-    width: 2.6rem;
-    height: 2.6rem;
-    margin-top: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
     transform: none;
   }
+  .set-address-arrow--previous { grid-column: 1; justify-self: start; }
+  .set-address-arrow--next { grid-column: 3; justify-self: end; }
+  .set-address-position { display: block; grid-column: 2; grid-row: 2; align-self: center; font-size: 0.875rem; color: #beb8ca; }
 
-  .set-address-arrow--previous {
-    grid-column: 1;
-    justify-self: start;
-  }
-
-  .set-address-arrow--next {
-    grid-column: 2;
-    justify-self: end;
-  }
-
-  .set-address-card-header {
-    align-items: stretch;
-    flex-direction: column;
-  }
+  .set-address-card-header { align-items: center; flex-direction: row; gap: 0.75rem; padding-bottom: 1rem; border-bottom: 1px solid rgb(255 255 255 / 12%); }
+  .set-address-card-identification { gap: 0.75rem; }
+  .set-address-card h2 { font-size: 1.125rem; }
+  .set-address-card-identification p { font-size: 0.875rem; }
+  .set-address-remove { flex: none; width: 2.75rem; height: 2.75rem; padding: 0; }
+  .set-address-remove-label { display: none; }
 
   .set-address-row--first,
   .set-address-row--middle,
-  .set-address-row--last {
-    display: contents;
-  }
+  .set-address-row--last { display: contents; }
 
-  .set-address-fields {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  .set-address-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.875rem; margin-top: 1rem; }
+  .set-address-fields .field-group { grid-column: 1 / -1; }
+  .set-address-row--first .field-group:nth-child(2),
+  .set-address-row--first .field-group:nth-child(3),
+  .set-address-row--middle .field-group:nth-child(1),
+  .set-address-row--middle .field-group:nth-child(2) { grid-column: auto; }
+  .set-address-fields label { font-size: 0.9375rem; }
+  .set-address-fields input { height: 3rem; font-size: 1rem; }
 
-  .set-address-remove {
-    width: fit-content;
-  }
+  .set-address-add,
+  .set-address-finish { width: 100%; height: 3rem; font-size: 0.9375rem; margin-top: 1rem; }
 
   .set-address-add {
-    flex: none;
-    margin-top: 1rem;
-  }
-
-  .set-address-finish {
-    flex: none;
-    margin-top: 1.1rem;
-  }
-
-  .set-address-fields {
-    gap: 0.7rem;
-    margin-top: 1rem;
-  }
-}
-
-@media (min-width: 370px) and (max-width: 600px) {
-  .set-address-card-header {
-    align-items: center;
-    flex-direction: row;
-    gap: 0.5rem;
-  }
-
-  .set-address-card-identification {
-    gap: 0.5rem;
-  }
-
-  .set-address-remove {
-    padding-inline: 0.5rem;
+    border-width: 2.5px;
   }
 }

@@ -35,8 +35,10 @@
 }
 
 .loading-planet-svg {
-  width: clamp(12rem, 21vw, 15.5rem);
+  --loading-planet-width: clamp(12rem, 21vw, 15.5rem);
+  width: var(--loading-planet-width);
   height: auto;
+  margin-block: calc(var(--loading-planet-width) * -0.18837);
   overflow: visible;
 }
 

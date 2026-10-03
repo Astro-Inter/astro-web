@@ -55,3 +55,21 @@
 @media (prefers-reduced-motion: reduce) {
   .account-information-card--saved { animation: none; }
 }
+
+@media (max-width: 1024px) {
+  .account-information-card .field-group label { font-size: 0.9375rem; }
+  .account-information-card .field-group input { min-height: 3rem; font-size: 1rem; }
+  .account-profile-identity h3 { font-size: 1rem; }
+  .account-profile-identity p,
+  .account-transfer-card > p { font-size: 0.9375rem; line-height: 1.5; }
+}
+
+@media (max-width: 600px) {
+  .account-profile-header { gap: 1rem; }
+  .account-profile-photo { width: 4rem; height: 4rem; }
+  .account-main-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+  .account-main-actions > .astro-action,
+  .account-transfer-actions > .astro-action,
+  .account-logout-action > .astro-action { width: 100%; max-width: none; min-height: 3rem; font-size: 0.9375rem; }
+  .account-transfer-card h2 { line-height: 1.4; }
+}

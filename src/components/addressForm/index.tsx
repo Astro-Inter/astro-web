@@ -56,9 +56,9 @@ function AddressForm({ onComplete, settingsMode = false }: AddressFormProps) {
                     <p>Informe os dados da unidade</p>
                   </div>
                 </div>
-                  <PurpleButton auto className="set-address-remove" onClick={() => changeUnit(removeUnit)} variant="danger">
+                  <PurpleButton aria-label="Remover sede" auto className="set-address-remove" onClick={() => changeUnit(removeUnit)} variant="danger">
                   <AstroIcon name="trash" strokeScale={0.9} />
-                  Remover sede
+                  <span className="set-address-remove-label">Remover sede</span>
                 </PurpleButton>
               </div>
 
@@ -81,6 +81,7 @@ function AddressForm({ onComplete, settingsMode = false }: AddressFormProps) {
             </div>
           </div>
 
+          <span className="set-address-position" aria-live="polite">Sede {activeIndex + 1} de {address.units.length}</span>
           <button
             aria-label="Próxima sede"
             className="set-address-arrow set-address-arrow--next"

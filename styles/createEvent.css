@@ -41,7 +41,7 @@
 .event-create-summary-card h3 > span { color: #c4bdd4; font-size: var(--astro-control-font-size); font-weight: 400; }
 .event-create-summary-card .create-forms-date-control { width: 100%; }
 .event-create-summary-card .create-forms-date-control > input { width: 100%; height: var(--astro-control-height); padding: 0 2.6rem 0 var(--astro-control-padding-inline); border: 1px solid transparent; border-radius: var(--astro-control-radius); color: var(--astro-text); background: var(--astro-field); font-family: inherit; font-size: var(--astro-control-font-size); }
-.event-create-summary-card input[type='time'] { width: 100%; color-scheme: dark; }
+.event-create-summary-card input[type='time'] { width: 100%; }
 .event-create-summary-card dl { margin: 0; font-size: var(--astro-subtitle-font-size); font-weight: 400; line-height: 1.25; }
 .event-create-summary-card dl > div { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.4fr); gap: 1rem; padding: 1.15rem 0; border-bottom: 1px solid #70628a; }
 .event-create-summary-card dl > div:last-child { border-bottom: 0; }

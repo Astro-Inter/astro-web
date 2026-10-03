@@ -58,6 +58,6 @@
 .forms-deletion-modal .astro-action--danger { background: #eb6264; }
 .forms-deletion-modal .astro-action--danger:hover { background: #cf4f53; }
 @media (max-width: 680px) { .forms-grid { grid-template-columns: 1fr; } .form-card { padding: 1.35rem; } }
-@media (max-width: 780px) { .main-form-screen .position-main { height: calc(100dvh - 4.5rem); } }
+@media (max-width: 1024px) { .main-form-screen .position-main { height: calc(100dvh - 4.5rem); } }
 @media (max-width: 480px) { .forms-deletion-modal .astro-modal-title { flex-direction: column; align-items: flex-start; } .forms-deletion-modal .astro-confirmation-title-text { font-size: 1.1rem; } }
 @media (max-height: 600px) { .main-form-screen .forms-pagination { margin-top: 0.85rem; } }

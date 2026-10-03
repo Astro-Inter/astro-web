@@ -6,6 +6,7 @@
 .astro-route-transition--settings-page .attach-excel-dropzone.is-dragging { animation: focus-glow .75s ease; }
 
 .workspace-settings-content { --workspace-settings-heading-size: var(--astro-heading-font-size); }
+.workspace-settings-page { justify-content: flex-start; }
 .workspace-settings-content h1 { font-size: var(--workspace-settings-heading-size); }
 
 .astro-route-transition.astro-route-transition--tab-change { animation: none; }
@@ -87,4 +88,19 @@ html.settings-tab-transition::view-transition-new(settings-content) { animation:
 @media (prefers-reduced-motion: reduce) {
   .astro-route-transition--settings-page, .astro-route-transition--settings-leaving { animation: none; }
   .workspace-settings-row--saved { animation: none; }
+}
+
+@media (max-width: 1024px) {
+  .workspace-settings-row h3 { font-size: 1rem; }
+  .workspace-settings-row p { font-size: 0.9375rem; line-height: 1.5; }
+  .workspace-settings-row .astro-action { min-height: 3rem; font-size: 0.9375rem; }
+}
+
+@media (max-width: 600px) {
+  .workspace-settings-tabs { gap: 0.5rem; padding: 0.5rem; margin-bottom: 2rem; }
+  .workspace-settings-tabs button { min-height: 2.75rem; padding-inline: 0.75rem; font-size: 1rem; }
+  .workspace-settings-content { --workspace-settings-heading-size: 1.5rem; }
+  .workspace-settings-rows { gap: 1.5rem; }
+  .workspace-settings-row + .workspace-settings-row { padding-top: 1.5rem; border-top: 1px solid rgb(255 255 255 / 12%); }
+  .workspace-settings-row .astro-action { width: 100%; max-width: none; }
 }

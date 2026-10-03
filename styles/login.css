@@ -63,8 +63,7 @@
   }
 }
 
-/* Escala 0.9 pelo caminho do transform: cartão centralizado, a caixa real não
-   afeta o layout em volta. */
+/* Escala visual sem alterar o alinhamento original do conteúdo. */
 .welcome-content {
   width: min(100%, 34rem);
   transform: scale(0.9);
@@ -189,33 +188,12 @@
   }
 
   .login-welcome {
-    min-height: 19rem;
-    padding: 2.5rem 1.5rem;
-    overflow: hidden;
-  }
-
-  .welcome-orb {
-    width: 170%;
-    top: 72%;
-    left: -62%;
-  }
-
-  .welcome-content {
-    align-self: flex-end;
-  }
-
-  .welcome-content h2 {
-    font-size: clamp(2rem, 9vw, 2.7rem);
-  }
-
-  .welcome-content p {
-    margin-top: 0.7rem;
-    font-size: 1.1rem;
+    display: none;
   }
 
   .login-panel {
-    min-height: calc(100svh - 19rem);
-    padding: 5rem 1.5rem;
+    min-height: 100svh;
+    padding: 4.5rem 1.5rem;
   }
 }
 

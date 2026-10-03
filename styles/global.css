@@ -26,6 +26,8 @@
    ========================================================================= */
 
 :root {
+  /* O tema do produto é fixo, inclusive nos controles nativos do navegador. */
+  color-scheme: only dark;
   --astro-popup-duration: 260ms;
   --astro-popover-duration: 200ms;
   --astro-background: #1c1839;
@@ -445,6 +447,24 @@ textarea::selection {
   font-size: var(--astro-link-font-size);
   font-weight: 400;
   text-decoration: none;
+}
+
+/* Sublinhado é decoração, sem borda/padding que alterem a linha do texto. */
+.workspace-link,
+.workspace-key-link {
+  line-height: 1.3;
+}
+
+.workspace-link a,
+.workspace-key-link a {
+  display: inline;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  vertical-align: baseline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .12em;
+  text-decoration-skip-ink: auto;
 }
 
 .forgot-link:focus-visible,

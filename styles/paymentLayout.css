@@ -18,15 +18,15 @@
   .payment-stage {
     --payment-summary-padding: clamp(1.75rem, 3.4vw, 3.15rem);
     display: grid;
-    grid-template-columns: minmax(0, 39rem) calc(var(--astro-action-width) + var(--payment-summary-padding) + var(--payment-summary-padding));
+    grid-template-columns: minmax(0, 39rem) minmax(0, calc(var(--astro-action-width) + var(--payment-summary-padding) * 2));
     align-items: stretch;
     align-content: center;
     justify-content: center;
-    gap: clamp(4rem, 7vw, 6rem);
+    gap: clamp(2rem, 5vw, 6rem);
     width: min(100%, 90rem);
     min-height: 100svh;
     margin-inline: auto;
-    padding: clamp(7rem, 12vh, 8rem) clamp(5rem, 8vw, 8rem);
+    padding: 6rem clamp(2rem, 4vw, 5rem);
   }
 
   .payment-content,
@@ -90,7 +90,7 @@
 
   .payment-summary {
     display: block;
-    width: min(100%, calc(var(--astro-action-width) + var(--payment-summary-padding) + var(--payment-summary-padding)));
+    width: 100%;
     height: auto;
     min-height: 0;
     padding: var(--payment-summary-padding);
@@ -106,5 +106,112 @@
 
   .payment-summary h2 {
     font-size: clamp(1.15rem, 2.5vw, 1.35rem);
+  }
+}
+
+@media (max-width: 980.99px) {
+  .payment-page {
+    display: flex;
+    align-items: center;
+    padding: 6rem clamp(1.5rem, 5vw, 3rem);
+  }
+
+  .payment-back-button {
+    position: absolute;
+    top: 1.5rem;
+    left: clamp(1.5rem, 5vw, 3rem);
+  }
+
+  .payment-email-field {
+    width: 100%;
+  }
+
+  .payment-summary {
+    border-radius: 1.5rem;
+  }
+
+  .payment-divider {
+    margin-block: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .payment-page {
+    padding: 5.5rem 1.25rem;
+  }
+
+  .payment-back-button {
+    left: 1.25rem;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .payment-heading h1 {
+    font-size: 1.5rem;
+  }
+
+  .payment-heading p {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  .payment-field label {
+    font-size: 0.9375rem;
+  }
+
+  .payment-field input,
+  .payment-method-option {
+    height: 3rem;
+    font-size: 1rem;
+  }
+
+  .card-details-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card-details-row .payment-field label {
+    display: flex;
+    align-items: flex-end;
+    min-height: 2.5rem;
+  }
+
+  .payment-aside {
+    margin-top: 2rem;
+  }
+
+  .payment-summary {
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+  }
+
+  .payment-summary h2 {
+    font-size: 1.25rem;
+  }
+
+  .feature-list {
+    gap: 1rem;
+    margin-block: 1.5rem;
+  }
+
+  .feature-list li,
+  .payment-total,
+  .workspace-key-link {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .payment-summary .finish-payment-button {
+    width: 100%;
+    height: 3rem;
+    font-size: 0.9375rem;
+  }
+
+  .payment-info-link {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .payment-total {
+    flex-wrap: wrap;
   }
 }
