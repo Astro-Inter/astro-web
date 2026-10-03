@@ -55,6 +55,7 @@
 .event-create-description { margin: 0 0 var(--astro-modal-content-gap); }
 .event-create-error { margin: 1rem 0 0; color: #ff9b9b; font-size: var(--astro-control-font-size); line-height: 1.3; }
 .event-create-fields { display: grid; gap: 1rem; }
+.event-create-modal:is(.event-create-modal--details, .event-create-modal--settings) .event-create-fields { width: min(100%, var(--astro-modal-field-width)); }
 .event-create-field { display: flex; min-width: 0; flex-direction: column; gap: var(--astro-field-gap); }
 .event-create-field > input,
 .event-create-field .astro-toolbar-select { width: 100%; min-width: 0; }

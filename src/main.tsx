@@ -35,6 +35,7 @@ import '../styles/nrs-dialog.css'
 import '../styles/create-forms.css'
 import '../styles/edit-forms.css'
 import '../styles/toggle-switch.css'
+import '../styles/workspace-settings.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

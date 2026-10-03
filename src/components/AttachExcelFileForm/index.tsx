@@ -12,9 +12,10 @@ interface SpreadsheetSelection {
 
 interface AttachExcelFileFormProps {
   onContinue: () => void
+  settingsMode?: boolean
 }
 
-function AttachExcelFileForm({ onContinue }: AttachExcelFileFormProps) {
+function AttachExcelFileForm({ onContinue, settingsMode = false }: AttachExcelFileFormProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const explanationTrigger = useRef<HTMLButtonElement>(null)
   const [selection, setSelection] = useState<SpreadsheetSelection>({ file: null, error: '' })
@@ -28,6 +29,11 @@ function AttachExcelFileForm({ onContinue }: AttachExcelFileFormProps) {
 
   function selectFile(file?: File) {
     if (!file) return
+
+    if (settingsMode) {
+      setSelection({ file, error: '' })
+      return
+    }
 
     const result = validateSpreadsheetFile(file)
     setSelection(result.valid ? { file: result.file, error: '' } : { file: null, error: result.message })
@@ -52,8 +58,8 @@ function AttachExcelFileForm({ onContinue }: AttachExcelFileFormProps) {
   return (
     <section className="attach-excel-content astro-scale-90" aria-labelledby="attach-excel-title">
       <header className="login-heading attach-excel-heading">
-        <h1 id="attach-excel-title">Anexe sua planilha para continuar</h1>
-        <p>A planilha serve para identificar os colaboradores e<br className="attach-excel-desktop-break" /> cadastrá-los automaticamente.</p>
+        <h1 id="attach-excel-title">{settingsMode ? 'Anexe sua planilha para adicionar colaboradores.' : 'Anexe sua planilha para continuar'}</h1>
+        <p>{settingsMode ? 'A planilha abaixo serve para o aplicativo identificar os colaboradores e montar os cadastros.' : <>A planilha serve para identificar os colaboradores e<br className="attach-excel-desktop-break" /> cadastrá-los automaticamente.</>}</p>
       </header>
 
       <form className="attach-excel-form" onSubmit={handleSubmit} noValidate>
@@ -89,9 +95,9 @@ function AttachExcelFileForm({ onContinue }: AttachExcelFileFormProps) {
           </div>
         </div>
 
-        {selection.error && <p className="attach-excel-feedback" role="alert">{selection.error}</p>}
+        {!settingsMode && selection.error && <p className="attach-excel-feedback" role="alert">{selection.error}</p>}
 
-        <PurpleButton className="attach-excel-continue" type="submit">Continuar</PurpleButton>
+        <PurpleButton className="attach-excel-continue" type="submit">{settingsMode ? 'Adicionar colaboradores' : 'Continuar'}</PurpleButton>
         <button
           aria-haspopup="dialog"
           className="attach-excel-model-link"

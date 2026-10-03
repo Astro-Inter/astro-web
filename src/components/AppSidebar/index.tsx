@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ComponentProps } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import AstroBrand from '../AstroBrand'
 import AstroIcon from '../AstroIcon'
 
@@ -20,7 +20,7 @@ const navigationItems: NavigationItem[] = [
   { label: 'Cargos', icon: 'position', path: '/mainPositionScreen' },
   { label: 'Formulários', icon: 'document', path: '/mainFormScreen' },
   { label: 'Eventos', icon: 'event-calendar', path: '/mainEventScreen' },
-  { label: 'Configurações', icon: 'settings', alignBottom: true },
+  { label: 'Configurações', icon: 'settings', path: '/mainWorkspaceSettingsScreen', alignBottom: true },
 ]
 
 interface AppSidebarProps {
@@ -28,6 +28,7 @@ interface AppSidebarProps {
 }
 
 function AppSidebar({ items = navigationItems }: AppSidebarProps) {
+  const location = useLocation()
   const [open, setOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
 
@@ -80,6 +81,7 @@ function AppSidebar({ items = navigationItems }: AppSidebarProps) {
                     className={({ isActive }) => `app-navigation-link${isActive ? ' app-navigation-link--active' : ''}`}
                     onClick={() => setOpen(false)}
                     to={item.path}
+                    state={item.path === '/mainWorkspaceSettingsScreen' ? { from: location.pathname } : undefined}
                   >
                     <span className="app-navigation-icon"><AstroIcon name={item.icon} strokeScale={item.strokeScale} /></span>
                     <span className="app-navigation-label">{item.label}</span>

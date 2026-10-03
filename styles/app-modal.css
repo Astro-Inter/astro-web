@@ -9,14 +9,17 @@
 }
 
 .astro-modal {
+  --astro-modal-default-width: 44.25rem;
+  --astro-modal-padding-inline: 3.75rem;
+  --astro-modal-field-width: calc(var(--astro-modal-default-width) - 2 * var(--astro-modal-padding-inline));
   position: fixed;
   inset: 0;
-  width: min(var(--astro-modal-width, 44.25rem), calc((100vw - 2rem) / var(--astro-popup-zoom)));
+  width: min(var(--astro-modal-width, var(--astro-modal-default-width)), calc((100vw - 2rem) / var(--astro-popup-zoom)));
   height: fit-content;
   max-height: calc((100dvh - 2rem) / var(--astro-popup-zoom));
   margin: auto;
   overflow: auto;
-  padding: 2.75rem 3.75rem;
+  padding: 2.75rem var(--astro-modal-padding-inline);
   border: 0;
   border-radius: 0.625rem;
   color: var(--astro-text);
@@ -82,7 +85,7 @@
 }
 
 @media (max-width: 480px) {
-  .astro-modal { padding: 1.5rem; }
+  .astro-modal { --astro-modal-padding-inline: 1.5rem; padding: 1.5rem; }
   .astro-modal-actions { flex-direction: column-reverse; align-items: stretch; }
   .astro-modal-actions > button { flex: none; width: 100%; max-width: none; }
 }

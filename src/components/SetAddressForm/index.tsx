@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useWorkspaceAddresses } from '../../hooks/useWorkspaceAddresses'
 import { digitsOnly, formatCep, formatState, handleMaskedInput } from '../../utils/inputFormatting'
 import AstroIcon from '../AstroIcon'
@@ -5,32 +6,42 @@ import PurpleButton from '../PurpleButton'
 
 interface SetAddressFormProps {
   onComplete: () => void
+  settingsMode?: boolean
 }
 
-function SetAddressForm({ onComplete }: SetAddressFormProps) {
+function SetAddressForm({ onComplete, settingsMode = false }: SetAddressFormProps) {
   const { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit } = useWorkspaceAddresses()
+  const [hasChangedUnit, setHasChangedUnit] = useState(false)
+
+  function changeUnit(action: () => void) {
+    setHasChangedUnit(true)
+    action()
+  }
 
   return (
     <section className="set-address-content astro-scale-90" aria-labelledby="set-address-title">
       <header className="login-heading set-address-heading">
-        <h1 id="set-address-title">Defina o endereço das unidades</h1>
+        <h1 id="set-address-title">{settingsMode ? 'Altere o endereço das unidades' : 'Defina o endereço das unidades'}</h1>
         <p>Informe o endereço de cada unidade para que<br className="set-address-desktop-break" /> possamos identificar sua localização.</p>
       </header>
 
-      <form className="set-address-form" noValidate onSubmit={(event) => { event.preventDefault(); onComplete() }}>
+      <form className="set-address-form" noValidate onSubmit={(event) => {
+        event.preventDefault()
+        onComplete()
+      }}>
         <div className="set-address-carousel">
           <button
             aria-label="Sede anterior"
             className="set-address-arrow set-address-arrow--previous"
             disabled={activeIndex === 0}
-            onClick={() => moveUnit(-1)}
+            onClick={() => changeUnit(() => moveUnit(-1))}
             type="button"
           >
             <AstroIcon name="back" />
           </button>
 
           <div
-            className="set-address-card is-switching"
+            className={`set-address-card${!settingsMode || hasChangedUnit ? ' is-switching' : ''}`}
             aria-label={`Sede ${activeIndex + 1} de ${address.units.length}`}
             key={address.activeId}
           >
@@ -45,7 +56,7 @@ function SetAddressForm({ onComplete }: SetAddressFormProps) {
                     <p>Informe os dados da unidade</p>
                   </div>
                 </div>
-                <PurpleButton auto className="set-address-remove" onClick={removeUnit} variant="danger">
+                  <PurpleButton auto className="set-address-remove" onClick={() => changeUnit(removeUnit)} variant="danger">
                   <AstroIcon name="trash" strokeScale={0.9} />
                   Remover sede
                 </PurpleButton>
@@ -74,18 +85,18 @@ function SetAddressForm({ onComplete }: SetAddressFormProps) {
             aria-label="Próxima sede"
             className="set-address-arrow set-address-arrow--next"
             disabled={activeIndex === address.units.length - 1}
-            onClick={() => moveUnit(1)}
+            onClick={() => changeUnit(() => moveUnit(1))}
             type="button"
           >
             <AstroIcon name="forward" />
           </button>
         </div>
 
-        <PurpleButton className="set-address-add" onClick={addUnit} variant="outline">
+        <PurpleButton className="set-address-add" onClick={() => changeUnit(addUnit)} variant="outline">
           <AstroIcon name="plus" />
           Adicionar outra sede
         </PurpleButton>
-        <PurpleButton className="set-address-finish" type="submit">Finalizar workspace</PurpleButton>
+        <PurpleButton className="set-address-finish" type="submit">{settingsMode ? 'Salvar alterações' : 'Finalizar workspace'}</PurpleButton>
       </form>
     </section>
   )

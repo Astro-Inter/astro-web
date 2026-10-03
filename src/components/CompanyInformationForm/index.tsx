@@ -8,16 +8,20 @@ import PurpleButton from '../PurpleButton'
 
 interface CompanyInformationFormProps {
   onContinue: () => void
+  settingsMode?: boolean
 }
 
-function CompanyInformationForm({ onContinue }: CompanyInformationFormProps) {
+function CompanyInformationForm({ onContinue, settingsMode = false }: CompanyInformationFormProps) {
   const [company, setCompany] = useState<CompanyInformation>({ name: '', cnpj: '' })
 
   return (
     <>
-      <PageHeading description="Preencha os dados para continuar." title="Dados da empresa" titleId="company-information-title" />
+      <PageHeading description={settingsMode ? 'Altere os dados da sua empresa.' : 'Preencha os dados para continuar.'} title="Dados da empresa" titleId="company-information-title" />
 
-      <form className="company-information-form" noValidate onSubmit={(event) => { event.preventDefault(); onContinue() }}>
+      <form className="company-information-form" noValidate onSubmit={(event) => {
+        event.preventDefault()
+        onContinue()
+      }}>
         <FormField
             autoComplete="organization"
             id="company-name"
@@ -41,7 +45,7 @@ function CompanyInformationForm({ onContinue }: CompanyInformationFormProps) {
             value={company.cnpj}
           />
 
-        <PurpleButton className="astro-form-action" type="submit">Continuar</PurpleButton>
+        <PurpleButton className="astro-form-action" type="submit">{settingsMode ? 'Salvar alterações' : 'Continuar'}</PurpleButton>
       </form>
     </>
   )

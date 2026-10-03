@@ -1,13 +1,24 @@
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AttachExcelFileForm, HelpLink } from '../../components'
+import WorkspaceSettingsSaveModal from '../../components/WorkspaceSettingsSaveModal'
+import WorkspaceSettingsBackButton from '../../components/WorkspaceSettingsBackButton'
 
 function AttachExcelFilePage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const settingsMode = searchParams.get('context') === 'settings'
+  const [confirming, setConfirming] = useState(false)
 
   return (
     <main className="attach-excel-page">
-      <AttachExcelFileForm onContinue={() => navigate('/setAddress')} />
+      {settingsMode && <WorkspaceSettingsBackButton screen="backExcelModalWeb" />}
+      <AttachExcelFileForm settingsMode={settingsMode} onContinue={() => {
+        if (settingsMode) setConfirming(true)
+        else navigate('/setAddress')
+      }} />
       <HelpLink />
+      {confirming && <WorkspaceSettingsSaveModal onCancel={() => setConfirming(false)} section="spreadsheet" />}
     </main>
   )
 }

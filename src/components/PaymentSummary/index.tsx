@@ -10,9 +10,10 @@ const features = [
 
 interface PaymentSummaryProps {
   onCompletePurchase: () => void
+  settingsMode?: boolean
 }
 
-function PaymentSummary({ onCompletePurchase }: PaymentSummaryProps) {
+function PaymentSummary({ onCompletePurchase, settingsMode = false }: PaymentSummaryProps) {
 
   return (
     <aside className="payment-summary" aria-label="Resumo da assinatura">
@@ -38,12 +39,12 @@ function PaymentSummary({ onCompletePurchase }: PaymentSummaryProps) {
         </div>
 
         <PurpleButton className="finish-payment-button" onClick={onCompletePurchase}>
-          Finalizar compra
+          {settingsMode ? 'Salvar alterações' : 'Finalizar compra'}
         </PurpleButton>
 
-        <p className="workspace-key-link">
+        {!settingsMode && <p className="workspace-key-link">
           Já tem uma chave do workspace? <Link to="/createWorkspace">Verificar</Link>
-        </p>
+        </p>}
       </div>
     </aside>
   )
