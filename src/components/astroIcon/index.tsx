@@ -1,0 +1,111 @@
+type AstroIconName =
+  | 'back'
+  | 'building'
+  | 'card'
+  | 'calendar'
+  | 'document'
+  | 'download'
+  | 'expiry'
+  | 'eye'
+  | 'eye-off'
+  | 'forward'
+  | 'help'
+  | 'active'
+  | 'mapping'
+  | 'pix'
+  | 'plus'
+  | 'receipt'
+  | 'report'
+  | 'security'
+  | 'trash'
+  | 'upload'
+  | 'home'
+  | 'managers'
+  | 'collaborators'
+  | 'compliance'
+  | 'position'
+  | 'event-calendar'
+  | 'settings'
+  | 'search'
+  | 'chevron-down'
+  | 'chevron-left'
+  | 'chevron-right'
+  | 'close'
+  | 'dots'
+  | 'pencil'
+  | 'person-outline'
+  | 'feedback'
+  | 'file-plus'
+  | 'warning'
+  | 'distribution'
+  | 'reload'
+
+// Os arquivos têm proporções e espaços internos diferentes. O CSS define a
+// altura visual de cada uso; width: auto conserva a proporção original.
+const iconFiles: Record<AstroIconName, { file: string; width: number; height: number }> = {
+  back: { file: 'backButton.svg', width: 71, height: 71 },
+  building: { file: 'building.svg', width: 31, height: 28 },
+  card: { file: 'card.svg', width: 32, height: 31 },
+  calendar: { file: 'calendar.svg', width: 27, height: 27 },
+  document: { file: 'report.svg', width: 27, height: 33 },
+  download: { file: 'download.svg', width: 19, height: 21 },
+  expiry: { file: 'time.svg', width: 21, height: 23 },
+  eye: { file: 'eye.svg', width: 29, height: 24 },
+  'eye-off': { file: 'eyeOff.svg', width: 29, height: 29 },
+  forward: { file: 'backButton.svg', width: 71, height: 71 },
+  help: { file: 'help.svg', width: 26, height: 26 },
+  active: { file: 'person.svg', width: 28, height: 27 },
+  mapping: { file: 'mappingDocument.svg', width: 21, height: 26 },
+  pix: { file: 'pix.svg', width: 27, height: 27 },
+  plus: { file: 'addPurple.svg', width: 25, height: 25 },
+  receipt: { file: 'receipt.svg', width: 26, height: 28 },
+  report: { file: 'report.svg', width: 27, height: 33 },
+  security: { file: 'wallet.svg', width: 29, height: 24 },
+  trash: { file: 'trash.svg', width: 20, height: 22 },
+  upload: { file: 'upload.svg', width: 24, height: 26 },
+  home: { file: 'home.svg', width: 27, height: 27 },
+  managers: { file: 'managers.svg', width: 27, height: 27 },
+  // O arquivo foi substituído mantendo o nome; a revisão invalida o cache anterior.
+  collaborators: { file: 'collaborators.svg?v=2', width: 29, height: 24 },
+  compliance: { file: 'compliance.svg?v=2', width: 27, height: 27 },
+  position: { file: 'positions.svg', width: 27, height: 27 },
+  'event-calendar': { file: 'eventCalendar.svg', width: 27, height: 27 },
+  settings: { file: 'settings.svg', width: 27, height: 29 },
+  search: { file: 'search.svg', width: 25, height: 25 },
+  'chevron-down': { file: 'chevronDown.svg', width: 22, height: 13 },
+  'chevron-left': { file: 'chevronLeft.svg', width: 24, height: 24 },
+  'chevron-right': { file: 'chevronRight.svg', width: 24, height: 24 },
+  close: { file: 'close.svg', width: 21, height: 21 },
+  dots: { file: 'dots.svg', width: 21, height: 5 },
+  pencil: { file: 'pencil.svg', width: 24, height: 24 },
+  'person-outline': { file: 'personOutline.svg', width: 28, height: 28 },
+  feedback: { file: 'feedback.svg', width: 28, height: 28 },
+  'file-plus': { file: 'addFile.svg', width: 24, height: 30 },
+  warning: { file: 'warning.svg', width: 45, height: 45 },
+  distribution: { file: 'distribution.svg', width: 24, height: 24 },
+  reload: { file: 'reload.svg', width: 24, height: 28 },
+}
+
+interface AstroIconProps {
+  className?: string
+  name: AstroIconName
+  strokeScale?: 0.9 | 1
+}
+
+function AstroIcon({ className, name, strokeScale }: AstroIconProps) {
+  const icon = iconFiles[name]
+  const iconDirectory = `${import.meta.env.BASE_URL}icons${strokeScale === 0.9 ? '/stroke90' : ''}`
+
+  return (
+    <img
+      alt=""
+      aria-hidden="true"
+      className={`astro-icon astro-icon--${name}${className ? ` ${className}` : ''}`}
+      height={icon.height}
+      src={`${iconDirectory}/${icon.file}`}
+      width={icon.width}
+    />
+  )
+}
+
+export default AstroIcon

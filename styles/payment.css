@@ -9,7 +9,7 @@
   min-width: 0;
 }
 
-/* back-button.svg já inclui a borda e a seta. */
+/* backButton.svg já inclui a borda e a seta. */
 .payment-back-button {
   position: fixed;
   z-index: 2;

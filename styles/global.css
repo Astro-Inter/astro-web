@@ -478,8 +478,8 @@ textarea::selection {
   height: calc(var(--astro-icon-md-base) * 0.9);
   flex: none;
   background-color: currentColor;
-  -webkit-mask: url('/icon/help.svg') center / contain no-repeat;
-  mask: url('/icon/help.svg') center / contain no-repeat;
+  -webkit-mask: url('/icons/help.svg') center / contain no-repeat;
+  mask: url('/icons/help.svg') center / contain no-repeat;
 }
 
 .sr-only {

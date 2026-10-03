@@ -2,40 +2,40 @@ import { Route, Routes, useLocation, type Location } from 'react-router-dom'
 import { lazy, Suspense, useEffect, useRef, useState, useTransition } from 'react'
 import { flushSync } from 'react-dom'
 
-const AccessKeyVerifiedPage = lazy(() => import('../pages/AccessKeyVerified'))
-const loadAttachExcelFile = () => import('../pages/AttachExcelFile')
+const AccessKeyVerifiedPage = lazy(() => import('../pages/accessKeyVerified'))
+const loadAttachExcelFile = () => import('../pages/attachExcelFile')
 const AttachExcelFilePage = lazy(loadAttachExcelFile)
-const CreateFormsPage = lazy(() => import('../pages/CreateForms'))
-const CreatePasswordPage = lazy(() => import('../pages/CreatePassword'))
-const CreateWorkspacePage = lazy(() => import('../pages/CreateWorkspace'))
-const EditFormsPage = lazy(() => import('../pages/EditForms'))
-const loadCompanyInformation = () => import('../pages/IncludeCompanyInformation')
+const CreateFormPage = lazy(() => import('../pages/createForm'))
+const CreatePasswordPage = lazy(() => import('../pages/createPassword'))
+const CreateWorkspacePage = lazy(() => import('../pages/createWorkspace'))
+const EditFormPage = lazy(() => import('../pages/editForm'))
+const loadCompanyInformation = () => import('../pages/includeCompanyInformation')
 const IncludeCompanyInformationPage = lazy(loadCompanyInformation)
-const LoadingScreenPage = lazy(() => import('../pages/LoadingScreen'))
-const LoginPage = lazy(() => import('../pages/Login'))
-const loadPositions = () => import('../pages/MainPositionScreen')
-const loadForms = () => import('../pages/MainFormScreen')
-const loadEvents = () => import('../pages/MainEventScreen')
-const loadWorkspaceSettings = () => import('../pages/MainWorkspaceSettingsScreen')
-const loadAccountSettings = () => import('../pages/MainAccountScreen')
+const LoadingScreenPage = lazy(() => import('../pages/loadingScreen'))
+const LoginPage = lazy(() => import('../pages/login'))
+const loadPositions = () => import('../pages/mainPositionScreen')
+const loadForms = () => import('../pages/mainFormScreen')
+const loadEvents = () => import('../pages/mainEventScreen')
+const loadWorkspaceSettings = () => import('../pages/mainWorkspaceSettingsScreen')
+const loadAccountSettings = () => import('../pages/mainAccountScreen')
 const MainPositionScreenPage = lazy(loadPositions)
 const MainFormScreenPage = lazy(loadForms)
 const MainEventScreenPage = lazy(loadEvents)
 const MainWorkspaceSettingsScreenPage = lazy(loadWorkspaceSettings)
 const MainAccountScreenPage = lazy(loadAccountSettings)
-const NotFoundPage = lazy(() => import('../pages/NotFound'))
-const ErroScreenLayoutPage = lazy(() => import('../pages/ErroScreenLayout'))
-const InactiveScreenLayoutPage = lazy(() => import('../pages/InactiveScreenLayout'))
-const loadPaymentMethod = () => import('../pages/PaymentMethod')
-const loadSetAddress = () => import('../pages/SetAddress')
+const NotFoundPage = lazy(() => import('../pages/notFound'))
+const ErrorScreenLayoutPage = lazy(() => import('../pages/errorScreenLayout'))
+const InactiveScreenLayoutPage = lazy(() => import('../pages/inactiveScreenLayout'))
+const loadPaymentMethod = () => import('../pages/paymentMethod')
+const loadSetAddress = () => import('../pages/setAddress')
 const PaymentMethodPage = lazy(loadPaymentMethod)
 const SetAddressPage = lazy(loadSetAddress)
-const WorkspaceCreatedPage = lazy(() => import('../pages/WorkspaceCreated'))
+const WorkspaceCreatedPage = lazy(() => import('../pages/workspaceCreated'))
 
 const settingsRouteLoaders: Record<string, () => Promise<unknown>> = {
   '/mainWorkspaceSettingsScreen': loadWorkspaceSettings,
   '/mainAccountScreen': loadAccountSettings,
-  '/': () => import('../pages/Login'),
+  '/': () => import('../pages/login'),
   '/includeCompanyInformation': loadCompanyInformation,
   '/attachExcelFile': loadAttachExcelFile,
   '/setAddress': loadSetAddress,
@@ -151,9 +151,9 @@ function AppRoutes() {
         <Route path="/mainEventScreen" element={<MainEventScreenPage />} />
         <Route path="/mainWorkspaceSettingsScreen" element={<MainWorkspaceSettingsScreenPage />} />
         <Route path="/mainAccountScreen" element={<MainAccountScreenPage />} />
-        <Route path="/createForms" element={<CreateFormsPage />} />
-        <Route path="/editForms" element={<EditFormsPage />} />
-        <Route path="/erroScreenLayout" element={<ErroScreenLayoutPage />} />
+        <Route path="/createForms" element={<CreateFormPage />} />
+        <Route path="/editForms" element={<EditFormPage />} />
+        <Route path="/erroScreenLayout" element={<ErrorScreenLayoutPage />} />
         <Route path="/inactiveScreenLayout" element={<InactiveScreenLayoutPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
