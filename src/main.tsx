@@ -36,6 +36,7 @@ import '../styles/create-forms.css'
 import '../styles/edit-forms.css'
 import '../styles/toggle-switch.css'
 import '../styles/workspace-settings.css'
+import '../styles/account-settings.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

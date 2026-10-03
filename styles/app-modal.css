@@ -59,6 +59,7 @@
 .astro-confirmation-modal .astro-modal-title { max-width: 31rem; }
 .astro-confirmation-modal:is(.position-deactivation-modal, .create-forms-exit-modal) .astro-modal-title { max-width: 39rem; }
 .astro-confirmation-error { margin: 1rem 0 0; color: #ffc4c8; font-size: 0.8rem; }
+.astro-confirmation-description { margin: var(--astro-modal-content-gap) 0 0; color: #c4bdd4; font-size: var(--astro-subtitle-font-size); line-height: 1.3; overflow-wrap: anywhere; }
 .position-dialog .astro-modal-title,
 .astro-confirmation-modal .astro-confirmation-title-text { font-size: var(--astro-heading-font-size); font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; }
 .astro-confirmation-modal--with-icon .astro-modal-title { display: flex; align-items: center; gap: 1rem; }

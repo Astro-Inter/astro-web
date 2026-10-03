@@ -8,6 +8,21 @@
 .workspace-settings-content { --workspace-settings-heading-size: var(--astro-heading-font-size); }
 .workspace-settings-content h1 { font-size: var(--workspace-settings-heading-size); }
 
+.astro-route-transition.astro-route-transition--tab-change { animation: none; }
+.settings-tab-content { view-transition-name: settings-content; }
+html.settings-tab-transition::view-transition-group(root),
+html.settings-tab-transition::view-transition-old(root),
+html.settings-tab-transition::view-transition-new(root),
+html.settings-tab-transition::view-transition-group(settings-content) { animation: none; }
+html.settings-tab-transition::view-transition-old(root) { display: none; }
+html.settings-tab-transition::view-transition-image-pair(settings-content) { isolation: isolate; }
+html.settings-tab-transition::view-transition-old(settings-content),
+html.settings-tab-transition::view-transition-new(settings-content) {
+  width: 100%; height: 100%; object-fit: none; object-position: top center; mix-blend-mode: plus-lighter;
+}
+html.settings-tab-transition::view-transition-old(settings-content) { animation: astro-popup-out 260ms ease both; }
+html.settings-tab-transition::view-transition-new(settings-content) { animation: astro-popup-in 260ms ease both; }
+
 .workspace-settings-tabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -22,7 +37,7 @@
 
 .workspace-settings-tabs button {
   min-width: 0;
-  min-height: calc(4.5rem * var(--astro-scale));
+  min-height: calc(4rem * var(--astro-scale));
   padding: 0 var(--astro-control-padding-inline);
   border: 0;
   border-radius: 999px;
@@ -32,10 +47,13 @@
   font-size: calc(1.25rem * var(--astro-scale));
   font-weight: 600;
   line-height: 1.25;
+  cursor: pointer;
   transition: background-color 200ms ease, color 200ms ease;
 }
 
 .workspace-settings-tabs button[aria-current] { background: #493078; }
+.workspace-settings-tabs button:not([aria-disabled]):hover { background: #493078; }
+.workspace-settings-tabs button[aria-current]:hover { background: #573d93; }
 .workspace-settings-tabs button[aria-disabled] { cursor: default; }
 .workspace-settings-tabs button:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
 .workspace-settings-rows { display: grid; gap: var(--create-forms-section-gap); }

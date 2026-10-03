@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AstroBrand, AstroIcon, CompactPurpleButton, HelpLink } from '../../components'
 import WorkspaceSettingsPasswordModal from '../../components/WorkspaceSettingsPasswordModal'
+import SettingsTabs from '../../components/SettingsTabs'
 import type { WorkspaceSettingsNavigationState, WorkspaceSettingsSection } from '../../types/workspaceSettings'
 
 interface WorkspaceSettingsAction {
@@ -46,11 +47,9 @@ function MainWorkspaceSettingsScreenPage() {
       <header className="create-password-header create-forms-header"><AstroBrand /></header>
 
       <main className="create-forms-main workspace-settings-content" aria-labelledby="workspace-settings-title">
-        <nav aria-label="Configurações" className="workspace-settings-tabs">
-          <button aria-current="page" type="button">Workspace</button>
-          <button aria-disabled="true" title="Configurações de conta em breve" type="button">Conta</button>
-        </nav>
+        <SettingsTabs active="workspace" from={returnPath} />
 
+        <div className="settings-tab-content">
         <h1 id="workspace-settings-title">Configurações de workspace</h1>
         <section className="create-forms-card workspace-settings-card" aria-labelledby="workspace-settings-edit-title">
           <h2 id="workspace-settings-edit-title">Editar informações</h2>
@@ -66,6 +65,7 @@ function MainWorkspaceSettingsScreenPage() {
             ))}
           </div>
         </section>
+        </div>
       </main>
 
       <HelpLink />

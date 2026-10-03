@@ -9,9 +9,10 @@ interface PasswordFieldProps {
   visible: boolean
   onChange: (value: string) => void
   onToggleVisibility: () => void
+  readOnly?: boolean
 }
 
-function PasswordField({ autoComplete = 'off', id, label, placeholder, value, visible, onChange, onToggleVisibility }: PasswordFieldProps) {
+function PasswordField({ autoComplete = 'off', id, label, placeholder, value, visible, onChange, onToggleVisibility, readOnly = false }: PasswordFieldProps) {
   return (
     <div className="field-group">
       <label htmlFor={id}>{label}</label>
@@ -22,6 +23,7 @@ function PasswordField({ autoComplete = 'off', id, label, placeholder, value, vi
           maxLength={128}
           name={id}
           onChange={(event) => onChange(event.target.value)}
+          readOnly={readOnly}
           placeholder={placeholder}
           type={visible ? 'text' : 'password'}
           value={value}

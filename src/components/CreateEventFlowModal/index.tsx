@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { usePopupStepTransition } from '../../hooks/usePopupStepTransition'
 import { mockEventCollaborators } from '../../data/eventCreation'
 import type { EventConfiguration, EventDraft, EventGroup, EventGroupSchedule, EventSettings } from '../../types/eventCreation'
 import { validateEventConfiguration } from '../../utils/eventEditing'
@@ -35,7 +35,7 @@ const titles: Record<EventCreationStep, string> = {
 
 function CreateEventFlowModal({ onClose, onSubmit, initialValue, mode = 'create' }: CreateEventFlowModalProps) {
   const [step, setStep] = useState<EventCreationStep>('details')
-  const transitionRef = useRef<ViewTransition | null>(null)
+  const animatePopupChange = usePopupStepTransition()
   const [draft, setDraft] = useState<EventDraft>(() => initialValue?.draft ?? initialDraft)
   const [selectedIds, setSelectedIds] = useState<string[]>(() => initialValue?.selectedIds ?? mockEventCollaborators.map(person => person.id))
   const [groups, setGroups] = useState<EventGroup[]>(() => initialValue?.groups ?? initialGroups)
@@ -50,29 +50,6 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, mode = 'create'
   const [pendingSave, setPendingSave] = useState<EventConfiguration | null>(null)
   const [saveDimmed, setSaveDimmed] = useState(false)
   const [saveClosing, setSaveClosing] = useState(false)
-
-  useEffect(() => () => {
-    transitionRef.current?.skipTransition()
-    document.documentElement.classList.remove('event-popup-transition')
-  }, [])
-
-  function animatePopupChange(update: () => void) {
-    if (transitionRef.current) return
-    if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      update()
-      return
-    }
-    document.documentElement.classList.add('event-popup-transition')
-    const transition = document.startViewTransition(() => {
-      flushSync(update)
-    })
-    transitionRef.current = transition
-    void transition.ready.catch(() => undefined)
-    void transition.finished.then(() => {
-      transitionRef.current = null
-      document.documentElement.classList.remove('event-popup-transition')
-    })
-  }
 
   function changeStep(nextStep: EventCreationStep) {
     setError('')

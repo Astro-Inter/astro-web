@@ -1,5 +1,6 @@
 import { Route, Routes, useLocation, type Location } from 'react-router-dom'
 import { lazy, Suspense, useEffect, useRef, useState, useTransition } from 'react'
+import { flushSync } from 'react-dom'
 
 const AccessKeyVerifiedPage = lazy(() => import('../pages/AccessKeyVerified'))
 const loadAttachExcelFile = () => import('../pages/AttachExcelFile')
@@ -16,10 +17,12 @@ const loadPositions = () => import('../pages/MainPositionScreen')
 const loadForms = () => import('../pages/MainFormScreen')
 const loadEvents = () => import('../pages/MainEventScreen')
 const loadWorkspaceSettings = () => import('../pages/MainWorkspaceSettingsScreen')
+const loadAccountSettings = () => import('../pages/MainAccountScreen')
 const MainPositionScreenPage = lazy(loadPositions)
 const MainFormScreenPage = lazy(loadForms)
 const MainEventScreenPage = lazy(loadEvents)
 const MainWorkspaceSettingsScreenPage = lazy(loadWorkspaceSettings)
+const MainAccountScreenPage = lazy(loadAccountSettings)
 const NotFoundPage = lazy(() => import('../pages/NotFound'))
 const loadPaymentMethod = () => import('../pages/PaymentMethod')
 const loadSetAddress = () => import('../pages/SetAddress')
@@ -29,6 +32,8 @@ const WorkspaceCreatedPage = lazy(() => import('../pages/WorkspaceCreated'))
 
 const settingsRouteLoaders: Record<string, () => Promise<unknown>> = {
   '/mainWorkspaceSettingsScreen': loadWorkspaceSettings,
+  '/mainAccountScreen': loadAccountSettings,
+  '/': () => import('../pages/Login'),
   '/includeCompanyInformation': loadCompanyInformation,
   '/attachExcelFile': loadAttachExcelFile,
   '/setAddress': loadSetAddress,
@@ -39,7 +44,7 @@ const settingsRouteLoaders: Record<string, () => Promise<unknown>> = {
 }
 
 function isSettingsLocation(location: Location): boolean {
-  return location.pathname === '/mainWorkspaceSettingsScreen'
+  return ['/mainWorkspaceSettingsScreen', '/mainAccountScreen'].includes(location.pathname)
     || (['/includeCompanyInformation', '/attachExcelFile', '/setAddress', '/paymentMethod'].includes(location.pathname)
       && new URLSearchParams(location.search).get('context') === 'settings')
 }
@@ -51,6 +56,9 @@ function AppRoutes() {
   const exiting = location.key !== displayedLocation.key
   const [, startTransition] = useTransition()
   const routeRef = useRef<HTMLDivElement>(null)
+  const tabChangeRef = useRef(false)
+  const [tabChange, setTabChange] = useState(false)
+  const tabScrollRef = useRef(0)
 
   useEffect(() => {
     if (location.key === displayedLocation.key) return
@@ -60,11 +68,35 @@ function AppRoutes() {
     }
 
     let cancelled = false
+    const isTabChange = ['/mainWorkspaceSettingsScreen', '/mainAccountScreen'].includes(location.pathname)
+      && ['/mainWorkspaceSettingsScreen', '/mainAccountScreen'].includes(displayedLocation.pathname)
+    if (isTabChange) {
+      const scrollTop = window.scrollY
+      void (settingsRouteLoaders[location.pathname]?.() ?? Promise.resolve()).then(() => {
+        if (cancelled) return
+        const update = () => {
+          tabChangeRef.current = true
+          tabScrollRef.current = scrollTop
+          flushSync(() => { setTabChange(true); setDisplayedLocation(location) })
+          window.scrollTo({ top: scrollTop, behavior: 'instant' })
+        }
+        if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          update()
+          return
+        }
+        document.documentElement.classList.add('settings-tab-transition')
+        const transition = document.startViewTransition(update)
+        void transition.ready.catch(() => undefined)
+        void transition.finished.finally(() => document.documentElement.classList.remove('settings-tab-transition'))
+      })
+      return () => { cancelled = true }
+    }
+    tabChangeRef.current = false
     // Carrega a próxima tela enquanto a atual ainda está visível.
     // A saída só começa quando o destino está pronto para evitar piscadas.
     const ready = settingsRouteLoaders[location.pathname]?.() ?? Promise.resolve()
     const beginExit = () => {
-      if (!cancelled) setLeavingKey(location.key)
+      if (!cancelled) { setTabChange(false); setLeavingKey(location.key) }
     }
     void ready.then(beginExit, beginExit)
     return () => { cancelled = true }
@@ -90,7 +122,7 @@ function AppRoutes() {
   }, [displayedLocation.key, exiting, leavingKey, location, startTransition])
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' })
+    window.scrollTo({ top: tabChangeRef.current ? tabScrollRef.current : 0, behavior: 'instant' })
     const heading = routeRef.current?.querySelector('h1')
     if (heading) {
       heading.tabIndex = -1
@@ -100,7 +132,7 @@ function AppRoutes() {
 
   return (
     <Suspense fallback={null}>
-    <div className={`astro-route-transition${isSettingsLocation(displayedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={displayedLocation.key} ref={routeRef}>
+    <div className={`astro-route-transition${tabChange ? ' astro-route-transition--tab-change' : ''}${isSettingsLocation(displayedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={displayedLocation.key} ref={routeRef}>
       <Routes location={displayedLocation}>
         <Route path="/" element={<LoginPage />} />
         <Route path="/paymentMethod" element={<PaymentMethodPage />} />
@@ -116,6 +148,7 @@ function AppRoutes() {
         <Route path="/mainFormScreen" element={<MainFormScreenPage />} />
         <Route path="/mainEventScreen" element={<MainEventScreenPage />} />
         <Route path="/mainWorkspaceSettingsScreen" element={<MainWorkspaceSettingsScreenPage />} />
+        <Route path="/mainAccountScreen" element={<MainAccountScreenPage />} />
         <Route path="/createForms" element={<CreateFormsPage />} />
         <Route path="/editForms" element={<EditFormsPage />} />
         <Route path="*" element={<NotFoundPage />} />
