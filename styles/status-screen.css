@@ -1,0 +1,37 @@
+.status-screen-page {
+  position: relative;
+  animation: page-enter 0.45s ease both;
+}
+
+.status-screen-illustration {
+  position: relative;
+  /* Mesma área da ilustração usada em AccessKeyVerified. */
+  aspect-ratio: 509 / 339;
+  height: auto;
+  overflow: hidden;
+}
+
+.status-screen-illustration img {
+  position: absolute;
+  display: block;
+  max-width: none;
+  height: auto;
+}
+
+.status-screen-page .help-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.status-screen-page .help-link:focus-visible {
+  outline: 2px solid var(--astro-focus-border);
+  outline-offset: 4px;
+  border-radius: var(--astro-control-radius);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-screen-page, .status-screen-page :is(.access-verified-content, .access-verified-illustration) { animation: none; }
+}

@@ -24,6 +24,8 @@ const MainEventScreenPage = lazy(loadEvents)
 const MainWorkspaceSettingsScreenPage = lazy(loadWorkspaceSettings)
 const MainAccountScreenPage = lazy(loadAccountSettings)
 const NotFoundPage = lazy(() => import('../pages/NotFound'))
+const ErroScreenLayoutPage = lazy(() => import('../pages/ErroScreenLayout'))
+const InactiveScreenLayoutPage = lazy(() => import('../pages/InactiveScreenLayout'))
 const loadPaymentMethod = () => import('../pages/PaymentMethod')
 const loadSetAddress = () => import('../pages/SetAddress')
 const PaymentMethodPage = lazy(loadPaymentMethod)
@@ -151,6 +153,8 @@ function AppRoutes() {
         <Route path="/mainAccountScreen" element={<MainAccountScreenPage />} />
         <Route path="/createForms" element={<CreateFormsPage />} />
         <Route path="/editForms" element={<EditFormsPage />} />
+        <Route path="/erroScreenLayout" element={<ErroScreenLayoutPage />} />
+        <Route path="/inactiveScreenLayout" element={<InactiveScreenLayoutPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>
