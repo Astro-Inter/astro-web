@@ -1,6 +1,5 @@
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { lazy, Suspense, useEffect, useRef, useState, useTransition } from 'react'
-import RouteLoading from '../components/RouteLoading'
 
 const AccessKeyVerifiedPage = lazy(() => import('../pages/AccessKeyVerified'))
 const AttachExcelFilePage = lazy(() => import('../pages/AttachExcelFile'))
@@ -13,6 +12,7 @@ const LoadingScreenPage = lazy(() => import('../pages/LoadingScreen'))
 const LoginPage = lazy(() => import('../pages/Login'))
 const MainPositionScreenPage = lazy(() => import('../pages/MainPositionScreen'))
 const MainFormScreenPage = lazy(() => import('../pages/MainFormScreen'))
+const MainEventScreenPage = lazy(() => import('../pages/MainEventScreen'))
 const NotFoundPage = lazy(() => import('../pages/NotFound'))
 const PaymentMethodPage = lazy(() => import('../pages/PaymentMethod'))
 const SetAddressPage = lazy(() => import('../pages/SetAddress'))
@@ -42,7 +42,7 @@ function AppRoutes() {
   }, [displayedLocation.key])
 
   return (
-    <Suspense fallback={<RouteLoading />}>
+    <Suspense fallback={null}>
     <div className={`astro-route-transition${exiting ? ' astro-route-transition--exiting' : ''}`} key={displayedLocation.key} ref={routeRef}>
       <Routes location={displayedLocation}>
         <Route path="/" element={<LoginPage />} />
@@ -57,6 +57,7 @@ function AppRoutes() {
         <Route path="/workspaceCreated" element={<WorkspaceCreatedPage />} />
         <Route path="/mainPositionScreen" element={<MainPositionScreenPage />} />
         <Route path="/mainFormScreen" element={<MainFormScreenPage />} />
+        <Route path="/mainEventScreen" element={<MainEventScreenPage />} />
         <Route path="/createForms" element={<CreateFormsPage />} />
         <Route path="/editForms" element={<EditFormsPage />} />
         <Route path="*" element={<NotFoundPage />} />

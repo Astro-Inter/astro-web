@@ -28,6 +28,8 @@ type AstroIconName =
   | 'settings'
   | 'search'
   | 'chevron-down'
+  | 'chevron-left'
+  | 'chevron-right'
   | 'close'
   | 'dots'
   | 'pencil'
@@ -35,6 +37,8 @@ type AstroIconName =
   | 'feedback'
   | 'file-plus'
   | 'warning'
+  | 'distribution'
+  | 'reload'
 
 // Os arquivos têm proporções e espaços internos diferentes. O CSS define a
 // altura visual de cada uso; width: auto conserva a proporção original.
@@ -69,6 +73,8 @@ const iconFiles: Record<AstroIconName, { file: string; width: number; height: nu
   settings: { file: 'settings.svg', width: 27, height: 29 },
   search: { file: 'search.svg', width: 25, height: 25 },
   'chevron-down': { file: 'chevron-down.svg', width: 22, height: 13 },
+  'chevron-left': { file: 'chevron-left.svg', width: 24, height: 24 },
+  'chevron-right': { file: 'chevron-right.svg', width: 24, height: 24 },
   close: { file: 'across.svg', width: 21, height: 21 },
   dots: { file: 'dots.svg', width: 21, height: 5 },
   pencil: { file: 'pencil.svg', width: 24, height: 24 },
@@ -76,6 +82,8 @@ const iconFiles: Record<AstroIconName, { file: string; width: number; height: nu
   feedback: { file: 'feedback.svg', width: 28, height: 28 },
   'file-plus': { file: 'paper5.svg', width: 24, height: 30 },
   warning: { file: 'error-information.svg', width: 45, height: 45 },
+  distribution: { file: 'distribution.svg', width: 24, height: 24 },
+  reload: { file: 'reload.svg', width: 24, height: 28 },
 }
 
 interface AstroIconProps {

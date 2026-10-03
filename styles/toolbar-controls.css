@@ -48,7 +48,7 @@
 .astro-toolbar-search input::-webkit-search-cancel-button { display: none; }
 .astro-toolbar-search-clear { display: grid; flex: none; width: calc(1.7rem * var(--astro-scale)); height: calc(1.7rem * var(--astro-scale)); padding: 0; place-items: center; border: 0; border-radius: var(--astro-control-radius); background: transparent; cursor: pointer; }
 .astro-toolbar-search-clear:hover { background: transparent; }
-.astro-toolbar-search-clear img { display: block; width: calc(0.95rem * var(--astro-scale)); height: calc(0.95rem * var(--astro-scale)); transition: filter 140ms ease; }
+.astro-toolbar-search-clear img { display: block; width: calc(0.95rem * var(--astro-scale)); height: calc(0.95rem * var(--astro-scale)); transition: filter 220ms ease; }
 .astro-toolbar-search-clear:hover img { filter: brightness(0.8); }
 .astro-toolbar-search-clear:focus-visible { outline: none; background: var(--astro-focus-surface); }
 
@@ -116,7 +116,7 @@
   background: #332754;
   box-shadow: 0 16px 44px rgb(0 0 0 / 22%);
   transition: max-height 160ms ease;
-  animation: astro-toolbar-popover-in 160ms ease-out both;
+  animation: astro-popup-in var(--astro-popover-duration) ease both;
 }
 
 .astro-toolbar-select-options {
@@ -157,7 +157,7 @@
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
-  transition: color 180ms ease;
+  transition: color 220ms ease;
 }
 
 .astro-toolbar-select-option:not(:last-child)::after { position: absolute; right: 0; bottom: 0; left: 0; border-bottom: 1px solid #70628a; content: ''; }
@@ -167,17 +167,11 @@
 .astro-toolbar-select-option--muted:hover,
 .astro-toolbar-select-option--muted:focus-visible { color: #9f9bad; }
 
-@keyframes astro-toolbar-popover-in {
-  from { opacity: 0; transform: translateY(-0.25rem); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
-.astro-toolbar-select-popover--closing { pointer-events: none; animation: astro-toolbar-popover-out 160ms ease-in both; }
 
-@keyframes astro-toolbar-popover-out {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-0.25rem); }
-}
+.astro-toolbar-select-popover--closing { pointer-events: none; animation: astro-popup-out var(--astro-popover-duration) ease both; }
+
+
 
 .astro-toolbar-search:focus-within,
 .astro-toolbar-select-control:focus-within .astro-toolbar-select-trigger {

@@ -37,7 +37,7 @@ function CreateFormsPage() {
   const highlightTimerRef = useRef<number | null>(null)
   const pendingQuestionScrollIdRef = useRef<string | null>(null)
   const removingQuestionIdsRef = useRef(new Set<string>())
-  const { closing: menuClosing, requestClose: requestMenuClose } = useAnimatedClose(160)
+  const { closing: menuClosing, requestClose: requestMenuClose } = useAnimatedClose()
 
   const { renderedQuestions, recentlyMovedQuestionId, draggingQuestionId, dropTarget, handleQuestionPointerDown, moveQuestionByKeyboard } = useQuestionReorder(values, setValues, setFeedback, setError)
 

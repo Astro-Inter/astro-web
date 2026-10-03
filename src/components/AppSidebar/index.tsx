@@ -19,7 +19,7 @@ const navigationItems: NavigationItem[] = [
   { label: 'Unidades', icon: 'building' },
   { label: 'Cargos', icon: 'position', path: '/mainPositionScreen' },
   { label: 'Formulários', icon: 'document', path: '/mainFormScreen' },
-  { label: 'Eventos', icon: 'event-calendar' },
+  { label: 'Eventos', icon: 'event-calendar', path: '/mainEventScreen' },
   { label: 'Configurações', icon: 'settings', alignBottom: true },
 ]
 

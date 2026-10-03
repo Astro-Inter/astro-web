@@ -54,8 +54,8 @@
   .position-actions-dots { --position-dot-size: round(nearest, max(4px, calc(0.24rem * var(--astro-scale))), 1px); --position-dot-gap: round(nearest, max(4px, calc(0.3rem * var(--astro-scale))), 1px); }
 }
 .position-actions-trigger:hover, .position-actions-trigger[aria-expanded="true"] { background: #68488f; }
-.position-dialog { --astro-modal-width: 47.75rem; position: relative; overflow: visible; padding-bottom: 2.625rem; }
-.position-dialog-row { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 0.9rem; margin-top: 2rem; }
+.position-dialog { --astro-modal-width: 47.75rem; position: relative; overflow: visible; }
+.position-dialog-row { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: var(--astro-modal-inline-gap); margin-top: var(--astro-modal-content-gap); }
 .position-dialog-field { display: flex; flex-direction: column; gap: var(--astro-field-gap); min-width: 0; }
 .position-dialog-field label,
 .position-dialog-label { color: #d3cfdd; font-size: var(--astro-label-font-size); font-weight: 400; line-height: 1.2; }

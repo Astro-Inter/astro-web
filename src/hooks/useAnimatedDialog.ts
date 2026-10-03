@@ -10,7 +10,7 @@ interface AnimatedDialogOptions {
 
 export function useAnimatedDialog({ initialFocusRef, onClose, onDismissRequest, open }: AnimatedDialogOptions) {
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const { closing, requestClose } = useAnimatedClose()
+  const { closing, requestClose } = useAnimatedClose('modal')
 
   const dismiss = useCallback(() => {
     onDismissRequest?.()

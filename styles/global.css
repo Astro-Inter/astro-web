@@ -18,18 +18,16 @@
    2. transform: scale(0.9) — só para blocos decorativos sem controle de
       formulário dentro (o texto de boas-vindas, os cabeçalhos com a marca).
 
-   CUIDADO com o transform: as animações de entrada rise-in e page-enter animam
-   transform e usam fill-mode both, então o estado final (scale(1)) sobrescreve
-   qualquer transform: scale(0.9) declarado no mesmo elemento. Foi o que
-   acontecia no .login-card e no .access-verified-content: o 0.9 estava escrito
-   mas nunca chegava a valer, e essas telas renderizavam 10% maiores que o resto
-   do produto. Se o elemento tem animação, use .astro-scale-90.
+   As animações de entrada rise-in e page-enter alteram apenas a opacidade.
+   Tamanhos e escalas pertencem ao layout, sem interpolação durante a entrada.
 
    Os dois caminhos chegam no mesmo tamanho visual. Não use os dois juntos no
    mesmo elemento: o efeito multiplica.
    ========================================================================= */
 
 :root {
+  --astro-popup-duration: 260ms;
+  --astro-popover-duration: 200ms;
   --astro-background: #1c1839;
   --astro-orb-base: #272149;
   --astro-orb-mid: #4f1479;
@@ -48,15 +46,16 @@
   --astro-scrollbar-thumb-active: #482f7b;
 
   /* Valores base, sempre a 100%. Só estes devem ser editados. */
-  --astro-control-height-base: clamp(2.9rem, 4vw, 3.55rem);
+  /* 45px nas páginas a 90%, com fonte raiz de 16px. */
+  --astro-control-height-base: calc(2.8125rem / 0.9);
   --astro-control-font-size-base: clamp(0.83rem, 1.02vw, 0.93rem);
   --astro-label-font-size-base: clamp(0.875rem, 1.1vw, 1rem);
   --astro-heading-font-size-base: clamp(1.75rem, 2.22vw, 2rem);
   --astro-subtitle-font-size-base: clamp(1rem, 1.25vw, 1.125rem);
   --astro-link-font-size-base: clamp(0.875rem, 1.08vw, 1rem);
-  --astro-action-height-base: clamp(2.8rem, 3.45vw, 3.1rem);
+  --astro-action-height-base: var(--astro-control-height-base);
   --astro-action-width-base: clamp(19.5rem, 25vw, 22.5rem);
-  --astro-compact-action-width-base: clamp(12rem, 18vw, 14.8rem);
+  --astro-compact-action-width-base: calc(14.15625rem / 0.9);
   --astro-action-font-size-base: clamp(0.85rem, 1.04vw, 0.95rem);
   --astro-control-radius-base: 0.45rem;
   --astro-control-padding-inline-base: 1rem;
@@ -142,12 +141,10 @@
 @keyframes page-enter {
   from {
     opacity: 0;
-    transform: scale(0.985);
   }
 
   to {
     opacity: 1;
-    transform: scale(1);
   }
 }
 
@@ -168,12 +165,10 @@
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: scale(0.98);
   }
 
   to {
     opacity: 1;
-    transform: scale(1);
   }
 }
 
@@ -215,9 +210,10 @@ html:has(dialog[open]) {
   overflow: hidden;
 }
 
-html:has(dialog.create-forms-exit-modal[open]),
-html:has(dialog.create-forms-add-modal[open]),
-html:has(dialog.edit-forms-save-modal[open]) {
+/* Mantém a largura útil ao trocar de rota ou bloquear a rolagem em dialogs. */
+html { scrollbar-gutter: stable; }
+
+html:has(dialog[data-page-scroll="preserve"][open]) {
   overflow-y: scroll;
 }
 
@@ -247,14 +243,7 @@ input,
 .attach-excel-dropzone,
 .charge-explanation-modal,
 .spreadsheet-explanation-modal {
-  transition: box-shadow 180ms ease, background 180ms ease, border-color 180ms ease, opacity 180ms ease;
-}
-
-button:hover,
-.payment-method-option:hover,
-.set-address-arrow:hover,
-.attach-excel-model-link:hover {
-  filter: brightness(1.04);
+  transition: box-shadow 220ms ease, background 220ms ease, border-color 220ms ease, color 220ms ease, opacity 220ms ease, filter 220ms ease;
 }
 
 .help-link:hover,
@@ -374,7 +363,7 @@ textarea::selection {
   font-weight: 600;
   text-align: center;
   text-decoration: none;
-  transition: background 160ms ease, transform 160ms ease;
+  transition: background-color 220ms ease, box-shadow 220ms ease, transform 160ms ease;
 }
 
 .astro-action:hover {
@@ -480,7 +469,7 @@ textarea::selection {
   font-size: calc(var(--astro-subtitle-font-size-base) * 0.9);
   font-weight: 600;
   text-decoration: none;
-  transition: color 180ms ease;
+  transition: color 220ms ease;
 }
 
 .help-icon {

@@ -17,10 +17,12 @@ interface ToolbarSelectProps {
   onValueChange: (value: string) => void
   options: readonly ToolbarSelectOption[]
   searchable?: boolean
+  maxVisibleRows?: number
+  preferredPlacement?: 'auto' | 'below'
   value: string
 }
 
-function ToolbarSelect({ id, label, options, className = '', disabled = false, onValueChange, searchable = true, value }: ToolbarSelectProps) {
+function ToolbarSelect({ id, label, options, className = '', disabled = false, onValueChange, searchable = true, maxVisibleRows = 4, preferredPlacement = 'auto', value }: ToolbarSelectProps) {
   const generatedId = useId()
   const selectId = id ?? generatedId
   const listId = `${selectId}-options`
@@ -32,7 +34,7 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, o
   const [pendingSelection, setPendingSelection] = useState<{ label: string; value: string } | null>(null)
   const [placement, setPlacement] = useState<'above' | 'below'>('below')
   const [menuMaxHeight, setMenuMaxHeight] = useState<number>()
-  const { closing, requestClose } = useAnimatedClose(160)
+  const { closing, requestClose } = useAnimatedClose()
   const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value))
   const selectedOption = options[selectedIndex]
   const selectedLabel = selectedOption?.triggerLabel ?? selectedOption?.label ?? label
@@ -62,18 +64,18 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, o
     if (bounds) {
       const rootFontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
       const menuScale = triggerRef.current?.closest('.astro-modal') ? 1 : Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--astro-popup-zoom')) || 1
-      const visibleRows = Math.min(Math.max(filteredOptions.length, 1), 4)
+      const visibleRows = Math.min(Math.max(filteredOptions.length, 1), maxVisibleRows)
       const estimatedHeight = (visibleRows * 3.4 + 3) * rootFontSize * menuScale
       const popoverGap = 0.45 * rootFontSize * menuScale
       const availableBelow = Math.max(0, window.innerHeight - bounds.bottom - popoverGap - 12)
       const availableAbove = Math.max(0, bounds.top - popoverGap - 12)
-      const openAbove = availableBelow < estimatedHeight && availableAbove > availableBelow
+      const openAbove = preferredPlacement === 'auto' && availableBelow < estimatedHeight && availableAbove > availableBelow
       const availableSpace = openAbove ? availableAbove : availableBelow
       setPlacement(openAbove ? 'above' : 'below')
       setMenuMaxHeight(Math.min(estimatedHeight, availableSpace))
     }
     if (document.activeElement !== triggerRef.current) triggerRef.current?.focus()
-  }, [closing, filteredOptions.length, open])
+  }, [closing, filteredOptions.length, maxVisibleRows, open, preferredPlacement])
 
   useEffect(() => {
     if (!open) return
@@ -97,7 +99,8 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, o
   function choose(valueToSelect: string) {
     const option = options.find((item) => item.value === valueToSelect)
     setPendingSelection(option ? { value: valueToSelect, label: option.triggerLabel ?? option.label } : null)
-    closeSelect(() => onValueChange(valueToSelect), true)
+    onValueChange(valueToSelect)
+    closeSelect(undefined, true)
   }
 
   function handleOptionsKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -188,7 +191,7 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, o
           aria-label={label}
           aria-autocomplete={searchable ? 'list' : 'none'}
           autoComplete="off"
-          className={`astro-toolbar-select-trigger astro-toolbar-select-input${displayedOption?.tone === 'muted' && !(open && !closing) ? ' astro-toolbar-select-input--muted' : ''}`}
+          className={`astro-toolbar-select-trigger astro-toolbar-select-input${displayedOption?.tone === 'muted' && (!open || !searchable || closing) ? ' astro-toolbar-select-input--muted' : ''}`}
           disabled={disabled}
           id={selectId}
           onChange={(event) => { setSearchTerm(event.target.value); if (!open) setOpen(true) }}
@@ -220,6 +223,7 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, o
                 className={`astro-toolbar-select-option${option.tone === 'muted' ? ' astro-toolbar-select-option--muted' : ''}`}
                 key={option.value}
                 onClick={() => choose(option.value)}
+                onMouseDown={event => event.preventDefault()}
                 ref={(element) => { optionRefs.current[index] = element }}
                 role="option"
                 tabIndex={-1}
