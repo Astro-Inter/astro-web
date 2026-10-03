@@ -116,7 +116,7 @@
   background: #332754;
   box-shadow: 0 16px 44px rgb(0 0 0 / 22%);
   transition: max-height 160ms ease;
-  animation: astro-toolbar-popover-in 160ms ease-out both;
+  animation: astro-popup-in var(--astro-popover-duration) ease both;
 }
 
 .astro-toolbar-select-options {
@@ -167,17 +167,11 @@
 .astro-toolbar-select-option--muted:hover,
 .astro-toolbar-select-option--muted:focus-visible { color: #9f9bad; }
 
-@keyframes astro-toolbar-popover-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
 
-.astro-toolbar-select-popover--closing { pointer-events: none; animation: astro-toolbar-popover-out 160ms ease-in both; }
 
-@keyframes astro-toolbar-popover-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
+.astro-toolbar-select-popover--closing { pointer-events: none; animation: astro-popup-out var(--astro-popover-duration) ease both; }
+
+
 
 .astro-toolbar-search:focus-within,
 .astro-toolbar-select-control:focus-within .astro-toolbar-select-trigger {

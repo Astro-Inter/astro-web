@@ -6,10 +6,10 @@
 .astro-chat-hint { position: absolute; top: 50%; right: calc(100% + 0.65rem); display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; width: max-content; max-width: calc(100vw - 7rem); min-height: 2.8rem; padding: 0.7rem 1.2rem; border-radius: 1.4rem; color: #f7f6ff; background: #5c4194; font-size: 0.9rem; font-weight: 400; line-height: 1.2; text-align: center; pointer-events: none; opacity: 0; visibility: hidden; transform: translate(0.35rem, -50%); transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease; }
 .astro-chat-hint strong { font-weight: 700; }
 .astro-chat-launcher:is(:hover, :focus-visible) .astro-chat-hint { opacity: 1; visibility: visible; transform: translate(0, -50%); }
-.astro-chat-window { display: flex; flex-direction: column; container-type: inline-size; width: min(20rem, calc(100vw - 2rem)); aspect-ratio: 10 / 13; max-height: calc(100dvh - 2rem); overflow: hidden; border-radius: 1.75rem; color: #332b4e; background: #fbfaff; box-shadow: 0 1rem 2.4rem rgb(10 7 28 / 35%); transform-origin: bottom right; animation: astro-chat-open 180ms ease-out both; transition: left 190ms ease, top 190ms ease, width 190ms ease, height 190ms ease, border-radius 190ms ease; }
+.astro-chat-window { display: flex; flex-direction: column; container-type: inline-size; width: min(20rem, calc(100vw - 2rem)); aspect-ratio: 10 / 13; max-height: calc(100dvh - 2rem); overflow: hidden; border-radius: 1.75rem; color: #332b4e; background: #fbfaff; box-shadow: 0 1rem 2.4rem rgb(10 7 28 / 35%); transform-origin: bottom right; animation: astro-popup-in var(--astro-popup-duration) ease both; transition: left 190ms ease, top 190ms ease, width 190ms ease, height 190ms ease, border-radius 190ms ease; }
 .astro-chat-window[style] { width: min(20rem, calc(100% - 2rem)); }
 .astro-chat-window--dragging { cursor: grabbing; user-select: none; transition: none; }
-.astro-chat-window--closing { pointer-events: none; animation: astro-chat-close 160ms ease-in both; }
+.astro-chat-window--closing { pointer-events: none; animation: astro-popup-out var(--astro-popup-duration) ease both; }
 .astro-chat-window img { -webkit-user-drag: none; }
 .astro-chat-window--expanded { width: min(25rem, calc(100vw - 2rem)); border-radius: 2.2rem; }
 .astro-chat-window--expanded[style] { width: min(25rem, calc(100% - 2rem)); }
@@ -47,15 +47,9 @@
 .astro-chat .astro-chat-launcher:focus-visible { outline: none; background: #6c5994; }
 .astro-chat-form input:focus-visible { outline: none; box-shadow: none; background: #5b4a82; }
 
-@keyframes astro-chat-open {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
-}
 
-@keyframes astro-chat-close {
-  from { opacity: 1; transform: scale(1); }
-  to { opacity: 0; transform: scale(0.96); }
-}
+
+
 
 @media (max-width: 780px) {
   .astro-chat { right: 1.25rem; bottom: 1.25rem; }

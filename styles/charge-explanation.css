@@ -3,7 +3,7 @@
   width: min(44.25rem, calc((100vw - 2rem) / var(--astro-popup-zoom)));
   max-height: calc((100svh - 2rem) / var(--astro-popup-zoom));
   margin: auto;
-  padding: 2.75rem 3.75rem 2.625rem;
+  padding: 2.75rem 3.75rem;
   overflow-y: auto;
   border: 0;
   border-radius: 0.625rem;
@@ -17,23 +17,15 @@
 }
 
 .charge-explanation-modal[open] {
-  animation: astro-form-modal-in 220ms ease both;
+  animation: astro-popup-in var(--astro-popup-duration) ease both;
 }
 
 .charge-explanation-modal::backdrop {
   background: rgb(0 0 0 / 25%);
-  animation: backdrop-fade 0.2s ease both;
+  animation: astro-popup-in var(--astro-popup-duration) ease both;
 }
 
-@keyframes backdrop-fade {
-  from {
-    opacity: 0;
-  }
 
-  to {
-    opacity: 1;
-  }
-}
 
 .charge-explanation-modal h2,
 .charge-explanation-modal h3,
@@ -66,7 +58,7 @@
 .charge-explanation-highlight {
   display: flex;
   gap: 1.5rem;
-  margin-top: 2.5625rem;
+  margin-top: var(--astro-modal-content-gap);
   padding: 1.75rem 1.875rem;
   border-radius: 1rem;
   background: #211c3d;
@@ -120,7 +112,7 @@
 }
 
 .charge-explanation-section-title {
-  margin-top: 2.125rem !important;
+  margin-top: var(--astro-modal-content-gap) !important;
   font-size: calc(var(--astro-subtitle-font-size) * 1.2);
   font-weight: 600;
 }
@@ -157,7 +149,7 @@
 
 /* Geometria vem de .astro-action; o zoom do modal escala o botão junto. */
 .charge-explanation-confirm {
-  margin: 2.25rem auto 0;
+  margin: var(--astro-modal-actions-gap) auto 0;
 }
 
 /* Compacta apenas os intervalos internos para preservar o respiro das bordas. */

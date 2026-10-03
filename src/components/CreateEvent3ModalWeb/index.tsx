@@ -7,6 +7,7 @@ import PurpleButton from '../PurpleButton'
 import ToolbarSearch from '../ToolbarSearch'
 
 interface CreateEvent3ModalWebProps {
+  distributionVersion: number
   assignments: Readonly<Record<string, string>>
   collaborators: readonly EventCollaborator[]
   groups: readonly EventGroup[]
@@ -19,13 +20,17 @@ interface CreateEvent3ModalWebProps {
   onReset: () => void
 }
 
-function CreateEvent3ModalWeb({ assignments, collaborators, groups, onAddGroup, onAssign, onBack, onContinue, onRandom, onRemoveGroup, onReset }: CreateEvent3ModalWebProps) {
+function CreateEvent3ModalWeb({ distributionVersion, assignments, collaborators, groups, onAddGroup, onAssign, onBack, onContinue, onRandom, onRemoveGroup, onReset }: CreateEvent3ModalWebProps) {
   const groupsRef = useRef<HTMLDivElement>(null)
   const boardRef = useRef<HTMLDivElement>(null)
   const dragPointerRef = useRef<{ x: number; y: number } | null>(null)
   const scrollFrameRef = useRef<number | null>(null)
   const returnAnimationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const dropGroupIdRef = useRef<string | null>(null)
+  const [animationBaseline, setAnimationBaseline] = useState(() => ({ version: distributionVersion, ids: new Set(groups.map(group => group.id)) }))
+  if (animationBaseline.version !== distributionVersion) {
+    setAnimationBaseline({ version: distributionVersion, ids: new Set(groups.map(group => group.id)) })
+  }
   const [search, setSearch] = useState('')
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [dropGroupId, setDropGroupId] = useState<string | null>(null)
@@ -191,7 +196,7 @@ function CreateEvent3ModalWeb({ assignments, collaborators, groups, onAddGroup, 
     >
       {[{ id: '', name: 'Não distribuídos' }, ...groups].map(group => <section
         aria-label={group.name}
-        className={`event-create-group-column${group.id === '' ? ' event-create-group-column--unassigned' : ''}${dropGroupId === group.id ? ' event-create-group-column--drop-target' : ''}${removingGroupId === group.id ? ' event-create-group-column--removing' : ''}`}
+        className={`event-create-group-column${group.id && !animationBaseline.ids.has(group.id) ? ' event-create-group-column--added' : ''}${group.id === '' ? ' event-create-group-column--unassigned' : ''}${dropGroupId === group.id ? ' event-create-group-column--drop-target' : ''}${removingGroupId === group.id ? ' event-create-group-column--removing' : ''}`}
         data-group-id={group.id}
         key={group.id || 'unassigned'}
         onDragOver={event => {

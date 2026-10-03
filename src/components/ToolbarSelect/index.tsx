@@ -18,10 +18,11 @@ interface ToolbarSelectProps {
   options: readonly ToolbarSelectOption[]
   searchable?: boolean
   maxVisibleRows?: number
+  preferredPlacement?: 'auto' | 'below'
   value: string
 }
 
-function ToolbarSelect({ id, label, options, className = '', disabled = false, onValueChange, searchable = true, maxVisibleRows = 4, value }: ToolbarSelectProps) {
+function ToolbarSelect({ id, label, options, className = '', disabled = false, onValueChange, searchable = true, maxVisibleRows = 4, preferredPlacement = 'auto', value }: ToolbarSelectProps) {
   const generatedId = useId()
   const selectId = id ?? generatedId
   const listId = `${selectId}-options`
@@ -33,7 +34,7 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, o
   const [pendingSelection, setPendingSelection] = useState<{ label: string; value: string } | null>(null)
   const [placement, setPlacement] = useState<'above' | 'below'>('below')
   const [menuMaxHeight, setMenuMaxHeight] = useState<number>()
-  const { closing, requestClose } = useAnimatedClose(160)
+  const { closing, requestClose } = useAnimatedClose()
   const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value))
   const selectedOption = options[selectedIndex]
   const selectedLabel = selectedOption?.triggerLabel ?? selectedOption?.label ?? label
@@ -68,13 +69,13 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, o
       const popoverGap = 0.45 * rootFontSize * menuScale
       const availableBelow = Math.max(0, window.innerHeight - bounds.bottom - popoverGap - 12)
       const availableAbove = Math.max(0, bounds.top - popoverGap - 12)
-      const openAbove = availableBelow < estimatedHeight && availableAbove > availableBelow
+      const openAbove = preferredPlacement === 'auto' && availableBelow < estimatedHeight && availableAbove > availableBelow
       const availableSpace = openAbove ? availableAbove : availableBelow
       setPlacement(openAbove ? 'above' : 'below')
       setMenuMaxHeight(Math.min(estimatedHeight, availableSpace))
     }
     if (document.activeElement !== triggerRef.current) triggerRef.current?.focus()
-  }, [closing, filteredOptions.length, maxVisibleRows, open])
+  }, [closing, filteredOptions.length, maxVisibleRows, open, preferredPlacement])
 
   useEffect(() => {
     if (!open) return
@@ -98,7 +99,8 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, o
   function choose(valueToSelect: string) {
     const option = options.find((item) => item.value === valueToSelect)
     setPendingSelection(option ? { value: valueToSelect, label: option.triggerLabel ?? option.label } : null)
-    closeSelect(() => onValueChange(valueToSelect), true)
+    onValueChange(valueToSelect)
+    closeSelect(undefined, true)
   }
 
   function handleOptionsKeyDown(event: KeyboardEvent<HTMLDivElement>) {

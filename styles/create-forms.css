@@ -8,7 +8,7 @@
 .create-forms-main { animation: rise-in 550ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .create-forms-page--leaving { pointer-events: none; }
 .create-forms-page--leaving .create-forms-main { animation: create-forms-page-out 180ms ease-in both; }
-@keyframes create-forms-page-out { from { opacity: 1; transform: scale(1); } to { opacity: 0.7; transform: scale(0.985); } }
+@keyframes create-forms-page-out { from { opacity: 1; } to { opacity: 0.7; } }
 .create-forms-card { --create-forms-card-padding: clamp(1.5rem, 4vw, 3rem); --create-forms-stack-gap: calc(clamp(0.75rem, 1.04vw, 0.95rem) * var(--astro-scale)); min-width: 0; padding: var(--create-forms-card-padding); border-radius: calc(0.75rem * var(--astro-scale)); background: #332754; }
 .create-forms-question-card { padding-top: calc(var(--create-forms-card-padding) - 0.45rem * var(--astro-scale)); }
 .create-forms-card + .create-forms-card, .create-forms-questions > div { margin-top: var(--create-forms-section-gap); }
@@ -30,14 +30,14 @@
 .create-forms-date-trigger .astro-icon { display: block; width: calc(1.25rem * var(--astro-scale)); height: calc(1.25rem * var(--astro-scale)); object-fit: contain; }
 .create-forms-answer-date-control { position: relative; }
 .create-forms-answer-date-control .astro-icon { position: absolute; top: 50%; right: calc(0.9rem * var(--astro-scale)); width: calc(1.25rem * var(--astro-scale)); height: calc(1.25rem * var(--astro-scale)); transform: translateY(-50%); object-fit: contain; opacity: 0.72; }
-.create-forms-calendar { --astro-popup-zoom: 0.9; position: absolute; z-index: 20; top: calc(100% + 0.45rem); left: 0; width: min(24rem, calc(100vw - 2rem)); padding: calc(1rem * var(--astro-popup-zoom)); border: 0; border-radius: calc(0.625rem * var(--astro-popup-zoom)); color: var(--astro-text); background: #332754; box-shadow: 0 16px 44px rgb(0 0 0 / 22%); animation: create-forms-calendar-fade-in 160ms ease-out both; }
+.create-forms-calendar { --astro-popup-zoom: 0.9; position: absolute; z-index: 20; top: calc(100% + 0.45rem); left: 0; width: min(24rem, calc(100vw - 2rem)); padding: calc(1rem * var(--astro-popup-zoom)); border: 0; border-radius: calc(0.625rem * var(--astro-popup-zoom)); color: var(--astro-text); background: #332754; box-shadow: 0 16px 44px rgb(0 0 0 / 22%); animation: astro-popup-in var(--astro-popover-duration) ease both; }
 .create-forms-date-picker[data-placement='above'] .create-forms-calendar { top: auto; bottom: calc(100% + 0.45rem); }
-.create-forms-calendar--closing { animation: create-forms-calendar-fade-out 160ms ease-in both; pointer-events: none; }
+.create-forms-calendar--closing { animation: astro-popup-out var(--astro-popover-duration) ease both; pointer-events: none; }
 .create-forms-calendar-header { display: grid; grid-template-columns: calc(2.3rem * var(--astro-popup-zoom)) 1fr calc(2.3rem * var(--astro-popup-zoom)); align-items: center; gap: calc(0.5rem * var(--astro-popup-zoom)); padding-bottom: calc(0.7rem * var(--astro-popup-zoom)); border-bottom: 1px solid #70628a; }
 .create-forms-calendar-header h3 { margin: 0; color: var(--astro-text); font-size: calc(var(--astro-label-font-size-base) * var(--astro-popup-zoom)); font-weight: 600; text-align: center; animation: create-forms-calendar-month-title-in 180ms ease-out both; }
 .create-forms-calendar-header button, .create-forms-calendar-footer button { display: grid; place-items: center; min-width: calc(2.3rem * var(--astro-popup-zoom)); min-height: calc(2.3rem * var(--astro-popup-zoom)); padding: 0 calc(0.45rem * var(--astro-popup-zoom)); border: 0; border-radius: calc(var(--astro-control-radius-base) * var(--astro-popup-zoom)); color: var(--astro-text); background: transparent; font-size: calc(1.5rem * var(--astro-popup-zoom)); line-height: 1; cursor: pointer; transition: background 220ms ease, transform 140ms ease; }
 .create-forms-calendar-header button:hover, .create-forms-calendar-footer button:hover { background: #362361; }
-.create-forms-calendar-header button:active, .create-forms-calendar-footer button:active { transform: scale(0.94); }
+.create-forms-calendar-header button:active, .create-forms-calendar-footer button:active {  }
 .create-forms-calendar-weekdays, .create-forms-calendar-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: calc(0.2rem * var(--astro-popup-zoom)); }
 .create-forms-calendar-weekdays { padding: calc(0.6rem * var(--astro-popup-zoom)) 0 calc(0.3rem * var(--astro-popup-zoom)); color: #c5bdd5; font-size: calc(0.85rem * var(--astro-popup-zoom)); font-weight: 600; text-align: center; }
 .create-forms-calendar-days--next { animation: create-forms-calendar-month-next 190ms ease-out both; }
@@ -45,7 +45,7 @@
 .create-forms-calendar-empty, .create-forms-calendar-day { min-height: calc(2.35rem * var(--astro-popup-zoom)); }
 .create-forms-calendar-day { display: grid; place-items: center; justify-self: center; width: min(100%, calc(2.35rem * var(--astro-popup-zoom))); aspect-ratio: 1; padding: 0; border: 0; border-radius: var(--astro-control-radius); color: var(--astro-text); background: transparent; font: inherit; font-size: calc(var(--astro-control-font-size-base) * 1.05 * var(--astro-popup-zoom)); cursor: pointer; transition: background 220ms ease, color 220ms ease, transform 140ms ease; }
 .create-forms-calendar-day:hover { background: #4f3887; }
-.create-forms-calendar-day:active { transform: scale(0.9); }
+.create-forms-calendar-day:active { }
 .create-forms-calendar-day--selected { color: #fff; background: #573D93; font-weight: 600; animation: create-forms-calendar-day-select 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .create-forms-calendar-day--selected:hover { background: #4f3887; }
 .create-forms-calendar-day--today:not(.create-forms-calendar-day--selected) { box-shadow: inset 0 0 0 1px #9c83d2; }
@@ -54,9 +54,9 @@
 @keyframes create-forms-calendar-month-next { from { opacity: 0; transform: translateX(0.65rem); } to { opacity: 1; transform: translateX(0); } }
 @keyframes create-forms-calendar-month-previous { from { opacity: 0; transform: translateX(-0.65rem); } to { opacity: 1; transform: translateX(0); } }
 @keyframes create-forms-calendar-month-title-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes create-forms-calendar-day-select { from { opacity: 0.55; transform: scale(0.78); } to { opacity: 1; transform: scale(1); } }
-@keyframes create-forms-calendar-fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes create-forms-calendar-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes create-forms-calendar-day-select { from { opacity: 0.55; } to { opacity: 1; } }
+
+
 .create-forms-select { width: 100%; height: var(--astro-control-height); }
 .create-forms-select .astro-toolbar-select-trigger { width: 100%; min-height: var(--astro-control-height); padding: 0 calc(var(--astro-control-padding-inline) + 1.9rem * var(--astro-scale)) 0 var(--astro-control-padding-inline); }
 .create-forms-select .astro-toolbar-select-toggle { top: 50%; right: calc(0.55rem * var(--astro-scale)); width: calc(2.25rem * var(--astro-scale)); height: calc(2.25rem * var(--astro-scale)); transform: translateY(-50%); }
@@ -68,7 +68,7 @@
 .create-forms-question-card { position: relative; border-top: calc(0.45rem * var(--astro-scale)) solid #573D93; }
 .create-forms-drag-handle { position: absolute; z-index: 5; top: calc(0.75rem * var(--astro-scale)); left: calc(-2rem * var(--astro-scale)); display: grid; place-items: center; width: calc(1.35rem * var(--astro-scale)); height: calc(1.6rem * var(--astro-scale)); padding: 0; transform: none; border: 0; border-radius: 0; color: #88868f; background: transparent; box-shadow: none; cursor: grab; touch-action: none; transition: color 220ms ease, transform 150ms ease; }
 .create-forms-drag-handle:hover { color: #e2dfec; background: transparent; }
-.create-forms-drag-handle:active { transform: scale(0.96); cursor: grabbing; }
+.create-forms-drag-handle:active { cursor: grabbing; }
 .create-forms-drag-handle:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 3px; }
 .create-forms-drag-handle svg { display: block; width: 100%; height: 100%; fill: currentColor; }
 .create-forms-drag-bar-handle { position: absolute; z-index: 4; top: calc(-0.45rem * var(--astro-scale)); left: 0; width: 100%; height: calc(1rem * var(--astro-scale)); padding: 0; border: 0; border-radius: calc(0.75rem * var(--astro-scale)) calc(0.75rem * var(--astro-scale)) 0 0; background: transparent; cursor: grab; touch-action: none; }
@@ -136,7 +136,7 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
 .create-forms-footer .astro-action { display: inline-flex; align-items: center; justify-content: center; gap: 0.75rem; width: var(--astro-compact-action-width); }
 .create-forms-footer .astro-action img { width: 1.25rem; height: 1.25rem; }
 .create-forms-add-modal { --astro-modal-width: calc(3 * var(--astro-compact-action-width) + 1.7rem + 7.5rem); }
-.create-forms-add-modal .astro-modal-title { margin: 0 0 1.6rem; font-size: var(--astro-heading-font-size); font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; }
+.create-forms-add-modal .astro-modal-title { margin: 0 0 var(--astro-modal-content-gap); font-size: var(--astro-heading-font-size); font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; }
 .create-forms-add-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-items: start; gap: 0.85rem; }
 .create-forms-add-grid > button { width: min(100%, var(--astro-compact-action-width)); min-height: var(--astro-action-height); }
 .create-forms-add-grid .create-forms-kind-button img { width: 1.45rem; height: 1.45rem; }
@@ -145,9 +145,9 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
 .create-forms-option { animation: create-forms-reveal 350ms ease both; }
 @keyframes create-forms-reveal { from { opacity: 0; } to { opacity: 1; } }
 @keyframes create-forms-drop-confirm {
-  0% { filter: brightness(1.2); transform: scale(0.995); }
-  42% { filter: brightness(1.12); transform: scale(1.006); }
-  100% { filter: brightness(1); transform: scale(1); }
+  0% { filter: brightness(1.2); }
+  42% { filter: brightness(1.12); }
+  100% { filter: brightness(1); }
 }
 
 @media (max-width: 900px) {

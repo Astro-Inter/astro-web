@@ -19,3 +19,23 @@ export interface EventGroup {
   id: string
   name: string
 }
+
+export interface EventGroupSchedule {
+  date: string
+  startTime: string
+  endTime: string
+}
+
+export interface EventSettings {
+  completion: string
+  evidenceRequired: string
+}
+
+export interface EventConfiguration {
+  draft: EventDraft
+  selectedIds: string[]
+  groups: EventGroup[]
+  assignments: Record<string, string>
+  schedules: Record<string, EventGroupSchedule>
+  settings: EventSettings
+}

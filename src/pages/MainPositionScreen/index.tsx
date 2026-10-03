@@ -62,7 +62,7 @@ function MainPositionScreenPage() {
   const [openActionsId, setOpenActionsId] = useState<string | null>(null)
   const [actionsMenuPosition, setActionsMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [feedback, setFeedback] = useState('')
-  const { closing: actionsClosing, requestClose: requestActionsClose } = useAnimatedClose(160)
+  const { closing: actionsClosing, requestClose: requestActionsClose } = useAnimatedClose()
 
   useEffect(() => () => {
     if (saveAnimationTimerRef.current !== null) window.clearTimeout(saveAnimationTimerRef.current)

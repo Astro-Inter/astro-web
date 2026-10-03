@@ -9,8 +9,8 @@
 .event-filter-trigger:focus-visible { border-color: var(--astro-input-focus-border); box-shadow: 0 0 0 1px rgb(47 46 50 / 22%); outline: none; }
 .event-filter-trigger .astro-icon { width: calc(1.1rem * var(--astro-scale)); height: auto; transition: transform 160ms ease; }
 .event-filter-trigger[aria-expanded='true'] .astro-icon { transform: rotate(180deg); }
-.event-filter-panel { position: absolute; z-index: 20; top: calc(100% + 0.45rem); right: 0; width: calc(17rem * var(--astro-popup-zoom)); padding: calc(1.5rem * var(--astro-popup-zoom)) calc(2rem * var(--astro-popup-zoom)); border-radius: calc(0.625rem * var(--astro-popup-zoom)); color: var(--astro-text); background: #332754; box-shadow: 0 16px 44px rgb(0 0 0 / 22%); animation: event-filter-in 160ms ease-out both; }
-.event-filter-panel--closing { pointer-events: none; animation: event-filter-out 160ms ease-in both; }
+.event-filter-panel { position: absolute; z-index: 20; top: calc(100% + 0.45rem); right: 0; width: calc(17rem * var(--astro-popup-zoom)); padding: calc(1.5rem * var(--astro-popup-zoom)) calc(2rem * var(--astro-popup-zoom)); border-radius: calc(0.625rem * var(--astro-popup-zoom)); color: var(--astro-text); background: #332754; box-shadow: 0 16px 44px rgb(0 0 0 / 22%); animation: astro-popup-in var(--astro-popover-duration) ease both; }
+.event-filter-panel--closing { pointer-events: none; animation: astro-popup-out var(--astro-popover-duration) ease both; }
 .event-filter-panel h2 { margin: 0 0 calc(1.85rem * var(--astro-popup-zoom)); color: var(--astro-text); font-size: calc(var(--astro-subtitle-font-size-base) * var(--astro-popup-zoom)); font-weight: 600; }
 .event-filter-list { display: grid; gap: calc(1.5rem * var(--astro-popup-zoom)); }
 .event-filter-row { display: flex; align-items: center; gap: calc(0.6rem * var(--astro-popup-zoom)); min-width: 0; }
@@ -20,8 +20,8 @@
 .event-filter-dot--reminder { background: #a8733e; }
 .event-filter-label { flex: 1; min-width: 0; color: #d4cfe0; font-size: calc(var(--astro-label-font-size-base) * var(--astro-popup-zoom)); font-weight: 500; line-height: 1.25; }
 .event-filter-row .astro-toggle-switch { width: calc(3.1rem * var(--astro-popup-zoom)); height: calc(1.5rem * var(--astro-popup-zoom)); }
-@keyframes event-filter-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes event-filter-out { from { opacity: 1; } to { opacity: 0; } }
+
+
 
 .event-calendar-transition { min-width: 0; }
 .event-calendar-transition--animated { animation: rise-in 450ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
@@ -38,12 +38,12 @@
 .event-calendar-heading { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; margin-bottom: calc(1.6rem * var(--astro-scale)); }
 .event-calendar-panel--week .event-calendar-heading { margin-bottom: calc(2rem * var(--astro-scale)); }
 .event-calendar-heading h2 { margin: 0; color: #eeeaf5; font-size: var(--astro-subtitle-font-size); font-weight: 600; text-align: center; }
-.event-month-arrow { display: grid; place-items: center; width: calc(2.1rem * var(--astro-scale)); height: calc(2.1rem * var(--astro-scale)); padding: 0; border: 0; border-radius: calc(0.3rem * var(--astro-scale)); background: #573d93; cursor: pointer; transition: background 220ms ease; }
+.event-month-arrow { position: relative; display: grid; place-items: center; align-self: center; width: calc(2.25rem * var(--astro-scale)); height: calc(2.25rem * var(--astro-scale)); padding: calc(.4rem * var(--astro-scale)); border: 0; border-radius: calc(0.3rem * var(--astro-scale)); background: #573d93; cursor: pointer; transition: background 220ms ease; }
 .event-month-arrow:hover { background: #50398b; filter: none; }
 .event-month-arrow:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
-.event-month-arrow .astro-icon { width: calc(1rem * var(--astro-scale)); height: calc(1rem * var(--astro-scale)); object-fit: contain; }
-.event-month-arrow:first-child .astro-icon { transform: translateX(-1px) rotate(90deg); }
-.event-month-arrow:last-child .astro-icon { transform: translateX(1px) rotate(-90deg); }
+.event-month-arrow .astro-icon { position: absolute; top: calc(50% + .01rem * var(--astro-scale)); left: calc(50% + var(--event-arrow-optical-offset, 0px)); display: block; width: calc(var(--astro-icon-md) * .9); height: calc(var(--astro-icon-md) * .9); margin: 0; object-fit: contain; transform: translate(-50%, -50%); }
+.event-month-arrow--previous { --event-arrow-optical-offset: calc(-.02rem * var(--astro-scale)); }
+.event-month-arrow--next { --event-arrow-optical-offset: calc(.02rem * var(--astro-scale)); }
 .event-calendar-scroll { flex: 1; min-height: 0; overflow: auto; }
 .event-calendar-table { width: 100%; min-width: 29rem; height: 100%; border-collapse: collapse; table-layout: fixed; }
 .event-calendar-table thead { height: calc(2.2rem * var(--astro-scale)); }
@@ -65,6 +65,13 @@
 .event-calendar-item--reminder { background: #8e673f; }
 .event-calendar-item:not(.event-calendar-item--static):hover, .event-calendar-item[aria-expanded='true'] { filter: brightness(0.91); }
 .event-calendar-item--static { cursor: default; }
+.event-calendar-item--saved { animation: event-calendar-item-saved 900ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.event-calendar-item--saved .event-calendar-item-label { animation: astro-data-table-content-saved 620ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+@keyframes event-calendar-item-saved {
+  0%, 100% { box-shadow: inset 0 0 0 0 rgb(187 103 230 / 0%); }
+  25% { box-shadow: inset 0 0 0 2px rgb(187 103 230 / 75%); }
+  55% { box-shadow: inset 0 0 0 2px rgb(187 103 230 / 40%); }
+}
 .event-calendar-item:focus-visible { position: relative; z-index: 1; outline: 2px solid #f8f7fc; outline-offset: -2px; }
 .event-week-table { --event-week-hour-height: calc(7.2rem * var(--astro-scale) + 1px); width: 100%; min-width: 32rem; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 .event-week-table thead th { position: sticky; top: 0; z-index: 1; height: calc(2.5rem * var(--astro-scale)); box-shadow: inset 0 -1px #514669; color: #bcb5d0; background: #211b40; font-size: var(--astro-label-font-size); font-weight: 500; text-align: center; }
@@ -116,5 +123,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .event-calendar-item--saved .event-calendar-item-label { animation: none; }
   .event-calendar-transition, .event-filter-panel, .event-filter-trigger, .event-filter-trigger .astro-icon, .event-month-arrow, .event-calendar-item { animation: none; transition: none; }
 }

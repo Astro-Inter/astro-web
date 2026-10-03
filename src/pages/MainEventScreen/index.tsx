@@ -8,6 +8,8 @@ import { eventCategoryLabels, mockEvents } from '../../data/events'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { useAnimatedResults } from '../../hooks/useAnimatedResults'
 import type { CalendarEvent, CalendarView, EventCategory } from '../../types/events'
+import type { EventConfiguration } from '../../types/eventCreation'
+import { calendarEntriesForEvent, configurationForEvent } from '../../utils/eventEditing'
 import { shiftCalendarPeriod, weekDays } from '../../utils/events'
 
 const categoryOptions: { category: EventCategory; label: string }[] = [
@@ -38,14 +40,22 @@ function MainEventScreenPage() {
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [pendingDeletion, setPendingDeletion] = useState<CalendarEvent | null>(null)
   const [feedback, setFeedback] = useState('')
-  const [creatingEvent, setCreatingEvent] = useState(false)
+  const [editor, setEditor] = useState<{ mode: 'create' } | { mode: 'edit'; event: CalendarEvent; value: EventConfiguration } | null>(null)
+  const [savedEventId, setSavedEventId] = useState<string | null>(null)
+  const [animateCalendar, setAnimateCalendar] = useState(true)
+  const pendingSavedIdRef = useRef<string | null>(null)
+  const saveAnimationTimerRef = useRef<number | null>(null)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const panelRef = useRef<HTMLDivElement | null>(null)
   const headingRef = useRef<HTMLHeadingElement | null>(null)
   const filterControlRef = useRef<HTMLDivElement | null>(null)
   const filterTriggerRef = useRef<HTMLButtonElement | null>(null)
-  const { closing, requestClose } = useAnimatedClose(160)
-  const { closing: filterClosing, requestClose: requestCloseFilters } = useAnimatedClose(160)
+  const { closing, requestClose } = useAnimatedClose()
+  const { closing: filterClosing, requestClose: requestCloseFilters } = useAnimatedClose()
+
+  useEffect(() => () => {
+    if (saveAnimationTimerRef.current !== null) window.clearTimeout(saveAnimationTimerRef.current)
+  }, [])
 
   const closeFilters = useCallback((restoreFocus = false) => {
     requestCloseFilters(() => {
@@ -120,8 +130,8 @@ function MainEventScreenPage() {
     && `${event.title} ${eventCategoryLabels[event.category]}`.toLocaleLowerCase('pt-BR').includes(search),
   ), [events, filters.categories, search])
   const calendarSnapshot = useMemo(() => [{ month, view, events: visibleEvents }], [month, view, visibleEvents])
-  const calendarSignature = `${view}|${month.getTime()}|${visibleEvents.map(event => event.id).join(',')}`
-  const calendarResults = useAnimatedResults(calendarSnapshot, calendarSignature, month.getTime(), view)
+  const calendarSignature = `${view}|${month.getTime()}|${JSON.stringify(visibleEvents.map(event => [event.id, event.title, event.date, event.category, event.category === 'today' ? '' : event.startTime, event.category === 'today' ? '' : event.endTime]))}`
+  const calendarResults = useAnimatedResults(calendarSnapshot, calendarSignature, month.getTime(), view, animateCalendar)
   const displayedCalendar = calendarResults.items[0]
   const selected = events.find(event => event.id === openId)
   const visiblePeriodCount = visibleEvents.filter(event => {
@@ -142,6 +152,41 @@ function MainEventScreenPage() {
     else open()
   }
 
+  function saveEvent(value: EventConfiguration) {
+    if (!editor) return
+    const existing = editor.mode === 'edit' ? editor.event : null
+    const eventId = existing?.eventId ?? existing?.id ?? crypto.randomUUID()
+    const category = existing && existing.category !== 'today' ? existing.category : value.draft.type.trim().toLocaleLowerCase('pt-BR') === 'lembrete' ? 'reminder' : 'commitment'
+    const entries = calendarEntriesForEvent(value, eventId, category)
+    setAnimateCalendar(false)
+    setEvents(current => [...current.filter(event => (event.eventId ?? event.id) !== eventId), ...entries])
+    pendingSavedIdRef.current = eventId
+    const firstDate = entries[0]?.date
+    if (firstDate) setMonth(new Date(`${firstDate}T12:00:00`))
+    setFeedback(`Evento ${value.draft.title.trim()} ${existing ? 'atualizado' : 'criado'} com sucesso.`)
+  }
+
+  function changeCalendar(update: () => void) {
+    setAnimateCalendar(true)
+    update()
+  }
+
+  function closeEditor() {
+    setEditor(null)
+    if (pendingSavedIdRef.current) {
+      if (saveAnimationTimerRef.current !== null) window.clearTimeout(saveAnimationTimerRef.current)
+      setSavedEventId(pendingSavedIdRef.current)
+      pendingSavedIdRef.current = null
+      saveAnimationTimerRef.current = window.setTimeout(() => {
+        saveAnimationTimerRef.current = null
+        setSavedEventId(null)
+      }, 900)
+    }
+    requestAnimationFrame(() => {
+      if (!triggerRef.current?.isConnected) headingRef.current?.focus({ preventScroll: true })
+    })
+  }
+
   return (
     <div className="main-position-screen main-event-screen">
       <AppSidebar />
@@ -152,8 +197,8 @@ function MainEventScreenPage() {
             <p>Organize eventos, acompanhe as atividades e gerencie a criação e programação de cada evento.</p>
           </header>
           <div aria-label="Ações e filtros dos eventos" className="position-toolbar" role="group">
-            <CompactPurpleButton className="event-create-button" onClick={() => { setOpenId(null); setFilterOpen(false); setCreatingEvent(true) }} type="button"><AstroIcon name="plus" />Criar evento</CompactPurpleButton>
-            <ToolbarSearch label="Buscar eventos" placeholder="Buscar eventos..." value={filters.search} onChange={event => setFilters(current => ({ ...current, search: event.target.value }))} onClear={() => setFilters(current => ({ ...current, search: '' }))} />
+            <CompactPurpleButton className="event-create-button" onClick={() => { setOpenId(null); setFilterOpen(false); setEditor({ mode: 'create' }) }} type="button"><AstroIcon name="plus" />Criar evento</CompactPurpleButton>
+            <ToolbarSearch label="Buscar eventos" placeholder="Buscar eventos..." value={filters.search} onChange={event => changeCalendar(() => setFilters(current => ({ ...current, search: event.target.value })))} onClear={() => changeCalendar(() => setFilters(current => ({ ...current, search: '' })))} />
             <div className="position-toolbar-selects">
               <div className="event-filter-control" onBlur={event => { if (filterOpen && !event.currentTarget.contains(event.relatedTarget)) closeFilters() }} onKeyDown={handleFilterKeyDown} ref={filterControlRef}>
                 <button aria-controls="event-filter-popover" aria-expanded={filterOpen && !filterClosing} aria-label="Filtros do calendário" className="event-filter-trigger" onClick={() => { if (filterOpen) closeFilters(); else { if (openId) closeMenu(undefined, false); setFilterOpen(true) } }} ref={filterTriggerRef} type="button">
@@ -166,32 +211,33 @@ function MainEventScreenPage() {
                       <div className="event-filter-row" key={category}>
                         <span aria-hidden="true" className={`event-filter-dot event-filter-dot--${category}`} />
                         <span className="event-filter-label">{label}</span>
-                        <ToggleSwitch checked={filters.categories[category]} label={`Mostrar ${label.toLocaleLowerCase('pt-BR')}`} onChange={checked => setFilters(current => ({ ...current, categories: { ...current.categories, [category]: checked } }))} />
+                        <ToggleSwitch checked={filters.categories[category]} label={`Mostrar ${label.toLocaleLowerCase('pt-BR')}`} onChange={checked => changeCalendar(() => setFilters(current => ({ ...current, categories: { ...current.categories, [category]: checked } })))} />
                       </div>
                     ))}
                   </div>
                 </aside>}
               </div>
-              <ToolbarSelect label="Visualização do calendário" options={viewOptions} searchable={false} value={view} onValueChange={value => { setOpenId(null); setView(value as CalendarView) }} />
+              <ToolbarSelect label="Visualização do calendário" options={viewOptions} searchable={false} value={view} onValueChange={value => changeCalendar(() => { setOpenId(null); setView(value as CalendarView) })} />
             </div>
           </div>
           <div className="event-board">
             <div aria-busy={calendarResults.exiting} className={`event-calendar-transition${calendarResults.changed ? ' event-calendar-transition--animated' : ''}${calendarResults.direction ? ` event-calendar-transition--${calendarResults.direction}` : ''}${calendarResults.exiting ? ' event-calendar-transition--exiting' : ''}`} key={calendarResults.signature}>
-              <EventCalendar events={displayedCalendar.events} month={displayedCalendar.month} view={displayedCalendar.view} onMonthChange={amount => { setOpenId(null); setMonth(current => shiftCalendarPeriod(current, view, amount)) }} onOpenOptions={openOptions} selectedEventId={openId} />
+              <EventCalendar events={displayedCalendar.events} month={displayedCalendar.month} view={displayedCalendar.view} onMonthChange={amount => changeCalendar(() => { setOpenId(null); setMonth(current => shiftCalendarPeriod(current, view, amount)) })} onOpenOptions={openOptions} selectedEventId={openId} savedEventId={savedEventId} />
             </div>
           </div>
           <p className="sr-only" role="status">{visiblePeriodCount} eventos visíveis neste período. {feedback}</p>
         </section>
         <AstroChat />
       </main>
-      {selected && createPortal(<EventOptionsModal closing={closing} event={selected} onClose={() => closeMenu()} onDelete={() => closeMenu(() => setPendingDeletion(selected))} panelRef={panelRef} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} />, document.body)}
+      {selected && createPortal(<EventOptionsModal closing={closing} event={selected} onClose={() => closeMenu()} onEdit={() => closeMenu(() => setEditor({ mode: 'edit', event: selected, value: configurationForEvent(selected) }))} onDelete={() => closeMenu(() => setPendingDeletion(selected))} panelRef={panelRef} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} />, document.body)}
       {pendingDeletion && <ConfirmationModal backdrop="dimmed" preservePageScroll className="event-deletion-modal" confirmLabel="Excluir" tone="danger" title="Tem certeza de que deseja excluir este evento?" icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={() => setPendingDeletion(null)} onConfirm={() => null} onConfirmed={() => {
-        setEvents(current => current.filter(event => event.id !== pendingDeletion.id))
+        setAnimateCalendar(true)
+        setEvents(current => current.filter(event => (event.eventId ?? event.id) !== (pendingDeletion.eventId ?? pendingDeletion.id)))
         setFeedback(`Evento ${pendingDeletion.title} excluído.`)
         setPendingDeletion(null)
         requestAnimationFrame(() => headingRef.current?.focus())
       }} />}
-      {creatingEvent && <CreateEventFlowModal onClose={() => setCreatingEvent(false)} />}
+      {editor && <CreateEventFlowModal initialValue={editor.mode === 'edit' ? editor.value : undefined} mode={editor.mode} onClose={closeEditor} onSubmit={saveEvent} />}
     </div>
   )
 }

@@ -14,13 +14,15 @@ Conferência em 02/10/2026 no navegador, com viewport de 1366 × 900 e fonte rai
 | Padding horizontal dos campos | 12,96 px |
 | Raio dos campos e botões | 5,83 px |
 | Borda dos campos | 0,80 px; transparente em repouso |
-| Padding do modal: superior / lados / inferior | 35,64 / 48,60 / 34,02 px |
+| Padding do modal: superior / lados / inferior | 35,64 / 48,60 / 35,64 px |
 | Raio do modal | 8,10 px |
 | Fundo do modal | `#332754` |
 | Fundo dos campos | `#444252` |
 | Subtítulo de NRs e eventos, uma linha | 17,99 px de altura; peso 400 |
 | Distância título → subtítulo em NRs e eventos | 4,54 px |
 | Distância subtítulo → conteúdo em NRs e eventos | 17,50 px |
+| Distância título → primeiro campo, sem descrição | 17,49 px |
+| Distância conteúdo → ações | 18,79 px |
 
 A altura da caixa do título não é o `font-size`. O título tem fonte computada de 28,1173 px, line-height de 33,7407 px e zoom de 0,81, resultando em aproximadamente 27,33 px de caixa. Variações de 0,01 px vêm do arredondamento do navegador.
 

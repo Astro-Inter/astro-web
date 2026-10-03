@@ -1,3 +1,4 @@
+import { getPopupDuration } from '../../utils/popupMotion'
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import AppModal from '../AppModal'
@@ -78,7 +79,7 @@ function EditNrsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onD
       tooltipCloseTimerRef.current = window.setTimeout(() => {
         tooltipCloseTimerRef.current = null
         setRecommendationTooltip(null)
-      }, 160)
+      }, getPopupDuration('popover'))
     }, 140)
   }
 

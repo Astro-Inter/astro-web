@@ -11,6 +11,7 @@ interface EventCalendarProps {
   onMonthChange: (amount: number) => void
   onOpenOptions: (event: CalendarEvent, trigger: HTMLButtonElement) => void
   selectedEventId: string | null
+  savedEventId?: string | null
 }
 
 const weekdays = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB']
@@ -28,7 +29,7 @@ function eventOccursInHour(event: CalendarEvent, hour: number) {
   return hour >= firstHour && hour <= lastHour
 }
 
-function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, selectedEventId }: EventCalendarProps) {
+function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, selectedEventId, savedEventId }: EventCalendarProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const days = view === 'week' ? weekDays(month) : calendarDays(month)
   const period = view === 'week' ? 'Semana' : view === 'year' ? 'Ano' : 'Mês'
@@ -58,7 +59,7 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
 
   function eventItem(event: CalendarEvent, miniature = false, weekly = false) {
     const timedEvent = event.category === 'today' ? null : event
-    const itemClass = `event-calendar-item event-calendar-item--${event.category}${miniature ? ' event-calendar-item--miniature' : ''}${weekly ? ' event-calendar-item--weekly' : ''}`
+    const itemClass = `event-calendar-item event-calendar-item--${event.category}${miniature ? ' event-calendar-item--miniature' : ''}${weekly ? ' event-calendar-item--weekly' : ''}${savedEventId === (event.eventId ?? event.id) ? ' event-calendar-item--saved' : ''}`
     const itemLabel = `${eventCategoryLabels[event.category]}: ${event.title}, ${eventDateLabel(event.date)}${timedEvent ? `, das ${timedEvent.startTime} às ${timedEvent.endTime}` : ''}`
     const itemContent = miniature ? null : <span className="event-calendar-item-label">{weekly && event.category !== 'today' ? event.title : eventCategoryLabels[event.category]}</span>
 
@@ -86,9 +87,9 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
   return (
     <section aria-label={`Calendário de ${label}`} className={`event-calendar-panel event-calendar-panel--${view}`}>
       <div className="event-calendar-heading">
-        <button aria-label={`${period} anterior`} className="event-month-arrow" onClick={() => onMonthChange(-1)} type="button"><AstroIcon name="chevron-down" /></button>
+        <button aria-label={`${period} anterior`} className="event-month-arrow event-month-arrow--previous" onClick={() => onMonthChange(-1)} type="button"><AstroIcon name="chevron-left" /></button>
         <h2 aria-live="polite">{label}</h2>
-        <button aria-label={view === 'week' ? 'Próxima semana' : `Próximo ${period.toLocaleLowerCase('pt-BR')}`} className="event-month-arrow" onClick={() => onMonthChange(1)} type="button"><AstroIcon name="chevron-down" /></button>
+        <button aria-label={view === 'week' ? 'Próxima semana' : `Próximo ${period.toLocaleLowerCase('pt-BR')}`} className="event-month-arrow event-month-arrow--next" onClick={() => onMonthChange(1)} type="button"><AstroIcon name="chevron-right" /></button>
       </div>
       <div className="event-calendar-scroll" ref={scrollRef}>
         {view === 'week' ? <table className="event-week-table">

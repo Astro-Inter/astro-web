@@ -26,7 +26,7 @@ function MainFormScreenPage() {
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const panelRef = useRef<HTMLDivElement | null>(null)
   const headingRef = useRef<HTMLHeadingElement | null>(null)
-  const { closing, requestClose } = useAnimatedClose(160)
+  const { closing, requestClose } = useAnimatedClose()
 
   useLayoutEffect(() => {
     const content = contentRef.current

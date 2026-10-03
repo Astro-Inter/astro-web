@@ -28,6 +28,8 @@ type AstroIconName =
   | 'settings'
   | 'search'
   | 'chevron-down'
+  | 'chevron-left'
+  | 'chevron-right'
   | 'close'
   | 'dots'
   | 'pencil'
@@ -71,6 +73,8 @@ const iconFiles: Record<AstroIconName, { file: string; width: number; height: nu
   settings: { file: 'settings.svg', width: 27, height: 29 },
   search: { file: 'search.svg', width: 25, height: 25 },
   'chevron-down': { file: 'chevron-down.svg', width: 22, height: 13 },
+  'chevron-left': { file: 'chevron-left.svg', width: 24, height: 24 },
+  'chevron-right': { file: 'chevron-right.svg', width: 24, height: 24 },
   close: { file: 'across.svg', width: 21, height: 21 },
   dots: { file: 'dots.svg', width: 21, height: 5 },
   pencil: { file: 'pencil.svg', width: 24, height: 24 },

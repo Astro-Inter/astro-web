@@ -32,7 +32,7 @@ function CreateEvent1ModalWeb({ draft, onCancel, onChange, onContinue }: CreateE
       </label>
       <div className="event-create-field">
         <label htmlFor="event-create-nr">NR</label>
-        <ToolbarSelect className="event-create-select" id="event-create-nr" label="NR do evento" maxVisibleRows={2.75} onValueChange={nr => onChange({ nr })} options={nrOptions} value={draft.nr} />
+        <ToolbarSelect className="event-create-select" id="event-create-nr" label="NR do evento" maxVisibleRows={2.5} onValueChange={nr => onChange({ nr })} options={nrOptions} value={draft.nr} />
       </div>
       <label className="event-create-field" htmlFor="event-create-link">
         <span>Link externo (opcional)</span>

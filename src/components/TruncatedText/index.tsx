@@ -1,3 +1,4 @@
+import { getPopupDuration } from '../../utils/popupMotion'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -93,7 +94,7 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
     if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
     hideTooltipTimeoutRef.current = setTimeout(() => {
       setTooltipVisible(false)
-      hideTooltipTimeoutRef.current = setTimeout(() => setTooltipMounted(false), 140)
+      hideTooltipTimeoutRef.current = setTimeout(() => setTooltipMounted(false), getPopupDuration('popover'))
     }, 140)
   }, [tooltipMounted])
 

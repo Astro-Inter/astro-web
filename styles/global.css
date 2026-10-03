@@ -18,18 +18,16 @@
    2. transform: scale(0.9) — só para blocos decorativos sem controle de
       formulário dentro (o texto de boas-vindas, os cabeçalhos com a marca).
 
-   CUIDADO com o transform: as animações de entrada rise-in e page-enter animam
-   transform e usam fill-mode both, então o estado final (scale(1)) sobrescreve
-   qualquer transform: scale(0.9) declarado no mesmo elemento. Foi o que
-   acontecia no .login-card e no .access-verified-content: o 0.9 estava escrito
-   mas nunca chegava a valer, e essas telas renderizavam 10% maiores que o resto
-   do produto. Se o elemento tem animação, use .astro-scale-90.
+   As animações de entrada rise-in e page-enter alteram apenas a opacidade.
+   Tamanhos e escalas pertencem ao layout, sem interpolação durante a entrada.
 
    Os dois caminhos chegam no mesmo tamanho visual. Não use os dois juntos no
    mesmo elemento: o efeito multiplica.
    ========================================================================= */
 
 :root {
+  --astro-popup-duration: 260ms;
+  --astro-popover-duration: 200ms;
   --astro-background: #1c1839;
   --astro-orb-base: #272149;
   --astro-orb-mid: #4f1479;
@@ -143,12 +141,10 @@
 @keyframes page-enter {
   from {
     opacity: 0;
-    transform: scale(0.985);
   }
 
   to {
     opacity: 1;
-    transform: scale(1);
   }
 }
 
@@ -169,12 +165,10 @@
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: scale(0.98);
   }
 
   to {
     opacity: 1;
-    transform: scale(1);
   }
 }
 
@@ -215,6 +209,9 @@ body,
 html:has(dialog[open]) {
   overflow: hidden;
 }
+
+/* Mantém a largura útil ao trocar de rota ou bloquear a rolagem em dialogs. */
+html { scrollbar-gutter: stable; }
 
 html:has(dialog[data-page-scroll="preserve"][open]) {
   overflow-y: scroll;

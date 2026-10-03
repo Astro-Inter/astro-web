@@ -1,3 +1,4 @@
+import { getPopupDuration } from '../../utils/popupMotion'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react'
 
@@ -139,7 +140,7 @@ function AstroChat() {
       finishClose()
     } else {
       setClosing(true)
-      closeTimerRef.current = window.setTimeout(finishClose, 160)
+      closeTimerRef.current = window.setTimeout(finishClose, getPopupDuration('modal'))
     }
   }, [closing, finishClose])
 

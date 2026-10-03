@@ -77,7 +77,7 @@ function CreateFormsDatePicker({ id, label, onChange, onValidityChange, value, v
   const [placement, setPlacement] = useState<'above' | 'below'>('below')
   const [monthTransitionDirection, setMonthTransitionDirection] = useState<'next' | 'previous'>('next')
   const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(selectedDate ?? new Date()))
-  const { closing, requestClose } = useAnimatedClose(160)
+  const { closing, requestClose } = useAnimatedClose()
   const inputValue = inputDraft ?? formatInputDate(value)
   const invalidInput = inputValue !== '' && parseDisplayDate(inputValue) === null
   const [touched, setTouched] = useState(false)
