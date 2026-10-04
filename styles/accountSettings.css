@@ -30,8 +30,8 @@
 .account-details-grid .password-input input { width: 100%; }
 .account-photo-input { display: none; }
 .account-field-select { width: 100%; height: var(--astro-control-height); }
-.account-field-select .astro-toolbar-select-trigger { height: 100%; min-height: var(--astro-control-height); border: 1px solid transparent; border-radius: var(--astro-control-radius); padding: 0 calc(3rem * var(--astro-scale)) 0 var(--astro-control-padding-inline); font-size: var(--astro-control-font-size); background: var(--astro-field); }
-.account-field-select .astro-toolbar-select-toggle { top: 50%; right: calc(.55rem * var(--astro-scale)); width: calc(2.25rem * var(--astro-scale)); height: calc(2.25rem * var(--astro-scale)); transform: translateY(-50%); }
+.account-field-select .astro-toolbar-select-trigger { height: 100%; min-height: var(--astro-control-height); border: 1px solid transparent; border-radius: var(--astro-control-radius); padding: 0 var(--astro-control-chevron-padding-end) 0 var(--astro-control-padding-inline); font-size: var(--astro-control-font-size); background: var(--astro-field); }
+.account-field-select .astro-toolbar-select-toggle { top: 50%; right: var(--astro-control-chevron-button-inset); width: var(--astro-control-icon-hit-size); height: var(--astro-control-icon-hit-size); transform: translateY(-50%); }
 .account-field-select .astro-toolbar-select-trigger:focus { border-color: var(--astro-input-focus-border); }
 .account-field-select .astro-toolbar-select-toggle:hover { background: var(--astro-focus-surface); }
 

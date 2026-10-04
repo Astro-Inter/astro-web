@@ -26,8 +26,8 @@
 }
 
 .astro-toolbar-search .astro-icon {
-  width: calc(1.3rem * var(--astro-scale));
-  height: calc(1.3rem * var(--astro-scale));
+  width: var(--astro-icon-md);
+  height: var(--astro-icon-md);
 }
 
 .astro-toolbar-search input {
@@ -46,9 +46,9 @@
 
 .astro-toolbar-search input::placeholder { color: var(--astro-placeholder); opacity: 1; }
 .astro-toolbar-search input::-webkit-search-cancel-button { display: none; }
-.astro-toolbar-search-clear { display: grid; flex: none; width: calc(1.7rem * var(--astro-scale)); height: calc(1.7rem * var(--astro-scale)); padding: 0; place-items: center; border: 0; border-radius: var(--astro-control-radius); background: transparent; cursor: pointer; }
+.astro-toolbar-search-clear { display: grid; flex: none; width: var(--astro-control-icon-hit-size); height: var(--astro-control-icon-hit-size); margin-inline-end: calc((var(--astro-icon-sm) - var(--astro-control-icon-hit-size)) / 2); padding: 0; place-items: center; border: 0; border-radius: var(--astro-control-radius); background: transparent; cursor: pointer; }
 .astro-toolbar-search-clear:hover { background: transparent; }
-.astro-toolbar-search-clear img { display: block; width: calc(0.95rem * var(--astro-scale)); height: calc(0.95rem * var(--astro-scale)); transition: filter 220ms ease; }
+.astro-toolbar-search-clear img { display: block; width: var(--astro-icon-sm); height: var(--astro-icon-sm); transition: filter 220ms ease; }
 .astro-toolbar-search-clear:hover img { filter: brightness(0.8); }
 .astro-toolbar-search-clear:focus-visible { outline: none; background: var(--astro-focus-surface); }
 
@@ -62,7 +62,7 @@
 .astro-toolbar-select-trigger {
   display: block;
   width: 100%;
-  padding: 0 calc(var(--astro-control-padding-inline) + 1.9rem * var(--astro-scale)) 0 var(--astro-control-padding-inline);
+  padding: 0 var(--astro-control-chevron-padding-end) 0 var(--astro-control-padding-inline);
   text-align: left;
   cursor: text;
 }
@@ -75,9 +75,9 @@
 .astro-toolbar-select-toggle {
   position: absolute;
   top: 0;
-  right: calc(0.3rem * var(--astro-scale));
+  right: var(--astro-control-chevron-button-inset);
   display: grid;
-  width: calc(2.25rem * var(--astro-scale));
+  width: var(--astro-control-icon-hit-size);
   height: 100%;
   padding: 0;
   place-items: center;
@@ -90,8 +90,8 @@
 
 .astro-toolbar-select-toggle:hover { background: var(--astro-focus-surface); }
 .astro-toolbar-select-toggle .astro-icon {
-  width: calc(1.1rem * var(--astro-scale));
-  height: auto;
+  width: var(--astro-icon-sm);
+  height: var(--astro-icon-sm);
   transition: transform 160ms ease;
 }
 

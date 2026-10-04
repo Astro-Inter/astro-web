@@ -7,7 +7,7 @@
 .event-filter-trigger { display: flex; align-items: center; justify-content: space-between; gap: calc(0.6rem * var(--astro-scale)); width: calc(9rem * var(--astro-scale)); height: var(--astro-action-height); padding: 0 var(--astro-control-padding-inline); border: 1px solid transparent; border-radius: var(--astro-control-radius); color: var(--astro-text); background: var(--astro-field); font: inherit; font-size: var(--astro-control-font-size); cursor: pointer; transition: background 220ms ease; }
 .event-filter-trigger:hover, .event-filter-trigger[aria-expanded='true'] { background: #3e3a4d; filter: none; }
 .event-filter-trigger:focus-visible { border-color: var(--astro-input-focus-border); box-shadow: 0 0 0 1px rgb(47 46 50 / 22%); outline: none; }
-.event-filter-trigger .astro-icon { width: calc(1.1rem * var(--astro-scale)); height: auto; transition: transform 160ms ease; }
+.event-filter-trigger .astro-icon { width: var(--astro-icon-sm); height: var(--astro-icon-sm); transition: transform 160ms ease; }
 .event-filter-trigger[aria-expanded='true'] .astro-icon { transform: rotate(180deg); }
 .event-filter-panel { position: absolute; z-index: 20; top: calc(100% + 0.45rem); right: 0; width: calc(17rem * var(--astro-popup-zoom)); padding: calc(1.5rem * var(--astro-popup-zoom)) calc(2rem * var(--astro-popup-zoom)); border-radius: calc(0.625rem * var(--astro-popup-zoom)); color: var(--astro-text); background: #332754; box-shadow: 0 16px 44px rgb(0 0 0 / 22%); animation: astro-popup-in var(--astro-popover-duration) ease both; }
 .event-filter-panel--closing { pointer-events: none; animation: astro-popup-out var(--astro-popover-duration) ease both; }
@@ -41,9 +41,7 @@
 .event-month-arrow { position: relative; display: grid; place-items: center; align-self: center; width: calc(2.25rem * var(--astro-scale)); height: calc(2.25rem * var(--astro-scale)); padding: calc(.4rem * var(--astro-scale)); border: 0; border-radius: calc(0.3rem * var(--astro-scale)); background: #573d93; cursor: pointer; transition: background 220ms ease; }
 .event-month-arrow:hover { background: #50398b; filter: none; }
 .event-month-arrow:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
-.event-month-arrow .astro-icon { position: absolute; top: calc(50% + .01rem * var(--astro-scale)); left: calc(50% + var(--event-arrow-optical-offset, 0px)); display: block; width: calc(var(--astro-icon-md) * .9); height: calc(var(--astro-icon-md) * .9); margin: 0; object-fit: contain; transform: translate(-50%, -50%); }
-.event-month-arrow--previous { --event-arrow-optical-offset: calc(-.02rem * var(--astro-scale)); }
-.event-month-arrow--next { --event-arrow-optical-offset: calc(.02rem * var(--astro-scale)); }
+.event-month-arrow .astro-icon { display: block; width: var(--astro-icon-sm); height: var(--astro-icon-sm); margin: 0; object-fit: contain; }
 .event-calendar-scroll { flex: 1; min-height: 0; overflow: auto; }
 .event-calendar-table { width: 100%; min-width: 29rem; height: 100%; border-collapse: collapse; table-layout: fixed; }
 .event-calendar-table thead { height: calc(2.2rem * var(--astro-scale)); }

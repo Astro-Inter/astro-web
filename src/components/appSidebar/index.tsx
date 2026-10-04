@@ -14,8 +14,8 @@ export interface NavigationItem {
 const navigationItems: NavigationItem[] = [
   { label: 'Home', icon: 'home' },
   { label: 'Gestores', icon: 'managers' },
-  { label: 'Colaboradores', icon: 'collaborators', strokeScale: 0.9 },
-  { label: 'Conformidade', icon: 'compliance', strokeScale: 0.9 },
+  { label: 'Colaboradores', icon: 'collaborators' },
+  { label: 'Conformidade', icon: 'compliance' },
   { label: 'Unidades', icon: 'building' },
   { label: 'Cargos', icon: 'position', path: '/mainPositionScreen' },
   { label: 'Formulários', icon: 'document', path: '/mainFormScreen' },

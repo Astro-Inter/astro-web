@@ -245,7 +245,7 @@ function EditFormPage() {
 
           <div className="create-forms-footer edit-forms-footer">
             <button className="create-forms-add-question" onClick={() => setShowAddQuestion(true)} type="button">
-              <AstroIcon className="create-forms-add-question-icon" name="file-plus" />
+              <AstroIcon className="create-forms-add-question-icon" name="plus-square" />
               Adicionar pergunta
             </button>
             <PurpleButton type="submit"><AstroIcon name="file-plus" />Salvar alterações</PurpleButton>

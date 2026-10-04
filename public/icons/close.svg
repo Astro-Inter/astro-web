@@ -1,3 +1,5 @@
-<svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1.2998 1.30078L19.4998 19.5008M19.4998 1.30078L1.2998 19.5008" stroke="#F7F6FF" stroke-width="2.6" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <g transform="translate(0.571651 0.570574) scale(1.098900)">
+    <path d="M1.2998 1.30078L19.4998 19.5008M19.4998 1.30078L1.2998 19.5008" stroke="#F7F6FF" stroke-width="2.344163" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
 </svg>

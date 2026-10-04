@@ -19,7 +19,7 @@ function FormCard({ form, menuOpen, onOpenMenu }: FormCardProps) {
           <p>{form.description}</p>
         </div>
         <button aria-controls={menuOpen ? `form-options-${form.id}` : undefined} aria-expanded={menuOpen} aria-haspopup="menu" aria-label={`Opções para ${form.name}`} className="form-card-options" onClick={onOpenMenu} type="button">
-          <span aria-hidden="true" className="form-card-options-dots"><i /><i /><i /></span>
+          <AstroIcon className="form-card-options-dots" name="dots" />
         </button>
       </div>
       <div className="form-card-badges">

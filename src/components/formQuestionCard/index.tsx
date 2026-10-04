@@ -1,3 +1,4 @@
+import { iconAsset } from '../../utils/iconAsset'
 import ToggleSwitch from '../toggleSwitch'
 import ToolbarSelect from '../toolbarSelect'
 import AstroIcon from '../astroIcon'
@@ -80,12 +81,12 @@ function FormQuestionCard({ index, question, onChange, onCopy, onDelete, onPoint
         type="button"
       >
         <svg aria-hidden="true" viewBox="0 0 16 16">
-          <circle cx="4" cy="3" r="1.35" />
-          <circle cx="12" cy="3" r="1.35" />
-          <circle cx="4" cy="8" r="1.35" />
-          <circle cx="12" cy="8" r="1.35" />
-          <circle cx="4" cy="13" r="1.35" />
-          <circle cx="12" cy="13" r="1.35" />
+          <circle cx="4" cy="3" r="1.242" />
+          <circle cx="12" cy="3" r="1.242" />
+          <circle cx="4" cy="8" r="1.242" />
+          <circle cx="12" cy="8" r="1.242" />
+          <circle cx="4" cy="13" r="1.242" />
+          <circle cx="12" cy="13" r="1.242" />
         </svg>
         </button>
         <button
@@ -104,8 +105,8 @@ function FormQuestionCard({ index, question, onChange, onCopy, onDelete, onPoint
       <div className="create-forms-question-header">
         <h2>{questionHeading(question.kind, index)}</h2>
         <div className="create-forms-question-actions">
-          <button aria-label={`Duplicar ${questionHeading(question.kind, index)}`} onClick={onCopy} title="Duplicar" type="button"><img alt="" src={import.meta.env.BASE_URL + 'icons/copy.svg'} /></button>
-          <button aria-label={`Excluir ${questionHeading(question.kind, index)}`} onClick={onDelete} title="Excluir" type="button"><img alt="" src={import.meta.env.BASE_URL + 'icons/trash.svg'} /></button>
+          <button aria-label={`Duplicar ${questionHeading(question.kind, index)}`} onClick={onCopy} title="Duplicar" type="button"><img alt="" src={iconAsset('copy.svg')} /></button>
+          <button aria-label={`Excluir ${questionHeading(question.kind, index)}`} onClick={onDelete} title="Excluir" type="button"><img alt="" src={iconAsset('trash.svg')} /></button>
         </div>
       </div>
 
@@ -138,7 +139,7 @@ function FormQuestionCard({ index, question, onChange, onCopy, onDelete, onPoint
                   <label className="sr-only" htmlFor={`${fieldId}-option-${option.id}`}>Opção {optionIndex + 1}</label>
                   <input id={`${fieldId}-option-${option.id}`} maxLength={80} onChange={(event) => updateOption(option.id, event.target.value)} placeholder={`Opção ${optionIndex + 1}`} value={option.value} />
                 </>}
-                <button aria-label={`Excluir opção ${option.isOther ? 'de resposta livre' : optionIndex + 1}`} disabled={question.options.length <= 2 || removingOptionId !== null} onClick={() => deleteOption(option.id)} type="button"><img alt="" src={import.meta.env.BASE_URL + 'icons/trash.svg'} /></button>
+                <button aria-label={`Excluir opção ${option.isOther ? 'de resposta livre' : optionIndex + 1}`} disabled={question.options.length <= 2 || removingOptionId !== null} onClick={() => deleteOption(option.id)} type="button"><img alt="" src={iconAsset('trash.svg')} /></button>
               </div>
             ))}
             <div className="create-forms-option-links">

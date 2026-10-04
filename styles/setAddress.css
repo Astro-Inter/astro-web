@@ -109,7 +109,8 @@
 }
 
 .set-address-building .astro-icon {
-  height: calc(1.4rem * var(--astro-scale));
+  width: calc(1.5rem * var(--astro-scale));
+  height: calc(1.5rem * var(--astro-scale));
 }
 
 .set-address-card h2,
@@ -134,6 +135,11 @@
 .set-address-remove {
   gap: calc(0.6rem * var(--astro-scale));
   font-weight: 400;
+}
+
+.set-address-remove .astro-icon {
+  width: calc(1.15rem * var(--astro-scale));
+  height: calc(1.15rem * var(--astro-scale));
 }
 
 .set-address-fields {

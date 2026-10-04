@@ -1,8 +1,10 @@
+import { iconAsset } from '../../utils/iconAsset'
 type AstroIconName =
   | 'back'
   | 'building'
   | 'card'
   | 'calendar'
+  | 'clock'
   | 'document'
   | 'download'
   | 'expiry'
@@ -14,6 +16,7 @@ type AstroIconName =
   | 'mapping'
   | 'pix'
   | 'plus'
+  | 'plus-square'
   | 'receipt'
   | 'report'
   | 'security'
@@ -40,50 +43,51 @@ type AstroIconName =
   | 'distribution'
   | 'reload'
 
-// Os arquivos têm proporções e espaços internos diferentes. O CSS define a
-// altura visual de cada uso; width: auto conserva a proporção original.
+// Todos os desenhos usam uma grade 24 × 24 com área visível centralizada.
+// O CSS aplica o tamanho do contexto; o SVG mantém a espessura proporcional.
 const iconFiles: Record<AstroIconName, { file: string; width: number; height: number }> = {
-  back: { file: 'backButton.svg', width: 71, height: 71 },
-  building: { file: 'building.svg', width: 31, height: 28 },
-  card: { file: 'card.svg', width: 32, height: 31 },
-  calendar: { file: 'calendar.svg', width: 27, height: 27 },
-  document: { file: 'report.svg', width: 27, height: 33 },
-  download: { file: 'download.svg', width: 19, height: 21 },
-  expiry: { file: 'time.svg', width: 21, height: 23 },
-  eye: { file: 'eye.svg', width: 29, height: 24 },
-  'eye-off': { file: 'eyeOff.svg', width: 29, height: 29 },
-  forward: { file: 'backButton.svg', width: 71, height: 71 },
-  help: { file: 'help.svg', width: 26, height: 26 },
-  active: { file: 'person.svg', width: 28, height: 27 },
-  mapping: { file: 'mappingDocument.svg', width: 21, height: 26 },
-  pix: { file: 'pix.svg', width: 27, height: 27 },
-  plus: { file: 'addPurple.svg', width: 25, height: 25 },
-  receipt: { file: 'receipt.svg', width: 26, height: 28 },
-  report: { file: 'report.svg', width: 27, height: 33 },
-  security: { file: 'wallet.svg', width: 29, height: 24 },
-  trash: { file: 'trash.svg', width: 20, height: 22 },
-  upload: { file: 'upload.svg', width: 24, height: 26 },
-  home: { file: 'home.svg', width: 27, height: 27 },
-  managers: { file: 'managers.svg', width: 27, height: 27 },
-  // O arquivo foi substituído mantendo o nome; a revisão invalida o cache anterior.
-  collaborators: { file: 'collaborators.svg?v=2', width: 29, height: 24 },
-  compliance: { file: 'compliance.svg?v=2', width: 27, height: 27 },
-  position: { file: 'positions.svg', width: 27, height: 27 },
-  'event-calendar': { file: 'eventCalendar.svg', width: 27, height: 27 },
-  settings: { file: 'settings.svg', width: 27, height: 29 },
-  search: { file: 'search.svg', width: 25, height: 25 },
-  'chevron-down': { file: 'chevronDown.svg', width: 22, height: 13 },
+  back: { file: 'backButton.svg', width: 24, height: 24 },
+  building: { file: 'building.svg', width: 24, height: 24 },
+  card: { file: 'card.svg', width: 24, height: 24 },
+  calendar: { file: 'calendar.svg', width: 24, height: 24 },
+  clock: { file: 'clock.svg', width: 24, height: 24 },
+  document: { file: 'report.svg', width: 24, height: 24 },
+  download: { file: 'download.svg', width: 24, height: 24 },
+  expiry: { file: 'time.svg', width: 24, height: 24 },
+  eye: { file: 'eye.svg', width: 24, height: 24 },
+  'eye-off': { file: 'eyeOff.svg', width: 24, height: 24 },
+  forward: { file: 'backButton.svg', width: 24, height: 24 },
+  help: { file: 'help.svg', width: 24, height: 24 },
+  active: { file: 'person.svg', width: 24, height: 24 },
+  mapping: { file: 'mappingDocument.svg', width: 24, height: 24 },
+  pix: { file: 'pix.svg', width: 24, height: 24 },
+  plus: { file: 'addPurple.svg', width: 24, height: 24 },
+  'plus-square': { file: 'plus.svg', width: 24, height: 24 },
+  receipt: { file: 'receipt.svg', width: 24, height: 24 },
+  report: { file: 'report.svg', width: 24, height: 24 },
+  security: { file: 'wallet.svg', width: 24, height: 24 },
+  trash: { file: 'trash.svg', width: 24, height: 24 },
+  upload: { file: 'upload.svg', width: 24, height: 24 },
+  home: { file: 'home.svg', width: 24, height: 24 },
+  managers: { file: 'managers.svg', width: 24, height: 24 },
+  collaborators: { file: 'collaborators.svg', width: 24, height: 24 },
+  compliance: { file: 'compliance.svg', width: 24, height: 24 },
+  position: { file: 'positions.svg', width: 24, height: 24 },
+  'event-calendar': { file: 'eventCalendar.svg', width: 24, height: 24 },
+  settings: { file: 'settings.svg', width: 24, height: 24 },
+  search: { file: 'search.svg', width: 24, height: 24 },
+  'chevron-down': { file: 'chevronDown.svg', width: 24, height: 24 },
   'chevron-left': { file: 'chevronLeft.svg', width: 24, height: 24 },
   'chevron-right': { file: 'chevronRight.svg', width: 24, height: 24 },
-  close: { file: 'close.svg', width: 21, height: 21 },
-  dots: { file: 'dots.svg', width: 21, height: 5 },
+  close: { file: 'close.svg', width: 24, height: 24 },
+  dots: { file: 'dots.svg', width: 24, height: 24 },
   pencil: { file: 'pencil.svg', width: 24, height: 24 },
-  'person-outline': { file: 'personOutline.svg', width: 28, height: 28 },
-  feedback: { file: 'feedback.svg', width: 28, height: 28 },
-  'file-plus': { file: 'addFile.svg', width: 24, height: 30 },
-  warning: { file: 'warning.svg', width: 45, height: 45 },
+  'person-outline': { file: 'personOutline.svg', width: 24, height: 24 },
+  feedback: { file: 'feedback.svg', width: 24, height: 24 },
+  'file-plus': { file: 'addFile.svg', width: 24, height: 24 },
+  warning: { file: 'warning.svg', width: 24, height: 24 },
   distribution: { file: 'distribution.svg', width: 24, height: 24 },
-  reload: { file: 'reload.svg', width: 24, height: 28 },
+  reload: { file: 'reload.svg', width: 24, height: 24 },
 }
 
 interface AstroIconProps {
@@ -94,15 +98,19 @@ interface AstroIconProps {
 
 function AstroIcon({ className, name, strokeScale }: AstroIconProps) {
   const icon = iconFiles[name]
-  const iconDirectory = `${import.meta.env.BASE_URL}icons${strokeScale === 0.9 ? '/stroke90' : ''}`
+  const iconClassName = `astro-icon astro-icon--${name}${className ? ` ${className}` : ''}`
+
+  if (name === 'plus-square') {
+    return <span aria-hidden="true" className={iconClassName} />
+  }
 
   return (
     <img
       alt=""
       aria-hidden="true"
-      className={`astro-icon astro-icon--${name}${className ? ` ${className}` : ''}`}
+      className={iconClassName}
       height={icon.height}
-      src={`${iconDirectory}/${icon.file}`}
+      src={iconAsset(icon.file, strokeScale)}
       width={icon.width}
     />
   )

@@ -196,7 +196,7 @@ function CreateFormPage() {
           {feedback && <p className="sr-only" role="status">{feedback}</p>}
 
           <div className="create-forms-footer">
-            <button className="create-forms-add-question" onClick={() => setShowAddQuestion(true)} type="button"><AstroIcon className="create-forms-add-question-icon" name="file-plus" />Adicionar pergunta</button>
+            <button className="create-forms-add-question" onClick={() => setShowAddQuestion(true)} type="button"><AstroIcon className="create-forms-add-question-icon" name="plus-square" />Adicionar pergunta</button>
             <PurpleButton type="submit"><AstroIcon name="file-plus" />Criar formulário</PurpleButton>
           </div>
         </form>

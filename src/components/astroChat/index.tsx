@@ -1,3 +1,4 @@
+import { iconAsset } from '../../utils/iconAsset'
 import { getPopupDuration } from '../../utils/popupMotion'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react'
@@ -386,11 +387,11 @@ function AstroChat() {
               onClick={toggleExpanded}
               type="button"
             >
-              <img alt="" className={`astro-chat-resize-icon${chat.expanded ? '' : ' astro-chat-resize-icon--active'}`} draggable={false} height="24" src={import.meta.env.BASE_URL + "icons/expand.svg"} width="24" />
-              <img alt="" className={`astro-chat-resize-icon astro-chat-resize-icon--collapse${chat.expanded ? ' astro-chat-resize-icon--active' : ''}`} draggable={false} height="24" src={import.meta.env.BASE_URL + "icons/collapse.svg"} width="24" />
+              <img alt="" className={`astro-chat-resize-icon${chat.expanded ? '' : ' astro-chat-resize-icon--active'}`} draggable={false} height="24" src={iconAsset('expand.svg')} width="24" />
+              <img alt="" className={`astro-chat-resize-icon astro-chat-resize-icon--collapse${chat.expanded ? ' astro-chat-resize-icon--active' : ''}`} draggable={false} height="24" src={iconAsset('collapse.svg')} width="24" />
             </button>
             <button aria-label="Fechar chat" className="astro-chat-header-button" onClick={closeChat} type="button">
-              <img alt="" height="21" src={import.meta.env.BASE_URL + "icons/close.svg"} width="21" />
+              <img alt="" height="21" src={iconAsset('close.svg')} width="21" />
             </button>
           </header>
 
@@ -434,7 +435,7 @@ function AstroChat() {
               value={chat.draft}
             />
             <button aria-label="Enviar mensagem" disabled={!chat.draft.trim()} type="submit">
-              <img alt="" height="62" src={import.meta.env.BASE_URL + "icons/sendMessage.svg"} width="62" />
+              <img alt="" height="62" src={iconAsset('sendMessage.svg')} width="62" />
             </button>
           </form>
         </section>

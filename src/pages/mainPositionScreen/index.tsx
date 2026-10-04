@@ -1,3 +1,4 @@
+import { iconAsset } from '../../utils/iconAsset'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
@@ -232,7 +233,7 @@ function MainPositionScreenPage() {
             }}
             type="button"
           >
-            <span aria-hidden="true" className="position-actions-dots"><span /><span /><span /></span>
+            <AstroIcon name="dots" />
           </button>
         </div>
       ),
@@ -418,7 +419,7 @@ function MainPositionScreenPage() {
           backdrop="dimmed"
           className="position-deactivation-modal"
           confirmLabel="Inativar"
-          icon={<span aria-hidden="true" className="position-deactivation-icon"><img alt="" src={import.meta.env.BASE_URL + "icons/warning.svg"} /></span>}
+          icon={<span aria-hidden="true" className="position-deactivation-icon"><img alt="" src={iconAsset('warning.svg')} /></span>}
           onCancel={() => setPendingDeactivation(null)}
           onConfirm={() => { toggleStatus(pendingDeactivation); return null }}
           onConfirmed={() => {

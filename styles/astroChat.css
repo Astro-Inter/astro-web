@@ -22,7 +22,6 @@
 .astro-chat-header-button--resize .astro-chat-resize-icon { position: absolute; inset: 0; margin: auto; opacity: 0; transform: scale(0.75) rotate(-16deg); pointer-events: none; transition: opacity 180ms ease, transform 180ms ease; }
 .astro-chat-header-button--resize .astro-chat-resize-icon--collapse { transform: scale(0.75) rotate(16deg); }
 .astro-chat-header-button--resize .astro-chat-resize-icon--active { opacity: 1; transform: scale(1) rotate(0); }
-.astro-chat-header-button:last-child img { width: 4cqw; height: 4cqw; }
 .astro-chat-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .astro-chat-welcome { display: flex; flex-direction: column; justify-content: center; min-height: 100%; padding: 4cqw 7cqw; }
 .astro-chat-illustration { display: block; align-self: center; width: 58cqw; max-width: 100%; height: auto; margin-bottom: 2cqw; object-fit: contain; }

@@ -22,10 +22,18 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
     const element = elementRef.current
     if (!element) return
 
+    const resetTooltip = () => {
+      if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
+      if (showTooltipFrameRef.current) cancelAnimationFrame(showTooltipFrameRef.current)
+      setTooltipVisible(false)
+      setTooltipMounted(false)
+    }
+
     const update = () => {
       if (!truncate) {
         setDisplayText(children)
         setTruncated(false)
+        resetTooltip()
         return
       }
       const width = element.clientWidth
@@ -36,6 +44,7 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
       if (context.measureText(children).width <= width) {
         setDisplayText(children)
         setTruncated(false)
+        resetTooltip()
         return
       }
 
@@ -79,6 +88,7 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
   }, [])
 
   function showTooltip() {
+    if (!truncated) return
     if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
     updateTooltipPosition()
     setTooltipMounted(true)
@@ -130,15 +140,15 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
     if (showTooltipFrameRef.current) cancelAnimationFrame(showTooltipFrameRef.current)
   }, [])
 
-  const tooltip = tooltipMounted && typeof document !== 'undefined'
+  const tooltip = truncated && tooltipMounted && typeof document !== 'undefined'
     ? createPortal(<span className={`astro-truncated-tooltip${tooltipVisible ? ' astro-truncated-tooltip--visible' : ''}`} id={tooltipId} onMouseEnter={showTooltip} onMouseLeave={hideTooltip} role="tooltip" style={{ left: tooltipPosition.left, top: tooltipPosition.top }}>{children}</span>, document.body)
     : null
 
   return <>
     <span
       aria-label={children}
-      aria-describedby={tooltipMounted ? tooltipId : undefined}
-      tabIndex={0}
+      aria-describedby={truncated && tooltipMounted ? tooltipId : undefined}
+      tabIndex={truncated ? 0 : undefined}
       className="astro-truncated-text"
       data-truncated={truncated}
       ref={elementRef}

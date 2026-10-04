@@ -62,7 +62,7 @@
   --astro-control-radius-base: 0.45rem;
   --astro-control-padding-inline-base: 1rem;
   --astro-field-gap-base: 0.25rem;
-  /* Alturas de referência; cada arquivo mantém sua proporção original. */
+  /* Ícones normalizados em uma grade quadrada; tamanho conforme o contexto. */
   --astro-icon-sm-base: 1.15rem;
   --astro-icon-md-base: 1.35rem;
   --astro-icon-lg-base: 1.65rem;
@@ -90,6 +90,12 @@
   --astro-icon-md: calc(var(--astro-icon-md-base) * var(--astro-scale));
   --astro-icon-lg: calc(var(--astro-icon-lg-base) * var(--astro-scale));
   --astro-control-padding: 0 var(--astro-control-padding-inline);
+  /* A caixa de toque centraliza o ícone no mesmo recuo do texto. */
+  --astro-control-icon-hit-size: calc(2.25rem * var(--astro-scale));
+  --astro-control-icon-padding-end: calc(2 * var(--astro-control-padding-inline) + var(--astro-icon-md));
+  --astro-control-chevron-padding-end: calc(2 * var(--astro-control-padding-inline) + var(--astro-icon-sm));
+  --astro-control-icon-button-inset: calc(var(--astro-control-padding-inline) - (var(--astro-control-icon-hit-size) - var(--astro-icon-md)) / 2);
+  --astro-control-chevron-button-inset: calc(var(--astro-control-padding-inline) - (var(--astro-control-icon-hit-size) - var(--astro-icon-sm)) / 2);
 
   font-family: "Montserrat", sans-serif;
   color: var(--astro-text);
@@ -128,6 +134,12 @@
   --astro-icon-md: calc(var(--astro-icon-md-base) * var(--astro-scale));
   --astro-icon-lg: calc(var(--astro-icon-lg-base) * var(--astro-scale));
   --astro-control-padding: 0 var(--astro-control-padding-inline);
+  /* A caixa de toque centraliza o ícone no mesmo recuo do texto. */
+  --astro-control-icon-hit-size: calc(2.25rem * var(--astro-scale));
+  --astro-control-icon-padding-end: calc(2 * var(--astro-control-padding-inline) + var(--astro-icon-md));
+  --astro-control-chevron-padding-end: calc(2 * var(--astro-control-padding-inline) + var(--astro-icon-sm));
+  --astro-control-icon-button-inset: calc(var(--astro-control-padding-inline) - (var(--astro-control-icon-hit-size) - var(--astro-icon-md)) / 2);
+  --astro-control-chevron-button-inset: calc(var(--astro-control-padding-inline) - (var(--astro-control-icon-hit-size) - var(--astro-icon-sm)) / 2);
 }
 
 /* O dialog usa tokens base e aplica sua escala final com zoom. Assim o 0.9 da
@@ -414,24 +426,35 @@ textarea::selection {
   width: auto;
   height: var(--astro-icon-md);
   flex: none;
+  object-fit: contain;
 }
 
 .astro-icon--forward {
   transform: rotate(180deg);
 }
 
+.astro-icon--plus-square {
+  width: var(--astro-icon-md);
+  background-color: currentColor;
+  -webkit-mask: url('/icons/plus.svg?v=weightMinus8WarningBold') center / contain no-repeat;
+  mask: url('/icons/plus.svg?v=weightMinus8WarningBold') center / contain no-repeat;
+}
+
 .astro-action .astro-icon {
+  width: var(--astro-icon-md);
   height: var(--astro-icon-md);
 }
 
 .astro-action--danger .astro-icon,
 .astro-action--outline .astro-icon {
-  height: var(--astro-icon-sm);
+  width: var(--astro-icon-md);
+  height: var(--astro-icon-md);
 }
 
 /* O desenho de mais já é roxo; os outros preservam as cores dos arquivos. */
 .astro-action--outline .astro-icon--plus {
-  height: calc(1.3rem * var(--astro-scale));
+  width: var(--astro-icon-md);
+  height: var(--astro-icon-md);
 }
 
 /* ============================================================================
@@ -498,8 +521,8 @@ textarea::selection {
   height: calc(var(--astro-icon-md-base) * 0.9);
   flex: none;
   background-color: currentColor;
-  -webkit-mask: url('/icons/help.svg') center / contain no-repeat;
-  mask: url('/icons/help.svg') center / contain no-repeat;
+  -webkit-mask: url('/icons/help.svg?v=weightMinus8WarningBold') center / contain no-repeat;
+  mask: url('/icons/help.svg?v=weightMinus8WarningBold') center / contain no-repeat;
 }
 
 .sr-only {

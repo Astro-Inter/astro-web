@@ -238,9 +238,9 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, validate
 
       {open && <div aria-label={`Calendário: ${label}`} className={`create-forms-calendar${closing ? ' create-forms-calendar--closing' : ''}`} id={calendarId} ref={calendarRef} role="dialog">
         <div className="create-forms-calendar-header">
-          <button aria-label="Mês anterior" onClick={() => changeMonth(-1)} type="button"><span aria-hidden="true">‹</span></button>
+          <button aria-label="Mês anterior" onClick={() => changeMonth(-1)} type="button"><AstroIcon name="chevron-left" /></button>
           <h3 aria-live="polite" key={`${year}-${month}`}>{formatMonthTitle(visibleMonth)}</h3>
-          <button aria-label="Próximo mês" onClick={() => changeMonth(1)} type="button"><span aria-hidden="true">›</span></button>
+          <button aria-label="Próximo mês" onClick={() => changeMonth(1)} type="button"><AstroIcon name="chevron-right" /></button>
         </div>
 
         <div aria-hidden="true" className="create-forms-calendar-weekdays">

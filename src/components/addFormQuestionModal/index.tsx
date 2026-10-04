@@ -1,3 +1,4 @@
+import { iconAsset } from '../../utils/iconAsset'
 import { useRef } from 'react'
 import AppModal from '../appModal'
 import type { FormQuestionKind } from '../../types/forms'
@@ -24,7 +25,7 @@ function AddFormQuestionModal({ onCancel, onChoose }: AddFormQuestionModalProps)
       {(dismiss) => <div className="create-forms-add-grid">
         {questionKinds.map(({ kind, label, icon }) => (
           <button className="create-forms-kind-button" key={kind} onClick={() => { selectedKindRef.current = kind; dismiss() }} type="button">
-            <img alt="" src={`${import.meta.env.BASE_URL}icons/${icon}`} /><span>{label}</span>
+            <img alt="" src={iconAsset(icon)} /><span>{label}</span>
           </button>
         ))}
         <button className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
