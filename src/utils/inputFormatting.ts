@@ -1,5 +1,5 @@
 import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react'
-import { formatCnpj } from './cnpj'
+import { formatCnpj } from './corporateTaxId'
 
 export function digitsOnly(value: string, maxLength: number): string {
   return value.replace(/\D/g, '').slice(0, maxLength)

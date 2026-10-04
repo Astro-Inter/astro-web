@@ -1,3 +1,3 @@
-export { formatCnpj } from './cnpj'
+export { formatCnpj } from './corporateTaxId'
 export { blockEmailWhitespaceInput, blockEmailWhitespaceKey, digitsOnly, formatCardExpiry, formatCardNumber, formatCep, formatCpfCnpj, formatState, handleMaskedInput, sanitizeEmail } from './inputFormatting'
 export { validateSpreadsheetFile } from './spreadsheet'

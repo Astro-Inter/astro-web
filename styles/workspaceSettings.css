@@ -1,0 +1,106 @@
+/* Mesmo fade das telas existentes: entrada de 550ms e saída de 180ms. */
+.astro-route-transition--settings-page { animation: astro-route-enter 550ms cubic-bezier(.2, .8, .2, 1) both; }
+.astro-route-transition--settings-page:not(.astro-route-transition--settings-leaving):has(.workspace-settings-page) { animation-timing-function: ease; }
+.astro-route-transition--settings-leaving { animation: astro-route-exit 180ms ease-in both; }
+.astro-route-transition--settings-page :is(.create-forms-main, .create-password-page, .attach-excel-page, .set-address-page, .payment-page, .login-card, .create-password-card .login-heading, .attach-excel-content, .attach-excel-dropzone, .set-address-content) { animation: none; }
+.astro-route-transition--settings-page .attach-excel-dropzone.is-dragging { animation: focus-glow .75s ease; }
+
+.workspace-settings-content { --workspace-settings-heading-size: var(--astro-heading-font-size); }
+.workspace-settings-page { justify-content: flex-start; }
+.workspace-settings-content h1 { font-size: var(--workspace-settings-heading-size); }
+
+.astro-route-transition.astro-route-transition--tab-change { animation: none; }
+.settings-tab-content { view-transition-name: settings-content; }
+html.settings-tab-transition::view-transition-group(root),
+html.settings-tab-transition::view-transition-old(root),
+html.settings-tab-transition::view-transition-new(root),
+html.settings-tab-transition::view-transition-group(settings-content) { animation: none; }
+html.settings-tab-transition::view-transition-old(root) { display: none; }
+html.settings-tab-transition::view-transition-image-pair(settings-content) { isolation: isolate; }
+html.settings-tab-transition::view-transition-old(settings-content),
+html.settings-tab-transition::view-transition-new(settings-content) {
+  width: 100%; height: 100%; object-fit: none; object-position: top center; mix-blend-mode: plus-lighter;
+}
+html.settings-tab-transition::view-transition-old(settings-content) { animation: astro-popup-out 260ms ease both; }
+html.settings-tab-transition::view-transition-new(settings-content) { animation: astro-popup-in 260ms ease both; }
+
+.workspace-settings-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(100%, calc(42rem * var(--astro-scale)));
+  gap: calc(1rem * var(--astro-scale));
+  margin: 0 auto calc(3.5rem * var(--astro-scale));
+  padding: calc(.75rem * var(--astro-scale)) calc(1.5rem * var(--astro-scale));
+  border: 0;
+  border-radius: 999px;
+  background: #352359;
+}
+
+.workspace-settings-tabs button {
+  min-width: 0;
+  min-height: calc(4rem * var(--astro-scale));
+  padding: 0 var(--astro-control-padding-inline);
+  border: 0;
+  border-radius: 999px;
+  color: var(--astro-text);
+  background: transparent;
+  font: inherit;
+  font-size: calc(1.25rem * var(--astro-scale));
+  font-weight: 600;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.workspace-settings-tabs button[aria-current] { background: #493078; }
+.workspace-settings-tabs button:not([aria-disabled]):hover { background: #493078; }
+.workspace-settings-tabs button[aria-current]:hover { background: #573d93; }
+.workspace-settings-tabs button[aria-disabled] { cursor: default; }
+.workspace-settings-tabs button:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
+.workspace-settings-rows { display: grid; gap: var(--create-forms-section-gap); }
+.workspace-settings-row { display: flex; align-items: center; justify-content: space-between; gap: calc(1.5rem * var(--astro-scale)); }
+.workspace-settings-row h3 { margin: 0 0 var(--astro-field-gap); color: #f6f6f6; font-size: var(--astro-subtitle-font-size); font-weight: 500; line-height: 1.3; }
+.workspace-settings-row p { margin: 0; color: #c4bdd4; font-size: var(--astro-label-font-size); line-height: 1.3; }
+.workspace-settings-row .astro-action { flex: none; width: min(100%, var(--astro-compact-action-width)); }
+.workspace-settings-row--saved { animation: workspace-settings-saved 900ms cubic-bezier(.22, 1, .36, 1); }
+.workspace-password-modal form { margin-top: var(--astro-modal-content-gap); }
+.workspace-password-modal .field-group { gap: .2rem; }
+.workspace-settings-back { z-index: 2; }
+
+@keyframes workspace-settings-saved { 0%, 100% { background: transparent; } 35% { background: rgb(156 0 205 / 16%); } }
+
+@media (max-width: 600px) {
+  .workspace-settings-row { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .set-address-page:has(.workspace-settings-back) { padding-block: 8rem 5.5rem; }
+  .set-address-page:has(.workspace-settings-back) .set-address-content { max-height: calc(100svh - 13.5rem); }
+}
+
+@media (max-width: 480px) {
+  .workspace-settings-content { --workspace-settings-heading-size: min(var(--astro-heading-font-size), calc(1.8rem * var(--astro-scale))); }
+  .workspace-settings-tabs { margin-bottom: calc(2.5rem * var(--astro-scale)); }
+  .workspace-settings-tabs button { font-size: calc(1.05rem * var(--astro-scale)); }
+}
+
+@media (max-width: 360px) {
+  .workspace-settings-content { --workspace-settings-heading-size: calc(1.55rem * var(--astro-scale)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .astro-route-transition--settings-page, .astro-route-transition--settings-leaving { animation: none; }
+  .workspace-settings-row--saved { animation: none; }
+}
+
+@media (max-width: 1024px) {
+  .workspace-settings-row h3 { font-size: 1rem; }
+  .workspace-settings-row p { font-size: 0.9375rem; line-height: 1.5; }
+  .workspace-settings-row .astro-action { min-height: 3rem; font-size: 0.9375rem; }
+}
+
+@media (max-width: 600px) {
+  .workspace-settings-tabs { gap: 0.5rem; padding: 0.5rem; margin-bottom: 2rem; }
+  .workspace-settings-tabs button { min-height: 2.75rem; padding-inline: 0.75rem; font-size: 1rem; }
+  .workspace-settings-content { --workspace-settings-heading-size: 1.5rem; }
+  .workspace-settings-rows { gap: 1.5rem; }
+  .workspace-settings-row + .workspace-settings-row { padding-top: 1.5rem; border-top: 1px solid rgb(255 255 255 / 12%); }
+  .workspace-settings-row .astro-action { width: 100%; max-width: none; }
+}

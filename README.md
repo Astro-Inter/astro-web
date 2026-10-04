@@ -30,7 +30,7 @@ src/
   routes/index.tsx       rotas com lazy/Suspense por página e rota curinga
   types/                 entidades e contratos por domínio
   utils/                 máscaras, validações e utilitários compartilhados
-  App.tsx                árvore de rotas
+  app.tsx                árvore de rotas
   main.tsx               montagem e importação de estilos
 styles/                  CSS global e das telas, fora de src/
 ```
@@ -89,3 +89,9 @@ E04 implementado com lazy/Suspense por página e chunks separados no build. E05 
 ## Verificação manual
 
 Conferir limpeza de prazo, datas inválidas, seleção pelo teclado, opções vazias, Outros, confirmação de edição e retorno de foco. Testar tooltips com Tab/Escape e NRs com modais aninhados. Verificar desktop e mobile, inclusive 360 px. Ainda não há suíte automatizada de fluxos nem prova completa com leitor de tela.
+
+## Nomes de arquivos e pastas
+
+Use camelCase em inglês nos arquivos e pastas da aplicação (por exemplo, `appModal/index.tsx`, `errorScreenLayout/index.tsx` e `accessKeyVerified.png`). Componentes React e seus tipos permanecem em PascalCase no código. Cada página e componente mantém seu `index.tsx`, conforme M02 da skill DAD. Imagens e CSS permanecem fora de `src/`, conforme M01.
+
+Exceções: nomes convencionais de ferramentas e metadados (`package.json`, `package-lock.json`, `tsconfig*.json`, `vite.config.ts`, `.oxlintrc.json`, `.env.example`, `.gitignore`, `.github`, `.gitkeep`, `LICENSE` e `README.md`). O README mantém o nome indicado no critério M13. Siglas oficiais, como CNPJ e NR, permanecem nos dados e textos do domínio. URLs existentes são preservadas nesta organização de arquivos.

@@ -9,7 +9,7 @@
   min-width: 0;
 }
 
-/* back-button.svg já inclui a borda e a seta. */
+/* backButton.svg já inclui a borda e a seta. */
 .payment-back-button {
   position: fixed;
   z-index: 2;
@@ -114,13 +114,11 @@
 
 .card-symbol,
 .pix-symbol {
-  height: var(--astro-icon-sm);
+  width: var(--astro-icon-md);
+  height: var(--astro-icon-md);
   flex: none;
 }
 
-.card-symbol {
-  height: calc(1.35rem * var(--astro-scale));
-}
 
 .card-fields,
 .pix-fields {
@@ -140,15 +138,17 @@
 }
 
 .security-input-wrap input {
-  padding-right: 2.8rem;
+  padding-right: var(--astro-control-icon-padding-end);
 }
 
 .security-icon {
   position: absolute;
   top: 50%;
-  right: calc(0.85rem * var(--astro-scale));
-  height: var(--astro-icon-sm);
+  right: var(--astro-control-padding-inline);
+  width: var(--astro-icon-md);
+  height: var(--astro-icon-md);
   transform: translateY(-50%);
+  pointer-events: none;
 }
 
 .payment-info-link {
@@ -219,11 +219,8 @@
 }
 
 .feature-icon {
-  height: calc(1.4rem * var(--astro-scale));
-}
-
-.feature-icon.astro-icon--expiry {
-  height: calc(1.3rem * var(--astro-scale));
+  width: var(--astro-icon-md);
+  height: var(--astro-icon-md);
 }
 
 .feature-label {
