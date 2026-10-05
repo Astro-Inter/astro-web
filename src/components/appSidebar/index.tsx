@@ -13,7 +13,7 @@ export interface NavigationItem {
 
 const navigationItems: NavigationItem[] = [
   { label: 'Home', icon: 'home' },
-  { label: 'Gestores', icon: 'managers' },
+  { label: 'Gestores', icon: 'managers', path: '/mainManagerScreen' },
   { label: 'Colaboradores', icon: 'collaborators' },
   { label: 'Conformidade', icon: 'compliance' },
   { label: 'Unidades', icon: 'building' },

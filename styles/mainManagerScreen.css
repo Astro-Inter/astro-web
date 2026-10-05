@@ -1,0 +1,17 @@
+.manager-identity { display: flex; align-items: center; gap: calc(0.6rem * var(--astro-scale)); min-width: 0; }
+.manager-identity .astro-truncated-text { flex: 1; }
+.manager-avatar { display: grid; flex: none; place-items: center; width: calc(2.5rem * var(--astro-scale)); height: calc(2.5rem * var(--astro-scale)); border-radius: 50%; color: var(--astro-text); background: #573d93; font-size: calc(0.85rem * var(--astro-scale)); font-weight: 600; line-height: 1; }
+@media (min-width: 1025px) {
+  .main-manager-screen .position-main { padding-block: clamp(2.5rem, 6vh, 5rem); }
+  .main-manager-screen .astro-data-table-scroll { height: calc(27.4rem * var(--astro-scale)); }
+}
+
+.account-profile-photo > .manager-avatar--large { width: 100%; height: 100%; font-size: calc(2rem * var(--astro-scale)); }
+.manager-details-modal .field-group [role="alert"], .manager-details-form-error { color: #eb6264; font-size: var(--astro-label-font-size); line-height: 1.2; }
+.manager-details-modal .field-group input[aria-invalid="true"],
+.manager-details-modal .field-group:has(> [role="alert"]) .password-input input { border-color: #eb6264; }
+.manager-details-form-error { margin: 1rem 0 0; }
+
+.astro-options-popup[id^="manager-actions-"] { width: calc(16.75rem * var(--astro-popup-zoom)); }
+
+.astro-modal.invite-manager-dialog .position-dialog-field > [role="alert"] { color: #eb6264; }
