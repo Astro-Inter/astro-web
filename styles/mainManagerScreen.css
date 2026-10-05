@@ -1,0 +1,8 @@
+.manager-identity { display: flex; align-items: center; gap: calc(0.6rem * var(--astro-scale)); min-width: 0; }
+.manager-identity .astro-truncated-text { flex: 1; }
+.manager-avatar { display: grid; flex: none; place-items: center; width: calc(2.5rem * var(--astro-scale)); height: calc(2.5rem * var(--astro-scale)); border-radius: 50%; color: var(--astro-text); background: #573d93; font-size: calc(0.85rem * var(--astro-scale)); font-weight: 600; line-height: 1; }
+
+@media (min-width: 1025px) {
+  .main-manager-screen .position-main { padding-block: clamp(2.5rem, 6vh, 5rem); }
+  .main-manager-screen .astro-data-table-scroll { height: calc(27.4rem * var(--astro-scale)); }
+}
