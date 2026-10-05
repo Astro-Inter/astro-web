@@ -44,7 +44,7 @@ function InviteManagerDialog({ candidates, onClose, onInvite }: InviteManagerDia
   }
 
   return (
-    <AppModal className="position-dialog" onClose={onClose} title="Convidar gestor">
+    <AppModal className="position-dialog invite-manager-dialog" onClose={onClose} title="Convidar gestor">
       {(dismiss) => <form autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
         <div className="position-dialog-row">
           <div className="position-dialog-field">
