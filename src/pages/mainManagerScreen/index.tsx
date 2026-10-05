@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, DataTable, ManagerIdentity, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { useEffect, useRef, useState } from 'react'
+import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, DataTable, InviteManagerDialog, ManagerIdentity, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import type { DataTableColumn } from '../../components/dataTable'
+import { mockEventCollaborators } from '../../data/eventCreation'
 import { managerUnits, mockManagers } from '../../data/managers'
-import type { Manager } from '../../types/manager'
+import type { Manager, ManagerInviteValues } from '../../types'
 
 const unitFilterOptions = [
   { value: '', label: 'Unidade', triggerLabel: 'Unidade', tone: 'muted' as const },
@@ -34,13 +35,52 @@ const columns: DataTableColumn<Manager>[] = [
   },
 ]
 
+function normalizeKey(value: string) {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('pt-BR')
+}
+
 function MainManagerScreenPage() {
+  const inviteOriginRef = useRef<HTMLButtonElement | null>(null)
+  const savedTimerRef = useRef<number | null>(null)
+  const [managers, setManagers] = useState<Manager[]>(mockManagers)
   const [filters, setFilters] = useState({ search: '', unit: '', status: '' })
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const [savedManagerId, setSavedManagerId] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState('')
+
+  useEffect(() => () => {
+    if (savedTimerRef.current !== null) window.clearTimeout(savedTimerRef.current)
+  }, [])
+
+  // Quem já é gestor (mesmo nome ou e-mail) não aparece de novo na lista de convite.
+  const managerKeys = new Set(managers.flatMap((manager) => [manager.name, manager.email].map(normalizeKey)))
+  const inviteCandidates = mockEventCollaborators.filter((collaborator) => !managerKeys.has(normalizeKey(collaborator.name)) && !managerKeys.has(normalizeKey(collaborator.email)))
 
   const normalizedSearch = filters.search.trim().toLocaleLowerCase('pt-BR')
-  const visibleManagers = mockManagers.filter((manager) => `${manager.name} ${manager.email}`.toLocaleLowerCase('pt-BR').includes(normalizedSearch)
-    && (!filters.unit || manager.unit === filters.unit)
+  const visibleManagers = managers.filter((manager) => `${manager.name} ${manager.email}`.toLocaleLowerCase('pt-BR').includes(normalizedSearch)
+    && (!filters.unit || manager.unit.split(', ').includes(filters.unit))
     && (!filters.status || (filters.status === 'active') === manager.active))
+
+  function inviteManager(values: ManagerInviteValues): string | null {
+    const collaborator = inviteCandidates.find((candidate) => candidate.id === values.collaboratorId)
+    if (!collaborator) return 'Esse colaborador já é gestor ou não foi encontrado.'
+
+    const newManagerId = crypto.randomUUID()
+    setManagers((current) => [...current, { id: newManagerId, name: collaborator.name, email: collaborator.email, unit: collaborator.unit, active: values.status === 'active' }])
+    if (savedTimerRef.current !== null) window.clearTimeout(savedTimerRef.current)
+    setSavedManagerId(newManagerId)
+    setFeedback(`Convite enviado para ${collaborator.email}.`)
+    savedTimerRef.current = window.setTimeout(() => {
+      savedTimerRef.current = null
+      setSavedManagerId(null)
+    }, 900)
+    return null
+  }
+
+  function closeInvite() {
+    setInviteOpen(false)
+    inviteOriginRef.current?.focus()
+  }
 
   return (
     <div className="main-position-screen main-manager-screen">
@@ -54,7 +94,7 @@ function MainManagerScreenPage() {
           </header>
 
           <div aria-label="Ações e filtros dos gestores" className="position-toolbar" role="group">
-            <CompactPurpleButton aria-disabled="true" title="Em breve" type="button">
+            <CompactPurpleButton onClick={(event) => { inviteOriginRef.current = event.currentTarget; setInviteOpen(true) }} type="button">
               <AstroIcon name="plus" />
               Convidar gestor
             </CompactPurpleButton>
@@ -73,11 +113,14 @@ function MainManagerScreenPage() {
             </div>
           </div>
 
-          <DataTable ariaLabel="Gestores" columns={columns} emptyMessage="Nenhum gestor encontrado para esses filtros." getRowKey={(manager) => manager.id} rows={visibleManagers} />
+          <DataTable ariaLabel="Gestores" columns={columns} emptyMessage="Nenhum gestor encontrado para esses filtros." getRowClassName={(manager) => manager.id === savedManagerId ? 'astro-data-table-row--saved' : undefined} getRowKey={(manager) => manager.id} rows={visibleManagers} />
+          <p className="sr-only" role="status">{feedback}</p>
         </section>
 
         <AstroChat />
       </main>
+
+      {inviteOpen && <InviteManagerDialog candidates={inviteCandidates} onClose={closeInvite} onInvite={inviteManager} />}
     </div>
   )
 }

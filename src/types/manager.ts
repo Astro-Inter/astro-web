@@ -5,3 +5,8 @@ export interface Manager {
   unit: string
   active: boolean
 }
+
+export interface ManagerInviteValues {
+  collaboratorId: string
+  status: '' | 'active' | 'inactive'
+}
