@@ -1,5 +1,5 @@
-import AstroIcon from '../AstroIcon'
-import PurpleButton from '../PurpleButton'
+import AstroIcon from '../astroIcon'
+import PurpleButton from '../purpleButton'
 import type { QuickAction } from '../../types/home'
 
 interface QuickActionCardProps {

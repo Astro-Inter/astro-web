@@ -1,0 +1,75 @@
+.account-profile-header { display: flex; align-items: center; gap: calc(1.5rem * var(--astro-scale)); min-width: 0; }
+.account-profile-photo { position: relative; flex: none; width: calc(6rem * var(--astro-scale)); height: calc(6rem * var(--astro-scale)); }
+.account-profile-photo > img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.account-profile-photo button { position: absolute; right: 0; bottom: 0; display: grid; place-items: center; width: calc(1.75rem * var(--astro-scale)); height: calc(1.75rem * var(--astro-scale)); padding: calc(.3rem * var(--astro-scale)); border: 0; border-radius: 50%; background: #6d6891; }
+.account-profile-photo button:hover { background: #625d82; }
+.account-profile-photo button:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
+.account-profile-photo .astro-icon { width: 100%; height: 100%; object-fit: contain; }
+.account-profile-identity { min-width: 0; }
+.account-profile-identity h3 { margin: 0 0 var(--astro-field-gap); font-size: var(--astro-subtitle-font-size); font-weight: 500; line-height: 1.3; overflow-wrap: anywhere; }
+.account-profile-identity p { margin: 0; color: #c4bdd4; font-size: var(--astro-label-font-size); line-height: 1.3; overflow-wrap: anywhere; }
+.account-main-fields { display: grid; gap: var(--create-forms-stack-gap); margin-top: var(--create-forms-section-gap); }
+.account-main-actions { display: flex; justify-content: center; gap: calc(.9rem * var(--astro-scale)); margin-top: var(--create-forms-section-gap); }
+.account-main-actions > button { min-width: 0; flex: 0 1 var(--astro-compact-action-width); }
+.account-main-actions > .astro-action, .account-transfer-actions > .astro-action, .account-logout-action > .astro-action { width: min(100%, var(--astro-compact-action-width)); max-width: var(--astro-compact-action-width); }
+.account-transfer-card > p { margin: 0; color: #c4bdd4; font-size: var(--astro-label-font-size); line-height: 1.5; }
+.account-transfer-actions { display: flex; justify-content: flex-end; margin-top: var(--create-forms-section-gap); }
+.account-logout-action { display: flex; justify-content: center; margin-top: var(--create-forms-outer-gap); }
+.account-information-card--saved { animation: account-information-saved 900ms cubic-bezier(.22, 1, .36, 1); }
+@keyframes account-information-saved { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 35% { box-shadow: 0 0 0 2px rgb(156 0 205 / 45%); } }
+.account-transfer-card .account-email-preview { margin-top: var(--create-forms-stack-gap); }
+.account-details-modal { --astro-modal-width: 58rem; }
+.account-details-form { margin-top: var(--astro-modal-content-gap); }
+.account-manager-selection-form { margin-top: var(--astro-modal-content-gap); }
+.account-replace-flow-modal { view-transition-name: event-create-popup; }
+.account-manager-selection-form .astro-action:disabled { opacity: .55; cursor: default; }
+.account-manager-selection-form .astro-action:disabled:hover { background: #e65a61; }
+.account-replace-confirmation .astro-confirmation-description span { display: block; margin-top: var(--astro-field-gap); }
+.account-details-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--astro-modal-content-gap) var(--astro-modal-inline-gap); margin-top: var(--astro-modal-content-gap); }
+.account-details-grid .field-group { min-width: 0; }
+.account-details-grid .password-input input { width: 100%; }
+.account-photo-input { display: none; }
+.account-field-select { width: 100%; height: var(--astro-control-height); }
+.account-field-select .astro-toolbar-select-trigger { height: 100%; min-height: var(--astro-control-height); border: 1px solid transparent; border-radius: var(--astro-control-radius); padding: 0 var(--astro-control-chevron-padding-end) 0 var(--astro-control-padding-inline); font-size: var(--astro-control-font-size); background: var(--astro-field); }
+.account-field-select .astro-toolbar-select-toggle { top: 50%; right: var(--astro-control-chevron-button-inset); width: var(--astro-control-icon-hit-size); height: var(--astro-control-icon-hit-size); transform: translateY(-50%); }
+.account-field-select .astro-toolbar-select-trigger:focus { border-color: var(--astro-input-focus-border); }
+.account-field-select .astro-toolbar-select-toggle:hover { background: var(--astro-focus-surface); }
+
+/* Como os seletores de horário dos eventos: o menu sai da área rolável sem alterar o popup. */
+@supports (anchor-name: --account-select) {
+  .account-field-select { anchor-scope: --account-select; }
+  .account-field-select .astro-toolbar-select-control { anchor-name: --account-select; }
+  .account-field-select .astro-toolbar-select-popover { position: fixed; position-anchor: --account-select; top: calc(anchor(bottom) + .45rem); left: anchor(left); right: auto; width: anchor-size(width); }
+  .account-field-select[data-placement='above'] .astro-toolbar-select-popover { top: auto; bottom: calc(anchor(top) + .45rem); }
+}
+
+@media (min-width: 601px) and (min-height: 640px) {
+  .account-details-modal { overflow: visible; }
+}
+
+@media (max-width: 600px) {
+  .account-details-grid { grid-template-columns: minmax(0, 1fr); }
+  .account-main-actions { flex-wrap: wrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-information-card--saved { animation: none; }
+}
+
+@media (max-width: 1024px) {
+  .account-information-card .field-group label { font-size: 0.9375rem; }
+  .account-information-card .field-group input { min-height: 3rem; font-size: 1rem; }
+  .account-profile-identity h3 { font-size: 1rem; }
+  .account-profile-identity p,
+  .account-transfer-card > p { font-size: 0.9375rem; line-height: 1.5; }
+}
+
+@media (max-width: 600px) {
+  .account-profile-header { gap: 1rem; }
+  .account-profile-photo { width: 4rem; height: 4rem; }
+  .account-main-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+  .account-main-actions > .astro-action,
+  .account-transfer-actions > .astro-action,
+  .account-logout-action > .astro-action { width: 100%; max-width: none; min-height: 3rem; font-size: 0.9375rem; }
+  .account-transfer-card h2 { line-height: 1.4; }
+}

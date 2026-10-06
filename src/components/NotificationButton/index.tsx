@@ -1,4 +1,4 @@
-import AstroIcon from '../AstroIcon'
+import AstroIcon from '../astroIcon'
 
 interface NotificationButtonProps {
   onClick: () => void

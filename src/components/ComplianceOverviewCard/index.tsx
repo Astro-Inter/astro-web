@@ -1,4 +1,4 @@
-import CompactPurpleButton from '../CompactPurpleButton'
+import CompactPurpleButton from '../compactPurpleButton'
 import ComplianceDonutChart from '../ComplianceDonutChart'
 import type { ComplianceOverview } from '../../types/home'
 

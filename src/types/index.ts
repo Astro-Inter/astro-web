@@ -2,5 +2,7 @@ export type { WorkspaceAddressField, WorkspaceAddressState, WorkspaceUnitAddress
 export type { CompanyInformation } from './company'
 export type { PaymentFormState, PaymentMethod } from './payment'
 export type { Position, PositionFormValues } from './position'
-export type { NrsRow } from './nrs'
+export type { NrsRow } from './regulatoryStandards'
+export type { Manager, ManagerDetailsValues, ManagerInviteValues } from './manager'
+
 export type { ComplianceOverview, ComplianceSlice, ComplianceStatus, QuickAction, QuickActionColor, SummaryStat } from './home'

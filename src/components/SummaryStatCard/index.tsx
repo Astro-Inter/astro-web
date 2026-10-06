@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import AstroIcon from '../AstroIcon'
+import AstroIcon from '../astroIcon'
 import type { SummaryStat } from '../../types/home'
 
 interface SummaryStatCardProps {

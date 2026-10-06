@@ -1,5 +1,5 @@
-import AppModal from '../AppModal'
-import AstroIcon from '../AstroIcon'
+import AppModal from '../appModal'
+import AstroIcon from '../astroIcon'
 import { notificationKindAppearance } from '../../data/notifications'
 import type { AppNotification } from '../../types/notification'
 

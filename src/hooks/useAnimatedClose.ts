@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { getPopupDuration, type PopupMotionKind } from '../utils/popupMotion'
 
-export function useAnimatedClose(duration = 180) {
+export function useAnimatedClose(duration: number | PopupMotionKind = 'popover') {
   const [closing, setClosing] = useState(false)
   const closingRef = useRef(false)
   const timeoutRef = useRef<number | null>(null)
@@ -19,7 +20,7 @@ export function useAnimatedClose(duration = 180) {
       closingRef.current = false
       setClosing(false)
       onFinished()
-    }, duration)
+    }, typeof duration === 'number' ? duration : getPopupDuration(duration))
   }, [duration])
 
   useEffect(() => () => {

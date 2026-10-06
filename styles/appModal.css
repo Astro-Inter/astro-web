@@ -1,0 +1,103 @@
+:is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal) {
+  --astro-modal-content-gap: 1.35rem;
+  --astro-modal-actions-gap: 1.45rem;
+  --astro-modal-inline-gap: .9rem;
+  /* A caixa do título tem 27,33px após line-height 1,2 e zoom do popup. */
+  --astro-heading-font-size-base: calc(27.33px / 1.2 / var(--astro-popup-zoom));
+  /* 203,85px visíveis com o zoom de 0,81 e fonte raiz de 16px. */
+  --astro-compact-action-width-base: calc(12.740625rem / 0.81);
+}
+
+.astro-modal {
+  --astro-modal-default-width: 44.25rem;
+  --astro-modal-padding-inline: 3.75rem;
+  --astro-modal-field-width: calc(var(--astro-modal-default-width) - 2 * var(--astro-modal-padding-inline));
+  position: fixed;
+  inset: 0;
+  width: min(var(--astro-modal-width, var(--astro-modal-default-width)), calc((100vw - 2rem) / var(--astro-popup-zoom)));
+  height: fit-content;
+  max-height: calc((100dvh - 2rem) / var(--astro-popup-zoom));
+  margin: auto;
+  overflow: auto;
+  padding: 2.75rem var(--astro-modal-padding-inline);
+  border: 0;
+  border-radius: 0.625rem;
+  color: var(--astro-text);
+  background: #332754;
+  box-shadow: 0 16px 44px rgb(0 0 0 / 22%);
+  font-family: "Montserrat", sans-serif;
+  zoom: var(--astro-popup-zoom);
+}
+
+.astro-modal[open] { animation: astro-popup-in var(--astro-popup-duration) ease both; }
+:is(.charge-explanation-modal, .spreadsheet-explanation-modal)[open] {
+  animation: astro-popup-in var(--astro-popup-duration) ease both;
+}
+
+.astro-modal::after { position: absolute; z-index: 5; inset: 0; border-radius: inherit; background: rgb(0 0 0 / 22%); content: ''; pointer-events: none; opacity: 0; transition: opacity var(--astro-popup-duration) ease; }
+.astro-modal--dimmed::after { opacity: 1; }
+.astro-modal::backdrop { background: rgb(0 0 0 / 25%); animation: astro-popup-in var(--astro-popup-duration) ease both; }
+:is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open] { pointer-events: none; animation: astro-popup-out var(--astro-popup-duration) ease both; }
+:is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open]::backdrop { animation: astro-popup-out var(--astro-popup-duration) ease both; }
+.astro-modal-title { margin: 0; font-size: var(--astro-heading-font-size); font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; }
+.astro-modal-title:focus { outline: none; }
+/* Tipografia compartilhada pelos formulários de cargos e eventos. */
+.astro-modal :is(.position-dialog-field, .event-create-field) > :is(label, span),
+.astro-modal .position-dialog-label { color: #d3cfdd; font-size: var(--astro-label-font-size); font-weight: 400; line-height: 1.2; }
+.astro-modal :is(.position-dialog-field, .event-create-field) > input { font-family: inherit; font-size: var(--astro-control-font-size); font-weight: 400; }
+:is(.nrs-dialog-subtitle, .event-create-description) { color: #c4bdd4; font-size: var(--astro-subtitle-font-size); font-weight: 400; line-height: 1.3; }
+.astro-modal-actions { display: flex; justify-content: center; gap: var(--astro-modal-inline-gap); margin-top: var(--astro-modal-actions-gap); }
+.astro-modal-actions > button { flex: 0 1 var(--astro-compact-action-width); width: min(100%, var(--astro-compact-action-width)); min-width: 0; max-width: var(--astro-compact-action-width); min-height: var(--astro-action-height); margin: 0; }
+.charge-explanation-confirm,
+.spreadsheet-explanation-confirm { width: min(100%, var(--astro-compact-action-width)); max-width: var(--astro-compact-action-width); min-height: var(--astro-action-height); }
+.astro-modal-cancel { min-height: var(--astro-action-height); padding: 0 var(--astro-control-padding-inline); border: 0; border-radius: var(--astro-control-radius); color: var(--astro-text); background: #6d6891; font: inherit; font-size: var(--astro-action-font-size); font-weight: 600; cursor: pointer; transition: color 220ms ease, background 220ms ease; }
+.astro-modal-cancel:hover { background: #625d82; filter: none; }
+.astro-modal :is(.astro-modal-cancel, .astro-action):focus-visible { outline: none; box-shadow: inset 0 0 0 2px rgb(248 247 252 / 70%); }
+.astro-confirmation-modal { --astro-modal-width: 43.3rem; }
+.astro-confirmation-modal:is(.position-deactivation-modal, .create-forms-exit-modal) { --astro-modal-width: 50rem; }
+.astro-confirmation-modal[open] { animation: astro-popup-in var(--astro-popup-duration) ease both; }
+.astro-confirmation-modal .astro-modal-title { max-width: 31rem; }
+.astro-confirmation-modal:is(.position-deactivation-modal, .create-forms-exit-modal) .astro-modal-title { max-width: 39rem; }
+.astro-confirmation-error { margin: 1rem 0 0; color: #ffc4c8; font-size: 0.8rem; }
+.astro-confirmation-description { margin: var(--astro-modal-content-gap) 0 0; color: #c4bdd4; font-size: var(--astro-subtitle-font-size); line-height: 1.3; overflow-wrap: anywhere; }
+.position-dialog .astro-modal-title,
+.astro-confirmation-modal .astro-confirmation-title-text { font-size: var(--astro-heading-font-size); font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; }
+.astro-confirmation-modal--with-icon .astro-modal-title { display: flex; align-items: center; gap: 1rem; }
+.astro-confirmation-title-icon { display: flex; flex: none; }
+.astro-confirmation-title-text { display: block; min-width: 0; }
+.position-deactivation-icon { display: grid; place-items: center; width: 4.25rem; height: 4.25rem; flex: none; padding: 0.9rem; border-radius: 50%; background: #ffc8c8; }
+.position-deactivation-icon img { width: 2.45rem; height: 2.45rem; }
+.position-deactivation-modal .astro-action--danger { background: #eb6264; }
+.position-deactivation-modal .astro-action--danger:hover { background: #d95759; }
+
+
+
+
+
+
+
+
+
+@media (prefers-reduced-motion: reduce) {
+  .astro-modal::after { transition: none; }
+  :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open],
+  :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open]::backdrop,
+  .astro-modal[open], .astro-modal::backdrop { animation: none; }
+}
+
+@media (max-width: 480px) {
+  .astro-modal { --astro-modal-padding-inline: 1.5rem; padding: 1.5rem; }
+  .astro-modal-actions { flex-direction: column-reverse; align-items: stretch; }
+  .astro-modal-actions > button { flex: none; width: 100%; max-width: none; }
+}
+
+.astro-modal[data-backdrop="transparent"]::backdrop { background: transparent; animation: none; }
+
+/* Mesma curva e mesmo efeito para entrada e saída de todas as superfícies. */
+@keyframes astro-popup-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes astro-popup-out { from { opacity: 1; } to { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal)[open],
+  :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal)[open]::backdrop { animation: none; }
+}

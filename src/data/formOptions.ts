@@ -1,4 +1,4 @@
-import { defaultNrsRows } from './nrs'
+import { defaultNrsRows } from './regulatoryStandards'
 
 export const managerOptions = [
   { value: '', label: 'Selecione o gestor', tone: 'muted' as const },
