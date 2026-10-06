@@ -15,3 +15,14 @@
 .astro-options-popup[id^="manager-actions-"] { width: calc(16.75rem * var(--astro-popup-zoom)); }
 
 .astro-modal.invite-manager-dialog .position-dialog-field > [role="alert"] { color: #eb6264; }
+.astro-modal.invite-manager-dialog .astro-toolbar-select-trigger {
+  padding-inline: var(--astro-control-padding-inline) var(--astro-control-chevron-padding-end);
+}
+
+@media (max-width: 480px) {
+  .main-manager-screen .position-toolbar-selects > .astro-toolbar-select {
+    flex: 1;
+    width: 0;
+    min-width: 0;
+  }
+}

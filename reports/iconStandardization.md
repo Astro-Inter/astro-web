@@ -89,3 +89,29 @@ O alerta é ampliado para 31,75 px no popup; o traço antigo resultava em aproxi
 Após conferência visual do usuário, o traço não escalável do alerta foi ajustado de 2,3184 para 2,8 px antes do zoom do modal, para um peso intermediário (aproximadamente 2,27 px no popup).
 
 Novo ajuste solicitado para o alerta: traço não escalável de 3,6 px antes do zoom do modal (aproximadamente 2,92 px no popup).
+
+## Revisão dos ícones da home e das notificações
+
+- Conferidos 14 SVGs: bell, personPlus, documentLines, warningCircle, building, collaborators, eventCalendar, compliance, addPurple, home, managers, settings, positions e report. Todos usam viewBox 24 × 24 e traço efetivo de 2,576 unidades (diferença máxima de arredondamento: 0,000002).
+- personPlus foi centralizado com translate(-1, -0.5). O desenho ocupa x=2…22 e y=2,5…21,5; incluindo metade do traço, fica inteiramente dentro da grade.
+- Sino permanece maior por solicitação do usuário. Seu caminho usa non-scaling-stroke para manter 2,576 px de espessura ao ampliar a caixa, aproximando o peso dos ícones grandes dos cards.
+- No navegador, os três ícones das ações rápidas medem 23,75 × 23,75 px. Os três ícones de notificações medem 21,375 × 21,375 px: exatamente 10% menores.
+- Ícones de total e de adicionar nos botões usam o tamanho médio compartilhado, 19,4375 × 19,4375 px.
+- Validados 320, 390, 768 e 1440 px: imagens carregadas, caixas uniformes e popup sem overflow horizontal.
+- Hover de Ver dashboards suavizado para #35245c sobre a superfície #392663; confirmado com o estado :hover real no navegador.
+- Revisão dos URLs atualizada para homeIconReview1, incluindo as máscaras CSS, para renovar o cache dos desenhos.
+
+### Ajuste visual após imagens do usuário
+
+- Alerta branco das notificações: raio externo geométrico reduzido de 10 para 9 unidades; área visível com traço reduzida de 22,576 para 20,576 unidades (aproximadamente 8,86%), mantendo traço 2,576 e centro 12 × 12.
+- Na referência ampliada de adicionar colaborador, o branco estava 1,5 px à esquerda e 2 px acima do centro do quadrado rosa. Aplicada compensação óptica adicional de +0,375 e +0,5 unidades; o transform final é translate(-0.625, 0).
+- As caixas dos três ícones de ações rápidas foram verificadas no DOM: diferenças dos centros horizontais/verticais inferiores a 0,001 px.
+- Conteúdo da home centralizado no espaço principal: margem superior e inferior de aproximadamente 99,69 px no viewport 1440 × 900, com margens laterais iguais.
+- Revisão dos URLs atualizada para homeIconReview2.
+
+### Correção após esclarecimento sobre o alerta
+
+- O usuário esclareceu que o alerta parecia pequeno. Revertida a redução do raio e aplicado tamanho de caixa 12% maior somente ao alerta. O SVG usa traço 2,3: multiplicado por 1,12, mantém o peso equivalente a 2,576 dos outros ícones.
+- Símbolo de adicionar colaborador reposicionado diretamente nas coordenadas da grade, sem transform. Verificado no SVG renderizado: união dos limites de círculo e path em x=2…22, y=2…22; centro geométrico exato em 12 × 12.
+- No popup, alerta medido em 23,95 px e demais ícones em 21,375 px. Todos centralizados nos quadrados, com diferença inferior a 0,007 px causada por arredondamento de layout.
+- Revisão de cache atual: homeIconReview3.

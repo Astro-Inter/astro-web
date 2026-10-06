@@ -2,7 +2,7 @@ import { Route, Routes, useLocation, type Location } from 'react-router-dom'
 import { lazy, Suspense, useEffect, useRef, useState, useTransition } from 'react'
 import { flushSync } from 'react-dom'
 
-const MainHomeScreenPage = lazy(() => import('../pages/MainHomeScreen'))
+const MainHomeScreenPage = lazy(() => import('../pages/mainHomeScreen'))
 const AccessKeyVerifiedPage = lazy(() => import('../pages/accessKeyVerified'))
 const loadAttachExcelFile = () => import('../pages/attachExcelFile')
 const AttachExcelFilePage = lazy(loadAttachExcelFile)

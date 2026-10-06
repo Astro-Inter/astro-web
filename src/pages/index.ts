@@ -17,4 +17,4 @@ export { default as CreateFormPage } from './createForm'
 export { default as EditFormPage } from './editForm'
 export { default as MainManagerScreenPage } from './mainManagerScreen'
 
-export { default as MainHomeScreenPage } from './MainHomeScreen'
+export { default as MainHomeScreenPage } from './mainHomeScreen'

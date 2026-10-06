@@ -1,5 +1,5 @@
 import CompactPurpleButton from '../compactPurpleButton'
-import ComplianceDonutChart from '../ComplianceDonutChart'
+import ComplianceDonutChart from '../complianceDonutChart'
 import type { ComplianceOverview } from '../../types/home'
 
 interface ComplianceOverviewCardProps {

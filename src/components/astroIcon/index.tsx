@@ -91,10 +91,10 @@ const iconFiles: Record<AstroIconName, { file: string; width: number; height: nu
   'file-plus': { file: 'addFile.svg', width: 24, height: 24 },
   warning: { file: 'warning.svg', width: 24, height: 24 },
   distribution: { file: 'distribution.svg', width: 24, height: 24 },
-  bell: { file: 'bell.svg', width: 38, height: 42 },
-  'person-plus': { file: 'personPlus.svg', width: 36, height: 35 },
-  'document-lines': { file: 'documentLines.svg', width: 35, height: 35 },
-  'warning-circle': { file: 'warningCircle.svg', width: 35, height: 35 },
+  bell: { file: 'bell.svg', width: 24, height: 24 },
+  'person-plus': { file: 'personPlus.svg', width: 24, height: 24 },
+  'document-lines': { file: 'documentLines.svg', width: 24, height: 24 },
+  'warning-circle': { file: 'warningCircle.svg', width: 24, height: 24 },
   reload: { file: 'reload.svg', width: 24, height: 24 },
 }
 

@@ -18,7 +18,7 @@ function MainHomeScreenPage() {
               <h1 id="home-title">Bem-vindo, {mockUserName}!</h1>
               <p>Administre acessos, acompanhe a atuação e gerencie os responsáveis por cada função no seu sistema.</p>
             </div>
-            <NotificationButton onClick={() => setNotificationsOpen(true)} />
+            <NotificationButton expanded={notificationsOpen} onClick={() => setNotificationsOpen(true)} />
           </header>
 
           <section aria-labelledby="home-dashboards-title" className="home-section">

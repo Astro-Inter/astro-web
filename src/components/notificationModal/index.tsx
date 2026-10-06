@@ -34,7 +34,15 @@ function NotificationModal({ notifications, onClose }: NotificationModalProps) {
         )}
 
         <div className="astro-modal-actions">
-          <button className="astro-modal-cancel" onClick={dismiss} type="button">Voltar</button>
+          <button
+            className="astro-modal-cancel"
+            onClick={dismiss}
+            onKeyDown={(event) => {
+              // É o único controle do popup; Tab e Shift+Tab mantêm o foco nele.
+              if (event.key === 'Tab') event.preventDefault()
+            }}
+            type="button"
+          >Voltar</button>
         </div>
       </>}
     </AppModal>

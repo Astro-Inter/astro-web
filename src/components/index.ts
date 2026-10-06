@@ -36,14 +36,14 @@ export { default as ManagerIdentity } from './managerIdentity'
 export { default as InviteManagerDialog } from './inviteManagerDialog'
 export { default as ManagerDetailsModal } from './managerDetailsModal'
 
-export { default as NotificationButton } from './NotificationButton'
+export { default as NotificationButton } from './notificationButton'
 
-export { default as ComplianceDonutChart } from './ComplianceDonutChart'
+export { default as ComplianceDonutChart } from './complianceDonutChart'
 
-export { default as ComplianceOverviewCard } from './ComplianceOverviewCard'
+export { default as ComplianceOverviewCard } from './complianceOverviewCard'
 
-export { default as SummaryStatCard } from './SummaryStatCard'
+export { default as SummaryStatCard } from './summaryStatCard'
 
-export { default as QuickActionCard } from './QuickActionCard'
+export { default as QuickActionCard } from './quickActionCard'
 
-export { default as NotificationModal } from './NotificationModal'
+export { default as NotificationModal } from './notificationModal'

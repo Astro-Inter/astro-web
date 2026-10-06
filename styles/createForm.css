@@ -106,7 +106,7 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
 .create-forms-option-link-label { display: block; line-height: 1; }
 .create-forms-option-links button:hover { color: #c4bdd4; }
 .create-forms-option-links button:disabled { color: #aaa6b8; cursor: default; opacity: 0.55; }
-.create-forms-option-link-icon { display: block; flex: none; width: var(--astro-icon-md); height: var(--astro-icon-md); background-color: currentColor; -webkit-mask: url('/icons/addPurple.svg?v=weightMinus8WarningBold') center / contain no-repeat; mask: url('/icons/addPurple.svg?v=weightMinus8WarningBold') center / contain no-repeat; }
+.create-forms-option-link-icon { display: block; flex: none; width: var(--astro-icon-md); height: var(--astro-icon-md); background-color: currentColor; -webkit-mask: url('/icons/addPurple.svg?v=homeIconReview5') center / contain no-repeat; mask: url('/icons/addPurple.svg?v=homeIconReview5') center / contain no-repeat; }
 .create-forms-add-question { transition: color 220ms ease; }
 .create-forms-add-question:hover { color: #c4bdd4; }
 .create-forms-option-links button:focus-visible, .create-forms-add-question:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 4px; }
