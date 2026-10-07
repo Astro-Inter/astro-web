@@ -16,3 +16,4 @@ export { default as MainWorkspaceSettingsScreenPage } from './mainWorkspaceSetti
 export { default as CreateFormPage } from './createForm'
 export { default as EditFormPage } from './editForm'
 export { default as MainManagerScreenPage } from './mainManagerScreen'
+export { default as MainEmployeerScreenPage } from './mainEmployeerScreen'
