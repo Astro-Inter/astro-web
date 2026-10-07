@@ -29,7 +29,7 @@ html.settings-tab-transition::view-transition-new(settings-content) { animation:
   grid-template-columns: repeat(2, minmax(0, 1fr));
   width: min(100%, calc(42rem * var(--astro-scale)));
   gap: calc(1rem * var(--astro-scale));
-  margin: 0 auto calc(3.5rem * var(--astro-scale));
+  margin: 0 auto calc(var(--create-forms-outer-gap) + 0.75rem * var(--astro-scale));
   padding: calc(.75rem * var(--astro-scale)) calc(1.5rem * var(--astro-scale));
   border: 0;
   border-radius: 999px;
@@ -77,7 +77,6 @@ html.settings-tab-transition::view-transition-new(settings-content) { animation:
 
 @media (max-width: 480px) {
   .workspace-settings-content { --workspace-settings-heading-size: min(var(--astro-heading-font-size), calc(1.8rem * var(--astro-scale))); }
-  .workspace-settings-tabs { margin-bottom: calc(2.5rem * var(--astro-scale)); }
   .workspace-settings-tabs button { font-size: calc(1.05rem * var(--astro-scale)); }
 }
 
@@ -97,7 +96,7 @@ html.settings-tab-transition::view-transition-new(settings-content) { animation:
 }
 
 @media (max-width: 600px) {
-  .workspace-settings-tabs { gap: 0.5rem; padding: 0.5rem; margin-bottom: 2rem; }
+  .workspace-settings-tabs { gap: 0.5rem; padding: 0.5rem; }
   .workspace-settings-tabs button { min-height: 2.75rem; padding-inline: 0.75rem; font-size: 1rem; }
   .workspace-settings-content { --workspace-settings-heading-size: 1.5rem; }
   .workspace-settings-rows { gap: 1.5rem; }

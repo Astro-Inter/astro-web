@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, useRef, useState, useTransition } from 'reac
 import { flushSync } from 'react-dom'
 
 const MainHomeScreenPage = lazy(() => import('../pages/mainHomeScreen'))
+const MainDashboardsScreenPage = lazy(() => import('../pages/mainDashboardsScreen'))
 const AccessKeyVerifiedPage = lazy(() => import('../pages/accessKeyVerified'))
 const loadAttachExcelFile = () => import('../pages/attachExcelFile')
 const AttachExcelFilePage = lazy(loadAttachExcelFile)
@@ -142,6 +143,7 @@ function AppRoutes() {
       <Routes location={displayedLocation}>
         <Route path="/" element={<LoginPage />} />
         <Route path="/mainHomeScreen" element={<MainHomeScreenPage />} />
+        <Route path="/mainDashboardsScreen" element={<MainDashboardsScreenPage />} />
         <Route path="/paymentMethod" element={<PaymentMethodPage />} />
         <Route path="/createWorkspace" element={<CreateWorkspacePage />} />
         <Route path="/accessKeyVerified" element={<AccessKeyVerifiedPage />} />

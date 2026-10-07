@@ -12,7 +12,7 @@
 .create-forms-card { --create-forms-card-padding: clamp(1.5rem, 4vw, 3rem); --create-forms-stack-gap: calc(clamp(0.75rem, 1.04vw, 0.95rem) * var(--astro-scale)); min-width: 0; padding: var(--create-forms-card-padding); border-radius: calc(0.75rem * var(--astro-scale)); background: #332754; }
 .create-forms-question-card { padding-top: calc(var(--create-forms-card-padding) - 0.45rem * var(--astro-scale)); }
 .create-forms-card + .create-forms-card, .create-forms-questions > div { margin-top: var(--create-forms-section-gap); }
-.create-forms-card h2 { margin: 0 0 calc(1.5rem * var(--astro-scale)); color: #f6f6f6; font-size: calc(1.55rem * var(--astro-scale)); font-weight: 600; line-height: 1.25; }
+.create-forms-card h2, .create-forms-main .astro-card-title { margin: 0 0 calc(1.5rem * var(--astro-scale)); color: #f6f6f6; font-size: calc(1.55rem * var(--astro-scale)); font-weight: 600; line-height: 1.25; }
 .create-forms-field { display: flex; flex-direction: column; gap: var(--astro-field-gap); min-width: 0; }
 .create-forms-field + .create-forms-field { margin-top: var(--create-forms-stack-gap); }
 .create-forms-field label, .create-forms-label { color: #d3cfdd; font-size: var(--astro-label-font-size); font-weight: 400; line-height: 1.2; }
@@ -176,7 +176,7 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
   .create-forms-main { margin-top: calc(1.75rem * var(--astro-scale)); }
   .create-forms-main h1 { margin-bottom: calc(1.25rem * var(--astro-scale)); font-size: min(var(--astro-heading-font-size), calc(1.8rem * var(--astro-scale))); }
   .create-forms-card { --create-forms-card-padding: clamp(1rem, 4vw, 1.5rem); }
-  .create-forms-card h2 { margin-bottom: calc(1.1rem * var(--astro-scale)); font-size: calc(1.35rem * var(--astro-scale)); }
+  .create-forms-card h2, .create-forms-main .astro-card-title { margin-bottom: calc(1.1rem * var(--astro-scale)); font-size: calc(1.35rem * var(--astro-scale)); }
   .create-forms-question-card { padding-top: calc(var(--create-forms-card-padding) - 0.3rem * var(--astro-scale)); }
   .create-forms-question-header { align-items: center; gap: calc(0.5rem * var(--astro-scale)); }
   .create-forms-question-header h2 { margin-bottom: calc(1rem * var(--astro-scale)); overflow-wrap: anywhere; }
@@ -254,7 +254,7 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
   .create-forms-header > .astro-brand { transform: none; }
   .create-forms-main h1 { font-size: 1.5rem; }
   .create-forms-card { --create-forms-card-padding: 1rem; --create-forms-stack-gap: 1rem; }
-  .create-forms-card h2 { font-size: 1.125rem; }
+  .create-forms-card h2, .create-forms-main .astro-card-title { font-size: 1.125rem; }
   .create-forms-question-header h2 { margin: 0; }
   .create-forms-field label,
   .create-forms-label,

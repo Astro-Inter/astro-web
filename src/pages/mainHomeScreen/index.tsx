@@ -24,7 +24,7 @@ function MainHomeScreenPage() {
           <section aria-labelledby="home-dashboards-title" className="home-section">
             <h2 id="home-dashboards-title">Dashboards</h2>
             <div className="home-dashboards">
-              <ComplianceOverviewCard overview={mockComplianceOverview} />
+              <ComplianceOverviewCard overview={mockComplianceOverview} onViewDashboards={() => navigate('/mainDashboardsScreen')} />
               <div className="home-summary">
                 {mockSummaryStats.map((stat) => <SummaryStatCard key={stat.id} stat={stat} />)}
               </div>

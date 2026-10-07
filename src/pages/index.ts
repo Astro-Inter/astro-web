@@ -18,3 +18,4 @@ export { default as EditFormPage } from './editForm'
 export { default as MainManagerScreenPage } from './mainManagerScreen'
 
 export { default as MainHomeScreenPage } from './mainHomeScreen'
+export { default as MainDashboardsScreenPage } from './mainDashboardsScreen'
