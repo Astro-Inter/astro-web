@@ -27,7 +27,7 @@ function MainWorkspaceSettingsScreenPage() {
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const navigationState = location.state as WorkspaceSettingsNavigationState | null
   const from = navigationState?.from
-  const returnPath = from && ['/mainPositionScreen', '/mainFormScreen', '/mainEventScreen'].includes(from) ? from : '/mainEventScreen'
+  const returnPath = from && ['/mainHomeScreen', '/mainManagerScreen', '/mainPositionScreen', '/mainFormScreen', '/mainEventScreen'].includes(from) ? from : '/mainEventScreen'
 
   function closePassword() {
     setSection(null)

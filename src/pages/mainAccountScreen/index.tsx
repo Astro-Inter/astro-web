@@ -25,7 +25,7 @@ function MainAccountScreenPage() {
   const [emailPreview, setEmailPreview] = useState(false)
   const triggerIdRef = useRef('')
   const from = (location.state as WorkspaceSettingsNavigationState | null)?.from
-  const returnPath = from && ['/mainPositionScreen', '/mainFormScreen', '/mainEventScreen'].includes(from) ? from : '/mainEventScreen'
+  const returnPath = from && ['/mainHomeScreen', '/mainManagerScreen', '/mainPositionScreen', '/mainFormScreen', '/mainEventScreen'].includes(from) ? from : '/mainEventScreen'
 
   useEffect(() => () => {
     if (profile.photoUrl?.startsWith('blob:')) URL.revokeObjectURL(profile.photoUrl)

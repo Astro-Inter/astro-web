@@ -2,6 +2,8 @@ import { Route, Routes, useLocation, type Location } from 'react-router-dom'
 import { lazy, Suspense, useEffect, useRef, useState, useTransition } from 'react'
 import { flushSync } from 'react-dom'
 
+const MainHomeScreenPage = lazy(() => import('../pages/mainHomeScreen'))
+const MainDashboardsScreenPage = lazy(() => import('../pages/mainDashboardsScreen'))
 const AccessKeyVerifiedPage = lazy(() => import('../pages/accessKeyVerified'))
 const loadAttachExcelFile = () => import('../pages/attachExcelFile')
 const AttachExcelFilePage = lazy(loadAttachExcelFile)
@@ -140,6 +142,8 @@ function AppRoutes() {
     <div className={`astro-route-transition${tabChange ? ' astro-route-transition--tab-change' : ''}${isSettingsLocation(displayedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={displayedLocation.key} ref={routeRef}>
       <Routes location={displayedLocation}>
         <Route path="/" element={<LoginPage />} />
+        <Route path="/mainHomeScreen" element={<MainHomeScreenPage />} />
+        <Route path="/mainDashboardsScreen" element={<MainDashboardsScreenPage />} />
         <Route path="/paymentMethod" element={<PaymentMethodPage />} />
         <Route path="/createWorkspace" element={<CreateWorkspacePage />} />
         <Route path="/accessKeyVerified" element={<AccessKeyVerifiedPage />} />
