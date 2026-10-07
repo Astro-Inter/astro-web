@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, DataTable, InviteEmployeeModal, ManagerIdentity, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, InviteEmployeeModal, ManagerDetailsModal, ManagerIdentity, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import type { DataTableColumn } from '../../components/dataTable'
+import PasswordConfirmationModal from '../../components/passwordConfirmationModal'
 import { mockEmployees } from '../../data/employees'
 import { useActionsMenu } from '../../hooks'
-import type { Employee, EmployeeInviteValues } from '../../types'
+import type { Employee, EmployeeInviteValues, ManagerDetailsValues } from '../../types'
+import { iconAsset } from '../../utils/iconAsset'
 
 const statusFilterOptions = [
   { value: '', label: 'Status', triggerLabel: 'Status', tone: 'muted' as const },
@@ -12,12 +14,19 @@ const statusFilterOptions = [
   { value: 'inactive', label: 'Inativo' },
 ]
 
+type EmployeeDialogState =
+  | { kind: 'view' | 'edit' | 'edit-password'; employee: Employee }
+  | { kind: 'confirm-edit'; employee: Employee; values: ManagerDetailsValues }
+  | { kind: 'deactivate'; employee: Employee }
+
 function MainEmployeerScreenPage() {
   const inviteOriginRef = useRef<HTMLButtonElement | null>(null)
   const savedTimerRef = useRef<number | null>(null)
   const [employees, setEmployees] = useState<Employee[]>(mockEmployees)
   const [filters, setFilters] = useState({ search: '', position: '', status: '' })
   const [inviteOpen, setInviteOpen] = useState(false)
+  const [dialog, setDialog] = useState<EmployeeDialogState | null>(null)
+  const [details, setDetails] = useState({ dimmed: false, closing: false })
   const [savedEmployeeId, setSavedEmployeeId] = useState<string | null>(null)
   const [feedback, setFeedback] = useState('')
   const actions = useActionsMenu()
@@ -51,14 +60,46 @@ function MainEmployeerScreenPage() {
       cpf: values.cpf,
       active: values.status === 'active',
     }])
+    showSavedEmployee(newEmployeeId, `Colaborador ${values.name} adicionado.`)
+    return null
+  }
+
+  function showSavedEmployee(employeeId: string, message: string) {
     if (savedTimerRef.current !== null) window.clearTimeout(savedTimerRef.current)
-    setSavedEmployeeId(newEmployeeId)
-    setFeedback(`Colaborador ${values.name} adicionado.`)
+    setSavedEmployeeId(employeeId)
+    setFeedback(message)
     savedTimerRef.current = window.setTimeout(() => {
       savedTimerRef.current = null
       setSavedEmployeeId(null)
     }, 900)
+  }
+
+  function checkDuplicateEmail(values: ManagerDetailsValues, employeeId: string): string | null {
+    const email = values.email.toLocaleLowerCase('pt-BR')
+    return employees.some((employee) => employee.id !== employeeId && employee.email.toLocaleLowerCase('pt-BR') === email)
+      ? 'Já existe um colaborador com esse e-mail.'
+      : null
+  }
+
+  function saveEmployee(employeeId: string, values: ManagerDetailsValues): string | null {
+    const duplicateError = checkDuplicateEmail(values, employeeId)
+    if (duplicateError) return duplicateError
+
+    setEmployees((current) => current.map((employee) => employee.id === employeeId ? { ...employee, ...values } : employee))
+    showSavedEmployee(employeeId, `Colaborador ${values.name} atualizado.`)
     return null
+  }
+
+  function toggleStatus(employee: Employee) {
+    setEmployees((current) => current.map((item) => item.id === employee.id ? { ...item, active: !item.active } : item))
+    showSavedEmployee(employee.id, `Colaborador ${employee.name} ${employee.active ? 'inativado' : 'ativado'}.`)
+  }
+
+  function closeDetails() {
+    if (dialog?.kind === 'confirm-edit') return
+    setDialog(null)
+    setDetails({ dimmed: false, closing: false })
+    actions.triggerRef.current?.focus()
   }
 
   function closeInvite() {
@@ -136,9 +177,12 @@ function MainEmployeerScreenPage() {
             id={`employee-actions-${openEmployee.id}`}
             items={[
               { id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
-              { id: 'view', label: 'Ver mais informações', separatorAfter: true, disabled: true, onSelect: () => undefined },
-              { id: 'edit', label: 'Editar', separatorAfter: true, disabled: true, onSelect: () => undefined },
-              { id: 'toggle-status', label: openEmployee.active ? 'Inativar' : 'Ativar', tone: openEmployee.active ? 'danger' : 'default', disabled: true, onSelect: () => undefined },
+              { id: 'view', label: 'Ver mais informações', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'view', employee: openEmployee })) },
+              { id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit-password', employee: openEmployee })) },
+              { id: 'toggle-status', label: openEmployee.active ? 'Inativar' : 'Ativar', tone: openEmployee.active ? 'danger' : 'default', onSelect: () => actions.close(() => {
+                if (openEmployee.active) setDialog({ kind: 'deactivate', employee: openEmployee })
+                else toggleStatus(openEmployee)
+              }) },
             ]}
             onClose={() => actions.close()}
             panelRef={actions.panelRef}
@@ -151,6 +195,78 @@ function MainEmployeerScreenPage() {
       </main>
 
       {inviteOpen && <InviteEmployeeModal onClose={closeInvite} onInvite={inviteEmployee} />}
+
+      {dialog?.kind === 'edit-password' && (
+        <PasswordConfirmationModal
+          className="textPasswotdAccount1ModalWeb"
+          onCancel={() => {
+            setDialog(null)
+            actions.triggerRef.current?.focus()
+          }}
+          onContinue={() => setDialog({ kind: 'edit', employee: dialog.employee })}
+        />
+      )}
+      {dialog && (dialog.kind === 'view' || dialog.kind === 'edit' || dialog.kind === 'confirm-edit') && (
+        <ManagerDetailsModal
+          dimmed={details.dimmed}
+          key={dialog.employee.id}
+          manager={dialog.employee}
+          mode={dialog.kind === 'view' ? 'view' : 'edit'}
+          onClose={closeDetails}
+          onSubmit={(values) => {
+            const error = checkDuplicateEmail(values, dialog.employee.id)
+            if (error) return error
+            setDetails((current) => ({ ...current, dimmed: true }))
+            setDialog({ kind: 'confirm-edit', employee: dialog.employee, values })
+            return null
+          }}
+          open={!details.closing}
+          positions={employees.map((employee) => employee.position)}
+          subject="colaborador"
+          units={employees.map((employee) => employee.unit)}
+        />
+      )}
+      {dialog?.kind === 'confirm-edit' && (
+        <ConfirmationModal
+          confirmCloseDelay={60}
+          confirmLabel="Salvar"
+          onCancel={() => {
+            setDetails((current) => ({ ...current, dimmed: false }))
+            setDialog({ kind: 'edit', employee: dialog.employee })
+          }}
+          onCancelRequest={() => setDetails((current) => ({ ...current, dimmed: false }))}
+          onConfirm={() => {
+            const error = saveEmployee(dialog.employee.id, dialog.values)
+            if (!error) setDetails((current) => ({ ...current, closing: true }))
+            return error
+          }}
+          onConfirmed={() => {
+            setDialog(null)
+            setDetails({ dimmed: false, closing: false })
+            requestAnimationFrame(() => actions.triggerRef.current?.focus())
+          }}
+          title="Deseja salvar as alterações deste colaborador?"
+        />
+      )}
+      {dialog?.kind === 'deactivate' && (
+        <ConfirmationModal
+          backdrop="dimmed"
+          className="position-deactivation-modal"
+          confirmLabel="Inativar"
+          icon={<span aria-hidden="true" className="position-deactivation-icon"><img alt="" src={iconAsset('warning.svg')} /></span>}
+          onCancel={() => {
+            setDialog(null)
+            actions.triggerRef.current?.focus()
+          }}
+          onConfirm={() => { toggleStatus(dialog.employee); return null }}
+          onConfirmed={() => {
+            setDialog(null)
+            requestAnimationFrame(() => actions.triggerRef.current?.focus())
+          }}
+          title="Tem certeza de que deseja inativar este colaborador?"
+          tone="danger"
+        />
+      )}
     </div>
   )
 }

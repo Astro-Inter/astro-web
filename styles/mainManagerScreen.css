@@ -13,8 +13,6 @@
 .manager-details-form-error { margin: 1rem 0 0; }
 
 .astro-options-popup:is([id^="manager-actions-"], [id^="employee-actions-"]) { width: calc(16.75rem * var(--astro-popup-zoom)); }
-.astro-options-popup[id^="employee-actions-"] .astro-options-popup-item--disabled { color: #f6f6f6; }
-.astro-options-popup[id^="employee-actions-"] .astro-options-popup-item--danger.astro-options-popup-item--disabled { color: #eb6264; }
 
 .astro-modal.invite-manager-dialog .position-dialog-field > [role="alert"] { color: #eb6264; }
 
