@@ -16,6 +16,7 @@ interface ChatState {
   messages: ChatMessage[]
   sessionId: string | null
   sessionStatus: ChatSessionStatus | null
+  openingSessionId: string | null
   busy: 'idle' | 'sending' | 'loading-history' | 'ending'
   error: string
 }
@@ -102,6 +103,7 @@ const initialChatState: ChatState = {
   messages: [],
   sessionId: null,
   sessionStatus: null,
+  openingSessionId: null,
   busy: 'idle',
   error: '',
 }
@@ -119,6 +121,7 @@ function AstroChat() {
   const [chat, setChat] = useState<ChatState>(initialChatState)
   const [sessionList, setSessionList] = useState<SessionListState>(initialSessionListState)
   const [authState, setAuthState] = useState<{ ready: boolean; authenticated: boolean }>({ ready: false, authenticated: false })
+  const historyVisible = authState.authenticated && sessionList.panelOpen
   const navigate = useNavigate()
   const [position, setPosition] = useState<ChatPosition | null>(null)
   const [launcherPosition, setLauncherPosition] = useState<ChatPosition | null>(null)
@@ -140,7 +143,7 @@ function AstroChat() {
     if (!user) {
       sessionListRequestRef.current.version += 1
       sessionListRequestRef.current.pending = false
-      setChat((current) => ({ ...current, messages: [], sessionId: null, sessionStatus: null, busy: 'idle' }))
+      setChat((current) => ({ ...current, messages: [], sessionId: null, sessionStatus: null, openingSessionId: null, busy: 'idle', error: '' }))
       setSessionList(initialSessionListState)
     }
   }), [])
@@ -217,8 +220,8 @@ function AstroChat() {
   }, [closing, finishClose])
 
   useEffect(() => {
-    if (chat.open) inputRef.current?.focus()
-  }, [chat.open])
+    if (chat.open && !historyVisible && chat.busy === 'idle') inputRef.current?.focus()
+  }, [chat.open, historyVisible, chat.busy])
 
   useEffect(() => {
     if (chat.messages.length > 0) messagesRef.current?.scrollTo({ top: messagesRef.current.scrollHeight })
@@ -449,12 +452,13 @@ function AstroChat() {
 
   async function selectSession(sessionId: string) {
     if (chat.busy !== 'idle') return
-    setChat((current) => ({ ...current, busy: 'loading-history', error: '' }))
+    setChat((current) => ({ ...current, busy: 'loading-history', openingSessionId: sessionId, error: '' }))
     try {
       const history = await getChatSessionMessages(sessionId)
       setChat((current) => ({
         ...current,
         busy: 'idle',
+        openingSessionId: null,
         sessionId,
         sessionStatus: history.status,
         messages: history.mensagens.map((message) => ({
@@ -465,7 +469,7 @@ function AstroChat() {
       }))
       setSessionList((current) => ({ ...current, panelOpen: false }))
     } catch (error: unknown) {
-      setChat((current) => ({ ...current, busy: 'idle', error: error instanceof Error ? error.message : 'Não foi possível abrir esta conversa.' }))
+      setChat((current) => ({ ...current, busy: 'idle', openingSessionId: null, error: error instanceof Error ? error.message : 'Não foi possível abrir esta conversa.' }))
     }
   }
 
@@ -482,9 +486,9 @@ function AstroChat() {
   }
 
   function startNewSession() {
+    if (chat.busy !== 'idle') return
     setChat((current) => ({ ...current, draft: '', messages: [], sessionId: null, sessionStatus: null, error: '' }))
     setSessionList((current) => ({ ...current, panelOpen: false }))
-    inputRef.current?.focus()
   }
 
   const chatSize = chat.open ? getChatSize(chat.expanded) : null
@@ -507,13 +511,17 @@ function AstroChat() {
             <span className="astro-chat-header-title">Astro IA</span>
             <button
               aria-expanded={sessionList.panelOpen}
-              aria-label={sessionList.panelOpen ? 'Fechar histórico de conversas' : 'Abrir histórico de conversas'}
+              aria-label={sessionList.panelOpen ? 'Voltar à conversa' : 'Abrir histórico de conversas'}
+              aria-controls={historyVisible ? 'astro-chat-sessions' : undefined}
               className="astro-chat-header-button astro-chat-history-toggle"
-              disabled={!authState.ready || !authState.authenticated}
-              onClick={() => setSessionList((current) => ({ ...current, panelOpen: !current.panelOpen }))}
+              disabled={!authState.ready || !authState.authenticated || chat.busy !== 'idle'}
+              onClick={() => {
+                setChat((current) => ({ ...current, error: '' }))
+                setSessionList((current) => ({ ...current, panelOpen: !current.panelOpen }))
+              }}
               type="button"
-            >Histórico</button>
-            {chat.sessionId && (chat.sessionStatus === 'ativa' || chat.sessionStatus === 'encerrando') && (
+            >{historyVisible ? 'Voltar' : 'Histórico'}</button>
+            {!historyVisible && chat.sessionId && (chat.sessionStatus === 'ativa' || chat.sessionStatus === 'encerrando') && (
               <button aria-label="Encerrar conversa" className="astro-chat-header-button astro-chat-end-session" disabled={chat.busy !== 'idle'} onClick={closeSession} type="button">{chat.sessionStatus === 'encerrando' ? 'Finalizar' : 'Encerrar'}</button>
             )}
             <button
@@ -530,7 +538,7 @@ function AstroChat() {
             </button>
           </header>
 
-          <div className="astro-chat-body" ref={messagesRef}>
+          <div className={`astro-chat-body${historyVisible ? ' astro-chat-body--history' : ''}`} ref={messagesRef}>
             {!authState.ready ? (
               <p aria-live="polite" className="astro-chat-auth-message">Verificando seu acesso…</p>
             ) : !authState.authenticated ? (
@@ -540,6 +548,7 @@ function AstroChat() {
               </div>
             ) : sessionList.panelOpen ? (
               <AstroChatSessions
+                disabled={chat.busy !== 'idle'}
                 error={sessionList.error}
                 loading={sessionList.loading}
                 nextCursor={sessionList.nextCursor}
@@ -547,7 +556,9 @@ function AstroChat() {
                 onLoadMore={() => { void loadSessions(sessionList.nextCursor, true) }}
                 onRetry={() => { void loadSessions(sessionList.failedCursor, sessionList.failedCursor !== null) }}
                 onSelect={(sessionId) => { void selectSession(sessionId) }}
+                openingSessionId={chat.openingSessionId}
                 selectedSessionId={chat.sessionId}
+                selectionError={chat.error}
                 sessions={sessionList.sessions}
               />
             ) : chat.messages.length === 0 ? (
@@ -571,12 +582,12 @@ function AstroChat() {
                 {chat.busy === 'sending' && <p aria-live="polite" className="astro-chat-loading">A IA está preparando uma resposta…</p>}
               </div>
             )}
-            {chat.busy === 'loading-history' && <p aria-live="polite" className="astro-chat-loading">Carregando conversa…</p>}
-            {chat.busy === 'ending' && <p aria-live="polite" className="astro-chat-loading">Encerrando conversa…</p>}
-            {chat.error && <p className="astro-chat-error" role="alert">{chat.error}</p>}
+            {!historyVisible && chat.busy === 'loading-history' && <p aria-live="polite" className="astro-chat-loading">Carregando conversa…</p>}
+            {!historyVisible && chat.busy === 'ending' && <p aria-live="polite" className="astro-chat-loading">Encerrando conversa…</p>}
+            {!historyVisible && chat.error && <p className="astro-chat-error" role="alert">{chat.error}</p>}
           </div>
 
-          <form className="astro-chat-form" onSubmit={(event) => { event.preventDefault(); sendMessage(chat.draft) }}>
+          {!historyVisible && <form className="astro-chat-form" onSubmit={(event) => { event.preventDefault(); sendMessage(chat.draft) }}>
             <label className="sr-only" htmlFor="astro-chat-input">Digite sua mensagem</label>
             <input
               autoComplete="off"
@@ -592,7 +603,7 @@ function AstroChat() {
             <button aria-label="Enviar mensagem" disabled={!authState.authenticated || chat.busy !== 'idle' || !chat.draft.trim()} type="submit">
               <img alt="" height="62" src={iconAsset('sendMessage.svg')} width="62" />
             </button>
-          </form>
+          </form>}
         </section>
       ) : (
         <button

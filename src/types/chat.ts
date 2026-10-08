@@ -20,6 +20,11 @@ export interface ChatSessionListResponse {
   next_cursor: string | null
 }
 
+export interface ChatSessionGroup {
+  label: string
+  sessions: ChatSessionSummary[]
+}
+
 export interface ChatSessionMessage {
   content: string
   role: 'user' | 'assistant'
