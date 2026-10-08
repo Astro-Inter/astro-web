@@ -16,12 +16,14 @@ const IncludeCompanyInformationPage = lazy(loadCompanyInformation)
 const LoadingScreenPage = lazy(() => import('../pages/loadingScreen'))
 const LoginPage = lazy(() => import('../pages/login'))
 const loadManagers = () => import('../pages/mainManagerScreen')
+const loadEmployees = () => import('../pages/mainEmployeerScreen')
 const loadPositions = () => import('../pages/mainPositionScreen')
 const loadForms = () => import('../pages/mainFormScreen')
 const loadEvents = () => import('../pages/mainEventScreen')
 const loadWorkspaceSettings = () => import('../pages/mainWorkspaceSettingsScreen')
 const loadAccountSettings = () => import('../pages/mainAccountScreen')
 const MainManagerScreenPage = lazy(loadManagers)
+const MainEmployeerScreenPage = lazy(loadEmployees)
 const MainPositionScreenPage = lazy(loadPositions)
 const MainFormScreenPage = lazy(loadForms)
 const MainEventScreenPage = lazy(loadEvents)
@@ -45,6 +47,7 @@ const settingsRouteLoaders: Record<string, () => Promise<unknown>> = {
   '/setAddress': loadSetAddress,
   '/paymentMethod': loadPaymentMethod,
   '/mainManagerScreen': loadManagers,
+  '/mainEmployeerScreen': loadEmployees,
   '/mainPositionScreen': loadPositions,
   '/mainFormScreen': loadForms,
   '/mainEventScreen': loadEvents,
@@ -154,6 +157,7 @@ function AppRoutes() {
         <Route path="/setAddress" element={<SetAddressPage />} />
         <Route path="/workspaceCreated" element={<WorkspaceCreatedPage />} />
         <Route path="/mainManagerScreen" element={<MainManagerScreenPage />} />
+        <Route path="/mainEmployeerScreen" element={<MainEmployeerScreenPage />} />
         <Route path="/mainPositionScreen" element={<MainPositionScreenPage />} />
         <Route path="/mainFormScreen" element={<MainFormScreenPage />} />
         <Route path="/mainEventScreen" element={<MainEventScreenPage />} />

@@ -22,10 +22,11 @@ interface ManagerDetailsModalProps {
   onSubmit: (values: ManagerDetailsValues) => string | null
   open?: boolean
   positions: readonly string[]
+  subject?: 'gestor' | 'colaborador'
   units: readonly string[]
 }
 
-function ManagerDetailsModal({ dimmed = false, manager, mode, onClose, onSubmit, open = true, positions, units }: ManagerDetailsModalProps) {
+function ManagerDetailsModal({ dimmed = false, manager, mode, onClose, onSubmit, open = true, positions, subject = 'gestor', units }: ManagerDetailsModalProps) {
   const editable = mode === 'edit'
   const [values, setValues] = useState<ManagerDetailsValues>({ name: manager.name, email: manager.email, cpf: manager.cpf, unit: manager.unit, position: manager.position, modality: manager.modality, active: manager.active })
   const [errors, setErrors] = useState<ManagerDetailsValidationErrors>({})
@@ -57,7 +58,7 @@ function ManagerDetailsModal({ dimmed = false, manager, mode, onClose, onSubmit,
   }
 
   return (
-    <AppModal className="account-details-modal manager-details-modal" dimmed={dimmed} onClose={onClose} open={open} title={editable ? 'Editar gestor' : 'Informações do gestor'}>
+    <AppModal className="account-details-modal manager-details-modal" dimmed={dimmed} onClose={onClose} open={open} title={editable ? `Editar ${subject}` : `Informações do ${subject}`}>
       {(dismiss) => <form className="account-details-form" noValidate onSubmit={handleSubmit}>
         <div className="account-profile-header">
           <div className="account-profile-photo"><span aria-hidden="true" className="manager-avatar manager-avatar--large">{getInitials(manager.name)}</span></div>

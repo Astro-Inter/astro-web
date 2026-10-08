@@ -12,7 +12,7 @@
 .manager-details-modal .field-group:has(> [role="alert"]) .password-input input { border-color: #eb6264; }
 .manager-details-form-error { margin: 1rem 0 0; }
 
-.astro-options-popup[id^="manager-actions-"] { width: calc(16.75rem * var(--astro-popup-zoom)); }
+.astro-options-popup:is([id^="manager-actions-"], [id^="employee-actions-"]) { width: calc(16.75rem * var(--astro-popup-zoom)); }
 
 .astro-modal.invite-manager-dialog .position-dialog-field > [role="alert"] { color: #eb6264; }
 .astro-modal.invite-manager-dialog .astro-toolbar-select-trigger {
