@@ -163,6 +163,23 @@
   transition: text-decoration-color 220ms ease;
 }
 
+.login-field-error {
+  margin: 0.4rem 0 0;
+  color: #ffc4c8;
+  font-size: var(--astro-label-font-size);
+  line-height: 1.4;
+}
+
+.login-feedback {
+  margin: 0;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.login-form .astro-action:disabled {
+  cursor: wait;
+}
+
 .forgot-link:hover,
 .workspace-link a:hover {
   text-decoration-color: currentColor;
