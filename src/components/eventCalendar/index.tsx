@@ -59,16 +59,17 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
 
   function eventItem(event: CalendarEvent, miniature = false, weekly = false) {
     const timedEvent = event.category === 'today' ? null : event
-    const itemClass = `event-calendar-item event-calendar-item--${event.category}${miniature ? ' event-calendar-item--miniature' : ''}${weekly ? ' event-calendar-item--weekly' : ''}${savedEventId === (event.eventId ?? event.id) ? ' event-calendar-item--saved' : ''}`
-    const itemLabel = `${eventCategoryLabels[event.category]}: ${event.title}, ${eventDateLabel(event.date)}${timedEvent ? `, das ${timedEvent.startTime} às ${timedEvent.endTime}` : ''}`
-    const itemContent = miniature ? null : <span className="event-calendar-item-label">{weekly && event.category !== 'today' ? event.title : eventCategoryLabels[event.category]}</span>
+    const eventLabel = event.category === 'today' ? eventCategoryLabels.today : `Evento ${event.eventNumber ?? 1}`
+    const itemClass = `event-calendar-item event-calendar-item--${event.category}${event.category !== 'today' ? ` event-calendar-item--color-${((event.eventNumber ?? 1) - 1) % 4}` : ''}${event.inactive ? ' event-calendar-item--inactive' : ''}${miniature ? ' event-calendar-item--miniature' : ''}${weekly ? ' event-calendar-item--weekly' : ''}${savedEventId === (event.eventId ?? event.id) ? ' event-calendar-item--saved' : ''}`
+    const itemLabel = `${eventLabel}${event.inactive ? ', inativo' : ''}: ${event.title}, ${eventDateLabel(event.date)}${timedEvent ? `, das ${timedEvent.startTime} às ${timedEvent.endTime}` : ''}`
+    const itemContent = miniature ? null : <span className="event-calendar-item-label">{eventLabel}</span>
 
     if (event.category === 'today') return <span
       aria-label={miniature ? itemLabel : undefined}
       className={`${itemClass} event-calendar-item--static`}
       key={event.id}
       role={miniature ? 'img' : undefined}
-      title={event.title}
+      title={`${event.title}${event.inactive ? ' — Inativo' : ''}`}
     >{itemContent}</span>
 
     return <button
@@ -79,7 +80,7 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
       className={itemClass}
       key={event.id}
       onClick={click => onOpenOptions(event, click.currentTarget)}
-      title={event.title}
+      title={`${event.title}${event.inactive ? ' — Inativo' : ''}`}
       type="button"
     >{itemContent}</button>
   }

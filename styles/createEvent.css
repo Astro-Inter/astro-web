@@ -165,3 +165,9 @@ html.event-popup-transition::view-transition-new(event-create-popup) {
 }
 html.event-popup-transition::view-transition-old(event-create-popup) { animation: astro-popup-out var(--astro-popup-duration) ease both; }
 html.event-popup-transition::view-transition-new(event-create-popup) { animation: astro-popup-in var(--astro-popup-duration) ease both; }
+
+.event-create-schedule-fields { min-width: 0; margin: 0; padding: 0; border: 0; }
+.event-create-lock-note { margin: 0 0 1rem; color: #d3cfdd; font-size: var(--astro-label-font-size); line-height: 1.5; }
+.event-create-checkbox:has(input:disabled), .event-create-person-chip:disabled { opacity: .7; cursor: default; }
+.event-create-person-chip:disabled:hover { filter: none; }
+.event-create-group-footer:not(:has(.event-create-reset)) { justify-content: flex-end; }

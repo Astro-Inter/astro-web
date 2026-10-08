@@ -2,9 +2,11 @@ import type { CalendarEvent, EventCategory } from '../types/events'
 
 export const eventCategoryLabels: Record<EventCategory, string> = {
   today: 'Dia atual',
-  commitment: 'Compromisso',
-  reminder: 'Lembrete',
+  event: 'Evento',
 }
+
+// Identidade temporária enquanto o fluxo de eventos utiliza dados mockados.
+export const mockEventManager = { id: 'manager-current', name: 'Gestor criador' }
 
 const today = new Date()
 const currentYear = today.getFullYear()
@@ -33,13 +35,13 @@ function groupedEvents(date: string, group: string, count: number): CalendarEven
     startTime: sampleTimes[index][0],
     endTime: sampleTimes[index][1],
     title: sampleTitles[index],
-    category: index % 2 === 0 ? 'commitment' as const : 'reminder' as const,
+    category: 'event' as const,
   }))
 }
 
 const monthlyEvents = Array.from({ length: 12 }, (_, month): CalendarEvent[] => [
-  { id: `monthly-${month}-1`, date: dateInYear(month, 7), startTime: '10:00', endTime: '11:00', title: 'Acompanhamento mensal', category: 'commitment' },
-  { id: `monthly-${month}-2`, date: dateInYear(month, 21), startTime: '15:00', endTime: '16:00', title: 'Preparar próximos passos', category: 'reminder' },
+  { id: `monthly-${month}-1`, date: dateInYear(month, 7), startTime: '10:00', endTime: '11:00', title: 'Acompanhamento mensal', category: 'event' },
+  { id: `monthly-${month}-2`, date: dateInYear(month, 21), startTime: '15:00', endTime: '16:00', title: 'Preparar próximos passos', category: 'event' },
 ]).flat()
 
 const currentMonthGroups = [

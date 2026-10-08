@@ -32,6 +32,7 @@ export interface EventSettings {
 }
 
 export interface EventConfiguration {
+  creatorId: string
   draft: EventDraft
   selectedIds: string[]
   groups: EventGroup[]
