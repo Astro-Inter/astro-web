@@ -533,7 +533,7 @@ function AstroChat() {
                 title={chat.sessionStatus === 'encerrando' ? 'Finalizar conversa' : 'Encerrar conversa'}
                 type="button"
               >
-                <img alt="" aria-hidden="true" height="24" src={iconAsset('check.svg')} width="24" />
+                <img alt="" aria-hidden="true" height="24" src={iconAsset('endSession.svg')} width="24" />
               </button>
             )}
             <button
