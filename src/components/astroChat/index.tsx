@@ -525,7 +525,16 @@ function AstroChat() {
               <span aria-hidden="true" className="astro-chat-history-icon"><span /><span /><span /></span>
             </button>
             {!historyVisible && chat.sessionId && (chat.sessionStatus === 'ativa' || chat.sessionStatus === 'encerrando') && (
-              <button aria-label="Encerrar conversa" className="astro-chat-header-button astro-chat-end-session" disabled={chat.busy !== 'idle'} onClick={closeSession} type="button">{chat.sessionStatus === 'encerrando' ? 'Finalizar' : 'Encerrar'}</button>
+              <button
+                aria-label={chat.sessionStatus === 'encerrando' ? 'Finalizar conversa' : 'Encerrar conversa'}
+                className="astro-chat-header-button astro-chat-end-session"
+                disabled={chat.busy !== 'idle'}
+                onClick={closeSession}
+                title={chat.sessionStatus === 'encerrando' ? 'Finalizar conversa' : 'Encerrar conversa'}
+                type="button"
+              >
+                <img alt="" aria-hidden="true" height="24" src={iconAsset('check.svg')} width="24" />
+              </button>
             )}
             <button
               aria-label={chat.expanded ? 'Recolher chat' : 'Ampliar chat'}
