@@ -30,6 +30,7 @@ export { default as EditRegulatoryStandardsDialog } from './editRegulatoryStanda
 export { default as RegulatoryStandardRecommendationModal } from './regulatoryStandardRecommendationModal'
 export { default as ToggleSwitch } from './toggleSwitch'
 export { default as AstroChat } from './astroChat'
+export { default as AstroChatSessions } from './astroChatSessions'
 export { default as AppSidebar } from './appSidebar'
 export { default as TruncatedText } from './truncatedText'
 export { default as ManagerIdentity } from './managerIdentity'

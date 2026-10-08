@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, ToolbarSearch, ToolbarSelect } from '../../components'
+import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, ToolbarSearch, ToolbarSelect } from '../../components'
 import EventCalendar from '../../components/eventCalendar'
 import EventOptionsModal from '../../components/eventOptionsModal'
 import CreateEventFlowModal from '../../components/createEventFlowModal'
@@ -173,7 +173,6 @@ function MainEventScreenPage() {
           </div>
           <p className="sr-only" role="status">{visiblePeriodCount} eventos visíveis neste período. {feedback}</p>
         </section>
-        <AstroChat />
       </main>
       {selected && createPortal(<EventOptionsModal closing={closing} event={selected} canEdit={!selected.inactive && canEditEvent(configurationForEvent(selected), mockEventManager.id)} onClose={() => closeMenu()} onEdit={() => closeMenu(() => setEditor({ mode: 'edit', event: selected, value: configurationForEvent(selected) }))} onInactivate={() => closeMenu(() => setPendingInactivation(selected))} panelRef={panelRef} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} />, document.body)}
       {pendingInactivation && <ConfirmationModal backdrop="dimmed" preservePageScroll className="event-deactivation-modal" confirmLabel="Inativar" tone="danger" title="Tem certeza de que deseja inativar este evento?" icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={() => setPendingInactivation(null)} onConfirm={() => null} onConfirmed={() => {

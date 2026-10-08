@@ -2,7 +2,7 @@ import { iconAsset } from '../../utils/iconAsset'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, RegulatoryStandardsDialog, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, RegulatoryStandardsDialog, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import { defaultNrsRows } from '../../data/regulatoryStandards'
 import type { DataTableColumn } from '../../components/dataTable'
 import type { Position, PositionFormValues } from '../../types'
@@ -337,7 +337,6 @@ function MainPositionScreenPage() {
             recommendedIds={['nr1', 'nr2', 'nr4', 'nr6']}
           />
         )}
-        <AstroChat />
       </main>
 
       {dialog && (

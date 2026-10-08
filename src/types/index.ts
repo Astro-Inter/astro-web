@@ -1,4 +1,5 @@
 export type { WorkspaceAddressField, WorkspaceAddressState, WorkspaceUnitAddress } from './address'
+export type { ChatApiResponse, ChatMessage, ChatSessionEndResponse, ChatSessionListResponse, ChatSessionMessage, ChatSessionMessagesResponse, ChatSessionStatus, ChatSessionSummary } from './chat'
 export type { CompanyInformation } from './company'
 export type { PaymentFormState, PaymentMethod } from './payment'
 export type { Position, PositionFormValues } from './position'

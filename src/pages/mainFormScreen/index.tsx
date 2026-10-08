@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, OptionsPopup, ToolbarSearch, ToolbarSelect } from '../../components'
+import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, OptionsPopup, ToolbarSearch, ToolbarSelect } from '../../components'
 import FormCard from '../../components/formCard'
 import { formStatusLabels, mockForms } from '../../data/forms'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
@@ -139,7 +139,6 @@ function MainFormScreenPage() {
           </footer>
           <p className="sr-only" role="status">{feedback}</p>
         </section>
-        <AstroChat />
       </main>
       {selected && createPortal(<OptionsPopup ariaLabel={`Opções para ${selected.name}`} closing={closing} id={`form-options-${selected.id}`} panelRef={panelRef} onClose={() => closeMenu()} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} items={[
         { id: 'cancel', label: 'Cancelar', tone: 'muted', separatorAfter: true, onSelect: () => closeMenu() },

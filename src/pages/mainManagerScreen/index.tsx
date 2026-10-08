@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, InviteManagerDialog, ManagerDetailsModal, ManagerIdentity, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, InviteManagerDialog, ManagerDetailsModal, ManagerIdentity, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import type { DataTableColumn } from '../../components/dataTable'
 import PasswordConfirmationModal from '../../components/passwordConfirmationModal'
 import { mockEventCollaborators } from '../../data/eventCreation'
@@ -200,7 +200,6 @@ function MainManagerScreenPage() {
           document.body,
         )}
 
-        <AstroChat />
       </main>
 
       {inviteOpen && <InviteManagerDialog candidates={inviteCandidates} onClose={closeInvite} onInvite={inviteManager} />}

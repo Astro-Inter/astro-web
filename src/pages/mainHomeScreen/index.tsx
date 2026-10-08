@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AppSidebar, AstroChat, ComplianceOverviewCard, NotificationButton, NotificationModal, QuickActionCard, SummaryStatCard } from '../../components'
+import { AppSidebar, ComplianceOverviewCard, NotificationButton, NotificationModal, QuickActionCard, SummaryStatCard } from '../../components'
 import { mockComplianceOverview, mockSummaryStats, mockUserName, quickActions } from '../../data/home'
 import { mockNotifications } from '../../data/notifications'
 
@@ -41,7 +41,6 @@ function MainHomeScreenPage() {
             </div>
           </section>
         </section>
-        <AstroChat />
       </main>
       {notificationsOpen && <NotificationModal notifications={mockNotifications} onClose={() => setNotificationsOpen(false)} />}
     </div>
