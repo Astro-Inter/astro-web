@@ -19,6 +19,7 @@ interface EditRegulatoryStandardsDialogProps {
   onRequestConfirmation: (enabledIds: string[]) => void
   open?: boolean
   positionName: string
+  recommendationText?: string
   recommendedIds?: readonly string[]
   rows?: readonly NrsRow[]
 }
@@ -35,14 +36,14 @@ interface RecommendationTooltipState {
   visualGap: number | null
 }
 
-function recommendationCopy(row: NrsRow) {
+function recommendationCopy(row: NrsRow, description: string) {
   return {
-    description: 'Recomendado para este cargo.',
+    description,
     title: `${row.code} - ${row.description.split(/[.\n]/)[0]}`,
   }
 }
 
-function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onDismissRequest, onRequestConfirmation, open = true, positionName, recommendedIds = [], rows = defaultNrsRows }: EditRegulatoryStandardsDialogProps) {
+function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onDismissRequest, onRequestConfirmation, open = true, positionName, recommendationText = 'Recomendado para este cargo.', recommendedIds = [], rows = defaultNrsRows }: EditRegulatoryStandardsDialogProps) {
   const tooltipId = useId()
   const [form, setForm] = useState(() => ({ search: '', enabledIds: new Set(enabledIds) }))
   const [recommendationTooltip, setRecommendationTooltip] = useState<RecommendationTooltipState | null>(null)
@@ -204,7 +205,7 @@ function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = fals
     },
   ]
 
-  const recommendation = recommendationTooltip ? recommendationCopy(recommendationTooltip.row) : null
+  const recommendation = recommendationTooltip ? recommendationCopy(recommendationTooltip.row, recommendationText) : null
   const recommendationPopover = recommendationTooltip && recommendation ? createPortal(
     <div
       className={`nrs-edit-recommendation-tooltip${recommendationTooltip.closing ? ' nrs-edit-recommendation-tooltip--closing' : ''}`}

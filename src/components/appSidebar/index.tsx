@@ -16,7 +16,7 @@ const navigationItems: NavigationItem[] = [
   { label: 'Gestores', icon: 'managers', path: '/mainManagerScreen' },
   { label: 'Colaboradores', icon: 'collaborators', path: '/mainEmployeerScreen' },
   { label: 'Conformidade', icon: 'compliance' },
-  { label: 'Unidades', icon: 'building' },
+  { label: 'Unidades', icon: 'building', path: '/mainUnitScreen' },
   { label: 'Cargos', icon: 'position', path: '/mainPositionScreen' },
   { label: 'Formulários', icon: 'document', path: '/mainFormScreen' },
   { label: 'Eventos', icon: 'event-calendar', path: '/mainEventScreen' },
