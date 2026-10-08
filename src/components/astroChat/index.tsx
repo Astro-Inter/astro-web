@@ -25,6 +25,7 @@ interface SessionListState {
   nextCursor: string | null
   loading: boolean
   error: string
+  failedCursor: string | null
   panelOpen: boolean
 }
 
@@ -110,6 +111,7 @@ const initialSessionListState: SessionListState = {
   nextCursor: null,
   loading: false,
   error: '',
+  failedCursor: null,
   panelOpen: false,
 }
 
@@ -131,10 +133,13 @@ function AstroChat() {
   const ignoreLauncherClickRef = useRef(false)
   const launcherAnchorRef = useRef<ChatAnchor | null>(null)
   const closeTimerRef = useRef<number | null>(null)
+  const sessionListRequestRef = useRef({ version: 0, pending: false })
 
   useEffect(() => onAuthStateChanged(firebaseAuth, (user) => {
     setAuthState({ ready: true, authenticated: Boolean(user) })
     if (!user) {
+      sessionListRequestRef.current.version += 1
+      sessionListRequestRef.current.pending = false
       setChat((current) => ({ ...current, messages: [], sessionId: null, sessionStatus: null, busy: 'idle' }))
       setSessionList(initialSessionListState)
     }
@@ -142,20 +147,41 @@ function AstroChat() {
 
   const loadSessions = useCallback(async (cursor?: string | null, append = false) => {
     if (!authState.authenticated) return
-    setSessionList((current) => ({ ...current, loading: true, error: '' }))
+    if (append && (!cursor || sessionListRequestRef.current.pending)) return
+    const requestVersion = ++sessionListRequestRef.current.version
+    sessionListRequestRef.current.pending = true
+    setSessionList((current) => ({ ...current, loading: true, error: '', failedCursor: null }))
     try {
       const response = await listChatSessions(cursor)
+      if (requestVersion !== sessionListRequestRef.current.version) return
+      setSessionList((current) => {
+        const existingIds = new Set(current.sessions.map((session) => session.session_id))
+        return {
+          ...current,
+          sessions: append ? [...current.sessions, ...response.sessions.filter((session) => !existingIds.has(session.session_id))] : response.sessions,
+          nextCursor: response.next_cursor,
+          loading: false,
+          error: '',
+          failedCursor: null,
+        }
+      })
+    } catch (error: unknown) {
+      if (requestVersion !== sessionListRequestRef.current.version) return
       setSessionList((current) => ({
         ...current,
-        sessions: append ? [...current.sessions, ...response.sessions] : response.sessions,
-        nextCursor: response.next_cursor,
         loading: false,
-        error: '',
+        error: error instanceof ChatApiError ? error.message : 'Não foi possível carregar suas conversas.',
+        failedCursor: append ? cursor ?? null : null,
       }))
-    } catch (error: unknown) {
-      setSessionList((current) => ({ ...current, loading: false, error: error instanceof ChatApiError ? error.message : 'Não foi possível carregar suas conversas.' }))
+    } finally {
+      if (requestVersion === sessionListRequestRef.current.version) sessionListRequestRef.current.pending = false
     }
   }, [authState.authenticated])
+
+  useEffect(() => () => {
+    sessionListRequestRef.current.version += 1
+    sessionListRequestRef.current.pending = false
+  }, [])
 
   useEffect(() => {
     if (chat.open && authState.authenticated) void loadSessions()
@@ -519,7 +545,7 @@ function AstroChat() {
                 nextCursor={sessionList.nextCursor}
                 onNewSession={startNewSession}
                 onLoadMore={() => { void loadSessions(sessionList.nextCursor, true) }}
-                onRetry={() => { void loadSessions() }}
+                onRetry={() => { void loadSessions(sessionList.failedCursor, sessionList.failedCursor !== null) }}
                 onSelect={(sessionId) => { void selectSession(sessionId) }}
                 selectedSessionId={chat.sessionId}
                 sessions={sessionList.sessions}
