@@ -5,11 +5,14 @@ Protótipo de interface do Astro, feito com Vite, React, TypeScript e React Rout
 ## Executar e verificar
 
 ```bash
+cp .env.example .env
 npm install
 npm run dev
 npm run lint
 npm run build
 ```
+
+Preencha as variáveis do Firebase no `.env` antes de iniciar a aplicação.
 
 O build verifica os tipos e gera dist/. O CI executa npm ci, lint e build em pull requests e pushes para main. O lint verifica regras de hooks e dependências dos efeitos. Se este ambiente Windows bloquear o carregador padrão do Vite com spawn EPERM, a verificação equivalente é:
 
@@ -28,6 +31,7 @@ src/
   hooks/                 comportamento reutilizável de endereços e diálogos
   pages/                 composição e estado das páginas
   routes/index.tsx       rotas com lazy/Suspense por página e rota curinga
+  services/firebase.ts   inicialização do Firebase e instância de Authentication
   types/                 entidades e contratos por domínio
   utils/                 máscaras, validações e utilitários compartilhados
   app.tsx                árvore de rotas
@@ -35,7 +39,24 @@ src/
 styles/                  CSS global e das telas, fora de src/
 ```
 
-src/ contém apenas .ts e .tsx. Não existe módulo de serviço ou autenticação porque o protótipo ainda não se conecta a uma API. .env.example reserva VITE_API_URL; variáveis VITE_ são públicas no navegador e não devem conter segredos.
+src/ contém apenas .ts e .tsx. A configuração do Firebase fica em src/services/firebase.ts. .env.example documenta as variáveis disponíveis; variáveis VITE_ são públicas no navegador e não devem conter segredos de servidor.
+
+## Firebase
+
+O SDK modular é inicializado na entrada da aplicação usando as variáveis do `.env`. O módulo `src/services/firebase.ts` exporta `firebaseApp` e `firebaseAuth`, reutiliza a instância padrão quando já existe e informa os nomes das variáveis ausentes quando a configuração está incompleta. A configuração segue a [documentação oficial do Firebase](https://firebase.google.com/docs/web/setup).
+
+| Variável | Campo da configuração Firebase |
+| --- | --- |
+| `VITE_FIREBASE_API_KEY` | `apiKey` |
+| `VITE_FIREBASE_AUTH_DOMAIN` | `authDomain` |
+| `VITE_FIREBASE_PROJECT_ID` | `projectId` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | `storageBucket` |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `messagingSenderId` |
+| `VITE_FIREBASE_APP_ID` | `appId` |
+
+O `.env` é ignorado pelo Git. No GitHub, cadastre os mesmos seis nomes em **Settings → Secrets and variables → Actions → Repository secrets**. Os workflows de CI e GitHub Pages injetam esses secrets durante o build e falham com uma mensagem específica se algum estiver vazio. Alterar um secret exige um novo build para atualizar a configuração publicada. Pull requests de forks não recebem esses secrets e precisam de validação em uma branch do próprio repositório.
+
+A inicialização disponibiliza o SDK e o Authentication para os serviços de login. O envio de credenciais, a recuperação de senha e a proteção de rotas ainda dependem da implementação do fluxo de autenticação.
 
 ## Rotas e comportamento demonstrativo
 
@@ -75,7 +96,7 @@ createForms grava astro-created-form e astro-create-forms-draft com _versao: 1 e
 | Critério | Estado atual |
 | --- | --- |
 | M01–M04 | Vite/React/TS estrito, somente TS/TSX em src, componentes/páginas em pastas próprias, props e domínio tipados, sem any. Lógica de perguntas e validação compartilhada. |
-| M05 | API ainda não integrada. Quando houver, usar serviços tipados e tratamento de erro em src/services. |
+| M05 | Configuração tipada do Firebase em src/services, com validação das variáveis de ambiente e .env fora do versionamento. Chamadas remotas do login ainda pendentes; devem usar serviços tipados com tratamento de erro. |
 | M06–M08 | Estados locais agrupados, atualizações imutáveis, efeitos com dependências verificadas pelo lint e ids estáveis nas listas dinâmicas. |
 | M09 | Nenhuma rota recebe parâmetros atualmente. |
 | M10 | React Router, navegação interna e rota curinga com retorno ao início. |
