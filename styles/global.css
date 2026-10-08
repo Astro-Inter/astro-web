@@ -40,6 +40,12 @@
   --astro-text: #f8f7fc;
   --astro-text-muted: #888888;
   --astro-link: #00a7c7;
+  /* Cores de destaque com os nomes dos tokens do Figma. */
+  --astro-secondary-red: #dd006f;   /* secondaryred */
+  --astro-primary-green: #147a64;   /* primarygreen */
+  --astro-tertiary-blue: #539dd1;   /* tertiaryblue */
+  --astro-quinary-green: #5aae67;   /* quinarygreen */
+  --astro-primary-error: #ff4d4d;   /* primaryerrorcolor */
   --astro-focus-border: rgb(248 247 252 / 65%);
   --astro-input-focus-border: #918d99;
   --astro-focus-surface: rgb(255 255 255 / 11%);
@@ -436,8 +442,8 @@ textarea::selection {
 .astro-icon--plus-square {
   width: var(--astro-icon-md);
   background-color: currentColor;
-  -webkit-mask: url('/icons/plus.svg?v=weightMinus8WarningBold') center / contain no-repeat;
-  mask: url('/icons/plus.svg?v=weightMinus8WarningBold') center / contain no-repeat;
+  -webkit-mask: url('/icons/plus.svg?v=homeIconReview5') center / contain no-repeat;
+  mask: url('/icons/plus.svg?v=homeIconReview5') center / contain no-repeat;
 }
 
 .astro-action .astro-icon {
@@ -521,8 +527,8 @@ textarea::selection {
   height: calc(var(--astro-icon-md-base) * 0.9);
   flex: none;
   background-color: currentColor;
-  -webkit-mask: url('/icons/help.svg?v=weightMinus8WarningBold') center / contain no-repeat;
-  mask: url('/icons/help.svg?v=weightMinus8WarningBold') center / contain no-repeat;
+  -webkit-mask: url('/icons/help.svg?v=homeIconReview5') center / contain no-repeat;
+  mask: url('/icons/help.svg?v=homeIconReview5') center / contain no-repeat;
 }
 
 .sr-only {
