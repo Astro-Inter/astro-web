@@ -1,6 +1,6 @@
 import type { EventConfiguration } from './eventCreation'
 
-export type EventCategory = 'today' | 'commitment' | 'reminder'
+export type EventCategory = 'today' | 'event'
 export type CalendarView = 'week' | 'month' | 'year'
 
 interface CalendarEventBase {
@@ -9,6 +9,8 @@ interface CalendarEventBase {
   title: string
   eventId?: string
   configuration?: EventConfiguration
+  eventNumber?: number
+  inactive?: boolean
 }
 
 export type CalendarEvent = CalendarEventBase & (
