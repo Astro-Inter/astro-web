@@ -519,8 +519,11 @@ function AstroChat() {
                 setChat((current) => ({ ...current, error: '' }))
                 setSessionList((current) => ({ ...current, panelOpen: !current.panelOpen }))
               }}
+              title={historyVisible ? 'Voltar à conversa' : 'Histórico de conversas'}
               type="button"
-            >{historyVisible ? 'Voltar' : 'Histórico'}</button>
+            >
+              <span aria-hidden="true" className="astro-chat-history-icon"><span /><span /><span /></span>
+            </button>
             {!historyVisible && chat.sessionId && (chat.sessionStatus === 'ativa' || chat.sessionStatus === 'encerrando') && (
               <button aria-label="Encerrar conversa" className="astro-chat-header-button astro-chat-end-session" disabled={chat.busy !== 'idle'} onClick={closeSession} type="button">{chat.sessionStatus === 'encerrando' ? 'Finalizar' : 'Encerrar'}</button>
             )}
