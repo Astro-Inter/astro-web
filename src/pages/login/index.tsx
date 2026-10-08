@@ -4,7 +4,7 @@ import { useLogin } from '../../hooks/useLogin'
 
 function LoginPage() {
   const navigate = useNavigate()
-  const { credentials, errors, status, message, updateCredential, submit } = useLogin()
+  const { credentials, errors, status, message, invalidCredentials, updateCredential, submit } = useLogin()
 
   async function handleSubmit(): Promise<void> {
     if (await submit()) navigate('/mainHomeScreen', { replace: true })
@@ -23,6 +23,7 @@ function LoginPage() {
           <LoginForm
             credentials={credentials}
             errors={errors}
+            invalidCredentials={invalidCredentials}
             message={message}
             onCredentialChange={updateCredential}
             onSubmit={handleSubmit}

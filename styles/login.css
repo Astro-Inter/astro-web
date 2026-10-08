@@ -165,7 +165,45 @@
 
 .login-field-error {
   margin: 0.4rem 0 0;
-  color: #ffc4c8;
+  color: var(--astro-primary-error);
+  font-size: var(--astro-label-font-size);
+  line-height: 1.4;
+}
+
+.login-email-field {
+  position: relative;
+}
+
+.login-form input[aria-invalid="true"] {
+  border-color: var(--astro-primary-error);
+}
+
+.login-form input[aria-invalid="true"]:focus-visible {
+  outline: 2px solid var(--astro-focus-border);
+  outline-offset: 2px;
+}
+
+.login-email-field input[aria-invalid="true"] {
+  padding-right: var(--astro-control-icon-padding-end);
+}
+
+.login-email-error-icon {
+  position: absolute;
+  top: calc(var(--astro-label-font-size) * 1.2 + var(--astro-field-gap) + var(--astro-control-height) / 2);
+  right: calc(var(--astro-control-icon-button-inset) + (var(--astro-control-icon-hit-size) - var(--astro-icon-md)) / 2);
+  width: var(--astro-icon-md);
+  height: var(--astro-icon-md);
+  transform: translateY(-50%);
+  background: var(--astro-primary-error);
+  mask-position: center;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.login-authentication-error {
+  margin: calc(-0.5 * var(--astro-field-gap)) 0 0;
+  color: var(--astro-primary-error);
   font-size: var(--astro-label-font-size);
   line-height: 1.4;
 }

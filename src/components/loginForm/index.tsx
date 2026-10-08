@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { LoginCredentials, LoginFieldErrors, LoginStatus } from '../../types/authentication'
 import { blockEmailWhitespaceInput, blockEmailWhitespaceKey, sanitizeEmail } from '../../utils/inputFormatting'
+import { iconAsset } from '../../utils/iconAsset'
 import FormField from '../formField'
 import PageHeading from '../pageHeading'
 import PasswordField from '../passwordField'
@@ -12,11 +13,12 @@ interface LoginFormProps {
   errors: LoginFieldErrors
   status: LoginStatus
   message: string
+  invalidCredentials: boolean
   onCredentialChange: (field: keyof LoginCredentials, value: string) => void
   onSubmit: () => Promise<void>
 }
 
-function LoginForm({ credentials, errors, status, message, onCredentialChange, onSubmit }: LoginFormProps) {
+function LoginForm({ credentials, errors, status, message, invalidCredentials, onCredentialChange, onSubmit }: LoginFormProps) {
   const [passwordVisible, setPasswordVisible] = useState(false)
   const pending = status === 'loading' || status === 'success'
 
@@ -28,10 +30,10 @@ function LoginForm({ credentials, errors, status, message, onCredentialChange, o
         event.preventDefault()
         if (!pending) void onSubmit()
       }}>
-        <div>
+        <div className="login-email-field">
           <FormField
-            aria-describedby={errors.email ? 'email-error' : undefined}
-            aria-invalid={Boolean(errors.email)}
+            aria-describedby={errors.email ? 'email-error' : invalidCredentials ? 'login-authentication-error' : undefined}
+            aria-invalid={Boolean(errors.email) || invalidCredentials}
             autoComplete="email"
             disabled={pending}
             id="email"
@@ -46,6 +48,11 @@ function LoginForm({ credentials, errors, status, message, onCredentialChange, o
             type="email"
             value={credentials.email}
           />
+          {(errors.email || invalidCredentials) && <span
+            aria-hidden="true"
+            className="login-email-error-icon"
+            style={{ maskImage: `url("${iconAsset('close.svg')}")` }}
+          />}
           {errors.email && <p className="login-field-error" id="email-error" role="alert">{errors.email}</p>}
         </div>
 
@@ -53,6 +60,8 @@ function LoginForm({ credentials, errors, status, message, onCredentialChange, o
           autoComplete="current-password"
           disabled={pending}
           error={errors.password}
+          describedBy={invalidCredentials ? 'login-authentication-error' : undefined}
+          invalid={invalidCredentials}
           id="password"
           label="Senha"
           onChange={(value) => onCredentialChange('password', value)}
@@ -63,6 +72,8 @@ function LoginForm({ credentials, errors, status, message, onCredentialChange, o
           visible={passwordVisible}
         />
 
+        {status === 'error' && message && <p className="login-authentication-error" id="login-authentication-error" role="alert">{message}</p>}
+
         <a className="forgot-link" href="#forgot-password">
           Esqueceu a senha?
         </a>
@@ -71,7 +82,7 @@ function LoginForm({ credentials, errors, status, message, onCredentialChange, o
           {status === 'loading' ? 'Entrando…' : status === 'success' ? 'Login realizado' : 'Entrar'}
         </PurpleButton>
         {status === 'loading' && <p className="login-feedback" role="status">Verificando suas credenciais…</p>}
-        {message && <p className={`login-feedback${status === 'error' ? ' login-field-error' : ''}`} role={status === 'error' ? 'alert' : 'status'}>{message}</p>}
+        {status === 'success' && message && <p className="login-feedback" role="status">{message}</p>}
       </form>
 
       <p className="workspace-link">

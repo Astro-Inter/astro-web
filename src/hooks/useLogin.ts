@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { loginWithEmailAndPassword } from '../services/authentication'
+import { AuthenticationError, loginWithEmailAndPassword } from '../services/authentication'
 import type { LoginCredentials, LoginFieldErrors, LoginStatus } from '../types/authentication'
 import { validateLoginCredentials } from '../utils/authentication'
 
@@ -8,6 +8,7 @@ interface LoginState {
   errors: LoginFieldErrors
   status: LoginStatus
   message: string
+  invalidCredentials: boolean
 }
 
 interface UseLoginResult extends LoginState {
@@ -21,6 +22,7 @@ export function useLogin(): UseLoginResult {
     errors: {},
     status: 'idle',
     message: '',
+    invalidCredentials: false,
   })
   const mounted = useRef(true)
   const pending = useRef(false)
@@ -38,6 +40,7 @@ export function useLogin(): UseLoginResult {
       errors: { ...current.errors, [field]: undefined },
       status: 'idle',
       message: '',
+      invalidCredentials: false,
     }))
   }
 
@@ -45,12 +48,12 @@ export function useLogin(): UseLoginResult {
     if (pending.current) return false
     const errors = validateLoginCredentials(state.credentials)
     if (errors.email || errors.password) {
-      setState((current) => ({ ...current, errors, status: 'error', message: '' }))
+      setState((current) => ({ ...current, errors, status: 'error', message: '', invalidCredentials: false }))
       return false
     }
 
     pending.current = true
-    setState((current) => ({ ...current, errors: {}, status: 'loading', message: '' }))
+    setState((current) => ({ ...current, errors: {}, status: 'loading', message: '', invalidCredentials: false }))
     try {
       await loginWithEmailAndPassword(state.credentials)
       if (!mounted.current) return false
@@ -67,6 +70,7 @@ export function useLogin(): UseLoginResult {
           ...current,
           status: 'error',
           message: error instanceof Error ? error.message : 'Não foi possível entrar. Tente novamente.',
+          invalidCredentials: error instanceof AuthenticationError && error.invalidCredentials,
         }))
       }
       return false
