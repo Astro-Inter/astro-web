@@ -2,18 +2,30 @@ import { iconAsset } from '../../utils/iconAsset'
 import { getPopupDuration } from '../../utils/popupMotion'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react'
-
-interface ChatMessage {
-  id: string
-  author: 'astro' | 'user'
-  text: string
-}
+import { onAuthStateChanged } from 'firebase/auth'
+import { useNavigate } from 'react-router-dom'
+import AstroChatSessions from '../astroChatSessions'
+import { firebaseAuth } from '../../services/firebase'
+import { ChatApiError, endChatSession, getChatSessionMessages, listChatSessions, sendChatMessage, startChatSession } from '../../services/chat'
+import type { ChatMessage, ChatSessionStatus, ChatSessionSummary } from '../../types/chat'
 
 interface ChatState {
   open: boolean
   expanded: boolean
   draft: string
   messages: ChatMessage[]
+  sessionId: string | null
+  sessionStatus: ChatSessionStatus | null
+  busy: 'idle' | 'sending' | 'loading-history' | 'ending'
+  error: string
+}
+
+interface SessionListState {
+  sessions: ChatSessionSummary[]
+  nextCursor: string | null
+  loading: boolean
+  error: string
+  panelOpen: boolean
 }
 
 interface ChatPosition {
@@ -80,28 +92,32 @@ function positionNearLauncher(anchor: ChatAnchor, width: number, height: number)
   return { left: anchor.right - width, top: anchor.bottom - height }
 }
 
-const suggestions = [
-  'O que são Normas Regulamentadoras?',
-  'Como acesso os dashboards?',
-]
+const suggestions = ['O que são Normas Regulamentadoras?', 'Como acesso os dashboards?']
 
-function answerFor(message: string) {
-  const normalized = message.toLocaleLowerCase('pt-BR')
+const initialChatState: ChatState = {
+  open: false,
+  expanded: false,
+  draft: '',
+  messages: [],
+  sessionId: null,
+  sessionStatus: null,
+  busy: 'idle',
+  error: '',
+}
 
-  if (normalized.includes('normas regulamentadoras') || normalized.includes('nrs')) {
-    return 'Normas Regulamentadoras são regras de segurança e saúde no trabalho.'
-  }
-  if (normalized.includes('dashboard')) {
-    return 'Acesse os dashboards pelo menu da plataforma. Cada área reúne seus indicadores e informações.'
-  }
-  if (normalized.includes('legal') || normalized.includes('obrigad')) {
-    return 'É bastante mesmo! Se tiver outra dúvida, pode me perguntar.'
-  }
-  return 'Posso ajudar com dúvidas sobre Normas Regulamentadoras e sobre como acessar os dashboards.'
+const initialSessionListState: SessionListState = {
+  sessions: [],
+  nextCursor: null,
+  loading: false,
+  error: '',
+  panelOpen: false,
 }
 
 function AstroChat() {
-  const [chat, setChat] = useState<ChatState>({ open: false, expanded: false, draft: '', messages: [] })
+  const [chat, setChat] = useState<ChatState>(initialChatState)
+  const [sessionList, setSessionList] = useState<SessionListState>(initialSessionListState)
+  const [authState, setAuthState] = useState<{ ready: boolean; authenticated: boolean }>({ ready: false, authenticated: false })
+  const navigate = useNavigate()
   const [position, setPosition] = useState<ChatPosition | null>(null)
   const [launcherPosition, setLauncherPosition] = useState<ChatPosition | null>(null)
   const [dragging, setDragging] = useState(false)
@@ -115,6 +131,35 @@ function AstroChat() {
   const ignoreLauncherClickRef = useRef(false)
   const launcherAnchorRef = useRef<ChatAnchor | null>(null)
   const closeTimerRef = useRef<number | null>(null)
+
+  useEffect(() => onAuthStateChanged(firebaseAuth, (user) => {
+    setAuthState({ ready: true, authenticated: Boolean(user) })
+    if (!user) {
+      setChat((current) => ({ ...current, messages: [], sessionId: null, sessionStatus: null, busy: 'idle' }))
+      setSessionList(initialSessionListState)
+    }
+  }), [])
+
+  const loadSessions = useCallback(async (cursor?: string | null, append = false) => {
+    if (!authState.authenticated) return
+    setSessionList((current) => ({ ...current, loading: true, error: '' }))
+    try {
+      const response = await listChatSessions(cursor)
+      setSessionList((current) => ({
+        ...current,
+        sessions: append ? [...current.sessions, ...response.sessions] : response.sessions,
+        nextCursor: response.next_cursor,
+        loading: false,
+        error: '',
+      }))
+    } catch (error: unknown) {
+      setSessionList((current) => ({ ...current, loading: false, error: error instanceof ChatApiError ? error.message : 'Não foi possível carregar suas conversas.' }))
+    }
+  }, [authState.authenticated])
+
+  useEffect(() => {
+    if (chat.open && authState.authenticated) void loadSessions()
+  }, [authState.authenticated, chat.open, loadSessions])
 
   const finishClose = useCallback(() => {
     closeTimerRef.current = null
@@ -338,7 +383,7 @@ function AstroChat() {
     const rect = launcherRef.current?.getBoundingClientRect()
     if (!rect) return
     placePanel({ right: rect.right, bottom: rect.bottom }, false)
-    setChat((current) => ({ ...current, open: true }))
+    setChat((current) => ({ ...current, open: true, error: '' }))
   }
 
   function toggleExpanded() {
@@ -348,19 +393,71 @@ function AstroChat() {
     setChat((current) => ({ ...current, expanded: !current.expanded }))
   }
 
-  function sendMessage(text: string) {
+  async function sendMessage(text: string) {
     const trimmed = text.trim()
-    if (!trimmed) return
+    if (!trimmed || !authState.authenticated || chat.busy !== 'idle') return
 
-    setChat((current) => ({
-      ...current,
-      draft: '',
-      messages: [
-        ...current.messages,
-        { id: crypto.randomUUID(), author: 'user', text: trimmed },
-        { id: crypto.randomUUID(), author: 'astro', text: answerFor(trimmed) },
-      ],
-    }))
+    setChat((current) => ({ ...current, busy: 'sending', error: '' }))
+    try {
+      if (chat.sessionId && chat.sessionStatus === 'encerrada') await startChatSession(chat.sessionId)
+      const response = await sendChatMessage(trimmed, chat.sessionId)
+      setChat((current) => ({
+        ...current,
+        draft: '',
+        sessionId: response.session_id,
+        sessionStatus: 'ativa',
+        busy: 'idle',
+        error: '',
+        messages: [
+          ...current.messages,
+          { id: crypto.randomUUID(), author: 'user', text: trimmed },
+          { id: crypto.randomUUID(), author: 'astro', text: response.resposta },
+        ],
+      }))
+      void loadSessions()
+      inputRef.current?.focus()
+    } catch (error: unknown) {
+      setChat((current) => ({ ...current, busy: 'idle', error: error instanceof Error ? error.message : 'Não foi possível enviar sua mensagem.' }))
+    }
+  }
+
+  async function selectSession(sessionId: string) {
+    if (chat.busy !== 'idle') return
+    setChat((current) => ({ ...current, busy: 'loading-history', error: '' }))
+    try {
+      const history = await getChatSessionMessages(sessionId)
+      setChat((current) => ({
+        ...current,
+        busy: 'idle',
+        sessionId,
+        sessionStatus: history.status,
+        messages: history.mensagens.map((message) => ({
+          id: crypto.randomUUID(),
+          author: message.role === 'user' ? 'user' : 'astro',
+          text: message.content,
+        })),
+      }))
+      setSessionList((current) => ({ ...current, panelOpen: false }))
+    } catch (error: unknown) {
+      setChat((current) => ({ ...current, busy: 'idle', error: error instanceof Error ? error.message : 'Não foi possível abrir esta conversa.' }))
+    }
+  }
+
+  async function closeSession() {
+    if (!chat.sessionId || chat.busy !== 'idle' || !authState.authenticated) return
+    setChat((current) => ({ ...current, busy: 'ending', error: '' }))
+    try {
+      const response = await endChatSession(chat.sessionId)
+      setChat((current) => ({ ...current, busy: 'idle', sessionStatus: response.status, error: '' }))
+      await loadSessions()
+    } catch (error: unknown) {
+      setChat((current) => ({ ...current, busy: 'idle', error: error instanceof Error ? error.message : 'Não foi possível encerrar esta conversa.' }))
+    }
+  }
+
+  function startNewSession() {
+    setChat((current) => ({ ...current, draft: '', messages: [], sessionId: null, sessionStatus: null, error: '' }))
+    setSessionList((current) => ({ ...current, panelOpen: false }))
     inputRef.current?.focus()
   }
 
@@ -381,6 +478,18 @@ function AstroChat() {
           style={position && chatSize ? { position: 'fixed', left: position.left, top: position.top, width: chatSize.width, height: chatSize.height, right: 'auto', bottom: 'auto' } : undefined}
         >
           <header aria-label="Mover chat com as setas do teclado" className="astro-chat-header" onKeyDown={moveWithKeyboard} tabIndex={0} title="Arraste para mover o chat">
+            <span className="astro-chat-header-title">Astro IA</span>
+            <button
+              aria-expanded={sessionList.panelOpen}
+              aria-label={sessionList.panelOpen ? 'Fechar histórico de conversas' : 'Abrir histórico de conversas'}
+              className="astro-chat-header-button astro-chat-history-toggle"
+              disabled={!authState.ready || !authState.authenticated}
+              onClick={() => setSessionList((current) => ({ ...current, panelOpen: !current.panelOpen }))}
+              type="button"
+            >Histórico</button>
+            {chat.sessionId && (chat.sessionStatus === 'ativa' || chat.sessionStatus === 'encerrando') && (
+              <button aria-label="Encerrar conversa" className="astro-chat-header-button astro-chat-end-session" disabled={chat.busy !== 'idle'} onClick={closeSession} type="button">{chat.sessionStatus === 'encerrando' ? 'Finalizar' : 'Encerrar'}</button>
+            )}
             <button
               aria-label={chat.expanded ? 'Recolher chat' : 'Ampliar chat'}
               className="astro-chat-header-button astro-chat-header-button--resize"
@@ -396,30 +505,49 @@ function AstroChat() {
           </header>
 
           <div className="astro-chat-body" ref={messagesRef}>
-            {chat.messages.length === 0 ? (
+            {!authState.ready ? (
+              <p aria-live="polite" className="astro-chat-auth-message">Verificando seu acesso…</p>
+            ) : !authState.authenticated ? (
+              <div className="astro-chat-auth-message">
+                <p>Entre na sua conta Astro para conversar com a IA e acessar suas conversas.</p>
+                <button className="astro-chat-login-button" onClick={() => navigate('/')} type="button">Ir para o login</button>
+              </div>
+            ) : sessionList.panelOpen ? (
+              <AstroChatSessions
+                error={sessionList.error}
+                loading={sessionList.loading}
+                nextCursor={sessionList.nextCursor}
+                onNewSession={startNewSession}
+                onLoadMore={() => { void loadSessions(sessionList.nextCursor, true) }}
+                onRetry={() => { void loadSessions() }}
+                onSelect={(sessionId) => { void selectSession(sessionId) }}
+                selectedSessionId={chat.sessionId}
+                sessions={sessionList.sessions}
+              />
+            ) : chat.messages.length === 0 ? (
               <div className="astro-chat-welcome">
                 <img alt="Robô Astro em um cenário espacial" className="astro-chat-illustration" height="181" src={import.meta.env.BASE_URL + "chatWelcomeRobot.png"} width="272" />
                 <p>Olá! Estou aqui para te ajudar a entender como a plataforma Astro funciona.</p>
                 <div aria-label="Perguntas sugeridas" className="astro-chat-suggestions">
                   {suggestions.map((suggestion) => (
-                    <button key={suggestion} onClick={() => sendMessage(suggestion)} type="button">{suggestion}</button>
+                    <button key={suggestion} disabled={chat.busy !== 'idle'} onClick={() => { void sendMessage(suggestion) }} type="button">{suggestion}</button>
                   ))}
                 </div>
               </div>
             ) : (
               <div aria-live="polite" className="astro-chat-messages" role="log">
-                <div className="astro-chat-message astro-chat-message--astro">
-                  <img alt="" aria-hidden="true" height="80" src={import.meta.env.BASE_URL + "chatAvatarRobot.png"} width="80" />
-                  <p>Olá! Estou aqui para te auxiliar na plataforma Astro.</p>
-                </div>
                 {chat.messages.map((message) => (
                   <div className={`astro-chat-message astro-chat-message--${message.author}`} key={message.id}>
                     {message.author === 'astro' && <img alt="" aria-hidden="true" height="80" src={import.meta.env.BASE_URL + "chatAvatarRobot.png"} width="80" />}
                     <p>{message.text}</p>
                   </div>
                 ))}
+                {chat.busy === 'sending' && <p aria-live="polite" className="astro-chat-loading">A IA está preparando uma resposta…</p>}
               </div>
             )}
+            {chat.busy === 'loading-history' && <p aria-live="polite" className="astro-chat-loading">Carregando conversa…</p>}
+            {chat.busy === 'ending' && <p aria-live="polite" className="astro-chat-loading">Encerrando conversa…</p>}
+            {chat.error && <p className="astro-chat-error" role="alert">{chat.error}</p>}
           </div>
 
           <form className="astro-chat-form" onSubmit={(event) => { event.preventDefault(); sendMessage(chat.draft) }}>
@@ -427,14 +555,15 @@ function AstroChat() {
             <input
               autoComplete="off"
               id="astro-chat-input"
-              maxLength={500}
+              disabled={!authState.ready || !authState.authenticated || chat.busy !== 'idle'}
+              maxLength={4000}
               onChange={(event) => setChat((current) => ({ ...current, draft: event.target.value }))}
               placeholder="Digite sua mensagem..."
               ref={inputRef}
               type="text"
               value={chat.draft}
             />
-            <button aria-label="Enviar mensagem" disabled={!chat.draft.trim()} type="submit">
+            <button aria-label="Enviar mensagem" disabled={!authState.authenticated || chat.busy !== 'idle' || !chat.draft.trim()} type="submit">
               <img alt="" height="62" src={iconAsset('sendMessage.svg')} width="62" />
             </button>
           </form>
