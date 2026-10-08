@@ -1,15 +1,18 @@
 # Astro Web
 
-Protótipo de interface do Astro, feito com Vite, React, TypeScript e React Router. Os fluxos usam dados demonstrativos; autenticação, pagamento e cadastros não chamam uma API.
+Interface do Astro, feita com Vite, React, TypeScript e React Router. O login com email e senha usa Firebase Authentication; pagamento, cadastros e dados do workspace continuam demonstrativos.
 
 ## Executar e verificar
 
 ```bash
+cp .env.example .env
 npm install
 npm run dev
 npm run lint
 npm run build
 ```
+
+Preencha as variáveis do Firebase no `.env` antes de iniciar a aplicação.
 
 O build verifica os tipos e gera dist/. O CI executa npm ci, lint e build em pull requests e pushes para main. O lint verifica regras de hooks e dependências dos efeitos. Se este ambiente Windows bloquear o carregador padrão do Vite com spawn EPERM, a verificação equivalente é:
 
@@ -28,6 +31,7 @@ src/
   hooks/                 comportamento reutilizável de endereços e diálogos
   pages/                 composição e estado das páginas
   routes/index.tsx       rotas com lazy/Suspense por página e rota curinga
+  services/firebase.ts   inicialização do Firebase e instância de Authentication
   types/                 entidades e contratos por domínio
   utils/                 máscaras, validações e utilitários compartilhados
   app.tsx                árvore de rotas
@@ -35,7 +39,26 @@ src/
 styles/                  CSS global e das telas, fora de src/
 ```
 
-src/ contém apenas .ts e .tsx. Não existe módulo de serviço ou autenticação porque o protótipo ainda não se conecta a uma API. .env.example reserva VITE_API_URL; variáveis VITE_ são públicas no navegador e não devem conter segredos.
+src/ contém apenas .ts e .tsx. A configuração do Firebase fica em src/services/firebase.ts. .env.example documenta as variáveis disponíveis; variáveis VITE_ são públicas no navegador e não devem conter segredos de servidor.
+
+## Firebase
+
+O SDK modular é inicializado na entrada da aplicação usando as variáveis do `.env`. O módulo `src/services/firebase.ts` exporta `firebaseApp` e `firebaseAuth`, reutiliza a instância padrão quando já existe e informa os nomes das variáveis ausentes quando a configuração está incompleta. A configuração segue a [documentação oficial do Firebase](https://firebase.google.com/docs/web/setup).
+
+| Variável | Campo da configuração Firebase |
+| --- | --- |
+| `VITE_FIREBASE_API_KEY` | `apiKey` |
+| `VITE_FIREBASE_AUTH_DOMAIN` | `authDomain` |
+| `VITE_FIREBASE_PROJECT_ID` | `projectId` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | `storageBucket` |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `messagingSenderId` |
+| `VITE_FIREBASE_APP_ID` | `appId` |
+
+O `.env` é ignorado pelo Git. No GitHub, cadastre os mesmos seis nomes em **Settings → Secrets and variables → Actions → Repository secrets**. Os workflows de CI e GitHub Pages injetam esses secrets durante o build e falham com uma mensagem específica se algum estiver vazio. Alterar um secret exige um novo build para atualizar a configuração publicada. Pull requests de forks não recebem esses secrets e precisam de validação em uma branch do próprio repositório.
+
+O login usa `signInWithEmailAndPassword` em `src/services/authentication.ts`, conforme a [documentação do Firebase Authentication](https://firebase.google.com/docs/auth/web/password-auth). O hook `src/hooks/useLogin.ts` valida os campos antes do envio, controla carregamento/sucesso/erro e impede envios duplicados. A senha é enviada sem remoção de espaços ou alteração de caracteres. Após autenticar, a aplicação abre `/mainHomeScreen`; a sessão é gerenciada pelo SDK Firebase e a senha é limpa do estado do formulário.
+
+Para usar o login, habilite **Authentication → Sign-in method → Email/Password** no console Firebase e use uma conta já existente em **Authentication → Users**. O fluxo de criação de workspace ainda não cria usuários no Firebase. As rotas continuam acessíveis diretamente sem autenticação nesta etapa; proteção de rotas e recuperação de senha serão implementadas posteriormente.
 
 ## Rotas e comportamento demonstrativo
 
@@ -49,7 +72,7 @@ Fluxo de workspace:
 - /editForms: edição de um formulário mockado com quatro tipos de pergunta e confirmações de saída/salvamento. Ao abrir pela listagem, usa o nome e a descrição do cartão selecionado. As alterações ficam na instância atual da página.
 - URLs desconhecidas abrem a página de erro com retorno ao início.
 
-As etapas de cadastro/pagamento mantêm a navegação demonstrativa. Login, recuperação de senha, suporte e itens do menu Em breve ainda dependem de implementação. /loadingScreen é uma transição por timer, não uma requisição.
+As etapas de cadastro/pagamento mantêm a navegação demonstrativa. O login autentica com Firebase e abre a página inicial do workspace. Recuperação de senha, suporte e itens do menu Em breve ainda dependem de implementação. /loadingScreen é uma transição por timer, não uma requisição.
 
 ## Formulários e acessibilidade
 
@@ -75,12 +98,12 @@ createForms grava astro-created-form e astro-create-forms-draft com _versao: 1 e
 | Critério | Estado atual |
 | --- | --- |
 | M01–M04 | Vite/React/TS estrito, somente TS/TSX em src, componentes/páginas em pastas próprias, props e domínio tipados, sem any. Lógica de perguntas e validação compartilhada. |
-| M05 | API ainda não integrada. Quando houver, usar serviços tipados e tratamento de erro em src/services. |
+| M05 | Firebase e login em src/services, retorno Promise<UserCredential>, tratamento de erros do Authentication e .env fora do versionamento. Outras integrações remotas ainda pendentes. |
 | M06–M08 | Estados locais agrupados, atualizações imutáveis, efeitos com dependências verificadas pelo lint e ids estáveis nas listas dinâmicas. |
 | M09 | Nenhuma rota recebe parâmetros atualmente. |
 | M10 | React Router, navegação interna e rota curinga com retorno ao início. |
 | M11 | Correções de contraste, foco, teclado e tooltips realizadas. Certificação integral WCAG AA e validação com leitor de tela ainda não concluídas. |
-| M12 | Integrações assíncronas reais e seus estados dependem da API. Suspense apresenta carregamento dos módulos das páginas. |
+| M12 | Login apresenta carregamento, sucesso com navegação e erros no DOM. Demais integrações assíncronas reais ainda pendentes. Suspense apresenta carregamento dos módulos das páginas. |
 | M13 | Publicação segue pendente. |
 | M14 | Histórico em desenvolvimento; acompanhar 20 commits convencionais distribuídos por quatro semanas reais. |
 
