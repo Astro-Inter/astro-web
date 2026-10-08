@@ -3,23 +3,6 @@
 .main-event-screen .position-toolbar-selects > .astro-toolbar-select { width: calc(10.5rem * var(--astro-scale)); }
 
 .event-board { min-width: 0; }
-.event-filter-control { position: relative; flex: none; }
-.event-filter-trigger { display: flex; align-items: center; justify-content: space-between; gap: calc(0.6rem * var(--astro-scale)); width: calc(9rem * var(--astro-scale)); height: var(--astro-action-height); padding: 0 var(--astro-control-padding-inline); border: 1px solid transparent; border-radius: var(--astro-control-radius); color: var(--astro-text); background: var(--astro-field); font: inherit; font-size: var(--astro-control-font-size); cursor: pointer; transition: background 220ms ease; }
-.event-filter-trigger:hover, .event-filter-trigger[aria-expanded='true'] { background: #3e3a4d; filter: none; }
-.event-filter-trigger:focus-visible { border-color: var(--astro-input-focus-border); box-shadow: 0 0 0 1px rgb(47 46 50 / 22%); outline: none; }
-.event-filter-trigger .astro-icon { width: var(--astro-icon-sm); height: var(--astro-icon-sm); transition: transform 160ms ease; }
-.event-filter-trigger[aria-expanded='true'] .astro-icon { transform: rotate(180deg); }
-.event-filter-panel { position: absolute; z-index: 20; top: calc(100% + 0.45rem); right: 0; width: calc(17rem * var(--astro-popup-zoom)); padding: calc(1.5rem * var(--astro-popup-zoom)) calc(2rem * var(--astro-popup-zoom)); border-radius: calc(0.625rem * var(--astro-popup-zoom)); color: var(--astro-text); background: #332754; box-shadow: 0 16px 44px rgb(0 0 0 / 22%); animation: astro-popup-in var(--astro-popover-duration) ease both; }
-.event-filter-panel--closing { pointer-events: none; animation: astro-popup-out var(--astro-popover-duration) ease both; }
-.event-filter-panel h2 { margin: 0 0 calc(1.85rem * var(--astro-popup-zoom)); color: var(--astro-text); font-size: calc(var(--astro-subtitle-font-size-base) * var(--astro-popup-zoom)); font-weight: 600; }
-.event-filter-list { display: grid; gap: calc(1.5rem * var(--astro-popup-zoom)); }
-.event-filter-row { display: flex; align-items: center; gap: calc(0.6rem * var(--astro-popup-zoom)); min-width: 0; }
-.event-filter-dot { flex: none; width: calc(0.55rem * var(--astro-popup-zoom)); height: calc(0.55rem * var(--astro-popup-zoom)); border-radius: 50%; }
-.event-filter-dot--today { background: #148a67; }
-.event-filter-dot--commitment { background: #7762be; }
-.event-filter-dot--reminder { background: #a8733e; }
-.event-filter-label { flex: 1; min-width: 0; color: #d4cfe0; font-size: calc(var(--astro-label-font-size-base) * var(--astro-popup-zoom)); font-weight: 500; line-height: 1.25; }
-.event-filter-row .astro-toggle-switch { width: calc(3.1rem * var(--astro-popup-zoom)); height: calc(1.5rem * var(--astro-popup-zoom)); }
 
 
 
@@ -59,8 +42,11 @@
 .event-calendar-item { display: flex; align-items: center; justify-content: center; width: 100%; min-height: calc(2.2rem * var(--astro-scale)); overflow: hidden; padding: calc(0.45rem * var(--astro-scale)) calc(0.7rem * var(--astro-scale)); border: 0; border-radius: calc(0.2rem * var(--astro-scale)); color: #fff; font-family: inherit; font-size: var(--astro-control-font-size); font-weight: 500; line-height: 1.2; text-align: center; cursor: pointer; transition: filter 220ms ease; }
 .event-calendar-item-label { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .event-calendar-item--today { background: #176b54; }
-.event-calendar-item--commitment { background: #6248a0; }
-.event-calendar-item--reminder { background: #8e673f; }
+.event-calendar-item--color-0 { background: #6248a0; }
+.event-calendar-item--color-1 { background: #8e673f; }
+.event-calendar-item--color-2 { background: #236a80; }
+.event-calendar-item--color-3 { background: #42683f; }
+.event-calendar-item--inactive { background: #b3333d; }
 .event-calendar-item:not(.event-calendar-item--static):hover, .event-calendar-item[aria-expanded='true'] { filter: brightness(0.91); }
 .event-calendar-item--static { cursor: default; }
 .event-calendar-item--saved { animation: event-calendar-item-saved 900ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
@@ -92,10 +78,10 @@
 .event-year-day-events { position: absolute; right: 0; bottom: 0; left: 0; display: flex; flex-wrap: wrap; gap: 2px; }
 .event-calendar-item--miniature { flex: 1 1 calc(25% - 2px); min-width: 0; min-height: calc(0.35rem * var(--astro-scale)); height: calc(0.35rem * var(--astro-scale)); padding: 0; border-radius: 999px; }
 .event-calendar-item--miniature:focus-visible { outline-offset: 1px; }
-.event-deletion-modal { --astro-modal-width: 50rem; }
-.event-deletion-modal .astro-modal-title { max-width: none; }
-.event-deletion-modal .astro-action--danger { background: #eb6264; }
-.event-deletion-modal .astro-action--danger:hover { background: #cf4f53; }
+.event-deactivation-modal { --astro-modal-width: 50rem; }
+.event-deactivation-modal .astro-modal-title { max-width: none; }
+.event-deactivation-modal .astro-action--danger { background: #eb6264; }
+.event-deactivation-modal .astro-action--danger:hover { background: #cf4f53; }
 
 @media (max-width: 1024px) {
   .main-event-screen .position-main { height: auto; min-height: calc(100dvh - 4.5rem); overflow: visible; padding-block: 2rem 5rem; }
@@ -109,9 +95,7 @@
 
 @media (max-width: 570px) {
   .main-event-screen .position-toolbar .event-create-button, .main-event-screen .position-toolbar .astro-toolbar-search { width: 100%; max-width: none; }
-  .event-filter-control, .main-event-screen .position-toolbar-selects > .astro-toolbar-select { flex: 1; width: auto; min-width: 0; }
-  .event-filter-trigger { width: 100%; }
-  .event-filter-panel { right: auto; left: 0; width: min(calc(17rem * var(--astro-popup-zoom)), calc(100vw - 2.5rem)); }
+  .main-event-screen .position-toolbar-selects > .astro-toolbar-select { flex: 1; width: auto; min-width: 0; }
   .event-calendar-panel { padding: 1.1rem; }
   .event-year-grid { grid-template-columns: 1fr; }
 }
@@ -122,5 +106,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .event-calendar-item--saved .event-calendar-item-label { animation: none; }
-  .event-calendar-transition, .event-filter-panel, .event-filter-trigger, .event-filter-trigger .astro-icon, .event-month-arrow, .event-calendar-item { animation: none; transition: none; }
+  .event-calendar-transition, .event-month-arrow, .event-calendar-item { animation: none; transition: none; }
 }

@@ -18,9 +18,11 @@ interface EventGroupsModalProps {
   onRandom: () => void
   onRemoveGroup: (groupId: string) => void
   onReset: () => void
+  editing?: boolean
+  lockedGroupIds?: readonly string[]
 }
 
-function EventGroupsModal({ distributionVersion, assignments, collaborators, groups, onAddGroup, onAssign, onBack, onContinue, onRandom, onRemoveGroup, onReset }: EventGroupsModalProps) {
+function EventGroupsModal({ distributionVersion, assignments, collaborators, groups, onAddGroup, onAssign, onBack, onContinue, onRandom, onRemoveGroup, onReset, editing = false, lockedGroupIds = [] }: EventGroupsModalProps) {
   const groupsRef = useRef<HTMLDivElement>(null)
   const boardRef = useRef<HTMLDivElement>(null)
   const dragPointerRef = useRef<{ x: number; y: number } | null>(null)
@@ -43,7 +45,7 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
   const visible = collaborators.filter(person => person.name.toLocaleLowerCase('pt-BR').includes(search.trim().toLocaleLowerCase('pt-BR')))
     .sort((first, second) => orderIds.indexOf(first.id) - orderIds.indexOf(second.id))
   const draggedPerson = collaborators.find(person => person.id === draggedId)
-  const destinations = ['', ...groups.map(group => group.id)]
+  const destinations = ['', ...groups.filter(group => !lockedGroupIds.includes(group.id)).map(group => group.id)]
 
   useEffect(() => () => {
     if (scrollFrameRef.current !== null) cancelAnimationFrame(scrollFrameRef.current)
@@ -52,6 +54,11 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
 
   function showDropTarget(section: HTMLElement) {
     const groupId = section.dataset.groupId ?? ''
+    if (lockedGroupIds.includes(groupId)) {
+      dropGroupIdRef.current = null
+      setDropGroupId(null)
+      return
+    }
     if (dropGroupIdRef.current === groupId) return
     dropGroupIdRef.current = groupId
     setDropGroupId(groupId)
@@ -94,6 +101,7 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
   }
 
   function movePerson(personId: string, groupId: string) {
+    if (lockedGroupIds.includes(assignments[personId]) || lockedGroupIds.includes(groupId)) { clearDrag(); return }
     setOrderIds(current => {
       const withoutPerson = current.filter(id => id !== personId)
       const lastGroupIndex = withoutPerson.findLastIndex(id => (assignments[id] ?? '') === groupId)
@@ -116,7 +124,8 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
     return <button
       aria-label={`${person.name}, ${current ? groups.find(group => group.id === current)?.name ?? 'grupo' : 'não distribuído'}. Arraste para outro grupo ou use as setas esquerda e direita.`}
       className={`event-create-person-chip${draggedId === person.id ? ' event-create-person-chip--dragging' : ''}${returningIds.includes(person.id) && !current ? ' event-create-person-chip--returning' : ''}`}
-      draggable
+      disabled={lockedGroupIds.includes(current)}
+      draggable={!lockedGroupIds.includes(current)}
       data-person-id={person.id}
       key={person.id}
       onDragEnd={clearDrag}
@@ -174,9 +183,9 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
   }
 
   return <div className="event-create-step event-create-groups" ref={groupsRef}>
-    <p className="event-create-description">Arraste os colaboradores para onde devem ser distribuídos.</p>
+    <p className="event-create-description">Arraste os colaboradores para onde devem ser distribuídos.{editing ? ' Turmas são definidas na criação. Participantes de turmas iniciadas não podem ser movimentados.' : ''}</p>
     <div className="event-create-group-tools">
-      <PurpleButton className="event-create-random-trigger" onClick={onRandom} type="button"><AstroIcon name="distribution" />Distribuir aleatoriamente</PurpleButton>
+      {!editing && <PurpleButton className="event-create-random-trigger" onClick={onRandom} type="button"><AstroIcon name="distribution" />Distribuir aleatoriamente</PurpleButton>}
       <ToolbarSearch label="Buscar colaboradores para distribuir" onChange={event => setSearch(event.target.value)} onClear={() => setSearch('')} placeholder="Buscar colaboradores..." value={search} />
     </div>
     <div
@@ -215,18 +224,18 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
         onDrop={event => dropInto(event, group.id)}
       >
         <div className="event-create-group-heading">
-          <h3>{group.name}</h3>
-          {group.id && <button aria-label={`Excluir ${group.name}`} className="event-create-group-delete" disabled={groupClosing} onClick={() => removeGroup(group.id)} title={`Excluir ${group.name}`} type="button"><AstroIcon name="trash" /></button>}
+          <h3>{group.name}{lockedGroupIds.includes(group.id) ? ' · Iniciada' : ''}</h3>
+          {group.id && !editing && <button aria-label={`Excluir ${group.name}`} className="event-create-group-delete" disabled={groupClosing} onClick={() => removeGroup(group.id)} title={`Excluir ${group.name}`} type="button"><AstroIcon name="trash" /></button>}
         </div>
         <div className="event-create-group-members">
           {visible.filter(person => (assignments[person.id] ?? '') === group.id).map(personButton)}
           {dropGroupId === group.id && preview()}
         </div>
       </section>)}
-      <button className="event-create-add-group" onClick={onAddGroup} type="button"><AstroIcon name="plus" />Adicionar grupo</button>
+      {!editing && <button className="event-create-add-group" onClick={onAddGroup} type="button"><AstroIcon name="plus" />Adicionar grupo</button>}
     </div>
     <div className="event-create-group-footer">
-      <button className="event-create-reset" disabled={groupClosing || resetting} onClick={resetGroups} type="button"><AstroIcon name="reload" />Reiniciar</button>
+      {!editing && <button className="event-create-reset" disabled={groupClosing || resetting} onClick={resetGroups} type="button"><AstroIcon name="reload" />Reiniciar</button>}
       <div className="astro-modal-actions event-create-actions"><button className="astro-modal-cancel" onClick={onBack} type="button">Voltar</button><PurpleButton onClick={onContinue} type="button">Continuar</PurpleButton></div>
     </div>
   </div>

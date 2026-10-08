@@ -1,8 +1,8 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { usePopupStepTransition } from '../../hooks/usePopupStepTransition'
 import { mockEventCollaborators } from '../../data/eventCreation'
 import type { EventConfiguration, EventDraft, EventGroup, EventGroupSchedule, EventSettings } from '../../types/eventCreation'
-import { validateEventConfiguration } from '../../utils/eventEditing'
+import { canEditEvent, startedGroupIds, validateEventConfiguration, validateEventEdit } from '../../utils/eventEditing'
 import AppModal from '../appModal'
 import ConfirmationModal from '../confirmationModal'
 import EventInformationModal from '../eventInformationModal'
@@ -18,11 +18,12 @@ interface CreateEventFlowModalProps {
   onSubmit: (value: EventConfiguration) => void
   initialValue?: EventConfiguration
   mode?: 'create' | 'edit'
+  managerId: string
 }
 
 type EventCreationStep = 'details' | 'collaborators' | 'groups' | 'schedule' | 'settings' | 'review'
 
-const initialDraft: EventDraft = { title: '', description: '', type: '', nr: '', externalLink: '' }
+const initialDraft: EventDraft = { title: '', description: '', type: 'Evento', nr: '', externalLink: '' }
 const initialGroups: EventGroup[] = [{ id: 'group-1', name: 'Grupo 1' }]
 const titles: Record<EventCreationStep, string> = {
   details: 'Informações do evento',
@@ -33,7 +34,7 @@ const titles: Record<EventCreationStep, string> = {
   review: 'Revisão do evento',
 }
 
-function CreateEventFlowModal({ onClose, onSubmit, initialValue, mode = 'create' }: CreateEventFlowModalProps) {
+function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode = 'create' }: CreateEventFlowModalProps) {
   const [step, setStep] = useState<EventCreationStep>('details')
   const animatePopupChange = usePopupStepTransition()
   const [draft, setDraft] = useState<EventDraft>(() => initialValue?.draft ?? initialDraft)
@@ -50,6 +51,19 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, mode = 'create'
   const [pendingSave, setPendingSave] = useState<EventConfiguration | null>(null)
   const [saveDimmed, setSaveDimmed] = useState(false)
   const [saveClosing, setSaveClosing] = useState(false)
+  const [now, setNow] = useState(Date.now)
+  useEffect(() => {
+    if (mode !== 'edit') return
+    const timer = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(timer)
+  }, [mode])
+  const lockedGroupIds = initialValue && mode === 'edit' ? startedGroupIds(initialValue, now) : []
+  const lockedParticipantIds = initialValue ? Object.entries(initialValue.assignments).filter(([, groupId]) => lockedGroupIds.includes(groupId)).map(([id]) => id) : []
+  const detailsLocked = mode === 'edit' && !!initialValue && (!canEditEvent(initialValue, managerId) || lockedGroupIds.length > 0)
+
+  function validationFor(value: EventConfiguration) {
+    return validateEventConfiguration(value) ?? (mode === 'edit' && initialValue ? validateEventEdit(initialValue, value, managerId) : null)
+  }
 
   function changeStep(nextStep: EventCreationStep) {
     setError('')
@@ -58,8 +72,8 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, mode = 'create'
 
   function submit(dismiss: () => void) {
     if (submittedRef.current) return
-    const value: EventConfiguration = { draft, selectedIds, groups, assignments, schedules, settings }
-    const validationError = validateEventConfiguration(value)
+    const value: EventConfiguration = { creatorId: initialValue?.creatorId ?? managerId, draft, selectedIds, groups, assignments, schedules, settings }
+    const validationError = validationFor(value)
     if (validationError) {
       setError(validationError)
       return
@@ -75,6 +89,7 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, mode = 'create'
   }
 
   function updateSelection(ids: string[]) {
+    if (lockedParticipantIds.some(id => !ids.includes(id))) return
     setSelectedIds(ids)
     setAssignments(current => Object.fromEntries(Object.entries(current).filter(([personId]) => ids.includes(personId))))
   }
@@ -84,6 +99,7 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, mode = 'create'
   }, [step])
 
   function distributeRandomly(count: number) {
+    if (mode === 'edit') return
     const nextGroups = Array.from({ length: count }, (_, index) => ({ id: `group-${index + 1}`, name: `Grupo ${index + 1}` }))
     const shuffled = [...selectedIds]
     for (let index = shuffled.length - 1; index > 0; index--) {
@@ -102,18 +118,21 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, mode = 'create'
   }
 
   function resetGroups() {
+    if (mode === 'edit') return
     setGroups(initialGroups)
     setAssignments({})
     setSchedules({})
   }
 
   function removeGroup(groupId: string) {
+    if (mode === 'edit') return
     setGroups(current => current.filter(group => group.id !== groupId).map((group, index) => ({ ...group, name: `Grupo ${index + 1}` })))
     setAssignments(current => Object.fromEntries(Object.entries(current).filter(([, assignedGroupId]) => assignedGroupId !== groupId)))
     setSchedules(current => Object.fromEntries(Object.entries(current).filter(([id]) => id !== groupId)))
   }
 
   function addGroup() {
+    if (mode === 'edit') return
     setGroups(current => {
       const nextNumber = Math.max(0, ...current.map(group => Number(group.id.slice('group-'.length)) || 0)) + 1
       return [...current, { id: `group-${nextNumber}`, name: `Grupo ${current.length + 1}` }]
@@ -123,11 +142,11 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, mode = 'create'
   return <>
     <AppModal className={`event-create-modal event-create-modal--${step}`} dimmed={saveDimmed || (randomOpen && !randomClosing)} onClose={() => { if (!pendingSave) onClose() }} open={!saveClosing} preservePageScroll title={mode === 'edit' && step === 'details' ? 'Editar evento' : titles[step]}>
       {dismiss => <div className="event-create-step-frame">
-        {step === 'details' && <EventInformationModal draft={draft} onCancel={dismiss} onChange={changes => setDraft(current => ({ ...current, ...changes }))} onContinue={() => changeStep('collaborators')} />}
-        {step === 'collaborators' && <EventParticipantsModal nr={draft.nr} onBack={() => changeStep('details')} onContinue={() => changeStep('groups')} onSelectionChange={updateSelection} selectedIds={selectedIds} />}
-        {step === 'groups' && <EventGroupsModal distributionVersion={distributionVersion} assignments={assignments} collaborators={mockEventCollaborators.filter(person => selectedIds.includes(person.id))} groups={groups} onAddGroup={addGroup} onAssign={(personId, groupId) => setAssignments(current => ({ ...current, [personId]: groupId }))} onBack={() => changeStep('collaborators')} onContinue={() => changeStep('schedule')} onRandom={() => { setRandomClosing(false); setRandomOpen(true) }} onRemoveGroup={removeGroup} onReset={resetGroups} />}
-        {step === 'schedule' && <EventGroupScheduleModal assignments={assignments} groups={groups} onBack={() => changeStep('groups')} onChange={(groupId, changes) => setSchedules(current => ({ ...current, [groupId]: { ...(current[groupId] ?? { date: '', startTime: '', endTime: '' }), ...changes } }))} onContinue={() => changeStep('settings')} schedules={schedules} />}
-        {step === 'settings' && <EventSettingsModal onBack={() => changeStep('schedule')} onChange={changes => setSettings(current => ({ ...current, ...changes }))} onContinue={() => changeStep('review')} settings={settings} />}
+        {step === 'details' && <EventInformationModal editing={mode === 'edit'} detailsLocked={detailsLocked} draft={draft} onCancel={dismiss} onChange={changes => { if (!detailsLocked) setDraft(current => ({ ...current, ...changes, ...(mode === 'edit' && initialValue ? { nr: initialValue.draft.nr, type: initialValue.draft.type } : {}) })) }} onContinue={() => changeStep('collaborators')} />}
+        {step === 'collaborators' && <EventParticipantsModal selectionLocked={mode === 'edit' && lockedGroupIds.length === groups.length} lockedParticipantIds={lockedParticipantIds} nr={draft.nr} onBack={() => changeStep('details')} onContinue={() => changeStep('groups')} onSelectionChange={updateSelection} selectedIds={selectedIds} />}
+        {step === 'groups' && <EventGroupsModal editing={mode === 'edit'} lockedGroupIds={lockedGroupIds} distributionVersion={distributionVersion} assignments={assignments} collaborators={mockEventCollaborators.filter(person => selectedIds.includes(person.id))} groups={groups} onAddGroup={addGroup} onAssign={(personId, groupId) => { if (!lockedGroupIds.includes(groupId) && !lockedParticipantIds.includes(personId)) setAssignments(current => ({ ...current, [personId]: groupId })) }} onBack={() => changeStep('collaborators')} onContinue={() => changeStep('schedule')} onRandom={() => { setRandomClosing(false); setRandomOpen(true) }} onRemoveGroup={removeGroup} onReset={resetGroups} />}
+        {step === 'schedule' && <EventGroupScheduleModal lockedGroupIds={lockedGroupIds} assignments={assignments} groups={groups} onBack={() => changeStep('groups')} onChange={(groupId, changes) => { if (!lockedGroupIds.includes(groupId)) setSchedules(current => ({ ...current, [groupId]: { ...(current[groupId] ?? { date: '', startTime: '', endTime: '' }), ...changes } })) }} onContinue={() => changeStep('settings')} schedules={schedules} />}
+        {step === 'settings' && <EventSettingsModal editing={mode === 'edit'} onBack={() => changeStep('schedule')} onChange={changes => { if (mode !== 'edit') setSettings(current => ({ ...current, ...changes })) }} onContinue={() => changeStep('review')} settings={settings} />}
         {step === 'review' && <EventReviewModal editing={mode === 'edit'} error={error} assignments={assignments} draft={draft} groups={groups} onBack={() => changeStep('settings')} onCreate={() => submit(dismiss)} schedules={schedules} settings={settings} />}
       </div>}
     </AppModal>
@@ -139,7 +158,7 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, mode = 'create'
       onCancelRequest={() => setSaveDimmed(false)}
       onConfirm={() => {
         if (submittedRef.current) return null
-        const validationError = validateEventConfiguration(pendingSave)
+        const validationError = validationFor(pendingSave)
         if (validationError) return validationError
         submittedRef.current = true
         onSubmit(pendingSave)
