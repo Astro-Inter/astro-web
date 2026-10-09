@@ -1,0 +1,34 @@
+.position-status--expired { background: #6b2e2f; }
+.position-status--no-expiry { background: #747435; }
+.main-conformity-screen .astro-data-table :is(th, td) { padding-inline: 1.5%; }
+.main-conformity-screen .astro-data-table :is(th, td):first-child { padding-left: 4%; }
+.main-conformity-screen .astro-data-table :is(th, td):last-child { padding-right: 4%; }
+.main-conformity-screen .position-status { min-width: calc(10.1rem * var(--astro-scale)); }
+
+.conformity-filter-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: calc(0.65rem * var(--astro-scale));
+  height: var(--astro-action-height);
+  padding: 0 var(--astro-control-padding-inline);
+  border: 1px solid transparent;
+  border-radius: var(--astro-control-radius);
+  color: var(--astro-text);
+  background: var(--astro-field);
+  font-size: var(--astro-control-font-size);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.conformity-filter-button:focus-visible { border-color: var(--astro-input-focus-border); box-shadow: 0 0 0 1px rgb(47 46 50 / 22%); outline: none; }
+.conformity-filter-button .astro-icon { width: var(--astro-icon-sm); height: var(--astro-icon-sm); }
+
+@media (max-width: 1050px) {
+  .main-conformity-screen .astro-data-table :is(th, td):first-child { padding-left: 3%; }
+  .main-conformity-screen .astro-data-table :is(th, td):last-child { padding-right: 3%; }
+}
+
+@media (max-width: 480px) {
+  .conformity-filter-button { width: 100%; justify-content: space-between; }
+}
