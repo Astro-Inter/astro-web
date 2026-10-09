@@ -18,6 +18,7 @@ const LoginPage = lazy(() => import('../pages/login'))
 const loadManagers = () => import('../pages/mainManagerScreen')
 const loadEmployees = () => import('../pages/mainEmployeerScreen')
 const loadUnits = () => import('../pages/mainUnitScreen')
+const loadConformities = () => import('../pages/mainConformityScreen')
 const loadPositions = () => import('../pages/mainPositionScreen')
 const loadForms = () => import('../pages/mainFormScreen')
 const loadEvents = () => import('../pages/mainEventScreen')
@@ -26,6 +27,7 @@ const loadAccountSettings = () => import('../pages/mainAccountScreen')
 const MainManagerScreenPage = lazy(loadManagers)
 const MainEmployeerScreenPage = lazy(loadEmployees)
 const MainUnitScreenPage = lazy(loadUnits)
+const MainConformityScreenPage = lazy(loadConformities)
 const MainPositionScreenPage = lazy(loadPositions)
 const MainFormScreenPage = lazy(loadForms)
 const MainEventScreenPage = lazy(loadEvents)
@@ -51,6 +53,7 @@ const settingsRouteLoaders: Record<string, () => Promise<unknown>> = {
   '/mainManagerScreen': loadManagers,
   '/mainEmployeerScreen': loadEmployees,
   '/mainUnitScreen': loadUnits,
+  '/mainConformityScreen': loadConformities,
   '/mainPositionScreen': loadPositions,
   '/mainFormScreen': loadForms,
   '/mainEventScreen': loadEvents,
@@ -162,6 +165,7 @@ function AppRoutes() {
         <Route path="/mainManagerScreen" element={<MainManagerScreenPage />} />
         <Route path="/mainEmployeerScreen" element={<MainEmployeerScreenPage />} />
         <Route path="/mainUnitScreen" element={<MainUnitScreenPage />} />
+        <Route path="/mainConformityScreen" element={<MainConformityScreenPage />} />
         <Route path="/mainPositionScreen" element={<MainPositionScreenPage />} />
         <Route path="/mainFormScreen" element={<MainFormScreenPage />} />
         <Route path="/mainEventScreen" element={<MainEventScreenPage />} />

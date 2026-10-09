@@ -3,18 +3,39 @@ import { useAnimatedDialog } from '../../hooks/useAnimatedDialog'
 import AstroIcon from '../astroIcon'
 import PurpleButton from '../purpleButton'
 
+export interface SpreadsheetExample {
+  ariaLabel: string
+  className?: string
+  columns: readonly { label: string; className: string }[]
+  rows: readonly (readonly string[])[]
+}
+
 interface SpreadsheetExplanationModalProps {
+  example?: SpreadsheetExample
   onDismiss: () => void
   open: boolean
 }
 
-const exampleRows = [
-  ['João Silva', '000.000.000-00', 'joao.silva@empresa.com', 'São Paulo', 'Analista de Dados', 'Presencial'],
-  ['Maria Oliveira', '111.111.111-11', 'maria.oliveira@empresa.com', 'Rio de Janeiro', 'Gerente de Projetos', 'Remoto'],
-  ['Carlos Souza', '222.222.222-22', 'carlos.souza@empresa.com', 'Belo Horizonte', 'Desenvolvedor', 'Híbrido'],
-]
+const employeeExample: SpreadsheetExample = {
+  ariaLabel: 'Exemplo das colunas da planilha de colaboradores',
+  columns: [
+    { label: 'Nome', className: 'spreadsheet-name' },
+    { label: 'CPF', className: 'spreadsheet-cpf' },
+    { label: 'Email', className: 'spreadsheet-email' },
+    { label: 'Unidade', className: 'spreadsheet-unit' },
+    { label: 'Cargo', className: 'spreadsheet-job' },
+    { label: 'Modalidade', className: 'spreadsheet-mode' },
+  ],
+  rows: [
+    ['João Silva', '000.000.000-00', 'joao.silva@empresa.com', 'São Paulo', 'Analista de Dados', 'Presencial'],
+    ['Maria Oliveira', '111.111.111-11', 'maria.oliveira@empresa.com', 'Rio de Janeiro', 'Gerente de Projetos', 'Remoto'],
+    ['Carlos Souza', '222.222.222-22', 'carlos.souza@empresa.com', 'Belo Horizonte', 'Desenvolvedor', 'Híbrido'],
+  ],
+}
 
-function SpreadsheetExplanationModal({ onDismiss, open }: SpreadsheetExplanationModalProps) {
+const columnLetters = ['A', 'B', 'C', 'D', 'E', 'F']
+
+function SpreadsheetExplanationModal({ example = employeeExample, onDismiss, open }: SpreadsheetExplanationModalProps) {
   const titleRef = useRef<HTMLHeadingElement>(null)
   const { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose } = useAnimatedDialog({ initialFocusRef: titleRef, onClose: onDismiss, open })
 
@@ -42,42 +63,32 @@ function SpreadsheetExplanationModal({ onDismiss, open }: SpreadsheetExplanation
       </div>
 
       <h3 className="spreadsheet-explanation-section-title">Como deve ser sua planilha?</h3>
-      <div className="spreadsheet-preview">
-        <table aria-label="Exemplo das colunas da planilha de colaboradores">
+      <div className={`spreadsheet-preview${example.className ? ` ${example.className}` : ''}`}>
+        <table aria-label={example.ariaLabel}>
           <colgroup>
             <col className="spreadsheet-row-number" />
-            <col className="spreadsheet-name" />
-            <col className="spreadsheet-cpf" />
-            <col className="spreadsheet-email" />
-            <col className="spreadsheet-unit" />
-            <col className="spreadsheet-job" />
-            <col className="spreadsheet-mode" />
+            {example.columns.map((column, index) => <col className={column.className} key={columnLetters[index]} />)}
           </colgroup>
           <thead>
             <tr className="spreadsheet-letters" aria-hidden="true">
-              <th /><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th>
+              <th />{example.columns.map((_, index) => <th key={columnLetters[index]}>{columnLetters[index]}</th>)}
             </tr>
             <tr>
               <th scope="row">1</th>
-              <th scope="col">Nome</th>
-              <th scope="col">CPF</th>
-              <th scope="col">Email</th>
-              <th scope="col">Unidade</th>
-              <th scope="col">Cargo</th>
-              <th scope="col">Modalidade</th>
+              {example.columns.map((column, index) => column.label ? <th key={columnLetters[index]} scope="col">{column.label}</th> : <td key={columnLetters[index]} />)}
             </tr>
           </thead>
           <tbody>
-            {exampleRows.map((row, index) => (
-              <tr key={row[1]}>
-                <th scope="row">{index + 2}</th>
-                {row.map((value, column) => <td key={`${row[1]}-${column}`} title={value}>{value}</td>)}
+            {example.rows.map((row, rowIndex) => (
+              <tr key={row.join('|')}>
+                <th scope="row">{rowIndex + 2}</th>
+                {example.columns.map((_, column) => <td key={columnLetters[column]} title={row[column]}>{row[column]}</td>)}
               </tr>
             ))}
             {[5, 6, 7, 8, 9].map((rowNumber) => (
               <tr key={rowNumber}>
                 <th scope="row">{rowNumber}</th>
-                <td /><td /><td /><td /><td /><td />
+                {example.columns.map((_, column) => <td key={columnLetters[column]} />)}
               </tr>
             ))}
           </tbody>
