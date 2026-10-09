@@ -34,10 +34,11 @@
 .import-conformity-model-link { align-self: center; margin-top: 1rem; font-size: var(--astro-control-font-size); }
 .import-conformity-actions { align-self: stretch; }
 
-.add-conformity-modal { --astro-modal-width: 40.35rem; }
-.add-conformity-employee { margin-top: var(--astro-modal-content-gap); }
-.add-conformity-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.add-conformity-modal .create-forms-date-control input { min-height: var(--astro-control-height); font-size: var(--astro-control-font-size); }
+.conformity-form-modal, .conformity-filter-modal { --astro-modal-width: 40.35rem; }
+.astro-options-popup[id^="conformity-actions-"] { width: calc(16.75rem * var(--astro-popup-zoom)); }
+.conformity-form-employee { margin-top: var(--astro-modal-content-gap); }
+.conformity-form-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+:is(.conformity-form-modal, .conformity-filter-modal) .create-forms-date-control input { min-height: var(--astro-control-height); font-size: var(--astro-control-font-size); }
 
 .spreadsheet-preview--conformity { height: 10.5rem; }
 .spreadsheet-preview--conformity table { font-size: 0.85rem; }
@@ -56,7 +57,7 @@
 @media (max-width: 480px) {
   .conformity-filter-button { width: 100%; justify-content: space-between; }
   .import-conformity-manual { width: 100%; }
-  .add-conformity-row { grid-template-columns: 1fr; }
+  .conformity-form-row { grid-template-columns: 1fr; }
   .spreadsheet-preview--conformity table { font-size: 0.75rem; }
   .spreadsheet-conformity-cpf, .spreadsheet-expiry { width: 30%; }
   .spreadsheet-nr { width: 12%; }
