@@ -9,3 +9,9 @@ export interface Conformity {
   expiresAt: string | null
   origin: ConformityOrigin
 }
+
+export interface ConformityFormValues {
+  employeeId: string
+  nr: string
+  expiresAt: string
+}

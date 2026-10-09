@@ -8,4 +8,4 @@ export type { Manager, ManagerDetailsValues, ManagerInviteValues } from './manag
 export type { Employee, EmployeeInviteValues } from './employee'
 export type { ComplianceOverview, ComplianceSlice, ComplianceStatus, QuickAction, QuickActionColor, SummaryStat } from './home'
 export type { Unit } from './unit'
-export type { Conformity, ConformityOrigin, ConformityStatus } from './conformity'
+export type { Conformity, ConformityFormValues, ConformityOrigin, ConformityStatus } from './conformity'

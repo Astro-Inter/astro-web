@@ -1,8 +1,10 @@
-import { useState } from 'react'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, DataTable, ManagerIdentity, ToolbarSearch, TruncatedText } from '../../components'
+import { useEffect, useRef, useState } from 'react'
+import { AddConformityModal, AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, DataTable, ImportConformityModal, ManagerIdentity, ToolbarSearch, TruncatedText } from '../../components'
 import type { DataTableColumn } from '../../components/dataTable'
 import { mockConformities } from '../../data/conformities'
-import type { Conformity } from '../../types'
+import { mockEmployees } from '../../data/employees'
+import { defaultNrsRows } from '../../data/regulatoryStandards'
+import type { Conformity, ConformityFormValues } from '../../types'
 import { conformityStatusLabels, formatConformityDate, getConformityStatus } from '../../utils/conformity'
 
 const statusClassNames = {
@@ -10,13 +12,51 @@ const statusClassNames = {
   expired: ' position-status--expired',
   'no-expiry': ' position-status--no-expiry',
 }
+const nrOptions = defaultNrsRows.map((row) => row.code.replace(/^NR/, 'NR '))
+const closedAddFlow = { importOpen: false, manualOpen: false, importClosing: false }
 
 function MainConformityScreenPage() {
-  const [conformities] = useState<Conformity[]>(mockConformities)
+  const addOriginRef = useRef<HTMLButtonElement | null>(null)
+  const savedTimerRef = useRef<number | null>(null)
+  const [conformities, setConformities] = useState<Conformity[]>(mockConformities)
   const [filters, setFilters] = useState({ search: '' })
+  const [addFlow, setAddFlow] = useState(closedAddFlow)
+  const [savedConformityId, setSavedConformityId] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState('')
+
+  useEffect(() => () => {
+    if (savedTimerRef.current !== null) window.clearTimeout(savedTimerRef.current)
+  }, [])
 
   const normalizedSearch = filters.search.trim().toLocaleLowerCase('pt-BR')
   const visibleConformities = conformities.filter((conformity) => conformity.employeeName.toLocaleLowerCase('pt-BR').includes(normalizedSearch))
+
+  function showSavedConformity(conformityId: string | null, message: string) {
+    if (savedTimerRef.current !== null) window.clearTimeout(savedTimerRef.current)
+    setSavedConformityId(conformityId)
+    setFeedback(message)
+    savedTimerRef.current = window.setTimeout(() => {
+      savedTimerRef.current = null
+      setSavedConformityId(null)
+    }, 900)
+  }
+
+  function addConformity(values: ConformityFormValues): string | null {
+    const employee = mockEmployees.find((item) => item.id === values.employeeId)
+    if (!employee) return 'Selecione o colaborador.'
+    if (conformities.some((conformity) => conformity.employeeName === employee.name && conformity.nr === values.nr)) return 'Esse colaborador já possui conformidade nessa NR.'
+
+    const newConformityId = crypto.randomUUID()
+    setConformities((current) => [{ id: newConformityId, employeeName: employee.name, nr: values.nr, expiresAt: values.expiresAt || null, origin: 'Manual' }, ...current])
+    showSavedConformity(newConformityId, `Conformidade da ${values.nr} adicionada para ${employee.name}.`)
+    setAddFlow((current) => ({ ...current, importClosing: true }))
+    return null
+  }
+
+  function closeAddFlow() {
+    setAddFlow(closedAddFlow)
+    requestAnimationFrame(() => addOriginRef.current?.focus())
+  }
 
   const columns: DataTableColumn<Conformity>[] = [
     { id: 'employee', label: 'Colaborador', width: '23%', rowHeader: true, render: (conformity) => <ManagerIdentity name={conformity.employeeName} /> },
@@ -54,7 +94,7 @@ function MainConformityScreenPage() {
           </header>
 
           <div aria-label="Ações e filtros das conformidades" className="position-toolbar" role="group">
-            <CompactPurpleButton type="button">
+            <CompactPurpleButton aria-haspopup="dialog" onClick={(event) => { addOriginRef.current = event.currentTarget; setAddFlow({ ...closedAddFlow, importOpen: true }) }} type="button">
               <AstroIcon name="plus" />
               Adicionar conformidade
             </CompactPurpleButton>
@@ -75,10 +115,29 @@ function MainConformityScreenPage() {
             </div>
           </div>
 
-          <DataTable ariaLabel="Conformidades" columns={columns} emptyMessage="Nenhuma conformidade encontrada para esses filtros." getRowKey={(conformity) => conformity.id} rows={visibleConformities} />
+          <DataTable ariaLabel="Conformidades" columns={columns} emptyMessage="Nenhuma conformidade encontrada para esses filtros." getRowClassName={(conformity) => conformity.id === savedConformityId ? 'astro-data-table-row--saved' : undefined} getRowKey={(conformity) => conformity.id} rows={visibleConformities} />
+          <p className="sr-only" role="status">{feedback}</p>
         </section>
         <AstroChat />
       </main>
+
+      {addFlow.importOpen && (
+        <ImportConformityModal
+          dimmed={addFlow.manualOpen}
+          onClose={closeAddFlow}
+          onImport={(file) => showSavedConformity(null, `Planilha ${file.name} enviada para importação.`)}
+          onManualAdd={() => setAddFlow((current) => ({ ...current, manualOpen: true }))}
+          open={!addFlow.importClosing}
+        />
+      )}
+      {addFlow.manualOpen && (
+        <AddConformityModal
+          employees={mockEmployees}
+          nrs={nrOptions}
+          onAdd={addConformity}
+          onClose={() => setAddFlow((current) => ({ ...current, manualOpen: false }))}
+        />
+      )}
     </div>
   )
 }
