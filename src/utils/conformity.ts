@@ -1,6 +1,9 @@
-import type { ConformityFormValues, ConformityStatus } from '../types/conformity'
+import type { Conformity, ConformityFilters, ConformityFormValues, ConformityStatus } from '../types/conformity'
 
 export type ConformityValidationErrors = Partial<Record<keyof ConformityFormValues, string>>
+export type ConformityFilterErrors = Partial<Record<'from' | 'to', string>>
+
+export const emptyConformityFilters: ConformityFilters = { nr: '', origin: '', from: '', to: '' }
 
 export const conformityStatusLabels: Record<ConformityStatus, string> = {
   valid: 'Válida',
@@ -31,4 +34,20 @@ export function validateConformity(values: ConformityFormValues, employeeIds: re
   if (!nrs.includes(values.nr)) errors.nr = 'Selecione a NR.'
   if (!dateValid || (values.expiresAt && !/^\d{4}-\d{2}-\d{2}$/.test(values.expiresAt))) errors.expiresAt = 'Informe uma data válida no formato dd/mm/aaaa.'
   return errors
+}
+
+export function validateConformityFilters(filters: ConformityFilters, validDates: { from: boolean; to: boolean }): ConformityFilterErrors {
+  const errors: ConformityFilterErrors = {}
+  if (!validDates.from) errors.from = 'Informe uma data válida no formato dd/mm/aaaa.'
+  if (!validDates.to) errors.to = 'Informe uma data válida no formato dd/mm/aaaa.'
+  if (!errors.from && !errors.to && filters.from && filters.to && filters.from > filters.to) errors.to = 'Deve ser após a data inicial.'
+  return errors
+}
+
+export function matchesConformityFilters(conformity: Conformity, filters: ConformityFilters): boolean {
+  if (filters.nr && conformity.nr !== filters.nr) return false
+  if (filters.origin && conformity.origin !== filters.origin) return false
+  if (!filters.from && !filters.to) return true
+  if (!conformity.expiresAt) return false
+  return (!filters.from || conformity.expiresAt >= filters.from) && (!filters.to || conformity.expiresAt <= filters.to)
 }
