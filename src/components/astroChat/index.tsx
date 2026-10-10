@@ -2,10 +2,9 @@ import { iconAsset } from '../../utils/iconAsset'
 import { getPopupDuration } from '../../utils/popupMotion'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react'
-import { onAuthStateChanged } from 'firebase/auth'
 import { useNavigate } from 'react-router-dom'
 import AstroChatSessions from '../astroChatSessions'
-import { firebaseAuth } from '../../services/firebase'
+import { useAuthentication } from '../../hooks/useAuthentication'
 import { ChatApiError, endChatSession, getChatSessionMessages, listChatSessions, sendChatMessage, startChatSession } from '../../services/chat'
 import type { ChatMessage, ChatSessionStatus, ChatSessionSummary } from '../../types/chat'
 
@@ -120,7 +119,8 @@ const initialSessionListState: SessionListState = {
 function AstroChat() {
   const [chat, setChat] = useState<ChatState>(initialChatState)
   const [sessionList, setSessionList] = useState<SessionListState>(initialSessionListState)
-  const [authState, setAuthState] = useState<{ ready: boolean; authenticated: boolean }>({ ready: false, authenticated: false })
+  const { user, status } = useAuthentication()
+  const authState = { ready: status === 'ready', authenticated: Boolean(user) }
   const historyVisible = authState.authenticated && sessionList.panelOpen
   const navigate = useNavigate()
   const [position, setPosition] = useState<ChatPosition | null>(null)
@@ -137,16 +137,6 @@ function AstroChat() {
   const launcherAnchorRef = useRef<ChatAnchor | null>(null)
   const closeTimerRef = useRef<number | null>(null)
   const sessionListRequestRef = useRef({ version: 0, pending: false })
-
-  useEffect(() => onAuthStateChanged(firebaseAuth, (user) => {
-    setAuthState({ ready: true, authenticated: Boolean(user) })
-    if (!user) {
-      sessionListRequestRef.current.version += 1
-      sessionListRequestRef.current.pending = false
-      setChat((current) => ({ ...current, messages: [], sessionId: null, sessionStatus: null, openingSessionId: null, busy: 'idle', error: '' }))
-      setSessionList(initialSessionListState)
-    }
-  }), [])
 
   const loadSessions = useCallback(async (cursor?: string | null, append = false) => {
     if (!authState.authenticated) return

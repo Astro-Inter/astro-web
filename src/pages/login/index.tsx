@@ -1,13 +1,15 @@
 import { AnimatedWelcome, AstroBrand, HelpLink, LoginForm } from '../../components'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useLogin } from '../../hooks/useLogin'
+import { getLoginDestination } from '../../utils/authentication'
 
 function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { credentials, errors, status, message, invalidCredentials, updateCredential, submit } = useLogin()
 
   async function handleSubmit(): Promise<void> {
-    if (await submit()) navigate('/mainHomeScreen', { replace: true })
+    if (await submit()) navigate(getLoginDestination(location.state), { replace: true })
   }
 
   return (

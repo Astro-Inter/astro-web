@@ -9,3 +9,15 @@ export interface LoginFieldErrors {
 }
 
 export type LoginStatus = 'idle' | 'loading' | 'success' | 'error'
+
+export interface AuthenticatedUser {
+  uid: string
+  email: string | null
+  displayName: string | null
+}
+
+export interface AuthenticationState {
+  user: AuthenticatedUser | null
+  status: 'loading' | 'ready' | 'error'
+  error: string
+}

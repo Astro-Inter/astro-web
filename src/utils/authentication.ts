@@ -1,5 +1,14 @@
 import type { LoginCredentials, LoginFieldErrors } from '../types/authentication'
 
+export function getLoginDestination(state: unknown): string {
+  if (state && typeof state === 'object' && 'returnTo' in state) {
+    const destination = state.returnTo
+    if (typeof destination === 'string' && destination.startsWith('/') && !destination.startsWith('//')
+      && destination.split(/[?#]/)[0] !== '/') return destination
+  }
+  return '/mainHomeScreen'
+}
+
 export function validateLoginCredentials(credentials: LoginCredentials): LoginFieldErrors {
   const errors: LoginFieldErrors = {}
   const email = credentials.email.trim()
