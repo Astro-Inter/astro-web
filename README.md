@@ -56,6 +56,8 @@ O SDK modular é inicializado na entrada da aplicação usando as variáveis do 
 
 O `.env` é ignorado pelo Git. No GitHub, cadastre os mesmos seis nomes em **Settings → Secrets and variables → Actions → Repository secrets**. Os workflows de CI e GitHub Pages injetam esses secrets durante o build e falham com uma mensagem específica se algum estiver vazio. Alterar um secret exige um novo build para atualizar a configuração publicada. Pull requests de forks não recebem esses secrets e precisam de validação em uma branch do próprio repositório.
 
+Para o chatbot, cadastre `VITE_API_URL=https://astro-ai-api-qq6l.onrender.com` em **Settings → Secrets and variables → Actions → Variables**, como variável do repositório. CI e deploy também validam e injetam essa URL no build. Alterar a variável exige um novo build para atualizar o site publicado.
+
 O login usa `signInWithEmailAndPassword` em `src/services/authentication.ts`, conforme a [documentação do Firebase Authentication](https://firebase.google.com/docs/auth/web/password-auth). O hook `src/hooks/useLogin.ts` valida os campos antes do envio, controla carregamento/sucesso/erro e impede envios duplicados. A senha é enviada sem remoção de espaços ou alteração de caracteres. Após autenticar, a aplicação abre `/mainHomeScreen`; a sessão é gerenciada pelo SDK Firebase e a senha é limpa do estado do formulário.
 
 Para usar o login, habilite **Authentication → Sign-in method → Email/Password** no console Firebase e use uma conta já existente em **Authentication → Users**. O fluxo de criação de workspace ainda não cria usuários no Firebase. As rotas continuam acessíveis diretamente sem autenticação nesta etapa; proteção de rotas e recuperação de senha serão implementadas posteriormente.
