@@ -18,7 +18,7 @@
 }
 
 .spreadsheet-explanation-modal[open] {
-  animation: astro-popup-in var(--astro-popup-duration) ease both;
+  opacity: 1;
 }
 
 .spreadsheet-explanation-modal::backdrop {

@@ -156,7 +156,11 @@
 html.event-popup-transition::view-transition-group(root),
 html.event-popup-transition::view-transition-old(root),
 html.event-popup-transition::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
-html.event-popup-transition::view-transition-group(event-create-popup) { animation: none; }
+html.event-popup-transition::view-transition-old(root) { display: none; }
+html.event-popup-transition::view-transition-group(event-create-popup) {
+  animation-duration: var(--astro-popup-duration);
+  animation-timing-function: cubic-bezier(.2,.8,.2,1);
+}
 html.event-popup-transition::view-transition-image-pair(event-create-popup) { isolation: isolate; }
 html.event-popup-transition::view-transition-old(event-create-popup),
 html.event-popup-transition::view-transition-new(event-create-popup) {

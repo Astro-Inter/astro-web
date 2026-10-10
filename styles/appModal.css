@@ -29,15 +29,15 @@
   zoom: var(--astro-popup-zoom);
 }
 
-.astro-modal[open] { animation: astro-popup-in var(--astro-popup-duration) ease both; }
+.astro-modal[open] { animation: astro-dialog-in var(--astro-popup-duration) cubic-bezier(.2,.8,.2,1) both; }
 :is(.charge-explanation-modal, .spreadsheet-explanation-modal)[open] {
-  animation: astro-popup-in var(--astro-popup-duration) ease both;
+  animation: astro-dialog-in var(--astro-popup-duration) cubic-bezier(.2,.8,.2,1) both;
 }
 
 .astro-modal::after { position: absolute; z-index: 5; inset: 0; border-radius: inherit; background: rgb(0 0 0 / 22%); content: ''; pointer-events: none; opacity: 0; transition: opacity var(--astro-popup-duration) ease; }
 .astro-modal--dimmed::after { opacity: 1; }
 .astro-modal::backdrop { background: rgb(0 0 0 / 25%); animation: astro-popup-in var(--astro-popup-duration) ease both; }
-:is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open] { pointer-events: none; animation: astro-popup-out var(--astro-popup-duration) ease both; }
+:is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open] { pointer-events: none; animation: astro-dialog-out var(--astro-popup-duration) cubic-bezier(.4,0,1,1) both; }
 :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open]::backdrop { animation: astro-popup-out var(--astro-popup-duration) ease both; }
 .astro-modal-title { margin: 0; font-size: var(--astro-heading-font-size); font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; }
 .astro-modal-title:focus { outline: none; }
@@ -55,7 +55,6 @@
 .astro-modal :is(.astro-modal-cancel, .astro-action):focus-visible { outline: none; box-shadow: inset 0 0 0 2px rgb(248 247 252 / 70%); }
 .astro-confirmation-modal { --astro-modal-width: 43.3rem; }
 .astro-confirmation-modal:is(.position-deactivation-modal, .create-forms-exit-modal) { --astro-modal-width: 50rem; }
-.astro-confirmation-modal[open] { animation: astro-popup-in var(--astro-popup-duration) ease both; }
 .astro-confirmation-modal .astro-modal-title { max-width: 31rem; }
 .astro-confirmation-modal:is(.position-deactivation-modal, .create-forms-exit-modal) .astro-modal-title { max-width: 39rem; }
 .astro-confirmation-error { margin: 1rem 0 0; color: #ffc4c8; font-size: 0.8rem; }
@@ -93,7 +92,7 @@
 
 .astro-modal[data-backdrop="transparent"]::backdrop { background: transparent; animation: none; }
 
-/* Mesma curva e mesmo efeito para entrada e saída de todas as superfícies. */
+/* Backdrops e snapshots usam apenas opacidade; o movimento fica na superfície. */
 @keyframes astro-popup-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes astro-popup-out { from { opacity: 1; } to { opacity: 0; } }
 
@@ -101,3 +100,6 @@
   :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal)[open],
   :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal)[open]::backdrop { animation: none; }
 }
+
+@keyframes astro-dialog-in { from { opacity: 0; translate: 0 .5rem; } to { opacity: 1; translate: none; } }
+@keyframes astro-dialog-out { from { opacity: 1; translate: none; } to { opacity: 0; translate: 0 .3rem; } }
