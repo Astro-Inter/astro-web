@@ -6,6 +6,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './app'
+import AuthenticationProvider from './providers/authentication'
 import './services/firebase'
 import '../styles/global.css'
 import '../styles/mainHomeScreen.css'
@@ -34,6 +35,7 @@ import '../styles/setAddress.css'
 import '../styles/notFound.css'
 import '../styles/mainPositionScreen.css'
 import '../styles/mainManagerScreen.css'
+import '../styles/mainConformityScreen.css'
 import '../styles/mainFormScreen.css'
 import '../styles/mainEventScreen.css'
 import '../styles/createEvent.css'
@@ -47,7 +49,9 @@ import '../styles/accountSettings.css'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <App />
+      <AuthenticationProvider>
+        <App />
+      </AuthenticationProvider>
     </BrowserRouter>
   </StrictMode>,
 )

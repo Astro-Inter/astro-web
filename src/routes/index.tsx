@@ -1,6 +1,8 @@
 import { Route, Routes, useLocation, type Location } from 'react-router-dom'
 import { lazy, Suspense, useEffect, useRef, useState, useTransition } from 'react'
 import { flushSync } from 'react-dom'
+import PrivateRoute from '../components/privateRoute'
+import GuestRoute from '../components/guestRoute'
 
 const MainHomeScreenPage = lazy(() => import('../pages/mainHomeScreen'))
 const MainDashboardsScreenPage = lazy(() => import('../pages/mainDashboardsScreen'))
@@ -17,6 +19,8 @@ const LoadingScreenPage = lazy(() => import('../pages/loadingScreen'))
 const LoginPage = lazy(() => import('../pages/login'))
 const loadManagers = () => import('../pages/mainManagerScreen')
 const loadEmployees = () => import('../pages/mainEmployeerScreen')
+const loadUnits = () => import('../pages/mainUnitScreen')
+const loadConformities = () => import('../pages/mainConformityScreen')
 const loadPositions = () => import('../pages/mainPositionScreen')
 const loadForms = () => import('../pages/mainFormScreen')
 const loadEvents = () => import('../pages/mainEventScreen')
@@ -24,6 +28,8 @@ const loadWorkspaceSettings = () => import('../pages/mainWorkspaceSettingsScreen
 const loadAccountSettings = () => import('../pages/mainAccountScreen')
 const MainManagerScreenPage = lazy(loadManagers)
 const MainEmployeerScreenPage = lazy(loadEmployees)
+const MainUnitScreenPage = lazy(loadUnits)
+const MainConformityScreenPage = lazy(loadConformities)
 const MainPositionScreenPage = lazy(loadPositions)
 const MainFormScreenPage = lazy(loadForms)
 const MainEventScreenPage = lazy(loadEvents)
@@ -48,6 +54,8 @@ const settingsRouteLoaders: Record<string, () => Promise<unknown>> = {
   '/paymentMethod': loadPaymentMethod,
   '/mainManagerScreen': loadManagers,
   '/mainEmployeerScreen': loadEmployees,
+  '/mainUnitScreen': loadUnits,
+  '/mainConformityScreen': loadConformities,
   '/mainPositionScreen': loadPositions,
   '/mainFormScreen': loadForms,
   '/mainEventScreen': loadEvents,
@@ -144,27 +152,37 @@ function AppRoutes() {
     <Suspense fallback={null}>
     <div className={`astro-route-transition${tabChange ? ' astro-route-transition--tab-change' : ''}${isSettingsLocation(displayedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={displayedLocation.key} ref={routeRef}>
       <Routes location={displayedLocation}>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/mainHomeScreen" element={<MainHomeScreenPage />} />
-        <Route path="/mainDashboardsScreen" element={<MainDashboardsScreenPage />} />
-        <Route path="/paymentMethod" element={<PaymentMethodPage />} />
-        <Route path="/createWorkspace" element={<CreateWorkspacePage />} />
-        <Route path="/accessKeyVerified" element={<AccessKeyVerifiedPage />} />
-        <Route path="/createPassword" element={<CreatePasswordPage />} />
-        <Route path="/includeCompanyInformation" element={<IncludeCompanyInformationPage />} />
-        <Route path="/attachExcelFile" element={<AttachExcelFilePage />} />
-        <Route path="/loadingScreen" element={<LoadingScreenPage />} />
-        <Route path="/setAddress" element={<SetAddressPage />} />
-        <Route path="/workspaceCreated" element={<WorkspaceCreatedPage />} />
-        <Route path="/mainManagerScreen" element={<MainManagerScreenPage />} />
-        <Route path="/mainEmployeerScreen" element={<MainEmployeerScreenPage />} />
-        <Route path="/mainPositionScreen" element={<MainPositionScreenPage />} />
-        <Route path="/mainFormScreen" element={<MainFormScreenPage />} />
-        <Route path="/mainEventScreen" element={<MainEventScreenPage />} />
-        <Route path="/mainWorkspaceSettingsScreen" element={<MainWorkspaceSettingsScreenPage />} />
-        <Route path="/mainAccountScreen" element={<MainAccountScreenPage />} />
-        <Route path="/createForms" element={<CreateFormPage />} />
-        <Route path="/editForms" element={<EditFormPage />} />
+        <Route element={<GuestRoute />}>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/createWorkspace" element={<CreateWorkspacePage />} />
+          <Route path="/accessKeyVerified" element={<AccessKeyVerifiedPage />} />
+          <Route path="/createPassword" element={<CreatePasswordPage />} />
+          <Route path="/workspaceCreated" element={<WorkspaceCreatedPage />} />
+        </Route>
+        <Route element={<PrivateRoute required={new URLSearchParams(displayedLocation.search).get('context') === 'settings'} />}>
+          <Route element={<GuestRoute enabled={new URLSearchParams(displayedLocation.search).get('context') !== 'settings'} />}>
+            <Route path="/includeCompanyInformation" element={<IncludeCompanyInformationPage />} />
+            <Route path="/attachExcelFile" element={<AttachExcelFilePage />} />
+            <Route path="/setAddress" element={<SetAddressPage />} />
+            <Route path="/paymentMethod" element={<PaymentMethodPage />} />
+          </Route>
+        </Route>
+        <Route element={<PrivateRoute />}>
+          <Route path="/mainHomeScreen" element={<MainHomeScreenPage />} />
+          <Route path="/mainDashboardsScreen" element={<MainDashboardsScreenPage />} />
+          <Route path="/loadingScreen" element={<LoadingScreenPage />} />
+          <Route path="/mainManagerScreen" element={<MainManagerScreenPage />} />
+          <Route path="/mainEmployeerScreen" element={<MainEmployeerScreenPage />} />
+          <Route path="/mainUnitScreen" element={<MainUnitScreenPage />} />
+          <Route path="/mainConformityScreen" element={<MainConformityScreenPage />} />
+          <Route path="/mainPositionScreen" element={<MainPositionScreenPage />} />
+          <Route path="/mainFormScreen" element={<MainFormScreenPage />} />
+          <Route path="/mainEventScreen" element={<MainEventScreenPage />} />
+          <Route path="/mainWorkspaceSettingsScreen" element={<MainWorkspaceSettingsScreenPage />} />
+          <Route path="/mainAccountScreen" element={<MainAccountScreenPage />} />
+          <Route path="/createForms" element={<CreateFormPage />} />
+          <Route path="/editForms" element={<EditFormPage />} />
+        </Route>
         <Route path="/erroScreenLayout" element={<ErrorScreenLayoutPage />} />
         <Route path="/inactiveScreenLayout" element={<InactiveScreenLayoutPage />} />
         <Route path="*" element={<NotFoundPage />} />
