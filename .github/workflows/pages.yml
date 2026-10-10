@@ -17,6 +17,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     env:
+      VITE_API_URL: ${{ vars.VITE_API_URL }}
       VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
       VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
       VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
@@ -41,11 +42,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Validate Firebase configuration
+      - name: Validate build configuration
         run: |
-          for variable in VITE_FIREBASE_API_KEY VITE_FIREBASE_AUTH_DOMAIN VITE_FIREBASE_PROJECT_ID VITE_FIREBASE_STORAGE_BUCKET VITE_FIREBASE_MESSAGING_SENDER_ID VITE_FIREBASE_APP_ID; do
+          for variable in VITE_API_URL VITE_FIREBASE_API_KEY VITE_FIREBASE_AUTH_DOMAIN VITE_FIREBASE_PROJECT_ID VITE_FIREBASE_STORAGE_BUCKET VITE_FIREBASE_MESSAGING_SENDER_ID VITE_FIREBASE_APP_ID; do
             if [ -z "${!variable}" ]; then
-              echo "::error::Missing GitHub Actions secret: $variable"
+              echo "::error::Missing GitHub Actions configuration: $variable"
               exit 1
             fi
           done
