@@ -1,7 +1,7 @@
 import { FirebaseError } from 'firebase/app'
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import type { UserCredential } from 'firebase/auth'
-import type { LoginCredentials } from '../types/authentication'
+import type { AuthenticatedUser, LoginCredentials } from '../types/authentication'
 import { validateLoginCredentials } from '../utils/authentication'
 import { firebaseAuth } from './firebase'
 
@@ -49,5 +49,27 @@ export async function loginWithEmailAndPassword(credentials: LoginCredentials): 
       )
     }
     throw new AuthenticationError('Não foi possível entrar. Tente novamente.', error)
+  }
+}
+
+export function observeAuthentication(
+  onUserChanged: (user: AuthenticatedUser | null) => void,
+  onError: (message: string) => void,
+): () => void {
+  try {
+    return onAuthStateChanged(firebaseAuth, (user) => {
+      onUserChanged(user ? { uid: user.uid, email: user.email, displayName: user.displayName } : null)
+    }, () => onError('Não foi possível verificar sua sessão. Atualize a página para tentar novamente.'))
+  } catch {
+    onError('Não foi possível verificar sua sessão. Atualize a página para tentar novamente.')
+    return () => {}
+  }
+}
+
+export async function logout(): Promise<void> {
+  try {
+    await signOut(firebaseAuth)
+  } catch (error: unknown) {
+    throw new AuthenticationError('Não foi possível sair da conta. Tente novamente.', error)
   }
 }

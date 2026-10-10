@@ -1,6 +1,7 @@
 import AppRoutes from './routes'
 import { useLocation } from 'react-router-dom'
 import AstroChat from './components/astroChat'
+import { useAuthentication } from './hooks/useAuthentication'
 
 const chatRoutes = new Set([
   '/mainHomeScreen',
@@ -24,6 +25,7 @@ const settingsFormRoutes = new Set([
 ])
 
 function App() {
+  const { user, status } = useAuthentication()
   const location = useLocation()
   const chatVisible = chatRoutes.has(location.pathname)
     || (settingsFormRoutes.has(location.pathname) && new URLSearchParams(location.search).get('context') === 'settings')
@@ -31,9 +33,9 @@ function App() {
   return (
     <>
       <AppRoutes />
-      <div hidden={!chatVisible}>
-        <AstroChat />
-      </div>
+      {status === 'ready' && user && <div hidden={!chatVisible}>
+        <AstroChat key={user.uid} />
+      </div>}
     </>
   )
 }
