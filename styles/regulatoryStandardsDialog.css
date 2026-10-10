@@ -23,7 +23,6 @@
 .nrs-dialog-footer { display: flex; justify-content: flex-end; margin-top: var(--astro-modal-actions-gap); }
 .nrs-dialog-back { width: var(--astro-compact-action-width); max-width: var(--astro-compact-action-width); }
 
-.nrs-edit-dialog[open] { animation: astro-popup-in var(--astro-popup-duration) ease both; }
 .nrs-edit-toolbar .nrs-dialog-search { flex: none; width: var(--astro-action-width); }
 .nrs-edit-table .astro-data-table-scroll { max-height: calc(27.4rem * var(--astro-scale)); }
 .nrs-edit-actions-cell { text-align: left; }
