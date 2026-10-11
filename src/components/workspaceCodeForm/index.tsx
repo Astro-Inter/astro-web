@@ -3,17 +3,24 @@ import type { ClipboardEvent, FormEvent, KeyboardEvent } from 'react'
 import { Link } from 'react-router-dom'
 import PageHeading from '../pageHeading'
 import PurpleButton from '../purpleButton'
+import { validateWorkspaceAccessKey } from '../../utils/workspaceRegistration'
+import type { WorkspaceRegistrationStatus } from '../../types/workspaceRegistration'
 
 const CODE_LENGTH = 6
 const CODE_POSITIONS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'] as const
 
 interface WorkspaceCodeFormProps {
-  onVerified: () => void
+  email: string
+  onVerify: (accessKey: string) => Promise<void>
+  status: WorkspaceRegistrationStatus
+  message: string
 }
 
-function WorkspaceCodeForm({ onVerified }: WorkspaceCodeFormProps) {
+function WorkspaceCodeForm({ email, onVerify, status, message }: WorkspaceCodeFormProps) {
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''))
   const inputRefs = useRef<Array<HTMLInputElement | null>>([])
+  const [error, setError] = useState('')
+  const pending = status === 'loading' || status === 'success'
 
   function updateDigit(index: number, value: string) {
     const digit = value.replace(/\D/g, '').slice(-1)
@@ -47,15 +54,18 @@ function WorkspaceCodeForm({ onVerified }: WorkspaceCodeFormProps) {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-
-    onVerified()
+    if (pending) return
+    const code = digits.join('')
+    const validationError = validateWorkspaceAccessKey(code)
+    setError(validationError)
+    if (!validationError) void onVerify(code)
   }
 
   return (
     <>
-      <PageHeading description="Insira o código para iniciar." title="Criar workspace" titleId="create-workspace-title" />
+      <PageHeading description={<>Insira o código enviado para <span className="workspace-code-email">{email}</span>.</>} title="Criar workspace" titleId="create-workspace-title" />
 
-      <form className="workspace-code-form" onSubmit={handleSubmit}>
+      <form className="workspace-code-form" aria-busy={status === 'loading'} noValidate onSubmit={handleSubmit}>
         <fieldset className="workspace-code-fields">
           <legend className="sr-only">Código de verificação enviado por e-mail</legend>
           {CODE_POSITIONS.map((position, index) => (
@@ -65,6 +75,9 @@ function WorkspaceCodeForm({ onVerified }: WorkspaceCodeFormProps) {
               </label>
               <input
                 autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                disabled={pending}
+                aria-invalid={Boolean(error) || status === 'error'}
+                aria-describedby={error || status === 'error' ? 'workspace-code-error' : undefined}
                 id={`workspace-code-${index}`}
                 inputMode="numeric"
                 maxLength={1}
@@ -80,12 +93,16 @@ function WorkspaceCodeForm({ onVerified }: WorkspaceCodeFormProps) {
           ))}
         </fieldset>
 
-        <PurpleButton className="astro-form-action" type="submit">Verificar código</PurpleButton>
+        {(error || status === 'error') && <p className="login-field-error" id="workspace-code-error" role="alert">{error || message}</p>}
+        <PurpleButton className="astro-form-action" disabled={pending} type="submit">{status === 'loading' ? 'Verificando código…' : status === 'success' ? 'Código verificado' : 'Verificar código'}</PurpleButton>
+        {status === 'loading' && <p className="login-feedback" role="status">Verificando sua chave de acesso…</p>}
+        {status === 'success' && message && <p className="login-feedback" role="status">{message}</p>}
       </form>
 
       <p className="workspace-link">
         Já tem uma conta? <Link to="/">Fazer login</Link>
       </p>
+      {!pending && <p className="workspace-link"><Link to="/paymentMethod">Alterar e-mail</Link></p>}
     </>
   )
 }

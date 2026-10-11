@@ -2,6 +2,7 @@ import { useState } from 'react'
 import PasswordField from '../passwordField'
 import PageHeading from '../pageHeading'
 import PurpleButton from '../purpleButton'
+import { validateRegistrationPassword } from '../../utils/workspaceRegistration'
 
 interface PasswordValues {
   password: string
@@ -14,11 +15,13 @@ interface PasswordVisibility {
 }
 
 interface CreatePasswordFormProps {
-  onContinue: () => void
+  onContinue: (password: string) => void
+  initialPassword?: string
 }
 
-function CreatePasswordForm({ onContinue }: CreatePasswordFormProps) {
-  const [values, setValues] = useState<PasswordValues>({ password: '', confirmation: '' })
+function CreatePasswordForm({ onContinue, initialPassword = '' }: CreatePasswordFormProps) {
+  const [values, setValues] = useState<PasswordValues>({ password: initialPassword, confirmation: initialPassword })
+  const [error, setError] = useState('')
   const [visible, setVisible] = useState<PasswordVisibility>({ password: false, confirmation: false })
 
   function updateValue(field: keyof PasswordValues, value: string) {
@@ -33,9 +36,16 @@ function CreatePasswordForm({ onContinue }: CreatePasswordFormProps) {
     <>
       <PageHeading description="Defina sua senha de acesso." title="Crie sua senha" titleId="create-password-title" />
 
-      <form autoComplete="off" className="create-password-form" onSubmit={(event) => { event.preventDefault(); onContinue() }} noValidate>
+      <form autoComplete="off" className="create-password-form" onSubmit={(event) => {
+        event.preventDefault()
+        const message = validateRegistrationPassword(values.password, values.confirmation)
+        setError(message)
+        if (!message) onContinue(values.password)
+      }} noValidate>
         <PasswordField
           id="new-password"
+          autoComplete="new-password"
+          required
           label="Senha"
           onChange={(value) => updateValue('password', value)}
           onToggleVisibility={() => toggleVisibility('password')}
@@ -45,6 +55,9 @@ function CreatePasswordForm({ onContinue }: CreatePasswordFormProps) {
         />
         <PasswordField
           id="confirm-password"
+          autoComplete="new-password"
+          required
+          error={error}
           label="Confirmar senha"
           onChange={(value) => updateValue('confirmation', value)}
           onToggleVisibility={() => toggleVisibility('confirmation')}

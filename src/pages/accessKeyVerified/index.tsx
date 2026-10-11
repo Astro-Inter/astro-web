@@ -1,8 +1,11 @@
 import { AstroBrand, PurpleButton } from '../../components'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
+import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
 
 function AccessKeyVerifiedPage() {
   const navigate = useNavigate()
+  const { draft, verifiedEmail } = useWorkspaceRegistration()
+  if (!draft.email || verifiedEmail !== draft.email.trim()) return <Navigate to="/createWorkspace" replace />
 
   return (
     <main className="access-verified-page">
@@ -19,7 +22,7 @@ function AccessKeyVerifiedPage() {
 
         <header className="login-heading">
           <h1 id="access-verified-title">Chave de acesso verificada!</h1>
-          <p>Seu workspace está pronto. Siga os próximos passos<br className="access-verified-desktop-break" /> para personalizar a sua experiência.</p>
+          <p>Seu e-mail foi confirmado. Siga os próximos passos<br className="access-verified-desktop-break" /> para cadastrar seu workspace.</p>
         </header>
 
         <PurpleButton className="access-verified-button" onClick={() => navigate('/createPassword')}>Começar</PurpleButton>

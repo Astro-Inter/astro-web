@@ -11,14 +11,18 @@ interface SpreadsheetSelection {
 }
 
 interface AttachExcelFileFormProps {
-  onContinue: () => void
+  onContinue: (file: File | null) => void | Promise<void>
+  initialFile?: File | null
   settingsMode?: boolean
+  reading?: boolean
+  readingError?: string
+  onSelectionChange?: () => void
 }
 
-function AttachExcelFileForm({ onContinue, settingsMode = false }: AttachExcelFileFormProps) {
+function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = null, reading = false, readingError = '', onSelectionChange }: AttachExcelFileFormProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const explanationTrigger = useRef<HTMLButtonElement>(null)
-  const [selection, setSelection] = useState<SpreadsheetSelection>({ file: null, error: '' })
+  const [selection, setSelection] = useState<SpreadsheetSelection>({ file: initialFile, error: '' })
   const [dragging, setDragging] = useState(false)
   const [isExplanationOpen, setIsExplanationOpen] = useState(false)
 
@@ -28,14 +32,15 @@ function AttachExcelFileForm({ onContinue, settingsMode = false }: AttachExcelFi
   }
 
   function selectFile(file?: File) {
-    if (!file) return
+    if (!file || reading) return
+    onSelectionChange?.()
 
     if (settingsMode) {
       setSelection({ file, error: '' })
       return
     }
 
-    const result = validateSpreadsheetFile(file)
+    const result = validateSpreadsheetFile(file, 5 * 1024 * 1024)
     setSelection(result.valid ? { file: result.file, error: '' } : { file: null, error: result.message })
   }
 
@@ -52,7 +57,19 @@ function AttachExcelFileForm({ onContinue, settingsMode = false }: AttachExcelFi
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    onContinue()
+    if (reading) return
+    if (!settingsMode) {
+      if (!selection.file) {
+        setSelection(current => ({ ...current, error: 'Selecione a planilha de colaboradores para continuar.' }))
+        return
+      }
+      const result = validateSpreadsheetFile(selection.file, 5 * 1024 * 1024)
+      if (!result.valid) {
+        setSelection(current => ({ ...current, error: result.message }))
+        return
+      }
+    }
+    void onContinue(selection.file)
   }
 
   return (
@@ -62,10 +79,12 @@ function AttachExcelFileForm({ onContinue, settingsMode = false }: AttachExcelFi
         <p>{settingsMode ? 'A planilha abaixo serve para o aplicativo identificar os colaboradores e montar os cadastros.' : <>A planilha serve para identificar os colaboradores e<br className="attach-excel-desktop-break" /> cadastrá-los automaticamente.</>}</p>
       </header>
 
-      <form className="attach-excel-form" onSubmit={handleSubmit} noValidate>
+      <form className="attach-excel-form" onSubmit={handleSubmit} noValidate aria-busy={reading}>
         <input
           accept=".xlsx,.xls,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          aria-label="Selecionar planilha Excel"
+          aria-describedby={!settingsMode && (selection.error || readingError) ? 'spreadsheet-error' : undefined}
+          aria-invalid={!settingsMode && Boolean(selection.error || readingError)}
+          disabled={reading}
           className="sr-only"
           id="spreadsheet-file"
           onChange={handleFileChange}
@@ -74,6 +93,7 @@ function AttachExcelFileForm({ onContinue, settingsMode = false }: AttachExcelFi
           type="file"
         />
 
+        <label className="sr-only" htmlFor="spreadsheet-file">Selecionar planilha Excel</label>
         <div
           className={`attach-excel-dropzone${dragging ? ' is-dragging' : ''}`}
           onDragEnter={(event) => { event.preventDefault(); setDragging(true) }}
@@ -87,17 +107,20 @@ function AttachExcelFileForm({ onContinue, settingsMode = false }: AttachExcelFi
             <PurpleButton
               aria-controls="spreadsheet-file"
               className="attach-excel-select-button"
+              disabled={reading}
               onClick={() => inputRef.current?.click()}
             >
               <AstroIcon name="upload" />Selecionar arquivo
             </PurpleButton>
-            <span className="attach-excel-formats">Formatos aceitos: .xlsx, .xls · Tamanho máximo: 10 MB</span>
+            <span className="attach-excel-formats">Formatos aceitos: .xlsx, .xls · Tamanho máximo: {settingsMode ? '10' : '5'} MB</span>
           </div>
         </div>
 
-        {!settingsMode && selection.error && <p className="attach-excel-feedback" role="alert">{selection.error}</p>}
+        {!settingsMode && <p className="attach-excel-feedback">Use a primeira aba com as colunas nome, cpf, email, unidade, cargo e modalidade. Inclua exatamente uma linha com o e-mail do gestor. Vamos identificar as unidades para você preencher seus endereços na próxima etapa. Use HIBRIDO, REMOTO ou PRESENCIAL.</p>}
+        {!settingsMode && (selection.error || readingError) && <p className="attach-excel-feedback" id="spreadsheet-error" role="alert">{selection.error || readingError}</p>}
+        {reading && <p className="attach-excel-feedback" role="status">Verificando os dados do gestor e identificando as unidades da planilha…</p>}
 
-        <PurpleButton className="attach-excel-continue" type="submit">{settingsMode ? 'Adicionar colaboradores' : 'Continuar'}</PurpleButton>
+        <PurpleButton className="attach-excel-continue" type="submit" disabled={reading}>{reading ? 'Lendo planilha…' : settingsMode ? 'Adicionar colaboradores' : 'Continuar'}</PurpleButton>
         <button
           aria-haspopup="dialog"
           className="attach-excel-model-link"

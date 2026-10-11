@@ -5,12 +5,19 @@ import ChargeExplanationModal from '../chargeExplanationModal'
 import type { PaymentFormState, PaymentMethod } from '../../types'
 import { blockEmailWhitespaceInput, blockEmailWhitespaceKey, digitsOnly, formatCardExpiry, formatCardNumber, formatCpfCnpj, handleMaskedInput, sanitizeEmail } from '../../utils/inputFormatting'
 
-function PaymentMethodForm() {
+interface PaymentMethodFormProps {
+  initialEmail?: string
+  onEmailChange?: (email: string) => void
+  disabled?: boolean
+  emailError?: string
+}
+
+function PaymentMethodForm({ initialEmail = '', onEmailChange, disabled = false, emailError = '' }: PaymentMethodFormProps) {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('card')
   const [isExplanationOpen, setIsExplanationOpen] = useState(false)
   const explanationTrigger = useRef<HTMLButtonElement>(null)
   const [formState, setFormState] = useState<PaymentFormState>({
-    email: '',
+    email: initialEmail,
     cardNumber: '',
     expiry: '',
     securityCode: '',
@@ -20,6 +27,7 @@ function PaymentMethodForm() {
 
   function updateField(field: keyof PaymentFormState, value: string) {
     setFormState((currentState) => ({ ...currentState, [field]: value }))
+    if (field === 'email') onEmailChange?.(value)
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -38,6 +46,9 @@ function PaymentMethodForm() {
           <label htmlFor="payment-email">E-mail</label>
           <input
             autoComplete="email"
+            disabled={disabled}
+            aria-invalid={Boolean(emailError)}
+            aria-describedby={emailError ? 'payment-email-error' : undefined}
             id="payment-email"
             maxLength={254}
             name="email"
@@ -48,6 +59,7 @@ function PaymentMethodForm() {
             type="email"
             value={formState.email}
           />
+          {emailError && <p className="login-field-error" id="payment-email-error" role="alert">{emailError}</p>}
         </div>
 
         <div className="payment-divider" />
