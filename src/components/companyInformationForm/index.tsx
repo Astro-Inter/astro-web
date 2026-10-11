@@ -5,14 +5,17 @@ import { handleMaskedInput } from '../../utils/inputFormatting'
 import FormField from '../formField'
 import PageHeading from '../pageHeading'
 import PurpleButton from '../purpleButton'
+import { validateRegistrationCompany } from '../../utils/workspaceRegistration'
 
 interface CompanyInformationFormProps {
-  onContinue: () => void
+  onContinue: (company: CompanyInformation) => void
+  initialCompany?: CompanyInformation
   settingsMode?: boolean
 }
 
-function CompanyInformationForm({ onContinue, settingsMode = false }: CompanyInformationFormProps) {
-  const [company, setCompany] = useState<CompanyInformation>({ name: '', cnpj: '' })
+function CompanyInformationForm({ onContinue, settingsMode = false, initialCompany }: CompanyInformationFormProps) {
+  const [company, setCompany] = useState<CompanyInformation>(initialCompany ?? { name: '', cnpj: '' })
+  const [error, setError] = useState('')
 
   return (
     <>
@@ -20,7 +23,9 @@ function CompanyInformationForm({ onContinue, settingsMode = false }: CompanyInf
 
       <form className="company-information-form" noValidate onSubmit={(event) => {
         event.preventDefault()
-        onContinue()
+        const message = settingsMode ? '' : validateRegistrationCompany(company)
+        setError(message)
+        if (!message) onContinue(company)
       }}>
         <FormField
             autoComplete="organization"
@@ -45,6 +50,7 @@ function CompanyInformationForm({ onContinue, settingsMode = false }: CompanyInf
             value={company.cnpj}
           />
 
+        {error && <p className="login-field-error" role="alert">{error}</p>}
         <PurpleButton className="astro-form-action" type="submit">{settingsMode ? 'Salvar alterações' : 'Continuar'}</PurpleButton>
       </form>
     </>

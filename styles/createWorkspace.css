@@ -23,6 +23,11 @@
   min-width: 0;
 }
 
+.workspace-code-email {
+  color: var(--astro-text);
+  overflow-wrap: anywhere;
+}
+
 .workspace-code-fields input {
   width: 100%;
   aspect-ratio: 1;

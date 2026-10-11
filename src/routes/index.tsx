@@ -16,6 +16,7 @@ const EditFormPage = lazy(() => import('../pages/editForm'))
 const loadCompanyInformation = () => import('../pages/includeCompanyInformation')
 const IncludeCompanyInformationPage = lazy(loadCompanyInformation)
 const LoadingScreenPage = lazy(() => import('../pages/loadingScreen'))
+const RegisterWorkspaceLoadingPage = lazy(() => import('../pages/registerWorkspaceLoading'))
 const LoginPage = lazy(() => import('../pages/login'))
 const loadManagers = () => import('../pages/mainManagerScreen')
 const loadEmployees = () => import('../pages/mainEmployeerScreen')
@@ -170,7 +171,6 @@ function AppRoutes() {
         <Route element={<PrivateRoute />}>
           <Route path="/mainHomeScreen" element={<MainHomeScreenPage />} />
           <Route path="/mainDashboardsScreen" element={<MainDashboardsScreenPage />} />
-          <Route path="/loadingScreen" element={<LoadingScreenPage />} />
           <Route path="/mainManagerScreen" element={<MainManagerScreenPage />} />
           <Route path="/mainEmployeerScreen" element={<MainEmployeerScreenPage />} />
           <Route path="/mainUnitScreen" element={<MainUnitScreenPage />} />
@@ -182,6 +182,11 @@ function AppRoutes() {
           <Route path="/mainAccountScreen" element={<MainAccountScreenPage />} />
           <Route path="/createForms" element={<CreateFormPage />} />
           <Route path="/editForms" element={<EditFormPage />} />
+        </Route>
+        <Route element={<PrivateRoute required={new URLSearchParams(displayedLocation.search).get('context') !== 'registration'} />}>
+          <Route element={<GuestRoute enabled={new URLSearchParams(displayedLocation.search).get('context') === 'registration'} />}>
+            <Route path="/loadingScreen" element={new URLSearchParams(displayedLocation.search).get('context') === 'registration' ? <RegisterWorkspaceLoadingPage /> : <LoadingScreenPage />} />
+          </Route>
         </Route>
         <Route path="/erroScreenLayout" element={<ErrorScreenLayoutPage />} />
         <Route path="/inactiveScreenLayout" element={<InactiveScreenLayoutPage />} />

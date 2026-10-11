@@ -6,7 +6,7 @@ import type {
   ChatSessionMessagesResponse,
 } from '../types/chat'
 
-const apiBaseUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '')
+const apiBaseUrl = import.meta.env.VITE_API_IA_URL?.trim().replace(/\/+$/, '')
 
 export class ChatApiError extends Error {
   constructor(message: string, options?: ErrorOptions) {

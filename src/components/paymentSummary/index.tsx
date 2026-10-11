@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import AstroIcon from '../astroIcon'
 import PurpleButton from '../purpleButton'
+import type { WorkspaceRegistrationStatus } from '../../types/workspaceRegistration'
 
 const features = [
   { label: 'Mapeamento de NRs', icon: 'mapping' },
@@ -11,9 +12,12 @@ const features = [
 interface PaymentSummaryProps {
   onCompletePurchase: () => void
   settingsMode?: boolean
+  status?: WorkspaceRegistrationStatus
+  message?: string
 }
 
-function PaymentSummary({ onCompletePurchase, settingsMode = false }: PaymentSummaryProps) {
+function PaymentSummary({ onCompletePurchase, settingsMode = false, status = 'idle', message = '' }: PaymentSummaryProps) {
+  const pending = status === 'loading' || status === 'success'
 
   return (
     <aside className="payment-summary" aria-label="Resumo da assinatura">
@@ -38,12 +42,15 @@ function PaymentSummary({ onCompletePurchase, settingsMode = false }: PaymentSum
           <strong>R$ 10 reais</strong>
         </div>
 
-        <PurpleButton className="finish-payment-button" onClick={onCompletePurchase}>
-          {settingsMode ? 'Salvar alterações' : 'Finalizar compra'}
+        <PurpleButton className="finish-payment-button" disabled={pending} onClick={onCompletePurchase}>
+          {settingsMode ? 'Salvar alterações' : status === 'loading' ? 'Solicitando código…' : status === 'success' ? 'Solicitação recebida' : 'Finalizar compra'}
         </PurpleButton>
+        {status === 'loading' && <p className="login-feedback" role="status">Solicitando o código de acesso…</p>}
+        {status === 'error' && message && <p className="login-field-error" role="alert">{message}</p>}
+        {status === 'success' && message && <p className="login-feedback" role="status">{message}</p>}
 
         {!settingsMode && <p className="workspace-key-link">
-          Já tem uma chave do workspace? <Link to="/createWorkspace">Verificar</Link>
+          Já tem uma chave do workspace? {pending ? 'Verificar' : <Link to="/createWorkspace">Verificar</Link>}
         </p>}
       </div>
     </aside>
