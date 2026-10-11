@@ -75,7 +75,8 @@
 .event-create-table-scroll { max-height: calc(27.4rem * var(--astro-scale)); }
 .event-create-table { min-width: 68rem; }
 .event-create-table th,
-.event-create-table td { padding-inline: 1.15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.event-create-table td,
+.event-group-collaborators-modal .astro-data-table :is(th, td) { padding-inline: 1.15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .event-create-table thead th:first-child,
 .event-create-table tbody td:first-child { padding-left: 1.5rem; padding-right: .2rem; }
 .event-create-table tbody th { font-weight: 400; }

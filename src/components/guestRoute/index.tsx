@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuthentication } from '../../hooks/useAuthentication'
-import LoadingPlanet from '../loadingPlanet'
+import LoadingScreenState from '../loadingScreenState'
 
 interface GuestRouteProps {
   enabled?: boolean
@@ -12,13 +12,7 @@ function GuestRoute({ enabled = true }: GuestRouteProps) {
   if (!enabled) return <Outlet />
 
   if (status !== 'ready') {
-    return (
-      <main className="loading-screen-page" aria-busy={status === 'loading'}>
-        {status === 'loading'
-          ? <LoadingPlanet label="Verificando sua sessão" />
-          : <p role="alert">{error}</p>}
-      </main>
-    )
+    return <LoadingScreenState label="Verificando sua sessão" busy={status === 'loading'} error={error} />
   }
 
   return user ? <Navigate to="/mainHomeScreen" replace /> : <Outlet />

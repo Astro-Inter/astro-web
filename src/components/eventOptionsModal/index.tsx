@@ -9,17 +9,19 @@ interface EventOptionsModalProps {
   onInactivate: () => void
   canEdit: boolean
   onEdit: () => void
+  onViewInformation: () => void
   panelRef: RefObject<HTMLDivElement | null>
   style: CSSProperties
 }
 
-function EventOptionsModal({ closing, event, onClose, onInactivate, onEdit, canEdit, panelRef, style }: EventOptionsModalProps) {
+function EventOptionsModal({ closing, event, onClose, onInactivate, onEdit, onViewInformation, canEdit, panelRef, style }: EventOptionsModalProps) {
   return <OptionsPopup
     ariaLabel={`Opções para ${event.title}`}
     closing={closing}
     id={`event-options-${event.id}`}
     items={[
       { id: 'cancel', label: 'Cancelar', tone: 'muted', separatorAfter: true, onSelect: onClose },
+      { id: 'information', label: 'Ver informações', separatorAfter: true, onSelect: onViewInformation },
       { id: 'edit', label: 'Editar', disabled: !canEdit, separatorAfter: true, onSelect: onEdit },
       { id: 'inactivate', label: event.inactive ? 'Inativo' : 'Inativar', disabled: event.inactive, tone: 'danger', onSelect: onInactivate },
     ]}
