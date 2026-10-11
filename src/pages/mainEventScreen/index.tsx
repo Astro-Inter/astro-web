@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, ToolbarSearch, ToolbarSelect } from '../../components'
 import EventCalendar from '../../components/eventCalendar'
 import EventOptionsModal from '../../components/eventOptionsModal'
+import EventDetailsModal from '../../components/eventDetailsModal'
 import CreateEventFlowModal from '../../components/createEventFlowModal'
 import { mockEventManager, mockEvents } from '../../data/events'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
@@ -29,6 +30,7 @@ function MainEventScreenPage() {
   const [openId, setOpenId] = useState<string | null>(null)
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [pendingInactivation, setPendingInactivation] = useState<CalendarEvent | null>(null)
+  const [informationEvent, setInformationEvent] = useState<CalendarEvent | null>(null)
   const [feedback, setFeedback] = useState('')
   const [editor, setEditor] = useState<{ mode: 'create' } | { mode: 'edit'; event: CalendarEvent; value: EventConfiguration } | null>(null)
   const [savedEventId, setSavedEventId] = useState<string | null>(null)
@@ -174,7 +176,11 @@ function MainEventScreenPage() {
           <p className="sr-only" role="status">{visiblePeriodCount} eventos visíveis neste período. {feedback}</p>
         </section>
       </main>
-      {selected && createPortal(<EventOptionsModal closing={closing} event={selected} canEdit={!selected.inactive && canEditEvent(configurationForEvent(selected), mockEventManager.id)} onClose={() => closeMenu()} onEdit={() => closeMenu(() => setEditor({ mode: 'edit', event: selected, value: configurationForEvent(selected) }))} onInactivate={() => closeMenu(() => setPendingInactivation(selected))} panelRef={panelRef} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} />, document.body)}
+      {selected && createPortal(<EventOptionsModal closing={closing} event={selected} canEdit={!selected.inactive && canEditEvent(configurationForEvent(selected), mockEventManager.id)} onClose={() => closeMenu()} onViewInformation={() => closeMenu(() => setInformationEvent(selected))} onEdit={() => closeMenu(() => setEditor({ mode: 'edit', event: selected, value: configurationForEvent(selected) }))} onInactivate={() => closeMenu(() => setPendingInactivation(selected))} panelRef={panelRef} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} />, document.body)}
+      {informationEvent && <EventDetailsModal event={informationEvent} onClose={() => {
+        setInformationEvent(null)
+        requestAnimationFrame(() => (triggerRef.current?.isConnected ? triggerRef.current : headingRef.current)?.focus({ preventScroll: true }))
+      }} />}
       {pendingInactivation && <ConfirmationModal backdrop="dimmed" preservePageScroll className="event-deactivation-modal" confirmLabel="Inativar" tone="danger" title="Tem certeza de que deseja inativar este evento?" icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={() => setPendingInactivation(null)} onConfirm={() => null} onConfirmed={() => {
         setAnimateCalendar(true)
         setEvents(current => current.map(event => (event.eventId ?? event.id) === (pendingInactivation.eventId ?? pendingInactivation.id) ? { ...event, inactive: true } : event))

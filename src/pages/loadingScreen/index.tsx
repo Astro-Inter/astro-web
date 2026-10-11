@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LoadingPlanet } from '../../components'
+import LoadingScreenState from '../../components/loadingScreenState'
 
 function LoadingScreenPage() {
   const navigate = useNavigate()
@@ -10,13 +10,7 @@ function LoadingScreenPage() {
     return () => window.clearTimeout(timer)
   }, [navigate])
 
-  return (
-    <main className="loading-screen-page">
-      <section className="loading-screen-content astro-scale-90" aria-label="Carregando">
-        <LoadingPlanet label="Carregando" />
-      </section>
-    </main>
-  )
+  return <LoadingScreenState label="Carregando" />
 }
 
 export default LoadingScreenPage

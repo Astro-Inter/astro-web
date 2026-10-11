@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuthentication } from '../../hooks/useAuthentication'
-import LoadingPlanet from '../loadingPlanet'
+import LoadingScreenState from '../loadingScreenState'
 
 interface PrivateRouteProps {
   required?: boolean
@@ -13,13 +13,7 @@ function PrivateRoute({ required = true }: PrivateRouteProps) {
   if (!required) return <Outlet />
 
   if (status !== 'ready') {
-    return (
-      <main className="loading-screen-page" aria-busy={status === 'loading'}>
-        {status === 'loading'
-          ? <LoadingPlanet label="Verificando sua sessão" />
-          : <p role="alert">{error}</p>}
-      </main>
-    )
+    return <LoadingScreenState label="Verificando sua sessão" busy={status === 'loading'} error={error} />
   }
 
   if (!user) {

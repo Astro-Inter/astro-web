@@ -12,7 +12,8 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
   const elementRef = useRef<HTMLSpanElement>(null)
   const [displayText, setDisplayText] = useState(children)
   const [truncated, setTruncated] = useState(false)
-  const [tooltipPosition, setTooltipPosition] = useState({ left: 0, top: 0 })
+  const [tooltipPosition, setTooltipPosition] = useState({ left: 0, top: 0, zoom: 1 })
+  const [tooltipHost, setTooltipHost] = useState<HTMLDialogElement | null>(null)
   const [tooltipMounted, setTooltipMounted] = useState(false)
   const [tooltipVisible, setTooltipVisible] = useState(false)
   const hideTooltipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -84,7 +85,9 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
       ? bounds.bottom + 8
       : Math.max(8, bounds.top - estimatedHeight - 8)
 
-    setTooltipPosition({ left, top })
+    const dialog = element.closest('dialog')
+    setTooltipHost(dialog)
+    setTooltipPosition({ left, top, zoom: dialog ? 1 / (Number(getComputedStyle(dialog).zoom) || 1) : 1 })
   }, [])
 
   function showTooltip() {
@@ -141,7 +144,7 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
   }, [])
 
   const tooltip = truncated && tooltipMounted && typeof document !== 'undefined'
-    ? createPortal(<span className={`astro-truncated-tooltip${tooltipVisible ? ' astro-truncated-tooltip--visible' : ''}`} id={tooltipId} onMouseEnter={showTooltip} onMouseLeave={hideTooltip} role="tooltip" style={{ left: tooltipPosition.left, top: tooltipPosition.top }}>{children}</span>, document.body)
+    ? createPortal(<span className={`astro-truncated-tooltip${tooltipVisible ? ' astro-truncated-tooltip--visible' : ''}`} id={tooltipId} onMouseEnter={showTooltip} onMouseLeave={hideTooltip} popover="manual" ref={element => { if (element && !element.matches(':popover-open')) element.showPopover() }} role="tooltip" style={{ right: 'auto', bottom: 'auto', margin: 0, left: tooltipPosition.left, top: tooltipPosition.top, zoom: tooltipPosition.zoom }}>{children}</span>, tooltipHost ?? document.body)
     : null
 
   return <>

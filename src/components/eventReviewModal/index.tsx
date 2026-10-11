@@ -1,5 +1,6 @@
 import type { EventDraft, EventGroup, EventGroupSchedule, EventSettings } from '../../types/eventCreation'
 import PurpleButton from '../purpleButton'
+import EventGroupsSummary from '../eventGroupsSummary'
 import { completionOptions, evidenceOptions } from '../../data/eventSettings'
 
 interface EventReviewModalProps {
@@ -12,9 +13,10 @@ interface EventReviewModalProps {
   onCreate: () => void
   editing?: boolean
   error?: string
+  onViewCollaborators?: (group: EventGroup, ids: string[]) => void
 }
 
-function EventReviewModal({ draft, groups, assignments, schedules, settings, onBack, onCreate, editing = false, error }: EventReviewModalProps) {
+function EventReviewModal({ draft, groups, assignments, schedules, settings, onBack, onCreate, editing = false, error, onViewCollaborators }: EventReviewModalProps) {
   const link = /^https?:\/\//i.test(draft.externalLink) ? draft.externalLink : undefined
   return <>
     <p className="event-create-description">{editing ? 'Confira todas as informações antes de salvar as alterações.' : 'Confira todas as informações antes de criar o evento.'}</p>
@@ -26,11 +28,7 @@ function EventReviewModal({ draft, groups, assignments, schedules, settings, onB
         <div><dt>NR</dt><dd>{draft.nr || 'Não informada'}</dd></div>
         <div><dt>Link externo</dt><dd>{link ? <a href={link} rel="noopener noreferrer" target="_blank">{draft.externalLink}</a> : draft.externalLink || 'Não informado'}</dd></div>
       </dl></section>
-      <section className="event-create-summary-card event-create-summary-card--groups"><h3>Grupos</h3><dl>{groups.map(group => {
-        const schedule = schedules[group.id]
-        const date = schedule?.date ? schedule.date.split('-').reverse().join('/') : 'Data não definida'
-        return <div key={group.id}><dt>{group.name}</dt><dd>{date} · {schedule?.startTime || '—'} – {schedule?.endTime || '—'}<br />{Object.values(assignments).filter(id => id === group.id).length} participantes</dd></div>
-      })}</dl></section>
+      <section className="event-create-summary-card event-create-summary-card--groups"><h3>Grupos</h3><EventGroupsSummary assignments={assignments} groups={groups} schedules={schedules} onViewCollaborators={onViewCollaborators} /></section>
       <section className="event-create-summary-card"><h3>Configurações</h3><dl>
         <div><dt>Conclusão</dt><dd>{completionOptions.find(option => option.value === settings.completion && option.value)?.label || 'Não definida'}</dd></div>
         <div><dt>Evidência</dt><dd>{evidenceOptions.find(option => option.value === settings.evidenceRequired && option.value)?.label || 'Não definida'}</dd></div>

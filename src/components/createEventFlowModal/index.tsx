@@ -12,6 +12,7 @@ import EventGroupDistributionModal from '../eventGroupDistributionModal'
 import EventGroupScheduleModal from '../eventGroupScheduleModal'
 import EventSettingsModal from '../eventSettingsModal'
 import EventReviewModal from '../eventReviewModal'
+import EventGroupCollaboratorsModal from '../eventGroupCollaboratorsModal'
 
 interface CreateEventFlowModalProps {
   onClose: () => void
@@ -36,6 +37,7 @@ const titles: Record<EventCreationStep, string> = {
 
 function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode = 'create' }: CreateEventFlowModalProps) {
   const [step, setStep] = useState<EventCreationStep>('details')
+  const [collaboratorGroup, setCollaboratorGroup] = useState<{ name: string; ids: string[] } | null>(null)
   const animatePopupChange = usePopupStepTransition()
   const [draft, setDraft] = useState<EventDraft>(() => initialValue?.draft ?? initialDraft)
   const [selectedIds, setSelectedIds] = useState<string[]>(() => initialValue?.selectedIds ?? mockEventCollaborators.map(person => person.id))
@@ -140,16 +142,17 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode
   }
 
   return <>
-    <AppModal className={`event-create-modal event-create-modal--${step}`} dimmed={saveDimmed || (randomOpen && !randomClosing)} onClose={() => { if (!pendingSave) onClose() }} open={!saveClosing} preservePageScroll title={mode === 'edit' && step === 'details' ? 'Editar evento' : titles[step]}>
+    <AppModal className={`event-create-modal event-create-modal--${step}`} dimmed={saveDimmed || (randomOpen && !randomClosing) || Boolean(collaboratorGroup)} onClose={() => { if (!pendingSave) onClose() }} open={!saveClosing} preservePageScroll title={mode === 'edit' && step === 'details' ? 'Editar evento' : titles[step]}>
       {dismiss => <div className="event-create-step-frame">
         {step === 'details' && <EventInformationModal editing={mode === 'edit'} detailsLocked={detailsLocked} draft={draft} onCancel={dismiss} onChange={changes => { if (!detailsLocked) setDraft(current => ({ ...current, ...changes, ...(mode === 'edit' && initialValue ? { nr: initialValue.draft.nr, type: initialValue.draft.type } : {}) })) }} onContinue={() => changeStep('collaborators')} />}
         {step === 'collaborators' && <EventParticipantsModal selectionLocked={mode === 'edit' && lockedGroupIds.length === groups.length} lockedParticipantIds={lockedParticipantIds} nr={draft.nr} onBack={() => changeStep('details')} onContinue={() => changeStep('groups')} onSelectionChange={updateSelection} selectedIds={selectedIds} />}
         {step === 'groups' && <EventGroupsModal editing={mode === 'edit'} lockedGroupIds={lockedGroupIds} distributionVersion={distributionVersion} assignments={assignments} collaborators={mockEventCollaborators.filter(person => selectedIds.includes(person.id))} groups={groups} onAddGroup={addGroup} onAssign={(personId, groupId) => { if (!lockedGroupIds.includes(groupId) && !lockedParticipantIds.includes(personId)) setAssignments(current => ({ ...current, [personId]: groupId })) }} onBack={() => changeStep('collaborators')} onContinue={() => changeStep('schedule')} onRandom={() => { setRandomClosing(false); setRandomOpen(true) }} onRemoveGroup={removeGroup} onReset={resetGroups} />}
         {step === 'schedule' && <EventGroupScheduleModal lockedGroupIds={lockedGroupIds} assignments={assignments} groups={groups} onBack={() => changeStep('groups')} onChange={(groupId, changes) => { if (!lockedGroupIds.includes(groupId)) setSchedules(current => ({ ...current, [groupId]: { ...(current[groupId] ?? { date: '', startTime: '', endTime: '' }), ...changes } })) }} onContinue={() => changeStep('settings')} schedules={schedules} />}
         {step === 'settings' && <EventSettingsModal editing={mode === 'edit'} onBack={() => changeStep('schedule')} onChange={changes => { if (mode !== 'edit') setSettings(current => ({ ...current, ...changes })) }} onContinue={() => changeStep('review')} settings={settings} />}
-        {step === 'review' && <EventReviewModal editing={mode === 'edit'} error={error} assignments={assignments} draft={draft} groups={groups} onBack={() => changeStep('settings')} onCreate={() => submit(dismiss)} schedules={schedules} settings={settings} />}
+        {step === 'review' && <EventReviewModal editing={mode === 'edit'} error={error} assignments={assignments} draft={draft} groups={groups} onBack={() => changeStep('settings')} onCreate={() => submit(dismiss)} schedules={schedules} settings={settings} onViewCollaborators={(group, ids) => setCollaboratorGroup({ name: group.name, ids })} />}
       </div>}
     </AppModal>
+    {collaboratorGroup && <EventGroupCollaboratorsModal groupName={collaboratorGroup.name} participantIds={collaboratorGroup.ids} onClose={() => setCollaboratorGroup(null)} />}
     {randomOpen && <EventGroupDistributionModal onDismissRequest={() => setRandomClosing(true)} onCancel={() => setRandomOpen(false)} onContinue={distributeRandomly} />}
     {pendingSave && <ConfirmationModal
       confirmCloseDelay={60}
