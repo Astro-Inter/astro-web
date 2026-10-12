@@ -29,6 +29,14 @@
   line-height: 1.3;
 }
 
+.set-address-heading .set-address-import-note { margin-top: .75rem; color: #d3cfdd; font-size: .9375rem; }
+.set-address-field-help { color: #d3cfdd; font-size: .8125rem; line-height: 1.4; }
+.set-address-fields input[readonly] { cursor: default; }
+.set-address-card .set-address-cep-feedback { margin-top: 1rem; color: #d3cfdd; font-size: .9375rem; line-height: 1.5; }
+.set-address-card .set-address-cep-feedback.is-error { color: #ff9999; }
+.set-address-cep-retry { margin-top: .75rem; }
+.set-address-card h2 { overflow-wrap: anywhere; }
+
 .set-address-form {
   display: flex;
   flex-direction: column;

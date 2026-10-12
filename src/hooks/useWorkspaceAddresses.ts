@@ -1,20 +1,30 @@
-import { useState } from 'react'
-import type { WorkspaceAddressField, WorkspaceAddressState, WorkspaceUnitAddress } from '../types/address'
+import { useCallback, useState } from 'react'
+import type { PostalAddress, WorkspaceAddressField, WorkspaceAddressState, WorkspaceUnitAddress } from '../types/address'
+import { usePostalCodeLookup } from './usePostalCodeLookup'
+import { mergePostalAddress } from '../utils/workspaceUnits'
 
 function emptyUnit(id: number): WorkspaceUnitAddress {
   return { id, name: '', cep: '', state: '', city: '', neighborhood: '', street: '', number: '', complement: '' }
 }
 
-export function useWorkspaceAddresses() {
+export function useWorkspaceAddresses(initialUnits?: WorkspaceUnitAddress[]) {
   const [address, setAddress] = useState<WorkspaceAddressState>({
-    units: [emptyUnit(1), emptyUnit(2)],
-    activeId: 1,
-    nextId: 3,
+    units: initialUnits?.length ? initialUnits : initialUnits ? [emptyUnit(1)] : [emptyUnit(1), emptyUnit(2)],
+    activeId: initialUnits?.[0]?.id ?? 1,
+    nextId: initialUnits?.length ? Math.max(...initialUnits.map(unit => unit.id)) + 1 : initialUnits ? 2 : 3,
   })
   const activeIndex = address.units.findIndex((unit) => unit.id === address.activeId)
   const activeUnit = address.units[activeIndex]
 
+  const applyPostalAddress = useCallback((unit: WorkspaceUnitAddress, result: PostalAddress) => {
+    setAddress(current => ({ ...current, units: current.units.map(item => mergePostalAddress(item, unit, result)) }))
+  }, [])
+  const { state: lookupState, lookup, reset: resetPostalCode } = usePostalCodeLookup(address.activeId, applyPostalAddress)
+  const postalCode = lookupState.unitId === activeUnit.id && lookupState.cep === activeUnit.cep.replace(/\D/g, '')
+    ? lookupState : { ...lookupState, status: 'idle' as const, message: '' }
+
   function changeField(field: WorkspaceAddressField, value: string) {
+    if (field === 'cep') lookup({ ...activeUnit, cep: value })
     setAddress((current) => ({
       ...current,
       units: current.units.map((unit) => unit.id === current.activeId ? { ...unit, [field]: value } : unit),
@@ -22,6 +32,7 @@ export function useWorkspaceAddresses() {
   }
 
   function addUnit() {
+    resetPostalCode()
     setAddress((current) => ({
       units: [...current.units, emptyUnit(current.nextId)],
       activeId: current.nextId,
@@ -30,6 +41,7 @@ export function useWorkspaceAddresses() {
   }
 
   function removeUnit() {
+    resetPostalCode()
     setAddress((current) => {
       if (current.units.length === 1) {
         return { ...current, units: [emptyUnit(current.activeId)] }
@@ -47,8 +59,11 @@ export function useWorkspaceAddresses() {
 
   function moveUnit(direction: -1 | 1) {
     const next = address.units[activeIndex + direction]
-    if (next) setAddress((current) => ({ ...current, activeId: next.id }))
+    if (next) {
+      resetPostalCode()
+      setAddress((current) => ({ ...current, activeId: next.id }))
+    }
   }
 
-  return { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit }
+  return { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit, postalCode, retryPostalCode: () => lookup(activeUnit) }
 }

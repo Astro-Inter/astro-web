@@ -17,3 +17,12 @@ export interface WorkspaceAddressState {
 }
 
 export type WorkspaceAddressField = Exclude<keyof WorkspaceUnitAddress, 'id'>
+
+export type PostalAddress = Pick<WorkspaceUnitAddress, 'state' | 'city' | 'neighborhood' | 'street'>
+
+export interface PostalCodeLookupState {
+  unitId: number
+  cep: string
+  status: 'idle' | 'loading' | 'success' | 'error'
+  message: string
+}

@@ -23,6 +23,33 @@
   justify-content: center;
 }
 
+.registration-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: min(100%, 42rem);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.registration-loading-content p,
+.registration-loading-content h1 {
+  margin: 0;
+}
+
+.registration-loading-content ul {
+  align-self: stretch;
+  text-align: left;
+}
+
+.registration-correction-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
 .loading-planet {
   /* One full lap. The export implies 3.2s (4 x 0.8s), eased off slightly here.
      The orbit and the ring wobble both derive from this. */

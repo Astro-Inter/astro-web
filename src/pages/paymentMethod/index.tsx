@@ -3,16 +3,36 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AstroIcon, HelpLink, PaymentMethodForm, PaymentSummary } from '../../components'
 import WorkspaceSettingsBackButton from '../../components/workspaceSettingsBackButton'
 import WorkspaceSettingsSaveModal from '../../components/workspaceSettingsSaveModal'
+import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
+import { useWorkspaceEmailVerification } from '../../hooks/useWorkspaceEmailVerification'
+import { validateManagerEmail } from '../../utils/workspaceRegistration'
 
 function PaymentMethodPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const settingsMode = searchParams.get('context') === 'settings'
   const [confirming, setConfirming] = useState(false)
+  const { draft, updateDraft } = useWorkspaceRegistration()
+  const emailVerification = useWorkspaceEmailVerification()
+  const [emailError, setEmailError] = useState('')
+  const pending = !settingsMode && (emailVerification.status === 'loading' || emailVerification.status === 'success')
+
+  async function handleCompletePurchase(): Promise<void> {
+    if (settingsMode) { setConfirming(true); return }
+    if (pending) return
+    const message = validateManagerEmail(draft.email)
+    setEmailError(message)
+    if (message) return
+    const email = draft.email.trim()
+    if (await emailVerification.requestCode(email)) {
+      updateDraft({ email })
+      navigate('/createWorkspace')
+    }
+  }
 
   return (
-    <main className="payment-page">
-      {settingsMode ? <WorkspaceSettingsBackButton screen="backPaymentsModalWeb" /> : <button className="payment-back-button" onClick={() => navigate('/')} type="button">
+    <main className="payment-page" aria-busy={pending}>
+      {settingsMode ? <WorkspaceSettingsBackButton screen="backPaymentsModalWeb" /> : <button className="payment-back-button" disabled={pending} onClick={() => navigate('/')} type="button">
         <AstroIcon name="back" />
         <span className="sr-only">Voltar para o login</span>
       </button>}
@@ -24,11 +44,15 @@ function PaymentMethodPage() {
             <p>Assinatura mensal de R$ 10 por funcionário ativo</p>
           </div>
 
-          <PaymentMethodForm />
+          <PaymentMethodForm disabled={pending} emailError={emailError} initialEmail={settingsMode ? '' : draft.email} onEmailChange={settingsMode ? undefined : email => {
+            setEmailError('')
+            updateDraft({ email })
+          }} />
         </section>
 
         <section className="payment-aside" aria-label="Detalhes da compra">
-          <PaymentSummary settingsMode={settingsMode} onCompletePurchase={() => { if (settingsMode) setConfirming(true); else navigate('/createWorkspace') }} />
+          <PaymentSummary settingsMode={settingsMode} status={settingsMode ? 'idle' : emailVerification.status}
+            message={emailVerification.message} onCompletePurchase={() => { void handleCompletePurchase() }} />
         </section>
       </div>
       <HelpLink />

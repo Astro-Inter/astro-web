@@ -7,6 +7,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './app'
 import AuthenticationProvider from './providers/authentication'
+import WorkspaceRegistrationProvider from './providers/workspaceRegistration'
 import './services/firebase'
 import '../styles/global.css'
 import '../styles/mainHomeScreen.css'
@@ -51,7 +52,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AuthenticationProvider>
-        <App />
+        <WorkspaceRegistrationProvider>
+          <App />
+        </WorkspaceRegistrationProvider>
       </AuthenticationProvider>
     </BrowserRouter>
   </StrictMode>,

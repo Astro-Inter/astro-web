@@ -3,11 +3,15 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useLogin } from '../../hooks/useLogin'
 import { getLoginDestination } from '../../utils/authentication'
 import LoginLoadingOverlay from '../../components/loginLoadingOverlay'
+import { useEffect } from 'react'
+import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
 
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { credentials, errors, status, message, invalidCredentials, updateCredential, submit } = useLogin()
+  const { reset } = useWorkspaceRegistration()
+  useEffect(() => { reset() }, [reset])
 
   async function handleSubmit(): Promise<void> {
     if (await submit()) navigate('/loadingScreen', {
