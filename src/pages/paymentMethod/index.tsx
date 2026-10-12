@@ -6,6 +6,7 @@ import WorkspaceSettingsSaveModal from '../../components/workspaceSettingsSaveMo
 import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
 import { useWorkspaceEmailVerification } from '../../hooks/useWorkspaceEmailVerification'
 import { validateManagerEmail } from '../../utils/workspaceRegistration'
+import LoginLoadingOverlay from '../../components/loginLoadingOverlay'
 
 function PaymentMethodPage() {
   const navigate = useNavigate()
@@ -31,7 +32,8 @@ function PaymentMethodPage() {
   }
 
   return (
-    <main className="payment-page" aria-busy={pending}>
+    <>
+    <main className="payment-page" aria-busy={pending} inert={pending}>
       {settingsMode ? <WorkspaceSettingsBackButton screen="backPaymentsModalWeb" /> : <button className="payment-back-button" disabled={pending} onClick={() => navigate('/')} type="button">
         <AstroIcon name="back" />
         <span className="sr-only">Voltar para o login</span>
@@ -44,20 +46,23 @@ function PaymentMethodPage() {
             <p>Assinatura mensal de R$ 10 por funcionário ativo</p>
           </div>
 
-          <PaymentMethodForm disabled={pending} emailError={emailError} initialEmail={settingsMode ? '' : draft.email} onEmailChange={settingsMode ? undefined : email => {
+          <PaymentMethodForm disabled={pending} emailError={emailError || (!settingsMode && emailVerification.status === 'error' ? emailVerification.message : '')} initialEmail={settingsMode ? '' : draft.email} onEmailChange={settingsMode ? undefined : email => {
             setEmailError('')
+            emailVerification.clearError()
             updateDraft({ email })
           }} />
         </section>
 
         <section className="payment-aside" aria-label="Detalhes da compra">
           <PaymentSummary settingsMode={settingsMode} status={settingsMode ? 'idle' : emailVerification.status}
-            message={emailVerification.message} onCompletePurchase={() => { void handleCompletePurchase() }} />
+            onCompletePurchase={() => { void handleCompletePurchase() }} />
         </section>
       </div>
       <HelpLink />
       {confirming && <WorkspaceSettingsSaveModal onCancel={() => setConfirming(false)} section="payments" />}
     </main>
+    {emailVerification.status === 'loading' && !settingsMode && <LoginLoadingOverlay />}
+    </>
   )
 }
 

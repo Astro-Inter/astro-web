@@ -142,7 +142,8 @@
 
 .login-form,
 .create-password-form,
-.company-information-form {
+.company-information-form,
+.workspace-code-form {
   display: flex;
   flex-direction: column;
   gap: calc(clamp(0.75rem, 1.04vw, 0.95rem) * var(--astro-scale));
@@ -183,17 +184,22 @@
   position: relative;
 }
 
-.login-form input[aria-invalid="true"] {
+.field-group input[aria-invalid="true"],
+.payment-field input[aria-invalid="true"],
+.workspace-code-fields input[aria-invalid="true"] {
   border-color: var(--astro-primary-error);
 }
 
-.login-form .field-group input[aria-invalid="true"]:focus {
+.field-group input[aria-invalid="true"]:focus,
+.payment-field input[aria-invalid="true"]:focus,
+.workspace-code-fields input[aria-invalid="true"]:focus {
   outline: none;
   border-color: #cf3e3e;
   box-shadow: none;
 }
 
-.login-form .field-group input[aria-invalid="true"]:-webkit-autofill:focus {
+.field-group input[aria-invalid="true"]:-webkit-autofill:focus,
+.payment-field input[aria-invalid="true"]:-webkit-autofill:focus {
   box-shadow: 0 0 0 1000px var(--astro-field) inset;
 }
 

@@ -3,9 +3,10 @@
   max-width: none;
 }
 
-.workspace-code-form {
-  display: grid;
-  margin-top: calc(clamp(1.8rem, 2.5vw, 2.2rem) * var(--astro-scale));
+.workspace-code-control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--astro-field-gap);
 }
 
 .workspace-code-fields {
@@ -49,10 +50,6 @@
   box-shadow: 0 0 0 1px rgb(109 104 145 / 30%);
 }
 
-/* O grid de dígitos pede mais respiro antes da ação do que os formulários. */
-.workspace-code-form .astro-form-action {
-  margin-top: calc(clamp(1.3rem, 2vw, 1.7rem) * var(--astro-scale));
-}
 
 @media (max-width: 600px) {
   .create-workspace-desktop-break {

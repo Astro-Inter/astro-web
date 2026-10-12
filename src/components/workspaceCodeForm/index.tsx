@@ -19,10 +19,12 @@ interface WorkspaceCodeFormProps {
 function WorkspaceCodeForm({ email, onVerify, status, message }: WorkspaceCodeFormProps) {
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''))
   const inputRefs = useRef<Array<HTMLInputElement | null>>([])
+  const submittedCodeRef = useRef('')
   const [error, setError] = useState('')
   const pending = status === 'loading' || status === 'success'
 
   function updateDigit(index: number, value: string) {
+    setError('')
     const digit = value.replace(/\D/g, '').slice(-1)
     setDigits((current) => current.map((item, position) => position === index ? digit : item))
 
@@ -44,6 +46,7 @@ function WorkspaceCodeForm({ email, onVerify, status, message }: WorkspaceCodeFo
     if (!pastedDigits) return
 
     event.preventDefault()
+    setError('')
     setDigits((current) => {
       const next = [...current]
       for (const [offset, digit] of [...pastedDigits].entries()) next[index + offset] = digit
@@ -58,14 +61,17 @@ function WorkspaceCodeForm({ email, onVerify, status, message }: WorkspaceCodeFo
     const code = digits.join('')
     const validationError = validateWorkspaceAccessKey(code)
     setError(validationError)
-    if (!validationError) void onVerify(code)
+    if (!validationError) { submittedCodeRef.current = code; void onVerify(code) }
   }
+
+  const apiError = status === 'error' && submittedCodeRef.current === digits.join('') ? message : ''
 
   return (
     <>
       <PageHeading description={<>Insira o código enviado para <span className="workspace-code-email">{email}</span>.</>} title="Criar workspace" titleId="create-workspace-title" />
 
       <form className="workspace-code-form" aria-busy={status === 'loading'} noValidate onSubmit={handleSubmit}>
+        <div className="workspace-code-control">
         <fieldset className="workspace-code-fields">
           <legend className="sr-only">Código de verificação enviado por e-mail</legend>
           {CODE_POSITIONS.map((position, index) => (
@@ -76,8 +82,8 @@ function WorkspaceCodeForm({ email, onVerify, status, message }: WorkspaceCodeFo
               <input
                 autoComplete={index === 0 ? 'one-time-code' : 'off'}
                 disabled={pending}
-                aria-invalid={Boolean(error) || status === 'error'}
-                aria-describedby={error || status === 'error' ? 'workspace-code-error' : undefined}
+                aria-invalid={Boolean(error || apiError)}
+                aria-describedby={error || apiError ? 'workspace-code-error' : undefined}
                 id={`workspace-code-${index}`}
                 inputMode="numeric"
                 maxLength={1}
@@ -93,9 +99,9 @@ function WorkspaceCodeForm({ email, onVerify, status, message }: WorkspaceCodeFo
           ))}
         </fieldset>
 
-        {(error || status === 'error') && <p className="login-field-error" id="workspace-code-error" role="alert">{error || message}</p>}
-        <PurpleButton className="astro-form-action" disabled={pending} type="submit">{status === 'loading' ? 'Verificando código…' : status === 'success' ? 'Código verificado' : 'Verificar código'}</PurpleButton>
-        {status === 'loading' && <p className="login-feedback" role="status">Verificando sua chave de acesso…</p>}
+        {(error || apiError) && <p className="login-field-error" id="workspace-code-error" role="alert">{error || apiError}</p>}
+        </div>
+        <PurpleButton className="astro-form-action" disabled={pending} type="submit">Verificar código</PurpleButton>
         {status === 'success' && message && <p className="login-feedback" role="status">{message}</p>}
       </form>
 

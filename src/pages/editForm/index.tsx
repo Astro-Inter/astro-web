@@ -11,7 +11,7 @@ import OptionsPopup from '../../components/optionsPopup'
 import PurpleButton from '../../components/purpleButton'
 import ToolbarSelect from '../../components/toolbarSelect'
 import { managerOptions, nrOptions, unitOptions } from '../../data/formOptions'
-import { makeQuestion } from '../../utils/forms'
+import { makeQuestion, validateAndSanitizeForm } from '../../utils/forms'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { useQuestionReorder } from '../../hooks/useQuestionReorder'
 import { animateRemoval } from '../../utils/animateRemoval'
@@ -89,6 +89,8 @@ function EditFormPage() {
   const [leaving, setLeaving] = useState(false)
   const { requestClose: finishPageExit } = useAnimatedClose(180)
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
+  const [validationError, setValidationError] = useState('')
+  const [deadlineValid, setDeadlineValid] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
 
@@ -207,7 +209,17 @@ function EditFormPage() {
 
       <main className="create-forms-main edit-forms-main">
         <h1>Editar formulário</h1>
-        <form noValidate onSubmit={(event) => { event.preventDefault(); setShowSaveConfirmation(true) }}>
+        <form noValidate onSubmit={(event) => {
+          event.preventDefault()
+          if (!deadlineValid) { setValidationError('Informe uma data limite válida ou deixe o campo vazio.'); return }
+          const validation = validateAndSanitizeForm(values)
+          const message = Object.values(validation.errors)[0]
+          setValidationError(message ?? '')
+          if (message) return
+          setValues(validation.values)
+          setShowSaveConfirmation(true)
+        }}>
+          {validationError && <p className="form-validation-error" role="alert">{validationError}</p>}
           <section aria-labelledby="edit-forms-initial-title" className="create-forms-card">
             <h2 id="edit-forms-initial-title">Informações do formulário</h2>
             <div className="create-forms-field"><label htmlFor="edit-forms-name">Nome do formulário</label><input id="edit-forms-name" maxLength={100} onChange={(event) => { setValues((current) => ({ ...current, name: event.target.value })) }} value={values.name} /></div>
@@ -215,7 +227,7 @@ function EditFormPage() {
             <div className="create-forms-field"><span className="create-forms-label">Gestor</span><ToolbarSelect className="create-forms-select" label="Gestor" onValueChange={(manager) => { setValues((current) => ({ ...current, manager })) }} options={managerOptions} value={values.manager} /></div>
             <div className="create-forms-field"><span className="create-forms-label">NR (opcional)</span><ToolbarSelect className="create-forms-select" label="NR (opcional)" onValueChange={(nr) => { setValues((current) => ({ ...current, nr })) }} options={nrOptions} value={values.nr} /></div>
             <div className="create-forms-field"><span className="create-forms-label">Unidade (opcional)</span><ToolbarSelect className="create-forms-select" label="Unidade (opcional)" onValueChange={(unit) => { setValues((current) => ({ ...current, unit })) }} options={unitOptions} value={values.unit} /></div>
-            <div className="create-forms-field"><label htmlFor="edit-forms-deadline">Data limite (opcional)</label><FormDatePicker id="edit-forms-deadline" label="Data limite" onChange={(deadline) => { setValues((current) => ({ ...current, deadline })) }} validate={false} value={values.deadline} /></div>
+            <div className="create-forms-field"><label htmlFor="edit-forms-deadline">Data limite (opcional)</label><FormDatePicker id="edit-forms-deadline" label="Data limite" onValidityChange={setDeadlineValid} onChange={(deadline) => { setValues((current) => ({ ...current, deadline })) }} value={values.deadline} /></div>
           </section>
 
           <div aria-label="Perguntas do formulário" className="create-forms-questions" role="list">

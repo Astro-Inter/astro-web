@@ -186,6 +186,7 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, e
       }}
       ref={containerRef}
     >
+      <label className="sr-only" htmlFor={selectId}>{label}</label>
       <div className="astro-toolbar-select-control">
         <input
           aria-controls={listId}

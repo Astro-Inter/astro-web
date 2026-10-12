@@ -65,5 +65,11 @@ export function useWorkspaceAddresses(initialUnits?: WorkspaceUnitAddress[]) {
     }
   }
 
-  return { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit, postalCode, retryPostalCode: () => lookup(activeUnit) }
+  function selectUnit(id: number) {
+    if (!address.units.some(unit => unit.id === id)) return
+    resetPostalCode()
+    setAddress(current => ({ ...current, activeId: id }))
+  }
+
+  return { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit, selectUnit, postalCode, retryPostalCode: () => lookup(activeUnit) }
 }

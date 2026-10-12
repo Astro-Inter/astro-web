@@ -3,6 +3,7 @@ import { AnimatedWelcome, AstroBrand, HelpLink, WorkspaceCodeForm } from '../../
 import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
 import { useWorkspaceEmailVerification } from '../../hooks/useWorkspaceEmailVerification'
 import { validateManagerEmail } from '../../utils/workspaceRegistration'
+import LoginLoadingOverlay from '../../components/loginLoadingOverlay'
 
 function CreateWorkspacePage() {
   const navigate = useNavigate()
@@ -18,7 +19,8 @@ function CreateWorkspacePage() {
   }
 
   return (
-    <main className="login-page create-workspace-page">
+    <>
+    <main className="login-page create-workspace-page" inert={status === 'loading'} aria-busy={status === 'loading'}>
       <AnimatedWelcome
         title={<>Crie seu workspace<br />no Astro!</>}
         description={<>Insira o código enviado por e-mail<br className="create-workspace-desktop-break" />{' '}para criar seu workspace.</>}
@@ -33,6 +35,8 @@ function CreateWorkspacePage() {
         <HelpLink />
       </section>
     </main>
+    {status === 'loading' && <LoginLoadingOverlay />}
+    </>
   )
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import type { ChatSessionSummary } from '../../types/chat'
 import { formatChatSessionDate, groupChatSessions } from '../../utils/chatSessions'
 import AstroIcon from '../astroIcon'
@@ -24,7 +24,7 @@ interface AstroChatSessionsProps {
 function AstroChatSessions({ sessions, nextCursor, selectedSessionId, openingSessionId, disabled, loading, error, selectionError, onSelect, onNewSession, onRetry, onLoadMore }: AstroChatSessionsProps) {
   const scrollRootRef = useRef<HTMLDivElement>(null)
   const listEndRef = useRef<HTMLDivElement>(null)
-  const groups = groupChatSessions(sessions)
+  const groups = useMemo(() => groupChatSessions(sessions), [sessions])
   const firstSessionId = sessions[0]?.session_id
 
   useLayoutEffect(() => {

@@ -269,3 +269,8 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
   .create-forms-footer .astro-action { width: 100%; min-height: 3rem; justify-content: center; font-size: 0.9375rem; }
   .create-forms-calendar { width: 100%; max-width: 100%; }
 }
+.form-validation-error {
+  color: var(--astro-primary-error);
+  font-size: var(--astro-label-font-size);
+  margin-block: 1rem;
+}

@@ -37,5 +37,9 @@ export function useWorkspaceEmailVerification() {
     return perform(() => verifyManagerEmail(email, accessKey), 'Chave de acesso verificada.')
   }
 
-  return { ...state, requestCode, verifyCode }
+  function clearError() {
+    if (!busy.current) setState(current => current.status === 'error' ? { status: 'idle', message: '' } : current)
+  }
+
+  return { ...state, requestCode, verifyCode, clearError }
 }

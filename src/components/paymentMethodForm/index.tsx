@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import AstroIcon from '../astroIcon'
+import EmailField from '../emailField'
 import ChargeExplanationModal from '../chargeExplanationModal'
 import type { PaymentFormState, PaymentMethod } from '../../types'
-import { blockEmailWhitespaceInput, blockEmailWhitespaceKey, digitsOnly, formatCardExpiry, formatCardNumber, formatCpfCnpj, handleMaskedInput, sanitizeEmail } from '../../utils/inputFormatting'
+import { digitsOnly, formatCardExpiry, formatCardNumber, formatCpfCnpj, handleMaskedInput } from '../../utils/inputFormatting'
 
 interface PaymentMethodFormProps {
   initialEmail?: string
@@ -42,27 +43,9 @@ function PaymentMethodForm({ initialEmail = '', onEmailChange, disabled = false,
   return (
     <>
       <form className="payment-form" onSubmit={handleSubmit}>
-        <div className="payment-field payment-email-field">
-          <label htmlFor="payment-email">E-mail</label>
-          <input
-            autoComplete="email"
-            disabled={disabled}
-            aria-invalid={Boolean(emailError)}
-            aria-describedby={emailError ? 'payment-email-error' : undefined}
-            id="payment-email"
-            maxLength={254}
-            name="email"
-            onBeforeInput={blockEmailWhitespaceInput}
-            onChange={(event) => updateField('email', sanitizeEmail(event.target.value))}
-            onKeyDown={blockEmailWhitespaceKey}
-            placeholder="seu.email@exemplo.com"
-            type="email"
-            value={formState.email}
-          />
-          {emailError && <p className="login-field-error" id="payment-email-error" role="alert">{emailError}</p>}
-        </div>
-
-        <div className="payment-divider" />
+        <EmailField id="payment-email" label="E-mail" placeholder="seu.email@exemplo.com" value={formState.email}
+          onChange={value => updateField('email', value)} error={emailError} disabled={disabled} containerClassName="payment-field" wrapperClassName="payment-email-field" />
+    <div className="payment-divider" />
 
         <fieldset className="payment-method-options">
           <legend className="sr-only">Método de pagamento</legend>
