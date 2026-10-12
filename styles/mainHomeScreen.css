@@ -13,6 +13,7 @@
   --compliance-compliant: var(--astro-quinary-green);
   --compliance-expiring: #c2a44a;
   --compliance-expired: var(--astro-primary-error);
+  --compliance-pending: #b6b2c3;
   /* Espaçamentos seguem os cards das outras telas principais. */
   --home-gap: var(--astro-page-section-gap);
   --home-section-gap: calc(1.125rem * var(--astro-scale));
@@ -68,6 +69,9 @@
 .compliance-legend-dot--compliant { background: var(--compliance-compliant); }
 .compliance-legend-dot--expiring { background: var(--compliance-expiring); }
 .compliance-legend-dot--expired { background: var(--compliance-expired); }
+.compliance-legend-dot--pending { background: var(--compliance-pending); }
+.home-api-feedback { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; }
+.home-reference-date { margin: 0; color: var(--home-text-muted); }
 
 .home-summary { display: flex; flex-direction: column; gap: var(--home-section-gap); }
 .summary-stat { display: flex; flex: 1; flex-direction: column; justify-content: center; gap: calc(0.35rem * var(--astro-scale)); }
