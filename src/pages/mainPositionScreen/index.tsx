@@ -3,30 +3,10 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { createPortal } from 'react-dom'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, RegulatoryStandardsDialog, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
-import { defaultNrsRows } from '../../data/regulatoryStandards'
+import { usePositions } from '../../hooks/usePositions'
 import type { DataTableColumn } from '../../components/dataTable'
 import type { Position, PositionFormValues } from '../../types'
 
-const initialPositions: Position[] = [
-  { id: 'gerente', name: 'Gerente', collaboratorCount: 530, unit: 'Sede 1', active: true },
-  { id: 'diretor', name: 'Diretor', collaboratorCount: 20, unit: 'Sede 1', active: true },
-  { id: 'engenheiro-de-sistemas', name: 'Engenheiro de Sistemas e Coordenador de Tecnologia e Conformidade Regional', collaboratorCount: 40, unit: 'Sede 2', active: true },
-  { id: 'programador', name: 'Programador', collaboratorCount: 80, unit: 'Sede 2', active: false },
-  { id: 'assistente-analitico', name: 'Assistente analítico', collaboratorCount: 254, unit: 'Sede 1', active: false },
-  { id: 'analista-de-dados', name: 'Analista de Dados', collaboratorCount: 35, unit: 'Sede 1', active: true },
-  { id: 'designer-ux', name: 'Designer UX', collaboratorCount: 18, unit: 'Sede 2', active: true },
-  { id: 'coordenador', name: 'Coordenador', collaboratorCount: 27, unit: 'Sede 1', active: true },
-  { id: 'engenheiro-de-software', name: 'Engenheiro de Software', collaboratorCount: 42, unit: 'Sede 2', active: true },
-  { id: 'tecnico-de-suporte', name: 'Técnico de Suporte', collaboratorCount: 62, unit: 'Sede 1', active: false },
-  { id: 'analista-financeiro', name: 'Analista Financeiro', collaboratorCount: 21, unit: 'Sede 1', active: true },
-  { id: 'consultor-comercial', name: 'Consultor Comercial', collaboratorCount: 48, unit: 'Sede 2', active: true },
-  { id: 'supervisor-de-vendas', name: 'Supervisor de Vendas', collaboratorCount: 16, unit: 'Sede 2', active: false },
-  { id: 'assistente-de-rh', name: 'Assistente de RH', collaboratorCount: 31, unit: 'Sede 1', active: true },
-  { id: 'desenvolvedor-web', name: 'Desenvolvedor Web', collaboratorCount: 24, unit: 'Sede 2', active: true },
-]
-
-const units = ['Sede 1', 'Sede 2']
-const defaultEnabledNrs = defaultNrsRows.filter((row) => row.id !== 'nr4').map((row) => row.id)
 const statusFilterOptions = [
   { value: '', label: 'Status', triggerLabel: 'Status', tone: 'muted' as const },
   { value: 'active', label: 'Ativo' },
@@ -42,7 +22,6 @@ function MainPositionScreenPage() {
   const actionsTriggerRef = useRef<HTMLButtonElement | null>(null)
   const actionsPanelRef = useRef<HTMLDivElement | null>(null)
   const queuedActionsRef = useRef<(() => void) | null>(null)
-  const [positions, setPositions] = useState<Position[]>(initialPositions)
   const [filters, setFilters] = useState({ search: '', status: '' })
   const [dialog, setDialog] = useState<PositionDialogState | null>(null)
   const [nrsPosition, setNrsPosition] = useState<Position | null>(null)
@@ -53,7 +32,10 @@ function MainPositionScreenPage() {
   const [pendingNrsIds, setPendingNrsIds] = useState<string[] | null>(null)
   const [savedNrIds, setSavedNrIds] = useState<string[]>([])
   const [pendingDeactivation, setPendingDeactivation] = useState<Position | null>(null)
-  const [enabledNrsByPosition, setEnabledNrsByPosition] = useState<Record<string, string[]>>({})
+  const api = usePositions(nrsPosition?.id)
+  const { positions } = api
+  const nrOptionRows = api.nrs.options.map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.descricao }))
+  const enabledNrIds = api.nrs.options.filter((row) => row.ativo).map((row) => String(row.nr))
   const [editorDimmed, setEditorDimmed] = useState(false)
   const [editorClosing, setEditorClosing] = useState(false)
   const [savedPositionId, setSavedPositionId] = useState<string | null>(null)
@@ -63,6 +45,7 @@ function MainPositionScreenPage() {
   const [openActionsId, setOpenActionsId] = useState<string | null>(null)
   const [actionsMenuPosition, setActionsMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [feedback, setFeedback] = useState('')
+  const [actionError, setActionError] = useState('')
   const { closing: actionsClosing, requestClose: requestActionsClose } = useAnimatedClose()
 
   useEffect(() => () => {
@@ -149,34 +132,22 @@ function MainPositionScreenPage() {
       : null
   }
 
-  function savePosition(values: PositionFormValues, editingId?: string): string | null {
-    const name = values.name.trim()
+  async function savePosition(values: PositionFormValues, editingId?: string): Promise<string | null> {
     const duplicateError = checkDuplicatePosition(values, editingId)
     if (duplicateError) return duplicateError
-
-    if (editingId) {
-      setPositions((current) => current.map((position) => position.id === editingId
-        ? { ...position, name, collaboratorCount: Number(values.collaboratorCount), unit: values.unit, active: values.active }
-        : position))
-      showSavedPosition(editingId, `Cargo ${name} atualizado.`)
-    } else {
-      const newPositionId = crypto.randomUUID()
-      setPositions((current) => [...current, {
-        id: newPositionId,
-        name,
-        collaboratorCount: Number(values.collaboratorCount),
-        unit: values.unit,
-        active: values.active,
-      }])
-      showSavedPosition(newPositionId, `Cargo ${name} adicionado.`)
+    const error = await api.save(values, editingId)
+    if (!error) {
+      if (editingId) showSavedPosition(editingId, `Cargo ${values.name} atualizado.`)
+      else setFeedback(`Cargo ${values.name} adicionado.`)
     }
-
-    return null
+    return error
   }
 
-  function toggleStatus(position: Position) {
-    setPositions((current) => current.map((item) => item.id === position.id ? { ...item, active: !item.active } : item))
-    showSavedPosition(position.id, `Cargo ${position.name} ${position.active ? 'desativado' : 'ativado'}.`)
+  async function toggleStatus(position: Position): Promise<string | null> {
+    setActionError('')
+    const error = await api.toggle(position.id)
+    if (!error) showSavedPosition(position.id, `Cargo ${position.name} ${position.active ? 'inativado' : 'ativado'}.`)
+    return error
   }
 
   const columns: DataTableColumn<Position>[] = [
@@ -206,6 +177,7 @@ function MainPositionScreenPage() {
           }}
         >
           <button
+            disabled={api.saving || api.loading}
             aria-controls={openActionsId === position.id ? `position-actions-${position.id}` : undefined}
             aria-expanded={openActionsId === position.id}
             aria-haspopup="menu"
@@ -252,7 +224,7 @@ function MainPositionScreenPage() {
           </header>
 
           <div aria-label="Ações e filtros dos cargos" className="position-toolbar" role="group">
-            <CompactPurpleButton onClick={(event) => { dialogOriginRef.current = event.currentTarget; setDialog({ kind: 'form', position: null }) }} type="button">
+            <CompactPurpleButton disabled={api.loading || api.saving || Boolean(api.error)} onClick={(event) => { dialogOriginRef.current = event.currentTarget; setDialog({ kind: 'form', position: null }) }} type="button">
               <AstroIcon name="plus" />
               Adicionar cargo
             </CompactPurpleButton>
@@ -270,8 +242,12 @@ function MainPositionScreenPage() {
             </div>
           </div>
 
-          <DataTable ariaLabel="Cargos" columns={columns} emptyMessage="Nenhum cargo encontrado para esses filtros." getRowClassName={(position) => position.id === savedPositionId ? 'astro-data-table-row--saved' : undefined} getRowKey={(position) => position.id} rows={visiblePositions} />
-          <p className="sr-only" role="status">{feedback}</p>
+          {api.loading && <p className="position-api-feedback" role="status">Carregando cargos...</p>}
+          {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button onClick={api.retry} type="button">Tentar novamente</button></div>}
+          {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
+          {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
+          <DataTable ariaLabel="Cargos" columns={columns} emptyMessage={api.loading ? 'Carregando cargos...' : api.error ? 'Lista de cargos indisponível.' : 'Nenhum cargo encontrado para esses filtros.'} getRowClassName={(position) => position.id === savedPositionId ? 'astro-data-table-row--saved' : undefined} getRowKey={(position) => position.id} rows={visiblePositions} />
+          <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 
         {openPosition && createPortal(
@@ -288,11 +264,12 @@ function MainPositionScreenPage() {
               { id: 'manage-nrs', label: 'Gerenciar NRs', separatorAfter: true, onSelect: () => closeActions(() => {
                 setNrsEditing(false)
                 setNrsViewDimmed(false)
+                api.retryNrs()
                 setNrsPosition(openPosition)
               }) },
               { id: 'toggle-status', label: openPosition.active ? 'Inativar' : 'Ativar', tone: openPosition.active ? 'danger' : 'default', onSelect: () => closeActions(() => {
                 if (openPosition.active) setPendingDeactivation(openPosition)
-                else toggleStatus(openPosition)
+                else void toggleStatus(openPosition).then((error) => { if (error) setActionError(error) })
               }) },
             ]}
             onClose={() => closeActions()}
@@ -306,6 +283,10 @@ function MainPositionScreenPage() {
           <RegulatoryStandardsDialog
             dimmed={nrsViewDimmed}
             savedRowIds={savedNrIds}
+            rows={api.nrs.rows}
+            loading={api.nrs.loading}
+            error={api.nrs.error}
+            onRetry={api.retryNrs}
             onClose={() => {
               setNrsPosition(null)
               requestAnimationFrame(() => actionsTriggerRef.current?.focus())
@@ -317,9 +298,10 @@ function MainPositionScreenPage() {
             positionName={nrsPosition.name}
           />
         )}
-        {nrsPosition && nrsEditing && (
+        {nrsPosition && nrsEditing && !api.nrs.loading && !api.nrs.error && (
           <EditRegulatoryStandardsDialog
-            enabledIds={enabledNrsByPosition[nrsPosition.id] ?? defaultEnabledNrs}
+            enabledIds={enabledNrIds}
+            rows={nrOptionRows}
             dimmed={nrsEditDimmed}
             onCancel={() => {
               if (pendingNrsIds !== null) return
@@ -334,7 +316,6 @@ function MainPositionScreenPage() {
             }}
             open={!nrsEditClosing}
             positionName={nrsPosition.name}
-            recommendedIds={['nr1', 'nr2', 'nr4', 'nr6']}
           />
         )}
       </main>
@@ -354,7 +335,6 @@ function MainPositionScreenPage() {
           onSave={savePosition}
           open={!editorClosing}
           position={dialog.position}
-          units={units}
         />
       )}
       {dialog?.kind === 'confirmation' && (
@@ -366,8 +346,8 @@ function MainPositionScreenPage() {
             setDialog({ kind: 'form', position: dialog.position })
           }}
           onCancelRequest={() => setEditorDimmed(false)}
-          onConfirm={() => {
-            const error = savePosition(dialog.values, dialog.position.id)
+          onConfirm={async () => {
+            const error = await savePosition(dialog.values, dialog.position.id)
             if (!error) setEditorClosing(true)
             return error
           }}
@@ -389,13 +369,13 @@ function MainPositionScreenPage() {
             setNrsEditDimmed(false)
           }}
           onCancelRequest={() => setNrsEditDimmed(false)}
-          onConfirm={() => {
-            const previousIds = enabledNrsByPosition[nrsPosition.id] ?? defaultEnabledNrs
-            const previousSet = new Set(previousIds)
+          onConfirm={async () => {
+            const previousSet = new Set(enabledNrIds)
             const nextSet = new Set(pendingNrsIds)
-            const changedIds = defaultNrsRows.filter((row) => previousSet.has(row.id) !== nextSet.has(row.id)).map((row) => row.id)
-            setEnabledNrsByPosition((current) => ({ ...current, [nrsPosition.id]: pendingNrsIds }))
-            changedNrsRef.current = changedIds.length ? changedIds : defaultNrsRows.slice(0, 5).map((row) => row.id)
+            const changedIds = nrOptionRows.filter((row) => previousSet.has(row.id) !== nextSet.has(row.id)).map((row) => row.id)
+            const error = await api.saveNrs(nrsPosition.id, pendingNrsIds)
+            if (error) return error
+            changedNrsRef.current = changedIds
             setFeedback(`NRs de ${nrsPosition.name} atualizadas.`)
             setNrsEditClosing(true)
             return null
@@ -420,7 +400,7 @@ function MainPositionScreenPage() {
           confirmLabel="Inativar"
           icon={<span aria-hidden="true" className="position-deactivation-icon"><img alt="" src={iconAsset('warning.svg')} /></span>}
           onCancel={() => setPendingDeactivation(null)}
-          onConfirm={() => { toggleStatus(pendingDeactivation); return null }}
+          onConfirm={() => toggleStatus(pendingDeactivation)}
           onConfirmed={() => {
             setPendingDeactivation(null)
             requestAnimationFrame(() => actionsTriggerRef.current?.focus())

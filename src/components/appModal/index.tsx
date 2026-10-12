@@ -7,6 +7,7 @@ interface AppModalProps {
   backdrop?: 'dimmed' | 'transparent'
   preservePageScroll?: boolean
   dimmed?: boolean
+  dismissible?: boolean
   initialFocusRef?: RefObject<HTMLElement | null>
   onClose: () => void
   onDismissRequest?: () => void
@@ -14,7 +15,7 @@ interface AppModalProps {
   title: ReactNode
 }
 
-function AppModal({ children, className = '', backdrop = 'dimmed', preservePageScroll = false, dimmed = false, initialFocusRef, onClose, onDismissRequest, open = true, title }: AppModalProps) {
+function AppModal({ children, className = '', backdrop = 'dimmed', preservePageScroll = false, dimmed = false, dismissible = true, initialFocusRef, onClose, onDismissRequest, open = true, title }: AppModalProps) {
   const titleId = useId()
   const titleRef = useRef<HTMLHeadingElement>(null)
   const { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose } = useAnimatedDialog({ initialFocusRef: initialFocusRef ?? titleRef, onClose, onDismissRequest, open })
@@ -25,13 +26,13 @@ function AppModal({ children, className = '', backdrop = 'dimmed', preservePageS
       data-backdrop={backdrop}
       data-page-scroll={preservePageScroll ? 'preserve' : 'lock'}
       className={`astro-modal astro-scale-100${closing ? ' astro-dialog--closing' : ''}${dimmed ? ' astro-modal--dimmed' : ''}${className ? ` ${className}` : ''}`}
-      onCancel={handleCancel}
-      onClick={handleBackdropClick}
+      onCancel={(event) => { if (dismissible) handleCancel(event); else event.preventDefault() }}
+      onClick={(event) => { if (dismissible) handleBackdropClick(event) }}
       onClose={handleClose}
       ref={dialogRef}
     >
       <h2 className="astro-modal-title" id={titleId} ref={titleRef} tabIndex={-1}>{title}</h2>
-      {typeof children === 'function' ? children(dismiss) : children}
+      {typeof children === 'function' ? children(() => { if (dismissible) dismiss() }) : children}
     </dialog>
   )
 }

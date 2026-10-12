@@ -259,7 +259,7 @@ function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = fals
         </div>
 
         <div className="nrs-edit-footer">
-          <span className="nrs-edit-recommendation"><img alt="" aria-hidden="true" draggable={false} src={import.meta.env.BASE_URL + "aiRecommendationRobot.png"} />Recomendação de IA</span>
+          {recommendedIds.length > 0 && <span className="nrs-edit-recommendation"><img alt="" aria-hidden="true" draggable={false} src={import.meta.env.BASE_URL + "aiRecommendationRobot.png"} />Recomendação de IA</span>}
           <div className="nrs-edit-footer-actions">
             <button className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
             <PurpleButton onClick={() => {

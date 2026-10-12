@@ -9,6 +9,9 @@ import { defaultNrsRows } from '../../data/regulatoryStandards'
 import type { NrsRow } from '../../types'
 
 interface RegulatoryStandardsDialogProps {
+  loading?: boolean
+  error?: string
+  onRetry?: () => void
   contextLabel?: string
   dimmed?: boolean
   onClose: () => void
@@ -19,7 +22,7 @@ interface RegulatoryStandardsDialogProps {
   savedRowIds?: readonly string[]
 }
 
-function RegulatoryStandardsDialog({ contextLabel, dimmed = false, onClose, onEdit, open = true, positionName, rows = defaultNrsRows, savedRowIds = [] }: RegulatoryStandardsDialogProps) {
+function RegulatoryStandardsDialog({ loading = false, error = '', onRetry, contextLabel, dimmed = false, onClose, onEdit, open = true, positionName, rows = defaultNrsRows, savedRowIds = [] }: RegulatoryStandardsDialogProps) {
   const [search, setSearch] = useState('')
   const normalizedSearch = search.trim().toLocaleLowerCase('pt-BR')
   const visibleRows = useMemo(() => normalizedSearch
@@ -43,7 +46,7 @@ function RegulatoryStandardsDialog({ contextLabel, dimmed = false, onClose, onEd
         <p className="nrs-dialog-subtitle">Edite, organize e mantenha todas as Normas Regulamentadoras.</p>
 
         <div className="nrs-dialog-toolbar">
-          <CompactPurpleButton className="nrs-dialog-edit" onClick={onEdit} type="button">
+          <CompactPurpleButton className="nrs-dialog-edit" disabled={loading || Boolean(error) || !onEdit} onClick={onEdit} type="button">
             <AstroIcon name="pencil" strokeScale={1} />
             Editar NRs
           </CompactPurpleButton>
@@ -58,11 +61,13 @@ function RegulatoryStandardsDialog({ contextLabel, dimmed = false, onClose, onEd
           />
         </div>
 
+        {loading && <p role="status">Carregando NRs do cargo...</p>}
+        {error && <div><p role="alert">{error}</p><button onClick={onRetry} type="button">Tentar novamente</button></div>}
         <div className="nrs-dialog-table">
           <DataTable
             ariaLabel="Normas Regulamentadoras"
             columns={columns}
-            emptyMessage="Nenhuma NR encontrada."
+            emptyMessage={loading ? 'Carregando NRs...' : error ? 'NRs indisponíveis.' : 'Nenhuma NR vinculada encontrada.'}
             getRowClassName={(row) => savedRowIds.includes(row.id) ? 'astro-data-table-row--saved' : undefined}
             getRowKey={(row) => row.id}
             rows={visibleRows}
