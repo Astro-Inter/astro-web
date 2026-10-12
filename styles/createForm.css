@@ -27,7 +27,8 @@
 .create-forms-date-trigger { position: absolute; top: 50%; right: var(--astro-control-icon-button-inset); display: grid; place-items: center; width: var(--astro-control-icon-hit-size); height: var(--astro-control-icon-hit-size); padding: 0; transform: translateY(-50%); border: 0; border-radius: var(--astro-control-radius); background: transparent; cursor: pointer; }
 .create-forms-date-trigger:hover, .create-forms-select .astro-toolbar-select-toggle:hover { background: transparent; }
 .create-forms-date-trigger:focus-visible, .create-forms-calendar button:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
-.create-forms-date-trigger .astro-icon { display: block; width: var(--astro-icon-md); height: var(--astro-icon-md); object-fit: contain; }
+.create-forms-date-trigger .astro-icon { display: block; width: var(--astro-icon-md); height: var(--astro-icon-md); object-fit: contain; transition: filter 220ms ease; }
+.create-forms-date-trigger:hover:not(:disabled) .astro-icon { filter: var(--astro-input-icon-hover-filter); }
 .create-forms-answer-date-control { position: relative; }
 .create-forms-answer-date-control .astro-icon { position: absolute; top: 50%; right: var(--astro-control-padding-inline); width: var(--astro-icon-md); height: var(--astro-icon-md); transform: translateY(-50%); object-fit: contain; opacity: 0.72; }
 .create-forms-calendar { --astro-popup-zoom: 0.9; position: absolute; z-index: 20; top: calc(100% + 0.45rem); left: 0; width: min(24rem, calc(100vw - 2rem)); padding: calc(1rem * var(--astro-popup-zoom)); border: 0; border-radius: calc(0.625rem * var(--astro-popup-zoom)); color: var(--astro-text); background: #332754; box-shadow: 0 16px 44px rgb(0 0 0 / 22%); animation: astro-popup-in var(--astro-popover-duration) ease both; }
@@ -123,11 +124,11 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
 .create-forms-photo-select { box-sizing: border-box; flex: none; height: var(--astro-control-height); min-height: var(--astro-control-height); max-height: var(--astro-control-height); min-width: 0; }
 .create-forms-photo-count-select { width: calc(6rem * var(--astro-scale)); }
 .create-forms-photo-size-select { width: calc(7.1rem * var(--astro-scale)); }
-.create-forms-photo-select .astro-toolbar-select-trigger { box-sizing: border-box; height: 100%; min-height: 0; max-height: 100%; padding: 0 var(--astro-control-chevron-padding-end) 0 var(--astro-control-padding-inline); border: 1px solid transparent; border-radius: calc(0.2rem * var(--astro-scale)); color: #4b4657; background: #f6f5fa; font-size: var(--astro-control-font-size); cursor: pointer; }
+.create-forms-photo-select .astro-toolbar-select-trigger { box-sizing: border-box; height: 100%; min-height: 0; max-height: 100%; padding: 0 var(--astro-control-chevron-padding-end) 0 var(--astro-control-padding-inline); border: 1px solid transparent; border-radius: var(--astro-control-radius); color: var(--astro-text); background: var(--astro-field); font-size: var(--astro-control-font-size); cursor: pointer; }
 .create-forms-photo-select .astro-toolbar-select-trigger:focus { border-color: var(--astro-input-focus-border); }
 .create-forms-photo-select .astro-toolbar-select-toggle { top: 0; right: var(--astro-control-chevron-button-inset); width: var(--astro-control-icon-hit-size); height: 100%; min-height: 0; border-radius: calc(0.2rem * var(--astro-scale)); color: #4b4657; }
 .create-forms-photo-select .astro-toolbar-select-toggle:hover { background: transparent; }
-.create-forms-photo-select .astro-toolbar-select-toggle .astro-icon { width: var(--astro-icon-sm); height: var(--astro-icon-sm); filter: brightness(0) saturate(100%); opacity: 0.72; }
+.create-forms-photo-select .astro-toolbar-select-toggle .astro-icon { width: var(--astro-icon-sm); height: var(--astro-icon-sm); }
 .create-forms-question-footer { display: flex; align-items: center; justify-content: flex-end; gap: calc(2.2rem * var(--astro-scale)); margin-top: calc(var(--create-forms-stack-gap) + 0.15rem * var(--astro-scale)); padding-top: calc(var(--create-forms-stack-gap) + 0.15rem * var(--astro-scale)); border-top: 1px solid rgb(170 166 184 / 80%); color: #f6f6f6; font-size: var(--astro-label-font-size); }
 .create-forms-question-footer .astro-toggle-switch { width: calc(3.1rem * var(--astro-scale)); height: calc(1.5rem * var(--astro-scale)); }
 .create-forms-toggle-group { display: inline-flex; align-items: center; gap: calc(0.7rem * var(--astro-scale)); min-width: 0; white-space: nowrap; }
@@ -189,7 +190,6 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
   .create-forms-footer .create-forms-add-question,
   .create-forms-footer .astro-action { width: 100%; }
   .create-forms-add-modal { --astro-modal-width: 28rem; }
-  .create-forms-add-modal .astro-modal-title { margin-bottom: 1.1rem; }
   .create-forms-add-grid { grid-template-columns: 1fr; gap: 0.6rem; }
   .create-forms-add-grid > button { width: 100%; max-width: none; }
   .create-forms-calendar { --astro-popup-zoom: 0.76; box-sizing: border-box; width: min(24rem, 100%); max-width: calc(100vw - 2rem); }
@@ -209,6 +209,7 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
   .create-forms-main { margin-top: calc(2.5rem * var(--astro-scale)); }
 }
 @media (prefers-reduced-motion: reduce) {
+  .create-forms-date-trigger .astro-icon { transition: none; }
   .create-forms-main, .create-forms-page--leaving .create-forms-main { animation: none; }
   .create-forms-new-question, .create-forms-option, .create-forms-question-item--moved .create-forms-question-card, .create-forms-calendar, .create-forms-calendar--closing { animation: none; }
   .create-forms-calendar-header h3, .create-forms-calendar-days--next, .create-forms-calendar-days--previous, .create-forms-calendar-day--selected { animation: none; }

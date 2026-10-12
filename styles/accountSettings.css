@@ -18,12 +18,12 @@
 .account-information-card--saved { animation: account-information-saved 900ms cubic-bezier(.22, 1, .36, 1); }
 @keyframes account-information-saved { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 35% { box-shadow: 0 0 0 2px rgb(156 0 205 / 45%); } }
 .account-transfer-card .account-email-preview { margin-top: var(--create-forms-stack-gap); }
-.account-details-modal { --astro-modal-width: 58rem; }
+.account-details-modal { --astro-modal-width: var(--astro-modal-two-column-width); }
 .account-details-form { margin-top: var(--astro-modal-content-gap); }
 .account-manager-selection-form { margin-top: var(--astro-modal-content-gap); }
 .account-replace-flow-modal { view-transition-name: event-create-popup; }
 .account-manager-selection-form .astro-action:disabled { opacity: .55; cursor: default; }
-.account-manager-selection-form .astro-action:disabled:hover { background: #e65a61; }
+.account-manager-selection-form .astro-action:disabled:hover { background: var(--astro-danger); }
 .account-replace-confirmation .astro-confirmation-description span { display: block; margin-top: var(--astro-field-gap); }
 .account-details-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--astro-modal-content-gap) var(--astro-modal-inline-gap); margin-top: var(--astro-modal-content-gap); }
 .account-details-grid .field-group { min-width: 0; }
@@ -33,7 +33,7 @@
 .account-field-select .astro-toolbar-select-trigger { height: 100%; min-height: var(--astro-control-height); border: 1px solid transparent; border-radius: var(--astro-control-radius); padding: 0 var(--astro-control-chevron-padding-end) 0 var(--astro-control-padding-inline); font-size: var(--astro-control-font-size); background: var(--astro-field); }
 .account-field-select .astro-toolbar-select-toggle { top: 50%; right: var(--astro-control-chevron-button-inset); width: var(--astro-control-icon-hit-size); height: var(--astro-control-icon-hit-size); transform: translateY(-50%); }
 .account-field-select .astro-toolbar-select-trigger:focus { border-color: var(--astro-input-focus-border); }
-.account-field-select .astro-toolbar-select-toggle:hover { background: var(--astro-focus-surface); }
+.account-field-select .astro-toolbar-select-toggle:hover { background: transparent; }
 
 /* Como os seletores de horário dos eventos: o menu sai da área rolável sem alterar o popup. */
 @supports (anchor-name: --account-select) {

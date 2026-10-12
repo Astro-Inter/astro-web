@@ -2,7 +2,7 @@
    extra da página no mobile. */
 @media (max-width: 850px) {
   .include-company-page {
-    padding-top: 7rem;
-    padding-bottom: 7rem;
+    padding-top: 4.5rem;
+    padding-bottom: 6rem;
   }
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useLocation } from 'react-router-dom'
 import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, ToolbarSearch, ToolbarSelect } from '../../components'
 import EventCalendar from '../../components/eventCalendar'
 import EventOptionsModal from '../../components/eventOptionsModal'
@@ -20,6 +21,7 @@ const viewOptions = [
 ]
 
 function MainEventScreenPage() {
+  const location = useLocation()
   const [month, setMonth] = useState(() => {
     const today = new Date()
     return new Date(today.getFullYear(), today.getMonth(), today.getDate())
@@ -32,7 +34,7 @@ function MainEventScreenPage() {
   const [pendingInactivation, setPendingInactivation] = useState<CalendarEvent | null>(null)
   const [informationEvent, setInformationEvent] = useState<CalendarEvent | null>(null)
   const [feedback, setFeedback] = useState('')
-  const [editor, setEditor] = useState<{ mode: 'create' } | { mode: 'edit'; event: CalendarEvent; value: EventConfiguration } | null>(null)
+  const [editor, setEditor] = useState<{ mode: 'create' } | { mode: 'edit'; event: CalendarEvent; value: EventConfiguration } | null>(() => location.state?.openCreate === true ? { mode: 'create' } : null)
   const [savedEventId, setSavedEventId] = useState<string | null>(null)
   const [animateCalendar, setAnimateCalendar] = useState(true)
   const pendingSavedIdRef = useRef<string | null>(null)

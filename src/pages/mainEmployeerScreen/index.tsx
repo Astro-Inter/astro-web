@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useLocation } from 'react-router-dom'
 import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, InviteEmployeeModal, ManagerDetailsModal, ManagerIdentity, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import type { DataTableColumn } from '../../components/dataTable'
 import PasswordConfirmationModal from '../../components/passwordConfirmationModal'
@@ -20,11 +21,12 @@ type EmployeeDialogState =
   | { kind: 'deactivate'; employee: Employee }
 
 function MainEmployeerScreenPage() {
+  const location = useLocation()
   const inviteOriginRef = useRef<HTMLButtonElement | null>(null)
   const savedTimerRef = useRef<number | null>(null)
   const [employees, setEmployees] = useState<Employee[]>(mockEmployees)
   const [filters, setFilters] = useState({ search: '', position: '', status: '' })
-  const [inviteOpen, setInviteOpen] = useState(false)
+  const [inviteOpen, setInviteOpen] = useState(() => location.state?.openCreate === true)
   const [dialog, setDialog] = useState<EmployeeDialogState | null>(null)
   const [details, setDetails] = useState({ dimmed: false, closing: false })
   const [savedEmployeeId, setSavedEmployeeId] = useState<string | null>(null)

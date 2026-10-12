@@ -23,7 +23,7 @@ function EventGroupDistributionModal({ onCancel, onContinue, onDismissRequest }:
     else onCancel()
   }} onDismissRequest={onDismissRequest} preservePageScroll title="Em quantos grupos você deseja distribuir aleatoriamente?">
     {dismiss => <div className="event-create-random-body">
-      <div className="event-create-field"><label htmlFor="event-create-group-count">Quantidade de grupos</label><ToolbarSelect className="event-create-select" id="event-create-group-count" label="Quantidade de grupos" onValueChange={setCount} options={countOptions} maxVisibleRows={3} preferredPlacement="below" searchable={false} value={count} /></div>
+      <div className="event-create-field"><label htmlFor="event-create-group-count">Quantidade de grupos</label><ToolbarSelect escapeOverflow className="event-create-select" id="event-create-group-count" label="Quantidade de grupos" onValueChange={setCount} options={countOptions} maxVisibleRows={3} preferredPlacement="below" searchable={false} value={count} /></div>
       <div className="astro-modal-actions event-create-actions"><button className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button><PurpleButton disabled={!count} onClick={() => { confirmedRef.current = true; dismiss() }} type="button">Continuar</PurpleButton></div>
     </div>}
   </AppModal>

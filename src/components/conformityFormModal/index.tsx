@@ -62,19 +62,20 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
   return (
     <AppModal className="position-dialog invite-manager-dialog conformity-form-modal" dimmed={dimmed} onClose={onClose} onDismissRequest={onDismissRequest} open={open} title={editing ? 'Editar conformidade' : 'Adicionar conformidade'}>
       {(dismiss) => <form autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
-        {employee ? (
+        {employee && (
           <div className="account-profile-header conformity-form-employee">
             <div className="account-profile-photo"><span aria-hidden="true" className="manager-avatar manager-avatar--large">{getInitials(employee.name)}</span></div>
             <div className="account-profile-identity"><h3>{employee.name}</h3><p>{employee.email}</p></div>
           </div>
-        ) : (
-          <div className="position-dialog-field conformity-form-employee">
-            <label htmlFor="conformity-form-employee">Colaborador</label>
-            <ToolbarSelect className={selectClassName('employeeId')} id="conformity-form-employee" label="Colaborador" onValueChange={(employeeId) => update('employeeId', employeeId)} options={employeeOptions} value={values.employeeId} />
-            {errors.employeeId && <span role="alert">{errors.employeeId}</span>}
-          </div>
         )}
         <div className="position-dialog-row conformity-form-row">
+          {!employee && (
+            <div className="position-dialog-field">
+              <label htmlFor="conformity-form-employee">Colaborador</label>
+              <ToolbarSelect className={selectClassName('employeeId')} id="conformity-form-employee" label="Colaborador" onValueChange={(employeeId) => update('employeeId', employeeId)} options={employeeOptions} value={values.employeeId} />
+              {errors.employeeId && <span role="alert">{errors.employeeId}</span>}
+            </div>
+          )}
           <div className="position-dialog-field">
             <label htmlFor="conformity-form-nr">NR</label>
             <ToolbarSelect className={selectClassName('nr')} id="conformity-form-nr" label="NR" onValueChange={(nr) => update('nr', nr)} options={nrOptions} value={values.nr} />

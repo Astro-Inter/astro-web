@@ -12,6 +12,7 @@ interface ToolbarSelectOption {
 interface ToolbarSelectProps {
   className?: string
   disabled?: boolean
+  escapeOverflow?: boolean
   id?: string
   label: string
   onValueChange: (value: string) => void
@@ -22,12 +23,13 @@ interface ToolbarSelectProps {
   value: string
 }
 
-function ToolbarSelect({ id, label, options, className = '', disabled = false, onValueChange, searchable = true, maxVisibleRows = 4, preferredPlacement = 'auto', value }: ToolbarSelectProps) {
+function ToolbarSelect({ id, label, options, className = '', disabled = false, escapeOverflow = false, onValueChange, searchable = true, maxVisibleRows = 4, preferredPlacement = 'auto', value }: ToolbarSelectProps) {
   const generatedId = useId()
   const selectId = id ?? generatedId
   const listId = `${selectId}-options`
   const containerRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLInputElement>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([])
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -35,9 +37,9 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, o
   const [placement, setPlacement] = useState<'above' | 'below'>('below')
   const [menuMaxHeight, setMenuMaxHeight] = useState<number>()
   const { closing, requestClose } = useAnimatedClose()
-  const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value))
+  const selectedIndex = options.findIndex((option) => option.value === value)
   const selectedOption = options[selectedIndex]
-  const selectedLabel = selectedOption?.triggerLabel ?? selectedOption?.label ?? label
+  const selectedLabel = selectedOption?.triggerLabel ?? selectedOption?.label ?? (value || label)
   const pendingOption = pendingSelection && pendingSelection.value !== value
     ? options.find((option) => option.value === pendingSelection.value)
     : undefined
@@ -60,6 +62,7 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, o
 
   useLayoutEffect(() => {
     if (!open || closing) return
+    if (escapeOverflow && !popoverRef.current?.matches(':popover-open')) popoverRef.current?.showPopover()
     const bounds = triggerRef.current?.getBoundingClientRect()
     if (bounds) {
       const rootFontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
@@ -75,7 +78,7 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, o
       setMenuMaxHeight(Math.min(estimatedHeight, availableSpace))
     }
     if (document.activeElement !== triggerRef.current) triggerRef.current?.focus()
-  }, [closing, filteredOptions.length, maxVisibleRows, open, preferredPlacement])
+  }, [closing, escapeOverflow, filteredOptions.length, maxVisibleRows, open, preferredPlacement])
 
   useEffect(() => {
     if (!open) return
@@ -215,7 +218,7 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, o
         ><AstroIcon name="chevron-down" /></button>
       </div>
       {open && (
-        <div aria-label={label} className={`astro-toolbar-select-popover${closing ? ' astro-toolbar-select-popover--closing' : ''}`} id={listId} role="listbox" style={{ maxHeight: menuMaxHeight }}>
+        <div aria-label={label} className={`astro-toolbar-select-popover${closing ? ' astro-toolbar-select-popover--closing' : ''}`} id={listId} popover={escapeOverflow ? 'manual' : undefined} ref={popoverRef} role="listbox" style={{ maxHeight: menuMaxHeight }}>
           <div className={`astro-toolbar-select-options${filteredOptions.length <= 1 ? ' astro-toolbar-select-options--compact' : ''}`}>
             {filteredOptions.length > 0 ? filteredOptions.map((option, index) => (
               <button

@@ -3,5 +3,6 @@ const iconRevision = 'homeIconReview5'
 
 export function iconAsset(file: string, strokeScale: 0.9 | 1 = 1) {
   const directory = strokeScale === 0.9 ? 'icons/stroke90' : 'icons'
-  return `${import.meta.env.BASE_URL}${directory}/${file}?v=${iconRevision}`
+  const revision = file.startsWith('sidebar/') ? 'sidebarIconReview2' : iconRevision
+  return `${import.meta.env.BASE_URL}${directory}/${file}?v=${revision}`
 }

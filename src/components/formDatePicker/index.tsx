@@ -9,6 +9,7 @@ interface FormDatePickerProps {
   onValidityChange?: (valid: boolean) => void
   value: string
   validate?: boolean
+  escapeOverflow?: boolean
 }
 
 const weekdays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
@@ -64,7 +65,7 @@ function sameDate(first: Date | null, second: Date) {
   return first !== null && first.getFullYear() === second.getFullYear() && first.getMonth() === second.getMonth() && first.getDate() === second.getDate()
 }
 
-function FormDatePicker({ id, label, onChange, onValidityChange, value, validate = true }: FormDatePickerProps) {
+function FormDatePicker({ id, label, onChange, onValidityChange, value, validate = true, escapeOverflow = false }: FormDatePickerProps) {
   const generatedId = useId()
   const calendarId = `${generatedId}-calendar`
   const containerRef = useRef<HTMLDivElement>(null)
@@ -75,6 +76,7 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, validate
   const [inputDraft, setInputDraft] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const [placement, setPlacement] = useState<'above' | 'below'>('below')
+  const [calendarMaxHeight, setCalendarMaxHeight] = useState<number>()
   const [monthTransitionDirection, setMonthTransitionDirection] = useState<'next' | 'previous'>('next')
   const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(selectedDate ?? new Date()))
   const { closing, requestClose } = useAnimatedClose()
@@ -93,17 +95,23 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, validate
 
   useLayoutEffect(() => {
     if (!open || closing) return
+    if (escapeOverflow && !calendarRef.current?.matches(':popover-open')) calendarRef.current?.showPopover()
     const calendarBounds = calendarRef.current?.getBoundingClientRect()
     const inputBounds = inputRef.current?.getBoundingClientRect()
     if (!calendarBounds || !inputBounds) return
     const availableBelow = window.innerHeight - inputBounds.bottom - 20
     const availableAbove = inputBounds.top - 20
-    setPlacement(calendarBounds.height > availableBelow && availableAbove > availableBelow ? 'above' : 'below')
+    const openAbove = calendarBounds.height > availableBelow && availableAbove > availableBelow
+    setPlacement(openAbove ? 'above' : 'below')
+    if (escapeOverflow) {
+      const scale = calendarBounds.height / (calendarRef.current?.offsetHeight || calendarBounds.height)
+      setCalendarMaxHeight(Math.max(0, openAbove ? availableAbove : availableBelow) / scale)
+    }
     if (pendingFocusDate.current) {
       calendarRef.current?.querySelector<HTMLButtonElement>(`[data-date="${pendingFocusDate.current}"]`)?.focus({ preventScroll: true })
       pendingFocusDate.current = null
     }
-  }, [closing, open, visibleMonth])
+  }, [closing, escapeOverflow, open, visibleMonth])
 
   useEffect(() => {
     if (!open) return
@@ -236,7 +244,7 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, validate
       </div>
       {showError && <p className="create-forms-date-error" id={`${id}-error`} role="alert">Informe uma data válida no formato dd/mm/aaaa.</p>}
 
-      {open && <div aria-label={`Calendário: ${label}`} className={`create-forms-calendar${closing ? ' create-forms-calendar--closing' : ''}`} id={calendarId} ref={calendarRef} role="dialog">
+      {open && <div aria-label={`Calendário: ${label}`} className={`create-forms-calendar${closing ? ' create-forms-calendar--closing' : ''}`} id={calendarId} popover={escapeOverflow ? 'manual' : undefined} ref={calendarRef} role="dialog" style={escapeOverflow ? { maxHeight: calendarMaxHeight } : undefined}>
         <div className="create-forms-calendar-header">
           <button aria-label="Mês anterior" onClick={() => changeMonth(-1)} type="button"><AstroIcon name="chevron-left" /></button>
           <h3 aria-live="polite" key={`${year}-${month}`}>{formatMonthTitle(visibleMonth)}</h3>

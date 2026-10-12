@@ -155,6 +155,7 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode
     {collaboratorGroup && <EventGroupCollaboratorsModal groupName={collaboratorGroup.name} participantIds={collaboratorGroup.ids} onClose={() => setCollaboratorGroup(null)} />}
     {randomOpen && <EventGroupDistributionModal onDismissRequest={() => setRandomClosing(true)} onCancel={() => setRandomOpen(false)} onContinue={distributeRandomly} />}
     {pendingSave && <ConfirmationModal
+      className="event-save-modal"
       confirmCloseDelay={60}
       confirmLabel="Salvar"
       onCancel={() => { setPendingSave(null); setSaveDimmed(false) }}

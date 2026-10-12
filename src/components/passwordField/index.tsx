@@ -1,4 +1,3 @@
-import AstroIcon from '../astroIcon'
 import { iconAsset } from '../../utils/iconAsset'
 
 interface PasswordFieldProps {
@@ -50,10 +49,9 @@ function PasswordField({ autoComplete = 'off', id, label, placeholder, value, vi
           <span
             className={`password-icon-stack${visible ? ' is-visible' : ''}${fieldInvalid ? ' password-icon-stack--invalid' : ''}`}
             aria-hidden="true"
-            style={fieldInvalid ? { maskImage: `url("${iconAsset(visible ? 'eye.svg' : 'eyeOff.svg')}")` } : undefined}
           >
-            <AstroIcon className="password-icon password-icon--closed" name="eye-off" />
-            <AstroIcon className="password-icon password-icon--open" name="eye" />
+            <span className="password-icon password-icon--closed" style={{ maskImage: `url("${iconAsset('eyeOff.svg')}")` }} />
+            <span className="password-icon password-icon--open" style={{ maskImage: `url("${iconAsset('eye.svg')}")` }} />
           </span>
         </button>
       </div>

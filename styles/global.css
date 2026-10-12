@@ -46,9 +46,14 @@
   --astro-tertiary-blue: #539dd1;   /* tertiaryblue */
   --astro-quinary-green: #5aae67;   /* quinarygreen */
   --astro-primary-error: #ff4d4d;   /* primaryerrorcolor */
+  --astro-danger: #eb6264;
+  --astro-danger-hover: #cf4f53;
   --astro-focus-border: rgb(248 247 252 / 65%);
   --astro-input-focus-border: #918d99;
   --astro-focus-surface: rgb(255 255 255 / 11%);
+  --astro-backdrop-background: rgb(0 0 0 / 25%);
+  --astro-spinner-stroke: 2px;
+  --astro-input-icon-hover-filter: brightness(.75);
   --astro-scrollbar-thumb: #573D93;
   --astro-scrollbar-thumb-hover: #4f3887;
   --astro-scrollbar-thumb-active: #482f7b;
@@ -156,6 +161,20 @@
 
 .astro-scale-90 {
   --astro-scale: 0.9;
+}
+
+/* Campos equivalentes compartilham a escala mobile. Dialogs rederivam seus
+   próprios tokens em .astro-scale-100, preservando o tamanho dos popups. */
+@media (max-width: 480px) {
+  .astro-scale-90 {
+    --astro-control-height: 3rem;
+    --astro-action-height: 3rem;
+    --astro-control-font-size: 1rem;
+    --astro-action-font-size: .9375rem;
+    --astro-label-font-size: .9375rem;
+    --astro-subtitle-font-size: .9375rem;
+    --astro-heading-font-size: 1.5rem;
+  }
 }
 
 @keyframes page-enter {
@@ -413,11 +432,11 @@ textarea::selection {
 
 /* Destrutiva, dimensionada pelo conteúdo. */
 .astro-action--danger {
-  background: #e65a61;
+  background: var(--astro-danger);
 }
 
 .astro-action--danger:hover {
-  background: #c9474e;
+  background: var(--astro-danger-hover);
 }
 
 /* Única exceção de largura: ações inline dimensionadas pelo conteúdo, como
