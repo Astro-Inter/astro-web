@@ -5,7 +5,7 @@ import { handleMaskedInput } from '../../utils/inputFormatting'
 import FormField from '../formField'
 import PageHeading from '../pageHeading'
 import PurpleButton from '../purpleButton'
-import { validateRegistrationCompany } from '../../utils/workspaceRegistration'
+import { validateRegistrationCompanyFields } from '../../utils/workspaceRegistration'
 
 interface CompanyInformationFormProps {
   onContinue: (company: CompanyInformation) => void
@@ -15,7 +15,7 @@ interface CompanyInformationFormProps {
 
 function CompanyInformationForm({ onContinue, settingsMode = false, initialCompany }: CompanyInformationFormProps) {
   const [company, setCompany] = useState<CompanyInformation>(initialCompany ?? { name: '', cnpj: '' })
-  const [error, setError] = useState('')
+  const [errors, setErrors] = useState<Partial<Record<keyof CompanyInformation, string>>>({})
 
   return (
     <>
@@ -23,16 +23,17 @@ function CompanyInformationForm({ onContinue, settingsMode = false, initialCompa
 
       <form className="company-information-form" noValidate onSubmit={(event) => {
         event.preventDefault()
-        const message = settingsMode ? '' : validateRegistrationCompany(company)
-        setError(message)
-        if (!message) onContinue(company)
+        const nextErrors = settingsMode ? {} : validateRegistrationCompanyFields(company)
+        setErrors(nextErrors)
+        if (!Object.keys(nextErrors).length) onContinue(company)
       }}>
         <FormField
             autoComplete="organization"
             id="company-name"
             label="Nome da empresa"
+            error={errors.name}
             maxLength={120}
-            onChange={(event) => setCompany((current) => ({ ...current, name: event.target.value }))}
+            onChange={(event) => { setCompany((current) => ({ ...current, name: event.target.value })); setErrors(current => ({ ...current, name: undefined })) }}
             placeholder="Digite o nome da empresa"
             type="text"
             value={company.name}
@@ -42,15 +43,15 @@ function CompanyInformationForm({ onContinue, settingsMode = false, initialCompa
             autoComplete="off"
             id="company-cnpj"
             label="CNPJ"
+            error={errors.cnpj}
             inputMode="numeric"
             maxLength={18}
-            onChange={(event) => handleMaskedInput(event, formatCnpj, (cnpj) => setCompany((current) => ({ ...current, cnpj })))}
+            onChange={(event) => handleMaskedInput(event, formatCnpj, (cnpj) => { setCompany((current) => ({ ...current, cnpj })); setErrors(current => ({ ...current, cnpj: undefined })) })}
             placeholder="00.000.000/0000-00"
             type="text"
             value={company.cnpj}
           />
 
-        {error && <p className="login-field-error" role="alert">{error}</p>}
         <PurpleButton className="astro-form-action" type="submit">{settingsMode ? 'Salvar alterações' : 'Continuar'}</PurpleButton>
       </form>
     </>

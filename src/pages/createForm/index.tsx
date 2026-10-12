@@ -11,7 +11,8 @@ import OptionsPopup from '../../components/optionsPopup'
 import PurpleButton from '../../components/purpleButton'
 import ToolbarSelect from '../../components/toolbarSelect'
 import { managerOptions, nrOptions, unitOptions } from '../../data/formOptions'
-import { makeQuestion } from '../../utils/forms'
+import { makeQuestion, validateAndSanitizeForm } from '../../utils/forms'
+import { loadFormDraft, removeFormDraft, saveFormDraft } from '../../utils/formDraft'
 import { animateRemoval } from '../../utils/animateRemoval'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { useQuestionReorder } from '../../hooks/useQuestionReorder'
@@ -22,7 +23,9 @@ const initialValues: CreateFormValues = { name: '', description: '', manager: ''
 
 function CreateFormPage() {
   const navigate = useNavigate()
-  const [values, setValues] = useState<CreateFormValues>(initialValues)
+  const [values, setValues] = useState<CreateFormValues>(() => {
+    try { return loadFormDraft(window.localStorage) ?? initialValues } catch { return initialValues }
+  })
   const [showAddQuestion, setShowAddQuestion] = useState(false)
   const [showBackConfirmation, setShowBackConfirmation] = useState(false)
   const [leaving, setLeaving] = useState(false)
@@ -32,6 +35,7 @@ function CreateFormPage() {
   const [highlightedQuestionId, setHighlightedQuestionId] = useState<string | null>(null)
   const [feedback, setFeedback] = useState('')
   const [error, setError] = useState('')
+  const [deadlineValid, setDeadlineValid] = useState(true)
   const menuTriggerRef = useRef<HTMLButtonElement>(null)
   const menuPanelRef = useRef<HTMLDivElement>(null)
   const highlightTimerRef = useRef<number | null>(null)
@@ -114,17 +118,24 @@ function CreateFormPage() {
 
   function saveDraft() {
     try {
-      window.localStorage.setItem('astro-create-forms-draft', JSON.stringify({ _versao: 1, values }))
+      saveFormDraft(window.localStorage, values)
       setError('')
       setLeaving(true)
       finishPageExit(() => navigate('/mainFormScreen'))
-    } catch {
-      setError('Não foi possível salvar o rascunho neste navegador.')
+    } catch (cause: unknown) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o rascunho neste navegador.')
     }
   }
 
   function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!deadlineValid) { setError('Informe uma data limite válida ou deixe o campo vazio.'); return }
+    const validation = validateAndSanitizeForm(values)
+    const message = Object.values(validation.errors)[0]
+    if (message) { setError(message); return }
+    setValues(validation.values)
+    setError('')
+    try { removeFormDraft(window.localStorage) } catch { /* O formulário não depende do armazenamento local. */ }
     setLeaving(true)
     finishPageExit(() => navigate('/mainFormScreen'))
   }
@@ -157,7 +168,7 @@ function CreateFormPage() {
             <div className="create-forms-field"><span className="create-forms-label">Gestor</span><ToolbarSelect className="create-forms-select" label="Gestor" onValueChange={(manager) => setValues((current) => ({ ...current, manager }))} options={managerOptions} value={values.manager} /></div>
             <div className="create-forms-field"><span className="create-forms-label">NR (opcional)</span><ToolbarSelect className="create-forms-select" label="NR (opcional)" onValueChange={(nr) => setValues((current) => ({ ...current, nr }))} options={nrOptions} value={values.nr} /></div>
             <div className="create-forms-field"><span className="create-forms-label">Unidade (opcional)</span><ToolbarSelect className="create-forms-select" label="Unidade (opcional)" onValueChange={(unit) => setValues((current) => ({ ...current, unit }))} options={unitOptions} value={values.unit} /></div>
-            <div className="create-forms-field"><label htmlFor="create-forms-deadline">Data limite (opcional)</label><FormDatePicker id="create-forms-deadline" label="Data limite" onChange={(deadline) => setValues((current) => ({ ...current, deadline }))} validate={false} value={values.deadline} /></div>
+            <div className="create-forms-field"><label htmlFor="create-forms-deadline">Data limite (opcional)</label><FormDatePicker id="create-forms-deadline" label="Data limite" onValidityChange={setDeadlineValid} onChange={(deadline) => setValues((current) => ({ ...current, deadline }))} value={values.deadline} /></div>
           </section>
 
           <div aria-label="Perguntas do formulário" className="create-forms-questions" role="list">
@@ -192,7 +203,7 @@ function CreateFormPage() {
             ))}
           </div>
 
-          {error && <p className="sr-only" role="alert">{error}</p>}
+          {error && <p className="form-validation-error" role="alert">{error}</p>}
           {feedback && <p className="sr-only" role="status">{feedback}</p>}
 
           <div className="create-forms-footer">

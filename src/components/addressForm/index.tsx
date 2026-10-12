@@ -3,8 +3,9 @@ import type { useWorkspaceAddresses } from '../../hooks/useWorkspaceAddresses'
 import { formatCep, formatState, handleMaskedInput } from '../../utils/inputFormatting'
 import AstroIcon from '../astroIcon'
 import PurpleButton from '../purpleButton'
-import { validateRegistrationUnits } from '../../utils/workspaceRegistration'
-import type { WorkspaceUnitAddress } from '../../types/address'
+import { validateRegistrationUnitFields } from '../../utils/workspaceRegistration'
+import type { WorkspaceAddressField, WorkspaceUnitAddress } from '../../types/address'
+import FormField from '../formField'
 
 interface AddressFormProps {
   onComplete: (units: WorkspaceUnitAddress[]) => void
@@ -15,12 +16,18 @@ interface AddressFormProps {
 
 function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = false, addresses }: AddressFormProps) {
   const { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit, postalCode, retryPostalCode } = addresses
-  const [error, setError] = useState('')
+  const [unitErrors, setUnitErrors] = useState<Record<number, Partial<Record<WorkspaceAddressField, string>>>>({})
+  const errors = unitErrors[activeUnit.id] ?? {}
   const [hasChangedUnit, setHasChangedUnit] = useState(false)
 
   function changeUnit(action: () => void) {
     setHasChangedUnit(true)
     action()
+  }
+
+  function updateField(field: WorkspaceAddressField, value: string) {
+    changeField(field, value)
+    setUnitErrors(current => ({ ...current, [activeUnit.id]: { ...current[activeUnit.id], [field]: undefined } }))
   }
 
   return (
@@ -34,9 +41,21 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
       <form className="set-address-form" noValidate onSubmit={(event) => {
         event.preventDefault()
         if (postalCode.status === 'loading') return
-        const message = settingsMode ? '' : validateRegistrationUnits(address.units)
-        setError(message)
-        if (!message) onComplete(address.units)
+        const nextErrors: typeof unitErrors = {}
+        const names = new Set<string>()
+        if (!settingsMode) for (const unit of address.units) {
+          nextErrors[unit.id] = validateRegistrationUnitFields(unit)
+          const name = unit.name.trim().toLowerCase()
+          if (names.has(name)) nextErrors[unit.id].name = 'O nome da unidade já foi usado. Escolha um nome diferente.'
+          names.add(name)
+        }
+        setUnitErrors(nextErrors)
+        const invalidUnit = address.units.find(unit => Object.keys(nextErrors[unit.id] ?? {}).length)
+        if (invalidUnit) {
+          changeUnit(() => addresses.selectUnit(invalidUnit.id))
+          return
+        }
+        onComplete(address.units)
       }}>
         <div className="set-address-carousel">
           <button
@@ -73,21 +92,21 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
 
               <div className="set-address-fields">
                 <div className="set-address-row set-address-row--first">
-                  <div className="field-group"><label htmlFor="unit-name">Nome da sede</label><input id="unit-name" maxLength={80} readOnly={unitsFromSpreadsheet} aria-describedby={unitsFromSpreadsheet ? 'unit-name-source' : undefined} onChange={(event) => changeField('name', event.target.value)} placeholder="Ex: Matriz São Paulo" value={activeUnit.name} />{unitsFromSpreadsheet && <span className="set-address-field-help" id="unit-name-source">Nome identificado na planilha.</span>}</div>
-                  <div className="field-group"><label htmlFor="unit-cep">CEP</label><input autoComplete="postal-code" id="unit-cep" inputMode="numeric" maxLength={9} aria-describedby={postalCode.message ? 'unit-cep-feedback' : undefined} onChange={(event) => handleMaskedInput(event, formatCep, (cep) => changeField('cep', cep))} placeholder="00000-000" value={activeUnit.cep} /></div>
-                  <div className="field-group"><label htmlFor="unit-state">Estado</label><input autoComplete="address-level1" id="unit-state" maxLength={2} onChange={(event) => changeField('state', formatState(event.target.value))} placeholder="SP" value={activeUnit.state} /></div>
+                  <div className="field-group"><label htmlFor="unit-name">Nome da sede</label><input id="unit-name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? 'unit-name-error' : unitsFromSpreadsheet ? 'unit-name-source' : undefined} maxLength={80} readOnly={unitsFromSpreadsheet} onChange={(event) => updateField('name', event.target.value)} placeholder="Ex: Matriz São Paulo" value={activeUnit.name} />{errors.name && <p className="login-field-error" id="unit-name-error" role="alert">{errors.name}</p>}{unitsFromSpreadsheet && <span className="set-address-field-help" id="unit-name-source">Nome identificado na planilha.</span>}</div>
+                  <FormField id="unit-cep" label="CEP" autoComplete="postal-code" maxLength={9} inputMode="numeric" error={errors.cep || (postalCode.status === 'error' ? postalCode.message : '')} onChange={event => handleMaskedInput(event, formatCep, cep => updateField('cep', cep))} placeholder="00000-000" value={activeUnit.cep} />
+                  <FormField id="unit-state" label="Estado" autoComplete="address-level1" maxLength={2} error={errors.state} onChange={event => updateField('state', formatState(event.target.value))} placeholder="SP" value={activeUnit.state} />
                 </div>
                 <div className="set-address-row set-address-row--middle">
-                  <div className="field-group"><label htmlFor="unit-city">Cidade</label><input autoComplete="address-level2" id="unit-city" maxLength={80} onChange={(event) => changeField('city', event.target.value)} placeholder="Ex: São Paulo" value={activeUnit.city} /></div>
-                  <div className="field-group"><label htmlFor="unit-neighborhood">Bairro</label><input id="unit-neighborhood" maxLength={80} onChange={(event) => changeField('neighborhood', event.target.value)} placeholder="Ex: Centro" value={activeUnit.neighborhood} /></div>
-                  <div className="field-group"><label htmlFor="unit-street">Rua</label><input autoComplete="address-line1" id="unit-street" maxLength={120} onChange={(event) => changeField('street', event.target.value)} placeholder="Ex: Avenida Paulista" value={activeUnit.street} /></div>
+                  <FormField id="unit-city" label="Cidade" autoComplete="address-level2" maxLength={80} error={errors.city} onChange={event => updateField('city', event.target.value)} placeholder="Ex: São Paulo" value={activeUnit.city} />
+                  <FormField id="unit-neighborhood" label="Bairro" maxLength={80} error={errors.neighborhood} onChange={event => updateField('neighborhood', event.target.value)} placeholder="Ex: Centro" value={activeUnit.neighborhood} />
+                  <FormField id="unit-street" label="Rua" autoComplete="address-line1" maxLength={120} error={errors.street} onChange={event => updateField('street', event.target.value)} placeholder="Ex: Avenida Paulista" value={activeUnit.street} />
                 </div>
                 <div className="set-address-row set-address-row--last">
-                  <div className="field-group"><label htmlFor="unit-number">Número</label><input id="unit-number" maxLength={12} onChange={(event) => changeField('number', event.target.value)} placeholder="000" value={activeUnit.number} /></div>
-                  <div className="field-group"><label htmlFor="unit-complement">Complemento (opcional)</label><input autoComplete="address-line2" id="unit-complement" maxLength={120} onChange={(event) => changeField('complement', event.target.value)} placeholder="Ex: Sala 402" value={activeUnit.complement} /></div>
+                  <FormField id="unit-number" label="Número" maxLength={12} error={errors.number} onChange={event => updateField('number', event.target.value)} placeholder="000" value={activeUnit.number} />
+                  <FormField id="unit-complement" label="Complemento (opcional)" autoComplete="address-line2" maxLength={120} error={errors.complement} onChange={event => updateField('complement', event.target.value)} placeholder="Ex: Sala 402" value={activeUnit.complement} />
                 </div>
               </div>
-              {postalCode.message && <p className={`set-address-cep-feedback${postalCode.status === 'error' ? ' is-error' : ''}`} id="unit-cep-feedback" role={postalCode.status === 'error' ? 'alert' : 'status'}>{postalCode.message}</p>}
+              {postalCode.message && postalCode.status !== 'error' && <p className="set-address-cep-feedback" id="unit-cep-feedback" role="status">{postalCode.message}</p>}
               {postalCode.status === 'error' && <PurpleButton auto variant="outline" className="set-address-cep-retry" onClick={retryPostalCode}>Consultar CEP novamente</PurpleButton>}
             </div>
           </div>
@@ -108,7 +127,6 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
           <AstroIcon name="plus" />
           Adicionar outra sede
         </PurpleButton>}
-        {error && <p className="login-field-error" role="alert">{error}</p>}
         <PurpleButton className="set-address-finish" disabled={postalCode.status === 'loading'} type="submit">{settingsMode ? 'Salvar alterações' : 'Finalizar workspace'}</PurpleButton>
       </form>
     </section>

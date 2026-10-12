@@ -1,5 +1,5 @@
 import type { CompanyInformation } from '../types/company'
-import type { WorkspaceUnitAddress } from '../types/address'
+import type { WorkspaceAddressField, WorkspaceUnitAddress } from '../types/address'
 import type { WorkspaceRegistrationData, WorkspaceRegistrationDraft } from '../types/workspaceRegistration'
 import { validateSpreadsheetFile } from './spreadsheet'
 
@@ -13,15 +13,40 @@ export function validateWorkspaceAccessKey(accessKey: string): string {
 }
 
 export function validateRegistrationPassword(password: string, confirmation: string): string {
-  if (!password || password.length > 128) return 'Informe uma senha de até 128 caracteres.'
-  if (password !== confirmation) return 'A confirmação deve ser igual à senha.'
-  return ''
+  return Object.values(validateRegistrationPasswordFields(password, confirmation))[0] ?? ''
+}
+
+export function validateRegistrationPasswordFields(password: string, confirmation: string): { password?: string; confirmation?: string } {
+  const errors: { password?: string; confirmation?: string } = {}
+  if (!password || password.length > 128) errors.password = 'Informe uma senha de até 128 caracteres.'
+  if (!confirmation) errors.confirmation = 'Confirme sua senha.'
+  else if (password !== confirmation) errors.confirmation = 'A confirmação deve ser igual à senha.'
+  return errors
 }
 
 export function validateRegistrationCompany(company: CompanyInformation): string {
-  if (!company.name.trim() || company.name.trim().length > 120) return 'Informe o nome da empresa (até 120 caracteres).'
-  if (!/^\d{14}$/.test(company.cnpj.replace(/\D/g, ''))) return 'Informe um CNPJ com 14 dígitos.'
-  return ''
+  return Object.values(validateRegistrationCompanyFields(company))[0] ?? ''
+}
+
+export function validateRegistrationCompanyFields(company: CompanyInformation): Partial<Record<keyof CompanyInformation, string>> {
+  const errors: Partial<Record<keyof CompanyInformation, string>> = {}
+  if (!company.name.trim() || company.name.trim().length > 120) errors.name = 'Informe o nome da empresa (até 120 caracteres).'
+  if (!/^\d{14}$/.test(company.cnpj.replace(/\D/g, ''))) errors.cnpj = 'Informe um CNPJ com 14 dígitos.'
+  return errors
+}
+
+export function validateRegistrationUnitFields(unit: WorkspaceUnitAddress): Partial<Record<WorkspaceAddressField, string>> {
+  const errors: Partial<Record<WorkspaceAddressField, string>> = {}
+  for (const [field, label, maximum] of [
+    ['name', 'nome', 80], ['city', 'cidade', 80], ['neighborhood', 'bairro', 80], ['street', 'rua', 120],
+  ] as const) {
+    if (unit[field].trim().length < 2 || unit[field].trim().length > maximum) errors[field] = `Informe ${label} com 2 a ${maximum} caracteres.`
+  }
+  if (!/^\d{8}$/.test(unit.cep.replace(/\D/g, ''))) errors.cep = 'Informe um CEP com 8 dígitos.'
+  if (!unit.state.trim() || unit.state.trim().length > 2) errors.state = 'Informe a sigla do estado (até 2 caracteres).'
+  if (!unit.number.trim() || unit.number.trim().length > 12) errors.number = 'Informe o número do endereço (até 12 caracteres).'
+  if (unit.complement.trim().length > 120) errors.complement = 'O complemento deve ter até 120 caracteres.'
+  return errors
 }
 
 export function validateRegistrationUnits(units: WorkspaceUnitAddress[]): string {
@@ -29,17 +54,8 @@ export function validateRegistrationUnits(units: WorkspaceUnitAddress[]): string
   const names = new Set<string>()
   for (const [index, unit] of units.entries()) {
     const prefix = `Sede ${index + 1}: `
-    for (const [field, label, maximum] of [
-      ['name', 'nome', 80], ['city', 'cidade', 80], ['neighborhood', 'bairro', 80], ['street', 'rua', 120],
-    ] as const) {
-      if (unit[field].trim().length < 2 || unit[field].trim().length > maximum) {
-        return `${prefix}informe ${label} com 2 a ${maximum} caracteres.`
-      }
-    }
-    if (!/^\d{8}$/.test(unit.cep.replace(/\D/g, ''))) return `${prefix}informe um CEP com 8 dígitos.`
-    if (!unit.state.trim() || unit.state.trim().length > 2) return `${prefix}informe a sigla do estado (até 2 caracteres).`
-    if (!unit.number.trim() || unit.number.trim().length > 12) return `${prefix}informe o número do endereço (até 12 caracteres).`
-    if (unit.complement.trim().length > 120) return `${prefix}o complemento deve ter até 120 caracteres.`
+    const message = Object.values(validateRegistrationUnitFields(unit))[0]
+    if (message) return `${prefix}${message}`
     const name = unit.name.trim().toLowerCase()
     if (names.has(name)) return `${prefix}o nome da unidade já foi usado. Escolha um nome diferente.`
     names.add(name)

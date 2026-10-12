@@ -5,6 +5,7 @@ import WorkspaceSettingsSaveModal from '../../components/workspaceSettingsSaveMo
 import WorkspaceSettingsBackButton from '../../components/workspaceSettingsBackButton'
 import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
 import { useSpreadsheetUnits } from '../../hooks/useSpreadsheetUnits'
+import LoginLoadingOverlay from '../../components/loginLoadingOverlay'
 
 function AttachExcelFilePage() {
   const navigate = useNavigate()
@@ -16,7 +17,8 @@ function AttachExcelFilePage() {
   if (!settingsMode && !draft.company.name) return <Navigate to="/includeCompanyInformation" replace />
 
   return (
-    <main className="attach-excel-page">
+    <>
+    <main className="attach-excel-page" inert={spreadsheet.loading} aria-busy={spreadsheet.loading}>
       {settingsMode && <WorkspaceSettingsBackButton screen="backExcelModalWeb" />}
       <AttachExcelFileForm initialFile={settingsMode ? null : draft.file} settingsMode={settingsMode} reading={spreadsheet.loading} readingError={spreadsheet.error} onSelectionChange={spreadsheet.clearError} onContinue={async file => {
         if (settingsMode) setConfirming(true)
@@ -30,6 +32,8 @@ function AttachExcelFilePage() {
       <HelpLink />
       {confirming && <WorkspaceSettingsSaveModal onCancel={() => setConfirming(false)} section="spreadsheet" />}
     </main>
+    {spreadsheet.loading && <LoginLoadingOverlay />}
+    </>
   )
 }
 

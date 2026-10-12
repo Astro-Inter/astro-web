@@ -43,9 +43,8 @@ function PaymentSummary({ onCompletePurchase, settingsMode = false, status = 'id
         </div>
 
         <PurpleButton className="finish-payment-button" disabled={pending} onClick={onCompletePurchase}>
-          {settingsMode ? 'Salvar alterações' : status === 'loading' ? 'Solicitando código…' : status === 'success' ? 'Solicitação recebida' : 'Finalizar compra'}
+          {settingsMode ? 'Salvar alterações' : 'Finalizar compra'}
         </PurpleButton>
-        {status === 'loading' && <p className="login-feedback" role="status">Solicitando o código de acesso…</p>}
         {status === 'error' && message && <p className="login-field-error" role="alert">{message}</p>}
         {status === 'success' && message && <p className="login-feedback" role="status">{message}</p>}
 

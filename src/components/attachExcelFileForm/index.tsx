@@ -77,10 +77,9 @@ function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = n
         />
 
         {!settingsMode && <p className="attach-excel-feedback">Use a primeira aba com as colunas nome, cpf, email, unidade, cargo e modalidade. Inclua exatamente uma linha com o e-mail do gestor. Vamos identificar as unidades para você preencher seus endereços na próxima etapa. Use HIBRIDO, REMOTO ou PRESENCIAL.</p>}
-        {!settingsMode && (selection.error || readingError) && <p className="attach-excel-feedback" id="spreadsheet-error" role="alert">{selection.error || readingError}</p>}
-        {reading && <p className="attach-excel-feedback" role="status">Verificando os dados do gestor e identificando as unidades da planilha…</p>}
+        {!settingsMode && (selection.error || readingError) && <p className="login-field-error" id="spreadsheet-error" role="alert">{selection.error || readingError}</p>}
 
-        <PurpleButton className="attach-excel-continue" type="submit" disabled={reading}>{reading ? 'Lendo planilha…' : settingsMode ? 'Adicionar colaboradores' : 'Continuar'}</PurpleButton>
+        <PurpleButton className="attach-excel-continue" type="submit" disabled={reading}>{settingsMode ? 'Adicionar colaboradores' : 'Continuar'}</PurpleButton>
         <button
           aria-haspopup="dialog"
           className="attach-excel-model-link"

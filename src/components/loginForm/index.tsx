@@ -1,9 +1,7 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { LoginCredentials, LoginFieldErrors, LoginStatus } from '../../types/authentication'
-import { blockEmailWhitespaceInput, blockEmailWhitespaceKey, sanitizeEmail } from '../../utils/inputFormatting'
-import { iconAsset } from '../../utils/iconAsset'
-import FormField from '../formField'
+import EmailField from '../emailField'
 import PageHeading from '../pageHeading'
 import PasswordField from '../passwordField'
 import PurpleButton from '../purpleButton'
@@ -20,51 +18,19 @@ interface LoginFormProps {
 
 function LoginForm({ credentials, errors, status, message, invalidCredentials, onCredentialChange, onSubmit }: LoginFormProps) {
   const [passwordVisible, setPasswordVisible] = useState(false)
-  const formRef = useRef<HTMLFormElement>(null)
   const pending = status === 'loading' || status === 'success'
 
   return (
     <>
       <PageHeading description="Acesse sua conta para continuar." title="Acesse sua conta" titleId="login-title" />
 
-      <form ref={formRef} aria-busy={status === 'loading'} className="login-form" noValidate onSubmit={(event) => {
+      <form aria-busy={status === 'loading'} className="login-form" noValidate onSubmit={(event) => {
         event.preventDefault()
         if (!pending) void onSubmit()
       }}>
-        <div className="login-email-field">
-          <FormField
-            aria-describedby={errors.email ? 'email-error' : invalidCredentials ? 'password-error' : undefined}
-            aria-invalid={Boolean(errors.email) || invalidCredentials}
-            autoComplete="email"
-            disabled={pending}
-            id="email"
-            label="Email"
-            maxLength={254}
-            name="email"
-            onBeforeInput={blockEmailWhitespaceInput}
-            onChange={(event) => onCredentialChange('email', sanitizeEmail(event.target.value))}
-            onKeyDown={blockEmailWhitespaceKey}
-            placeholder="example@email.com"
-            required
-            type="email"
-            value={credentials.email}
-          />
-          {(credentials.email || errors.email || invalidCredentials) && <button
-            aria-label="Limpar email"
-            className={`login-email-clear${errors.email || invalidCredentials ? ' login-email-clear--invalid' : ''}`}
-            disabled={pending}
-            onClick={() => {
-              onCredentialChange('email', '')
-              const input = formRef.current?.elements.namedItem('email')
-              if (input instanceof HTMLInputElement) input.focus()
-            }}
-            type="button"
-          >
-            <span aria-hidden="true" className="login-email-error-icon" style={{ maskImage: `url("${iconAsset('close.svg')}")` }} />
-          </button>}
-          {errors.email && <p className="login-field-error" id="email-error" role="alert">{errors.email}</p>}
-        </div>
-
+        <EmailField id="email" label="Email" placeholder="example@email.com" value={credentials.email}
+          onChange={value => onCredentialChange('email', value)} error={errors.email} invalid={invalidCredentials}
+          describedBy={invalidCredentials ? 'password-error' : undefined} disabled={pending} required />
         <PasswordField
           autoComplete="current-password"
           disabled={pending}

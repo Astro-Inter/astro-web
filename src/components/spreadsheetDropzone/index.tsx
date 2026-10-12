@@ -18,6 +18,7 @@ function SpreadsheetDropzone({ id, file, onFileSelect, className = '', disabled 
 
   return (
     <>
+      <label className="sr-only" htmlFor={id}>Selecionar planilha Excel</label>
       <input
         accept=".xlsx,.xls,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         aria-label="Selecionar planilha Excel"

@@ -211,8 +211,10 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, validate
 
   return (
     <div className="create-forms-date-picker" data-placement={placement} ref={containerRef}>
+      <label className="sr-only" htmlFor={id}>{label}</label>
       <div className="create-forms-date-control">
         <input
+          aria-label={label}
           aria-describedby={showError ? `${id}-error` : undefined}
           aria-invalid={showError}
           aria-controls={calendarId}

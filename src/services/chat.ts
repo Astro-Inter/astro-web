@@ -1,4 +1,5 @@
 import { firebaseAuth } from './firebase'
+import { ChatValidationError, validateChatMessage, validateChatSessionId } from '../utils/chatValidation'
 import type {
   ChatApiResponse,
   ChatSessionEndResponse,
@@ -25,7 +26,9 @@ async function requestChatApi<T>(path: string, init?: RequestInit): Promise<T> {
   if (!apiBaseUrl) throw new ChatApiError('A URL da API de IA não está configurada.')
 
   try {
+    init?.signal?.throwIfAborted()
     const token = await getFirebaseIdToken()
+    init?.signal?.throwIfAborted()
     const response = await fetch(`${apiBaseUrl}${path}`, {
       ...init,
       headers: {
@@ -45,56 +48,74 @@ async function requestChatApi<T>(path: string, init?: RequestInit): Promise<T> {
     }
     return body as T
   } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error
+    if (error instanceof ChatValidationError) throw new ChatApiError(error.message, { cause: error })
     if (error instanceof ChatApiError) throw error
     throw new ChatApiError('Não foi possível conectar à IA. Verifique sua conexão e tente novamente.', { cause: error })
   }
 }
 
-export async function sendChatMessage(message: string, sessionId: string | null): Promise<ChatApiResponse> {
+export async function sendChatMessage(message: string, sessionId: string | null, signal?: AbortSignal): Promise<ChatApiResponse> {
   try {
+    message = validateChatMessage(message)
+    if (sessionId) validateChatSessionId(sessionId)
     return await requestChatApi<ChatApiResponse>('/chat/messages?markdown=false', {
       method: 'POST',
+      signal,
       body: JSON.stringify({ message, ...(sessionId ? { session_id: sessionId } : {}) }),
     })
   } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error
+    if (error instanceof ChatValidationError) throw new ChatApiError(error.message, { cause: error })
     if (error instanceof ChatApiError) throw error
     throw new ChatApiError('Não foi possível enviar sua mensagem.', { cause: error })
   }
 }
 
-export async function listChatSessions(cursor?: string | null): Promise<ChatSessionListResponse> {
+export async function listChatSessions(cursor?: string | null, signal?: AbortSignal): Promise<ChatSessionListResponse> {
   try {
     const query = new URLSearchParams({ limit: '20' })
     if (cursor) query.set('cursor', cursor)
-    return await requestChatApi<ChatSessionListResponse>(`/sessions?${query.toString()}`)
+    return await requestChatApi<ChatSessionListResponse>(`/sessions?${query.toString()}`, { signal })
   } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error
+    if (error instanceof ChatValidationError) throw new ChatApiError(error.message, { cause: error })
     if (error instanceof ChatApiError) throw error
     throw new ChatApiError('Não foi possível carregar suas conversas.', { cause: error })
   }
 }
 
-export async function getChatSessionMessages(sessionId: string): Promise<ChatSessionMessagesResponse> {
+export async function getChatSessionMessages(sessionId: string, signal?: AbortSignal): Promise<ChatSessionMessagesResponse> {
   try {
-    return await requestChatApi<ChatSessionMessagesResponse>(`/sessions/${encodeURIComponent(sessionId)}/messages`)
+    validateChatSessionId(sessionId)
+    return await requestChatApi<ChatSessionMessagesResponse>(`/sessions/${encodeURIComponent(sessionId)}/messages`, { signal })
   } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error
+    if (error instanceof ChatValidationError) throw new ChatApiError(error.message, { cause: error })
     if (error instanceof ChatApiError) throw error
     throw new ChatApiError('Não foi possível abrir esta conversa.', { cause: error })
   }
 }
 
-export async function startChatSession(sessionId: string): Promise<void> {
+export async function startChatSession(sessionId: string, signal?: AbortSignal): Promise<void> {
   try {
-    await requestChatApi<unknown>(`/sessions/${encodeURIComponent(sessionId)}/iniciar`, { method: 'POST' })
+    validateChatSessionId(sessionId)
+    await requestChatApi<unknown>(`/sessions/${encodeURIComponent(sessionId)}/iniciar`, { method: 'POST', signal })
   } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error
+    if (error instanceof ChatValidationError) throw new ChatApiError(error.message, { cause: error })
     if (error instanceof ChatApiError) throw error
     throw new ChatApiError('Não foi possível retomar esta conversa.', { cause: error })
   }
 }
 
-export async function endChatSession(sessionId: string): Promise<ChatSessionEndResponse> {
+export async function endChatSession(sessionId: string, signal?: AbortSignal): Promise<ChatSessionEndResponse> {
   try {
-    return await requestChatApi<ChatSessionEndResponse>(`/sessions/${encodeURIComponent(sessionId)}/encerrar`, { method: 'POST' })
+    validateChatSessionId(sessionId)
+    return await requestChatApi<ChatSessionEndResponse>(`/sessions/${encodeURIComponent(sessionId)}/encerrar`, { method: 'POST', signal })
   } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error
+    if (error instanceof ChatValidationError) throw new ChatApiError(error.message, { cause: error })
     if (error instanceof ChatApiError) throw error
     throw new ChatApiError('Não foi possível encerrar esta conversa.', { cause: error })
   }
