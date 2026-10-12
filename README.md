@@ -44,6 +44,8 @@ src/ contém apenas .ts e .tsx. A configuração do Firebase fica em src/service
 
 ## Firebase
 
+As ações que usam o modal de senha atual confirmam a identidade com reautenticação do Firebase. A arquitetura, os pontos integrados, exemplos de reutilização e o roteiro de teste estão em [Confirmação de identidade — SCRUM-516](docs/confirmacao-de-identidade.md).
+
 O SDK modular é inicializado na entrada da aplicação usando as variáveis do `.env`. O módulo `src/services/firebase.ts` exporta `firebaseApp` e `firebaseAuth`, reutiliza a instância padrão quando já existe e informa os nomes das variáveis ausentes quando a configuração está incompleta. A configuração segue a [documentação oficial do Firebase](https://firebase.google.com/docs/web/setup).
 
 | Variável | Campo da configuração Firebase |

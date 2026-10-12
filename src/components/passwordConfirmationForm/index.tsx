@@ -1,27 +1,29 @@
-import { useState } from 'react'
+import { useId } from 'react'
+import type { PasswordConfirmationController } from '../../types/identityConfirmation'
 import PasswordField from '../passwordField'
 import PurpleButton from '../purpleButton'
 
 interface PasswordConfirmationFormProps {
+  confirmation: PasswordConfirmationController
   confirmLabel?: string
   danger?: boolean
   onCancel: () => void
-  onContinue: () => void
+  onContinue: () => Promise<void>
 }
 
-function PasswordConfirmationForm({ confirmLabel = 'Continuar', danger = false, onCancel, onContinue }: PasswordConfirmationFormProps) {
-  const [form, setForm] = useState({ password: '', visible: false })
+function PasswordConfirmationForm({ confirmation, confirmLabel = 'Continuar', danger = false, onCancel, onContinue }: PasswordConfirmationFormProps) {
+  const passwordId = useId()
   return (
-    <form noValidate onSubmit={event => {
+    <form aria-busy={confirmation.status === 'loading'} noValidate onSubmit={event => {
       event.preventDefault()
-      // Etapa visual mockada: não verifica nem armazena credenciais.
-      setForm({ password: '', visible: false })
-      onContinue()
+      if (!confirmation.blocked) void onContinue()
     }}>
-      <PasswordField autoComplete="off" id="settings-current-password" label="Senha" onChange={password => setForm(current => ({ ...current, password }))} onToggleVisibility={() => setForm(current => ({ ...current, visible: !current.visible }))} placeholder="Insira a senha" value={form.password} visible={form.visible} />
+      <PasswordField autoComplete="off" disabled={confirmation.blocked} error={confirmation.error} id={passwordId} label="Senha" onChange={confirmation.updatePassword} onToggleVisibility={confirmation.toggleVisibility} placeholder="Insira a senha" required value={confirmation.password} visible={confirmation.visible} />
+      {confirmation.status === 'loading' && <p className="password-confirmation-status" role="status">Confirmando sua identidade…</p>}
+      {confirmation.status === 'success' && <p className="password-confirmation-status" role="status">Identidade confirmada.</p>}
       <div className="astro-modal-actions">
-        <button className="astro-modal-cancel" onClick={onCancel} type="button">Cancelar</button>
-        <PurpleButton type="submit" variant={danger ? 'danger' : 'solid'}>{confirmLabel}</PurpleButton>
+        <button className="astro-modal-cancel" disabled={confirmation.status === 'success'} onClick={onCancel} type="button">Cancelar</button>
+        <PurpleButton disabled={confirmation.blocked} type="submit" variant={danger ? 'danger' : 'solid'}>{confirmation.status === 'loading' ? 'Confirmando…' : confirmLabel}</PurpleButton>
       </div>
     </form>
   )

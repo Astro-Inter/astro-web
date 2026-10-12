@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { usePopupStepTransition } from '../../hooks/usePopupStepTransition'
+import { usePasswordConfirmation } from '../../hooks/usePasswordConfirmation'
 import type { EventCollaborator } from '../../types/eventCreation'
 import AccountManagerSelectionForm from '../accountManagerSelectionForm'
 import AppModal from '../appModal'
@@ -20,6 +21,8 @@ function ReplaceAccountFlowModal({ collaborators, onCancel, onReplaced }: Replac
   const [replacementId, setReplacementId] = useState('')
   const replacement = collaborators.find(person => person.id === replacementId)
   const replacedRef = useRef(false)
+  const actionRef = useRef(onReplaced)
+  const confirmation = usePasswordConfirmation()
   const animatePopupChange = usePopupStepTransition()
   const stepClasses: Record<ReplacementStep, string> = {
     selection: 'account-manager-selection-modal',
@@ -40,7 +43,7 @@ function ReplaceAccountFlowModal({ collaborators, onCancel, onReplaced }: Replac
     : <><span className="astro-confirmation-title-icon"><span className="position-deactivation-icon"><AstroIcon name="warning" /></span></span><span className="astro-confirmation-title-text">Tem certeza que deseja substituir o gestor atual do workspace por outro gestor?</span></>
 
   return (
-    <AppModal className={`account-replace-flow-modal ${stepClasses[step]}`} onClose={() => replacedRef.current ? onReplaced() : onCancel()} preservePageScroll title={title}>
+    <AppModal className={`account-replace-flow-modal ${stepClasses[step]}`} dismissible={confirmation.status !== 'success'} onDismissRequest={() => { if (!replacedRef.current) confirmation.cancel() }} onClose={() => confirmation.consumeConfirmation() ? actionRef.current() : onCancel()} preservePageScroll title={title}>
       {dismiss => <>
         {step === 'selection' && <AccountManagerSelectionForm collaborators={collaborators} onCancel={dismiss} onChange={setReplacementId} onContinue={() => changeStep('confirmation')} value={replacementId} />}
         {step === 'confirmation' && replacement && <>
@@ -50,7 +53,9 @@ function ReplaceAccountFlowModal({ collaborators, onCancel, onReplaced }: Replac
             <PurpleButton onClick={() => changeStep('password')} variant="danger">Alterar gestor</PurpleButton>
           </div>
         </>}
-        {step === 'password' && <PasswordConfirmationForm confirmLabel="Alterar gestor" danger onCancel={dismiss} onContinue={() => { replacedRef.current = true; dismiss() }} />}
+        {step === 'password' && <PasswordConfirmationForm confirmation={confirmation} confirmLabel="Alterar gestor" danger onCancel={dismiss} onContinue={async () => {
+          if (await confirmation.submit()) { replacedRef.current = true; dismiss() }
+        }} />}
       </>}
     </AppModal>
   )
