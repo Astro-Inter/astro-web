@@ -13,7 +13,7 @@ interface ConfirmationModalProps {
   icon?: ReactNode
   onCancel: () => void
   onCancelRequest?: () => void
-  onConfirm: () => string | null
+  onConfirm: () => string | null | Promise<string | null>
   onConfirmed: () => void
   title: string
   tone?: 'default' | 'danger'
@@ -23,13 +23,15 @@ function ConfirmationModal({ cancelLabel = 'Cancelar', className = '', backdrop 
   const confirmedRef = useRef(false)
   const confirmTimerRef = useRef<number | null>(null)
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const submittingRef = useRef(false)
 
   useEffect(() => () => {
     if (confirmTimerRef.current !== null) window.clearTimeout(confirmTimerRef.current)
   }, [])
 
   return (
-    <AppModal backdrop={backdrop} preservePageScroll={preservePageScroll} className={`astro-confirmation-modal${icon ? ' astro-confirmation-modal--with-icon' : ''}${className ? ` ${className}` : ''}`} onClose={() => {
+    <AppModal dismissible={!submitting} backdrop={backdrop} preservePageScroll={preservePageScroll} className={`astro-confirmation-modal${icon ? ' astro-confirmation-modal--with-icon' : ''}${className ? ` ${className}` : ''}`} onClose={() => {
       if (confirmedRef.current) onConfirmed()
       else onCancel()
     }} onDismissRequest={() => {
@@ -37,11 +39,20 @@ function ConfirmationModal({ cancelLabel = 'Cancelar', className = '', backdrop 
     }} title={icon ? <><span className="astro-confirmation-title-icon">{icon}</span><span className="astro-confirmation-title-text">{title}</span></> : title}>
       {(dismiss) => <>
         {description && <p className="astro-confirmation-description">{description}</p>}
+        {submitting && <p role="status">Salvando alterações...</p>}
         {error && <p className="astro-confirmation-error" role="alert">{error}</p>}
         <div className="astro-modal-actions">
-          <button className="astro-modal-cancel" onClick={dismiss} type="button">{cancelLabel}</button>
-          <PurpleButton variant={tone === 'danger' ? 'danger' : 'solid'} onClick={() => {
-            const nextError = onConfirm()
+          <button className="astro-modal-cancel" disabled={submitting} onClick={dismiss} type="button">{cancelLabel}</button>
+          <PurpleButton variant={tone === 'danger' ? 'danger' : 'solid'} disabled={submitting} onClick={async () => {
+            if (submittingRef.current || confirmedRef.current) return
+            submittingRef.current = true
+            setSubmitting(true)
+            setError('')
+            let nextError: string | null
+            try { nextError = await onConfirm() }
+            catch (error: unknown) { nextError = error instanceof Error ? error.message : 'Não foi possível salvar as alterações.' }
+            submittingRef.current = false
+            setSubmitting(false)
             if (nextError) {
               setError(nextError)
               return

@@ -116,3 +116,6 @@
   .astro-route-transition .position-content { animation: none; }
   .position-status--saved { transition: none; animation: none; }
 }
+
+.position-dialog-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
+.position-api-feedback { color: var(--text-primary, #fff); margin: 1rem 0; }

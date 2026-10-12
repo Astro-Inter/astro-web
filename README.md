@@ -66,7 +66,7 @@ CI e deploy validam e injetam ambas as URLs no build. Alterar as variáveis exig
 
 No desenvolvimento (`npm run dev`), as chamadas da API principal usam `/api` na mesma origem do frontend. O proxy de `vite.config.ts` remove esse prefixo, encaminha para `VITE_API_URL` e remove o cabeçalho Origin local. Isso permite testar o cadastro em localhost enquanto a API não permite o preflight CORS dessa origem. Reinicie o Vite após mudar as URLs ou a configuração do proxy.
 
-Em produção, as chamadas usam diretamente `VITE_API_URL`. O backend precisa permitir a origem publicada do frontend, os métodos POST/OPTIONS e os cabeçalhos usados pelas chamadas. O proxy do Vite existe somente no servidor de desenvolvimento; GitHub Pages não oferece esse proxy. O Swagger está em [API principal](https://astro-api-h2hx.onrender.com/swagger-ui/index.html) e sua especificação em [OpenAPI](https://astro-api-h2hx.onrender.com/v3/api-docs).
+Em produção, as chamadas usam diretamente `VITE_API_URL`. O backend precisa permitir a origem publicada do frontend, os métodos GET/POST/PUT/PATCH/OPTIONS e os cabeçalhos Authorization e Content-Type usados pelas chamadas. O proxy do Vite existe somente no servidor de desenvolvimento; GitHub Pages não oferece esse proxy. O Swagger está em [API principal](https://astro-api-h2hx.onrender.com/swagger-ui/index.html) e sua especificação em [OpenAPI](https://astro-api-h2hx.onrender.com/v3/api-docs).
 
 O login usa `signInWithEmailAndPassword` em `src/services/authentication.ts`, conforme a [documentação do Firebase Authentication](https://firebase.google.com/docs/auth/web/password-auth). O hook `src/hooks/useLogin.ts` valida os campos antes do envio, controla carregamento/sucesso/erro e impede envios duplicados. A senha é enviada sem remoção de espaços ou alteração de caracteres. Após autenticar, a aplicação abre `/mainHomeScreen`; a sessão é gerenciada pelo SDK Firebase e a senha é limpa do estado do formulário.
 
@@ -96,7 +96,7 @@ Somente `201`, `success: true` e um `workspaceId` válido abrem a conclusão. Er
 
 O endpoint não retorna token; a conclusão direciona ao login Firebase existente. O sucesso confirma o cadastro, sem garantir a entrega de e-mails aos colaboradores. A validação do código é feita pela API, e a interface avança somente após a resposta de sucesso.
 
-- /mainPositionScreen: cargos, filtros, criação/edição, status e associação de NRs. Os dados são locais e retornam aos mocks após reload. O chat tem respostas locais.
+- /mainPositionScreen: cargos do workspace carregados pela API, com busca e filtro local, criação (`POST /roles`), edição (`PUT /roles/{roleId}`) e alternância de status (`PATCH /roles/{roleId}/status`). A quantidade de colaboradores vem do backend. Gerenciar NRs consulta os vínculos (`GET /roles/{roleId}/nrs`) e as opções (`GET /roles/{roleId}/nrs/options`); salvar envia todas as opções com `nr` e `ativo` para `POST /roles/{roleId}/nrs`, incluindo desvinculações. As chamadas usam token Firebase Bearer e `firebase_uid` do gestor autenticado. Os diálogos aguardam sucesso antes de fechar, preservam os dados em caso de erro e bloqueiam envios duplicados. A listagem e as NRs permitem tentar novamente após falha. As recomendações de IA mockadas foram removidas dessa tela porque esses endpoints não fornecem recomendações.
 - /createForms: perguntas de texto, opções, foto e data; cópia, exclusão e reordenação por arraste ou Alt + setas. Salva um exemplo em astro-created-form no navegador.
 - /mainFormScreen: listagem mockada de formulários com cartões, busca, filtro de status, paginação, menu de edição e confirmação de exclusão. A exclusão altera somente a instância atual da listagem.
 - /editForms: edição de um formulário mockado com quatro tipos de pergunta e confirmações de saída/salvamento. Ao abrir pela listagem, usa o nome e a descrição do cartão selecionado. As alterações ficam na instância atual da página.
@@ -121,7 +121,7 @@ AppModal/ConfirmationModal usam opções explícitas backdrop e preservePageScro
 
 ## Persistência
 
-createForms grava astro-created-form e astro-create-forms-draft com _versao: 1 e trata falhas de escrita. Ainda não existe coleção de formulários nem carga/migração desses registros. A recuperação de rascunho será definida posteriormente. EditForms, cargos e NRs usam estado local. O cadastro inicial do workspace é persistido na API na etapa final; o rascunho é descartado após sucesso.
+createForms grava astro-created-form e astro-create-forms-draft com _versao: 1 e trata falhas de escrita. Ainda não existe coleção de formulários nem carga/migração desses registros. A recuperação de rascunho será definida posteriormente. EditForms usa estado local. Cargos e seus vínculos de NRs são persistidos na API; NRs das outras telas ainda usam dados demonstrativos. O cadastro inicial do workspace é persistido na API na etapa final; o rascunho é descartado após sucesso.
 
 ## Critérios DAD (14/05/2026)
 
