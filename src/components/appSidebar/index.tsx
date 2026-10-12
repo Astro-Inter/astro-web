@@ -110,12 +110,12 @@ function AppSidebar({ items = navigationItems }: AppSidebarProps) {
                     to={item.path}
                     state={item.path === '/mainWorkspaceSettingsScreen' ? { from: location.pathname } : undefined}
                   >
-                    <span className="app-navigation-icon"><AstroIcon name={item.icon} strokeScale={item.strokeScale} /></span>
+                    <span className="app-navigation-icon"><AstroIcon name={item.icon} strokeScale={item.strokeScale} variant="sidebar" /></span>
                     <span className="app-navigation-label">{item.label}</span>
                   </NavLink>
                 ) : (
                   <span className="app-navigation-link app-navigation-link--unavailable" title="Em breve">
-                    <span className="app-navigation-icon"><AstroIcon name={item.icon} strokeScale={item.strokeScale} /></span>
+                    <span className="app-navigation-icon"><AstroIcon name={item.icon} strokeScale={item.strokeScale} variant="sidebar" /></span>
                     <span className="app-navigation-label">{item.label}</span>
                   </span>
                 )}

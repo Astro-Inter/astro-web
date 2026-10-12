@@ -20,7 +20,7 @@ const columns: readonly DataTableColumn<EventCollaborator>[] = [
 
 function EventGroupCollaboratorsModal({ groupName, participantIds, onClose }: EventGroupCollaboratorsModalProps) {
   const collaborators = mockEventCollaborators.filter(person => participantIds.includes(person.id))
-  return <AppModal className="event-group-collaborators-modal" preservePageScroll title="Colaboradores do grupo" onClose={onClose}>
+  return <AppModal backdrop="transparent" className="event-group-collaborators-modal" preservePageScroll title="Colaboradores do grupo" onClose={onClose}>
     {dismiss => <>
       <p className="astro-modal-description"><TruncatedText>{`${groupName} · ${collaborators.length} colaboradores`}</TruncatedText></p>
       <DataTable ariaLabel={`Colaboradores de ${groupName}`} columns={columns} rows={collaborators} getRowKey={person => person.id} emptyMessage="Nenhum colaborador neste grupo." />

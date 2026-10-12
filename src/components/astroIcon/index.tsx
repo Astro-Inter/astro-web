@@ -102,10 +102,15 @@ interface AstroIconProps {
   className?: string
   name: AstroIconName
   strokeScale?: 0.9 | 1
+  variant?: 'sidebar'
 }
 
-function AstroIcon({ className, name, strokeScale }: AstroIconProps) {
+// Compensações ópticas específicas da navegação; outros contextos usam os originais.
+const sidebarIcons = new Set<AstroIconName>(['home', 'managers', 'collaborators', 'compliance', 'building', 'position', 'document', 'event-calendar', 'settings'])
+
+function AstroIcon({ className, name, strokeScale, variant }: AstroIconProps) {
   const icon = iconFiles[name]
+  const sidebarVariant = variant === 'sidebar' && sidebarIcons.has(name)
   const iconClassName = `astro-icon astro-icon--${name}${className ? ` ${className}` : ''}`
 
   if (name === 'plus-square') {
@@ -118,7 +123,7 @@ function AstroIcon({ className, name, strokeScale }: AstroIconProps) {
       aria-hidden="true"
       className={iconClassName}
       height={icon.height}
-      src={iconAsset(icon.file, strokeScale)}
+      src={iconAsset(sidebarVariant ? `sidebar/${icon.file}` : icon.file, sidebarVariant ? 1 : strokeScale)}
       width={icon.width}
     />
   )

@@ -2,6 +2,7 @@ import { defaultNrsRows } from '../../data/regulatoryStandards'
 import type { EventDraft } from '../../types/eventCreation'
 import PurpleButton from '../purpleButton'
 import ToolbarSelect from '../toolbarSelect'
+import { formatRegulatoryStandardCode, normalizeRegulatoryStandardCode } from '../../utils/regulatoryStandardCode'
 
 interface EventInformationModalProps {
   draft: EventDraft
@@ -14,10 +15,14 @@ interface EventInformationModalProps {
 
 const nrOptions = [
   { value: '', label: 'Selecione a NR do evento', tone: 'muted' as const },
-  ...defaultNrsRows.map(({ code }) => ({ value: code, label: code })),
+  ...defaultNrsRows.map(({ code }) => ({ value: normalizeRegulatoryStandardCode(code), label: formatRegulatoryStandardCode(code) })),
 ]
 
 function EventInformationModal({ draft, onCancel, onChange, onContinue, editing = false, detailsLocked = false }: EventInformationModalProps) {
+  const nr = normalizeRegulatoryStandardCode(draft.nr)
+  const options = nr && !nrOptions.some(option => option.value === nr)
+    ? [...nrOptions, { value: nr, label: formatRegulatoryStandardCode(nr) }]
+    : nrOptions
   return <form className="event-create-step event-create-details" noValidate onSubmit={event => { event.preventDefault(); onContinue() }}>
     {editing && <p className="event-create-description">{detailsLocked ? 'O evento já começou. Título, descrição e link externo não podem ser alterados.' : 'Edite o título, a descrição e o link externo. A NR é definida na criação do evento.'}</p>}
     <div className="event-create-fields">
@@ -31,7 +36,7 @@ function EventInformationModal({ draft, onCancel, onChange, onContinue, editing 
       </label>
       <div className="event-create-field">
         <label htmlFor="event-create-nr">NR</label>
-        <ToolbarSelect disabled={editing} className="event-create-select" id="event-create-nr" label="NR do evento" maxVisibleRows={2.5} onValueChange={nr => onChange({ nr })} options={nrOptions} value={draft.nr} />
+        <ToolbarSelect escapeOverflow disabled={editing} className="event-create-select" id="event-create-nr" label="NR do evento" maxVisibleRows={2.5} onValueChange={nr => onChange({ nr })} options={options} value={nr} />
       </div>
       <label className="event-create-field" htmlFor="event-create-link">
         <span>Link externo (opcional)</span>

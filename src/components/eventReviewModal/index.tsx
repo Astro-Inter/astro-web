@@ -2,6 +2,8 @@ import type { EventDraft, EventGroup, EventGroupSchedule, EventSettings } from '
 import PurpleButton from '../purpleButton'
 import EventGroupsSummary from '../eventGroupsSummary'
 import { completionOptions, evidenceOptions } from '../../data/eventSettings'
+import TruncatedText from '../truncatedText'
+import { formatRegulatoryStandardCode } from '../../utils/regulatoryStandardCode'
 
 interface EventReviewModalProps {
   draft: EventDraft
@@ -21,19 +23,19 @@ function EventReviewModal({ draft, groups, assignments, schedules, settings, onB
   return <>
     <p className="event-create-description">{editing ? 'Confira todas as informações antes de salvar as alterações.' : 'Confira todas as informações antes de criar o evento.'}</p>
     <div className="event-create-review-grid">
-      <section className="event-create-summary-card"><h3>Informações</h3><dl>
-        <div><dt>Título</dt><dd>{draft.title || 'Não informado'}</dd></div>
-        <div><dt>Descrição</dt><dd>{draft.description || 'Não informada'}</dd></div>
-        <div><dt>Tipo do evento</dt><dd>{draft.type || 'Não informado'}</dd></div>
-        <div><dt>NR</dt><dd>{draft.nr || 'Não informada'}</dd></div>
-        <div><dt>Link externo</dt><dd>{link ? <a href={link} rel="noopener noreferrer" target="_blank">{draft.externalLink}</a> : draft.externalLink || 'Não informado'}</dd></div>
+      <section className="event-create-summary-card"><h3>Informações</h3><dl aria-label="Dados do evento" tabIndex={0}>
+        <div><dt>Título</dt><dd><TruncatedText>{draft.title || 'Não informado'}</TruncatedText></dd></div>
+        <div><dt>Descrição</dt><dd><TruncatedText>{draft.description || 'Não informada'}</TruncatedText></dd></div>
+        <div><dt>Tipo do evento</dt><dd><TruncatedText>{draft.type || 'Não informado'}</TruncatedText></dd></div>
+        <div><dt>NR</dt><dd><TruncatedText>{formatRegulatoryStandardCode(draft.nr) || 'Não informada'}</TruncatedText></dd></div>
+        <div><dt>Link externo</dt><dd>{link ? <a href={link} rel="noopener noreferrer" target="_blank"><TruncatedText>{draft.externalLink}</TruncatedText></a> : <TruncatedText>{draft.externalLink || 'Não informado'}</TruncatedText>}</dd></div>
       </dl></section>
       <section className="event-create-summary-card event-create-summary-card--groups"><h3>Grupos</h3><EventGroupsSummary assignments={assignments} groups={groups} schedules={schedules} onViewCollaborators={onViewCollaborators} /></section>
-      <section className="event-create-summary-card"><h3>Configurações</h3><dl>
-        <div><dt>Conclusão</dt><dd>{completionOptions.find(option => option.value === settings.completion && option.value)?.label || 'Não definida'}</dd></div>
-        <div><dt>Evidência</dt><dd>{evidenceOptions.find(option => option.value === settings.evidenceRequired && option.value)?.label || 'Não definida'}</dd></div>
-        <div><dt>Total de participantes</dt><dd>{Object.values(assignments).filter(id => groups.some(group => group.id === id)).length} colaboradores</dd></div>
-        <div><dt>Total de grupos</dt><dd>{groups.length} {groups.length === 1 ? 'grupo' : 'grupos'}</dd></div>
+      <section className="event-create-summary-card"><h3>Configurações</h3><dl aria-label="Configurações do evento" tabIndex={0}>
+        <div><dt>Forma de conclusão</dt><dd><TruncatedText>{completionOptions.find(option => option.value === settings.completion && option.value)?.label || 'Não definida'}</TruncatedText></dd></div>
+        <div><dt>Evidência obrigatória</dt><dd><TruncatedText>{evidenceOptions.find(option => option.value === settings.evidenceRequired && option.value)?.label || 'Não definida'}</TruncatedText></dd></div>
+        <div><dt>Total de participantes</dt><dd><TruncatedText>{`${Object.values(assignments).filter(id => groups.some(group => group.id === id)).length} colaboradores`}</TruncatedText></dd></div>
+        <div><dt>Total de turmas</dt><dd><TruncatedText>{`${groups.length} ${groups.length === 1 ? 'turma' : 'turmas'}`}</TruncatedText></dd></div>
       </dl></section>
     </div>
     {error && <p className="event-create-error" role="alert">{error}</p>}

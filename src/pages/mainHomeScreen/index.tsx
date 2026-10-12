@@ -36,7 +36,7 @@ function MainHomeScreenPage() {
             <div className="home-quick-actions">
               {quickActions.map((action) => {
                 const path = action.path
-                return <QuickActionCard action={action} key={action.id} onSelect={path ? () => navigate(path) : undefined} />
+                return <QuickActionCard action={action} key={action.id} onSelect={path ? () => navigate(path, { state: { openCreate: true } }) : undefined} />
               })}
             </div>
           </section>

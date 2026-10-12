@@ -14,7 +14,7 @@
   --compliance-expiring: #c2a44a;
   --compliance-expired: var(--astro-primary-error);
   /* Espaçamentos seguem os cards das outras telas principais. */
-  --home-gap: calc(2rem * var(--astro-scale));
+  --home-gap: var(--astro-page-section-gap);
   --home-section-gap: calc(1.125rem * var(--astro-scale));
   --home-card-padding-block: calc(2rem * var(--astro-scale));
   --home-donut-size: calc(11rem * var(--astro-scale));

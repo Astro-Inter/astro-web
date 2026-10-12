@@ -2,6 +2,10 @@
   --astro-modal-content-gap: 1.35rem;
   --astro-modal-actions-gap: 1.45rem;
   --astro-modal-inline-gap: .9rem;
+  --astro-modal-heading-gap: .35rem;
+  --astro-modal-padding-block: 2.75rem;
+  --astro-modal-padding-inline: 3.75rem;
+  --astro-modal-two-column-width: 58rem;
   /* A caixa do título tem 27,33px após line-height 1,2 e zoom do popup. */
   --astro-heading-font-size-base: calc(27.33px / 1.2 / var(--astro-popup-zoom));
   /* 203,85px visíveis com o zoom de 0,81 e fonte raiz de 16px. */
@@ -10,7 +14,6 @@
 
 .astro-modal {
   --astro-modal-default-width: 44.25rem;
-  --astro-modal-padding-inline: 3.75rem;
   --astro-modal-field-width: calc(var(--astro-modal-default-width) - 2 * var(--astro-modal-padding-inline));
   position: fixed;
   inset: 0;
@@ -19,7 +22,7 @@
   max-height: calc((100dvh - 2rem) / var(--astro-popup-zoom));
   margin: auto;
   overflow: auto;
-  padding: 2.75rem var(--astro-modal-padding-inline);
+  padding: var(--astro-modal-padding-block) var(--astro-modal-padding-inline);
   border: 0;
   border-radius: 0.625rem;
   color: var(--astro-text);
@@ -36,7 +39,7 @@
 
 .astro-modal::after { position: absolute; z-index: 5; inset: 0; border-radius: inherit; background: rgb(0 0 0 / 22%); content: ''; pointer-events: none; opacity: 0; transition: opacity var(--astro-popup-duration) ease; }
 .astro-modal--dimmed::after { opacity: 1; }
-.astro-modal::backdrop { background: rgb(0 0 0 / 25%); animation: astro-popup-in var(--astro-popup-duration) ease both; }
+.astro-modal::backdrop { background: var(--astro-backdrop-background); animation: astro-popup-in var(--astro-popup-duration) ease both; }
 :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open] { pointer-events: none; animation: astro-dialog-out var(--astro-popup-duration) cubic-bezier(.4,0,1,1) both; }
 :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal).astro-dialog--closing[open]::backdrop { animation: astro-popup-out var(--astro-popup-duration) ease both; }
 .astro-modal-title { margin: 0; font-size: var(--astro-heading-font-size); font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; }
@@ -46,7 +49,7 @@
 .astro-modal .position-dialog-label { color: #d3cfdd; font-size: var(--astro-label-font-size); font-weight: 400; line-height: 1.2; }
 .astro-modal :is(.position-dialog-field, .event-create-field) > input { font-family: inherit; font-size: var(--astro-control-font-size); font-weight: 400; }
 :is(.astro-modal-description, .nrs-dialog-subtitle, .event-create-description) { color: #c4bdd4; font-size: var(--astro-subtitle-font-size); font-weight: 400; line-height: 1.3; }
-.astro-modal-description { margin: .35rem 0 var(--astro-modal-content-gap); }
+.astro-modal-description { margin: var(--astro-modal-heading-gap) 0 var(--astro-modal-content-gap); }
 .astro-modal-actions { display: flex; justify-content: center; gap: var(--astro-modal-inline-gap); margin-top: var(--astro-modal-actions-gap); }
 .astro-modal-actions > button { flex: 0 1 var(--astro-compact-action-width); width: min(100%, var(--astro-compact-action-width)); min-width: 0; max-width: var(--astro-compact-action-width); min-height: var(--astro-action-height); margin: 0; }
 .charge-explanation-confirm,
@@ -67,8 +70,6 @@
 .astro-confirmation-title-text { display: block; min-width: 0; }
 .position-deactivation-icon { display: grid; place-items: center; width: 4.25rem; height: 4.25rem; flex: none; padding: 0.9rem; border-radius: 50%; background: #ffc8c8; }
 .position-deactivation-icon img { width: 2.45rem; height: 2.45rem; }
-.position-deactivation-modal .astro-action--danger { background: #eb6264; }
-.position-deactivation-modal .astro-action--danger:hover { background: #d95759; }
 
 
 
@@ -86,7 +87,10 @@
 }
 
 @media (max-width: 480px) {
-  .astro-modal { --astro-modal-padding-inline: 1.5rem; padding: 1.5rem; }
+  :is(.astro-modal, .charge-explanation-modal, .spreadsheet-explanation-modal) {
+    --astro-modal-padding-block: 1.5rem;
+    --astro-modal-padding-inline: 1.5rem;
+  }
   .astro-modal-actions { flex-direction: column-reverse; align-items: stretch; }
   .astro-modal-actions > button { flex: none; width: 100%; max-width: none; }
 }

@@ -1,3 +1,7 @@
+:root {
+  --astro-spreadsheet-reference-width: min(44vw, 40rem);
+}
+
 .attach-excel-page {
   position: relative;
   display: grid;
@@ -13,7 +17,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: min(100%, 44vw, 40rem);
+  width: min(100%, var(--astro-spreadsheet-reference-width));
   text-align: center;
   animation: rise-in 0.5s ease both;
 }
@@ -36,14 +40,15 @@
 }
 
 .attach-excel-dropzone {
+  --spreadsheet-layout-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: clamp(12.5rem, 29svh, 16.75rem);
-  padding: 1.75rem 1rem;
-  border: 2px dashed var(--astro-orb-accent);
-  border-radius: 0.65rem;
+  min-height: calc(clamp(12.5rem, 29svh, 16.75rem) * var(--spreadsheet-layout-ratio));
+  padding: calc(1.75rem * var(--spreadsheet-layout-ratio)) calc(1rem * var(--spreadsheet-layout-ratio));
+  border: calc(2px * var(--spreadsheet-layout-ratio)) dashed var(--astro-orb-accent);
+  border-radius: calc(0.65rem * var(--spreadsheet-layout-ratio));
   color: var(--astro-text);
   background: #30264b;
   text-align: center;
@@ -75,6 +80,7 @@
   overflow-wrap: anywhere;
   font-size: var(--astro-subtitle-font-size);
   font-weight: 500;
+  line-height: 1.3;
 }
 
 .attach-excel-drop-subtitle,
@@ -82,6 +88,7 @@
   color: #b0abbd;
   font-size: var(--astro-label-font-size);
   font-weight: 400;
+  line-height: 1.3;
 }
 
 .attach-excel-drop-subtitle {
@@ -107,6 +114,8 @@
   border: 0;
   color: var(--astro-link);
   background: transparent;
+  font-size: var(--astro-subtitle-font-size);
+  line-height: 1.3;
   cursor: pointer;
   text-decoration: underline;
   text-decoration-color: transparent;
@@ -131,6 +140,7 @@
 }
 
 @media (max-width: 850px) {
+  :root { --astro-spreadsheet-reference-width: 40rem; }
   .attach-excel-page {
     padding: clamp(2rem, 8svh, 6rem) 1.5rem;
   }
@@ -146,7 +156,7 @@
   }
 
   .attach-excel-dropzone {
-    min-height: 15rem;
+    min-height: calc(15rem * var(--spreadsheet-layout-ratio));
   }
 }
 
@@ -156,7 +166,7 @@
   }
 
   .attach-excel-dropzone {
-    min-height: 9rem;
-    padding-block: 0.75rem;
+    min-height: calc(9rem * var(--spreadsheet-layout-ratio));
+    padding-block: calc(0.75rem * var(--spreadsheet-layout-ratio));
   }
 }

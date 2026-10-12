@@ -164,10 +164,19 @@
 }
 
 .login-field-error {
-  margin: 0.4rem 0 0;
+  margin: 0;
   color: var(--astro-primary-error);
   font-size: var(--astro-label-font-size);
-  line-height: 1.4;
+  font-weight: 400;
+  line-height: 1.2;
+  animation: login-error-enter 180ms ease-out both;
+}
+
+.login-email-field > .login-field-error { margin-top: var(--astro-field-gap); }
+
+@keyframes login-error-enter {
+  from { opacity: 0; transform: translateY(-.2rem); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .login-email-field {
@@ -178,34 +187,60 @@
   border-color: var(--astro-primary-error);
 }
 
-.login-form input[aria-invalid="true"]:focus-visible {
-  outline: 2px solid var(--astro-focus-border);
-  outline-offset: 2px;
+.login-form .field-group input[aria-invalid="true"]:focus {
+  outline: none;
+  border-color: #cf3e3e;
+  box-shadow: none;
 }
 
-.login-email-field input[aria-invalid="true"] {
+.login-form .field-group input[aria-invalid="true"]:-webkit-autofill:focus {
+  box-shadow: 0 0 0 1000px var(--astro-field) inset;
+}
+
+.login-email-field input {
   padding-right: var(--astro-control-icon-padding-end);
 }
 
-.login-email-error-icon {
+.login-email-clear {
   position: absolute;
   top: calc(var(--astro-label-font-size) * 1.2 + var(--astro-field-gap) + var(--astro-control-height) / 2);
-  right: calc(var(--astro-control-icon-button-inset) + (var(--astro-control-icon-hit-size) - var(--astro-icon-md)) / 2);
-  width: var(--astro-icon-md);
-  height: var(--astro-icon-md);
+  right: var(--astro-control-icon-button-inset);
+  display: grid;
+  place-items: center;
+  width: var(--astro-control-icon-hit-size);
+  height: var(--astro-control-icon-hit-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--astro-control-radius);
+  color: #c8c3d2;
+  background: transparent;
+  cursor: pointer;
   transform: translateY(-50%);
-  background: var(--astro-primary-error);
+}
+.login-email-clear--invalid { color: var(--astro-primary-error); }
+.login-email-clear:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
+.login-email-error-icon {
+  width: calc(var(--astro-icon-md) * .85);
+  height: calc(var(--astro-icon-md) * .85);
+  background: currentColor;
   mask-position: center;
   mask-size: contain;
   mask-repeat: no-repeat;
-  pointer-events: none;
+  transition: filter 220ms ease;
 }
+.login-email-clear:hover:not(:disabled) .login-email-error-icon { filter: var(--astro-input-icon-hover-filter); }
 
 .login-authentication-error {
   margin: calc(-0.5 * var(--astro-field-gap)) 0 0;
   color: var(--astro-primary-error);
   font-size: var(--astro-label-font-size);
-  line-height: 1.4;
+  font-weight: 400;
+  line-height: 1.2;
+  animation: login-error-enter 180ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-field-error, .login-authentication-error { animation: none; }
 }
 
 .login-feedback {
@@ -216,6 +251,51 @@
 
 .login-form .astro-action:disabled {
   cursor: wait;
+}
+
+.login-loading-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--astro-backdrop-background);
+  color: var(--astro-text);
+  cursor: wait;
+  animation: login-loading-enter 180ms ease-out both;
+}
+@keyframes login-loading-enter { from { opacity: 0; } to { opacity: 1; } }
+.login-loading-overlay .loading-planet {
+  gap: calc(clamp(1.4rem, 2.5vw, 2rem) / 1.5);
+}
+.login-loading-spinner {
+  width: calc(4rem * var(--astro-scale));
+  height: calc(4rem * var(--astro-scale));
+  border: 3.5px solid rgb(248 247 252 / 30%);
+  border-top-color: var(--astro-text);
+  border-radius: 50%;
+  animation: login-loading-spin 800ms linear infinite;
+}
+@keyframes login-loading-spin { to { transform: rotate(360deg); } }
+.login-loading-label {
+  margin: 0;
+  color: var(--astro-text);
+  font-size: calc(var(--astro-heading-font-size) * .85);
+  font-weight: 600;
+  letter-spacing: normal;
+  line-height: 1.3;
+}
+@media (max-width: 980.99px) {
+  .login-loading-label { font-size: clamp(1.15rem, 2.5vw, 1.35rem); }
+}
+@media (max-width: 480px) {
+  .login-loading-label { font-size: 1.25rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-loading-overlay, .login-loading-spinner { animation: none; }
 }
 
 .forgot-link:hover,
@@ -250,10 +330,34 @@
     min-height: 100svh;
     padding: 4.5rem 1.5rem;
   }
+  .login-card {
+    width: min(100%, 25rem);
+    --astro-control-height: 3rem;
+    --astro-action-height: 3rem;
+    --astro-control-font-size: 1rem;
+    --astro-action-font-size: .9375rem;
+    --astro-label-font-size: .9375rem;
+    --astro-subtitle-font-size: .9375rem;
+    --astro-heading-font-size: 1.5rem;
+    --astro-control-icon-hit-size: 2.75rem;
+    --astro-field-gap: .5rem;
+  }
+  .login-card .astro-form-action { width: 100%; max-width: none; }
 }
 
 @media (max-width: 600px) {
   .astro-brand img {
     width: min(9.75rem, 42vw);
   }
+}
+
+@media (max-width: 480px) {
+  .login-card { width: 100%; max-width: 25rem; }
+  .login-panel { padding: 5rem 1.5rem 6rem; }
+  .login-card { --astro-control-icon-hit-size: 2.75rem; --astro-field-gap: .5rem; }
+  .login-form > .astro-form-action { width: 100%; max-width: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-email-error-icon { transition: none; }
 }

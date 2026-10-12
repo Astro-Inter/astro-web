@@ -57,7 +57,7 @@
 .astro-chat button:focus-visible { outline: none; filter: brightness(1.12); }
 .astro-chat .astro-chat-header-button:focus-visible { background: #9682d9; filter: none; }
 .astro-chat .astro-chat-launcher:focus-visible { outline: none; background: #6c5994; }
-.astro-chat-form input:focus-visible { outline: none; box-shadow: none; background: #5b4a82; }
+.astro-chat-form input:focus-visible { outline: 2px solid #9284af; outline-offset: 2px; background: #5b4a82; }
 
 .astro-chat-body--history { display: flex; overflow: clip; background: inherit; }
 .astro-chat-sessions {
@@ -72,7 +72,7 @@
 .astro-chat-sessions-heading { display: grid; flex: none; gap: 0.5cqw; padding: 5cqw 6cqw 6cqw; border-bottom: 1px solid #ded8ec; }
 .astro-chat-sessions-heading > p { margin: 0; color: var(--history-muted); font-size: var(--chat-body-size); line-height: 1.35; }
 .astro-chat-sessions .astro-action { min-height: var(--chat-control-height); padding: calc(0.5rem * var(--astro-popup-zoom)) var(--chat-control-padding); border-radius: var(--chat-control-radius); color: #f7f6ff; background: var(--history-action); font-size: var(--chat-action-size); font-weight: 600; line-height: 1.2; }
-.astro-chat-sessions .astro-action:hover:not(:disabled) { background: #6549a8; }
+.astro-chat-sessions .astro-action:hover:not(:disabled) { background: #49337e; }
 .astro-chat-sessions .astro-action:disabled { opacity: 0.6; cursor: wait; }
 .astro-chat-sessions .astro-action .astro-icon { width: 1.1rem; height: 1.1rem; }
 .astro-chat-sessions .astro-action .astro-icon--plus { filter: brightness(0) invert(1); }
@@ -104,7 +104,7 @@
 .astro-chat-session-feedback .astro-chat-sessions-progress { display: flex; justify-content: start; padding-top: 3cqw; }
 .astro-chat-sessions-progress .astro-chat-progress-spinner { width: 1em; height: 1em; border-width: 1.5px; }
 .astro-chat-progress { display: inline-flex; align-items: center; gap: 0.5rem; }
-.astro-chat-progress-spinner { display: inline-block; width: 1rem; height: 1rem; flex: none; border: 2px solid rgb(91 74 130 / 20%); border-top-color: #5b4a82; border-radius: 50%; animation: astro-chat-history-spin 800ms linear infinite; }
+.astro-chat-progress-spinner { display: inline-block; width: 1rem; height: 1rem; flex: none; border: var(--astro-spinner-stroke) solid rgb(91 74 130 / 20%); border-top-color: #5b4a82; border-radius: 50%; animation: astro-chat-history-spin 800ms linear infinite; }
 .astro-chat-typing { min-height: 8cqw; padding: 2cqw 3cqw; border-radius: calc(var(--astro-control-radius-base) * 0.9); color: #f7f6ff; background: #5b4a82; }
 .astro-chat-progress-dots { display: inline-flex; align-items: center; gap: 1cqw; height: 3.5cqw; }
 .astro-chat-progress-dots > span { width: 1.4cqw; height: 1.4cqw; border-radius: 50%; background: currentColor; animation: astro-chat-dot-bounce 1.2s ease-in-out infinite; }

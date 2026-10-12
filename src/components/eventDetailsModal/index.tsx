@@ -6,6 +6,7 @@ import EventGroupCollaboratorsModal from '../eventGroupCollaboratorsModal'
 import { completionOptions, evidenceOptions } from '../../data/eventSettings'
 import type { CalendarEvent } from '../../types/events'
 import { configurationForEvent } from '../../utils/eventEditing'
+import { formatRegulatoryStandardCode } from '../../utils/regulatoryStandardCode'
 
 
 interface EventDetailsModalProps {
@@ -32,7 +33,7 @@ function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
           <dl aria-label="Dados do evento" className="event-information-panel-scroll" tabIndex={0}>
               <div><dt>Título</dt><dd><TruncatedText>{draft.title || 'Não informado'}</TruncatedText></dd></div>
               <div><dt>Descrição</dt><dd className="event-information-description"><TruncatedText>{draft.description || 'Não informada'}</TruncatedText></dd></div>
-              <div><dt>NR</dt><dd><TruncatedText>{draft.nr || 'Não informada'}</TruncatedText></dd></div>
+              <div><dt>NR</dt><dd><TruncatedText>{formatRegulatoryStandardCode(draft.nr) || 'Não informada'}</TruncatedText></dd></div>
               <div><dt>Link externo</dt><dd>{link ? <a href={link} target="_blank" rel="noopener noreferrer"><TruncatedText>{draft.externalLink}</TruncatedText></a> : <TruncatedText>{draft.externalLink || 'Não informado'}</TruncatedText>}</dd></div>
             </dl>
         </section>

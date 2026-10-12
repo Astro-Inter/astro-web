@@ -49,7 +49,7 @@
 .astro-toolbar-search-clear { display: grid; flex: none; width: var(--astro-control-icon-hit-size); height: var(--astro-control-icon-hit-size); margin-inline-end: calc((var(--astro-icon-sm) - var(--astro-control-icon-hit-size)) / 2); padding: 0; place-items: center; border: 0; border-radius: var(--astro-control-radius); background: transparent; cursor: pointer; }
 .astro-toolbar-search-clear:hover { background: transparent; }
 .astro-toolbar-search-clear img { display: block; width: var(--astro-icon-sm); height: var(--astro-icon-sm); transition: filter 220ms ease; }
-.astro-toolbar-search-clear:hover img { filter: brightness(0.8); }
+.astro-toolbar-search-clear:hover:not(:disabled) img { filter: var(--astro-input-icon-hover-filter); }
 .astro-toolbar-search-clear:focus-visible { outline: none; background: var(--astro-focus-surface); }
 
 .astro-toolbar-select {
@@ -88,11 +88,12 @@
   cursor: pointer;
 }
 
-.astro-toolbar-select-toggle:hover { background: var(--astro-focus-surface); }
+.astro-toolbar-select-toggle:hover { background: transparent; }
+.astro-toolbar-select-toggle:hover:not(:disabled) .astro-icon { filter: var(--astro-input-icon-hover-filter); }
 .astro-toolbar-select-toggle .astro-icon {
   width: var(--astro-icon-sm);
   height: var(--astro-icon-sm);
-  transition: transform 160ms ease;
+  transition: transform 160ms ease, filter 220ms ease;
 }
 
 .astro-toolbar-select[data-open="true"] .astro-toolbar-select-toggle .astro-icon { transform: rotate(180deg); }

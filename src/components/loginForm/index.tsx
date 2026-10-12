@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { LoginCredentials, LoginFieldErrors, LoginStatus } from '../../types/authentication'
 import { blockEmailWhitespaceInput, blockEmailWhitespaceKey, sanitizeEmail } from '../../utils/inputFormatting'
@@ -20,19 +20,20 @@ interface LoginFormProps {
 
 function LoginForm({ credentials, errors, status, message, invalidCredentials, onCredentialChange, onSubmit }: LoginFormProps) {
   const [passwordVisible, setPasswordVisible] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
   const pending = status === 'loading' || status === 'success'
 
   return (
     <>
       <PageHeading description="Acesse sua conta para continuar." title="Acesse sua conta" titleId="login-title" />
 
-      <form aria-busy={status === 'loading'} className="login-form" noValidate onSubmit={(event) => {
+      <form ref={formRef} aria-busy={status === 'loading'} className="login-form" noValidate onSubmit={(event) => {
         event.preventDefault()
         if (!pending) void onSubmit()
       }}>
         <div className="login-email-field">
           <FormField
-            aria-describedby={errors.email ? 'email-error' : invalidCredentials ? 'login-authentication-error' : undefined}
+            aria-describedby={errors.email ? 'email-error' : invalidCredentials ? 'password-error' : undefined}
             aria-invalid={Boolean(errors.email) || invalidCredentials}
             autoComplete="email"
             disabled={pending}
@@ -48,19 +49,26 @@ function LoginForm({ credentials, errors, status, message, invalidCredentials, o
             type="email"
             value={credentials.email}
           />
-          {(errors.email || invalidCredentials) && <span
-            aria-hidden="true"
-            className="login-email-error-icon"
-            style={{ maskImage: `url("${iconAsset('close.svg')}")` }}
-          />}
+          {(credentials.email || errors.email || invalidCredentials) && <button
+            aria-label="Limpar email"
+            className={`login-email-clear${errors.email || invalidCredentials ? ' login-email-clear--invalid' : ''}`}
+            disabled={pending}
+            onClick={() => {
+              onCredentialChange('email', '')
+              const input = formRef.current?.elements.namedItem('email')
+              if (input instanceof HTMLInputElement) input.focus()
+            }}
+            type="button"
+          >
+            <span aria-hidden="true" className="login-email-error-icon" style={{ maskImage: `url("${iconAsset('close.svg')}")` }} />
+          </button>}
           {errors.email && <p className="login-field-error" id="email-error" role="alert">{errors.email}</p>}
         </div>
 
         <PasswordField
           autoComplete="current-password"
           disabled={pending}
-          error={errors.password}
-          describedBy={invalidCredentials ? 'login-authentication-error' : undefined}
+          error={errors.password || (invalidCredentials ? message : undefined)}
           invalid={invalidCredentials}
           id="password"
           label="Senha"
@@ -72,16 +80,15 @@ function LoginForm({ credentials, errors, status, message, invalidCredentials, o
           visible={passwordVisible}
         />
 
-        {status === 'error' && message && <p className="login-authentication-error" id="login-authentication-error" role="alert">{message}</p>}
+        {status === 'error' && message && !invalidCredentials && <p className="login-authentication-error" id="login-authentication-error" role="alert">{message}</p>}
 
         <a className="forgot-link" href="#forgot-password">
           Esqueceu a senha?
         </a>
 
         <PurpleButton className="astro-form-action" disabled={pending} type="submit">
-          {status === 'loading' ? 'Entrando…' : status === 'success' ? 'Login realizado' : 'Entrar'}
+          {status === 'success' ? 'Login realizado' : 'Entrar'}
         </PurpleButton>
-        {status === 'loading' && <p className="login-feedback" role="status">Verificando suas credenciais…</p>}
         {status === 'success' && message && <p className="login-feedback" role="status">{message}</p>}
       </form>
 

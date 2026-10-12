@@ -1,4 +1,5 @@
 /* Dimensões, cartões, tipografia e linhas vêm da revisão de eventos. */
+:is(.event-information-modal, .event-group-collaborators-modal) .astro-modal-actions { justify-content: flex-end; }
 .event-group-collaborators-link { display: block; max-width: 100%; padding: 0; border: 0; color: inherit; background: transparent; font: inherit; text-align: left; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
 .event-group-collaborators-link { transition: color 220ms ease; }
 .event-group-collaborators-link:is(:hover, :focus-visible) { color: #9f9bad; }
@@ -13,6 +14,3 @@
 .event-information-panel-scroll:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; border-radius: .25rem; }
 .event-information-panel p { color: #c4bdd4; font-size: var(--astro-subtitle-font-size); line-height: 1.25; }
 .event-information-panel dd { min-width: 0; }
-@media (max-width: 800px) {
-  .event-information-grid { grid-template-columns: repeat(3, minmax(20rem, 1fr)); overflow-x: auto; }
-}

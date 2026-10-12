@@ -25,7 +25,7 @@ function EventGroupScheduleModal({ groups, assignments, schedules, onChange, onB
           {lockedGroupIds.includes(group.id) && <p className="event-create-lock-note">Turma iniciada: data, horários e participantes não podem ser alterados.</p>}
           <fieldset className="event-create-fields event-create-schedule-fields" disabled={lockedGroupIds.includes(group.id)}>
             <legend className="sr-only">Data e horários de {group.name}</legend>
-            <div className="event-create-field"><label htmlFor={`event-date-${group.id}`}>Data</label><FormDatePicker id={`event-date-${group.id}`} label={`Data de ${group.name}`} onChange={date => onChange(group.id, { date })} value={schedule.date} /></div>
+            <div className="event-create-field"><label htmlFor={`event-date-${group.id}`}>Data</label><FormDatePicker escapeOverflow id={`event-date-${group.id}`} label={`Data de ${group.name}`} onChange={date => onChange(group.id, { date })} value={schedule.date} /></div>
             <div className="event-create-field"><label htmlFor={`event-start-${group.id}`}>Horário de início</label><EventTimePicker id={`event-start-${group.id}`} label={`Horário de início de ${group.name}`} onChange={startTime => onChange(group.id, { startTime })} value={schedule.startTime} /></div>
             <div className="event-create-field"><label htmlFor={`event-end-${group.id}`}>Horário de término</label><EventTimePicker id={`event-end-${group.id}`} label={`Horário de término de ${group.name}`} onChange={endTime => onChange(group.id, { endTime })} value={schedule.endTime} /></div>
           </fieldset>

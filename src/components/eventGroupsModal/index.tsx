@@ -5,6 +5,7 @@ import AstroIcon from '../astroIcon'
 import EventCollaboratorAvatar from '../eventCollaboratorAvatar'
 import PurpleButton from '../purpleButton'
 import ToolbarSearch from '../toolbarSearch'
+import ToolbarSelect from '../toolbarSelect'
 
 interface EventGroupsModalProps {
   distributionVersion: number
@@ -121,7 +122,7 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
 
   function personButton(person: EventCollaborator) {
     const current = assignments[person.id] ?? ''
-    return <button
+    return <div className="event-create-person-item" key={person.id}><button
       aria-label={`${person.name}, ${current ? groups.find(group => group.id === current)?.name ?? 'grupo' : 'não distribuído'}. Arraste para outro grupo ou use as setas esquerda e direita.`}
       className={`event-create-person-chip${draggedId === person.id ? ' event-create-person-chip--dragging' : ''}${returningIds.includes(person.id) && !current ? ' event-create-person-chip--returning' : ''}`}
       disabled={lockedGroupIds.includes(current)}
@@ -147,6 +148,16 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
       title={person.name}
       type="button"
     ><EventCollaboratorAvatar /><span>{person.name}</span></button>
+      <div className="event-create-person-destination"><ToolbarSelect
+        escapeOverflow
+        label={`Mover ${person.name} para o grupo`}
+        disabled={lockedGroupIds.includes(current)}
+        onValueChange={groupId => movePerson(person.id, groupId)}
+        searchable={false}
+        options={[{ value: '', label: 'Não distribuídos' }, ...groups.filter(group => !lockedGroupIds.includes(group.id) || group.id === current).map(group => ({ value: group.id, label: group.name }))]}
+        value={current}
+      /></div>
+    </div>
   }
 
   function preview() {

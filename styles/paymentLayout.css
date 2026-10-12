@@ -62,6 +62,17 @@
   }
 }
 
+@media (max-width: 850px) {
+  .payment-stage {
+    --astro-control-height: 3rem;
+    --astro-action-height: 3rem;
+    --astro-control-font-size: 1rem;
+    --astro-action-font-size: .9375rem;
+    --astro-label-font-size: .9375rem;
+    --astro-control-icon-hit-size: 2.75rem;
+  }
+}
+
 /* Janelas baixas: comprime apenas os intervalos do formulário. */
 @media (min-width: 981px) and (max-height: 800px) {
   .payment-divider {

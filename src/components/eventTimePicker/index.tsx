@@ -18,7 +18,7 @@ const timeOptions = [
 
 function EventTimePicker({ id, label, value, onChange }: EventTimePickerProps) {
   return <div className="event-create-time-picker">
-    <ToolbarSelect id={id} label={label} maxVisibleRows={3} onValueChange={onChange} options={timeOptions} preferredPlacement="below" value={value} />
+    <ToolbarSelect escapeOverflow id={id} label={label} maxVisibleRows={3} onValueChange={onChange} options={timeOptions} preferredPlacement="below" value={value} />
     <AstroIcon className="event-create-time-icon" name="clock" />
   </div>
 }
