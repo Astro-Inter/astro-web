@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AppSidebar, AstroChat, AstroIcon, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, OptionsPopup, RegulatoryStandardsDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import type { DataTableColumn } from '../../components/dataTable'
-import { defaultNrsRows } from '../../data/regulatoryStandards'
-import { mockUnits } from '../../data/units'
+import { useUnits } from '../../hooks/useUnits'
 import { useActionsMenu } from '../../hooks'
 import type { Unit } from '../../types'
 import { iconAsset } from '../../utils/iconAsset'
@@ -13,7 +12,6 @@ const statusFilterOptions = [
   { value: 'active', label: 'Ativa' },
   { value: 'inactive', label: 'Inativa' },
 ]
-const defaultEnabledNrs = defaultNrsRows.filter((row) => row.id !== 'nr4').map((row) => row.id)
 
 interface UnitNrsState {
   unit: Unit | null
@@ -30,10 +28,13 @@ function MainUnitScreenPage() {
   const savedTimerRef = useRef<number | null>(null)
   const nrsTimerRef = useRef<number | null>(null)
   const changedNrsRef = useRef<string[]>([])
-  const [units, setUnits] = useState<Unit[]>(mockUnits)
   const [filters, setFilters] = useState({ search: '', status: '' })
   const [nrs, setNrs] = useState<UnitNrsState>(closedNrs)
-  const [enabledNrsByUnit, setEnabledNrsByUnit] = useState<Record<string, string[]>>({})
+  const api = useUnits(nrs.unit?.id)
+  const { units } = api
+  const nrOptionRows = api.nrs.options.map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.descricao }))
+  const enabledNrIds = api.nrs.options.filter((row) => row.ativo).map((row) => String(row.nr))
+  const [actionError, setActionError] = useState('')
   const [savedNrIds, setSavedNrIds] = useState<string[]>([])
   const [pendingDeactivation, setPendingDeactivation] = useState<Unit | null>(null)
   const [savedUnitId, setSavedUnitId] = useState<string | null>(null)
@@ -50,8 +51,10 @@ function MainUnitScreenPage() {
     && (!filters.status || (filters.status === 'active') === unit.active))
   const openUnit = visibleUnits.find((unit) => unit.id === actions.openId)
 
-  function toggleStatus(unit: Unit) {
-    setUnits((current) => current.map((item) => item.id === unit.id ? { ...item, active: !item.active } : item))
+  async function toggleStatus(unit: Unit): Promise<string | null> {
+    setActionError('')
+    const error = await api.toggle(unit.id)
+    if (error) return error
     if (savedTimerRef.current !== null) window.clearTimeout(savedTimerRef.current)
     setSavedUnitId(unit.id)
     setFeedback(`Unidade ${unit.name} ${unit.active ? 'inativada' : 'ativada'}.`)
@@ -59,6 +62,7 @@ function MainUnitScreenPage() {
       savedTimerRef.current = null
       setSavedUnitId(null)
     }, 900)
+    return null
   }
 
   const columns: DataTableColumn<Unit>[] = [
@@ -73,6 +77,7 @@ function MainUnitScreenPage() {
       render: (unit) => (
         <div className="position-actions">
           <button
+            disabled={api.saving || api.loading}
             aria-controls={actions.openId === unit.id ? `unit-actions-${unit.id}` : undefined}
             aria-expanded={actions.openId === unit.id}
             aria-haspopup="menu"
@@ -89,7 +94,7 @@ function MainUnitScreenPage() {
   ]
 
   return (
-    <div className="main-position-screen main-manager-screen">
+    <div className="main-position-screen main-manager-screen main-unit-screen">
       <AppSidebar />
 
       <main className="position-main" id="conteudo-principal">
@@ -113,8 +118,12 @@ function MainUnitScreenPage() {
             </div>
           </div>
 
-          <DataTable ariaLabel="Unidades" columns={columns} emptyMessage="Nenhuma unidade encontrada para esses filtros." getRowClassName={(unit) => unit.id === savedUnitId ? 'astro-data-table-row--saved' : undefined} getRowKey={(unit) => unit.id} rows={visibleUnits} />
-          <p className="sr-only" role="status">{feedback}</p>
+          {api.loading && <p className="position-api-feedback" role="status">Carregando unidades...</p>}
+          {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button onClick={api.retry} type="button">Tentar novamente</button></div>}
+          {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
+          {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
+          <DataTable ariaLabel="Unidades" columns={columns} emptyMessage={api.loading ? 'Carregando unidades...' : api.error ? 'Lista de unidades indisponível.' : 'Nenhuma unidade encontrada para esses filtros.'} getRowClassName={(unit) => unit.id === savedUnitId ? 'astro-data-table-row--saved' : undefined} getRowKey={(unit) => unit.id} rows={visibleUnits} />
+          <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 
         {openUnit && createPortal(
@@ -124,10 +133,10 @@ function MainUnitScreenPage() {
             id={`unit-actions-${openUnit.id}`}
             items={[
               { id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
-              { id: 'manage-nrs', label: 'Gerenciar NRs', separatorAfter: true, onSelect: () => actions.close(() => setNrs({ ...closedNrs, unit: openUnit })) },
+              { id: 'manage-nrs', label: 'Gerenciar NRs', separatorAfter: true, onSelect: () => actions.close(() => { api.retryNrs(); setSavedNrIds([]); setNrs({ ...closedNrs, unit: openUnit }) }) },
               { id: 'toggle-status', label: openUnit.active ? 'Inativar' : 'Ativar', tone: openUnit.active ? 'danger' : 'default', onSelect: () => actions.close(() => {
                 if (openUnit.active) setPendingDeactivation(openUnit)
-                else toggleStatus(openUnit)
+                else void toggleStatus(openUnit).then((error) => { if (error) setActionError(error) })
               }) },
             ]}
             onClose={() => actions.close()}
@@ -139,6 +148,10 @@ function MainUnitScreenPage() {
 
         {nrs.unit && (
           <RegulatoryStandardsDialog
+            rows={api.nrs.rows}
+            loading={api.nrs.loading}
+            error={api.nrs.error}
+            onRetry={api.retryNrs}
             dimmed={nrs.viewDimmed}
             onClose={() => {
               setNrs(closedNrs)
@@ -149,10 +162,11 @@ function MainUnitScreenPage() {
             savedRowIds={savedNrIds}
           />
         )}
-        {nrs.unit && nrs.editing && (
+        {nrs.unit && nrs.editing && !api.nrs.loading && !api.nrs.error && (
           <EditRegulatoryStandardsDialog
             dimmed={nrs.editDimmed}
-            enabledIds={enabledNrsByUnit[nrs.unit.id] ?? defaultEnabledNrs}
+            enabledIds={enabledNrIds}
+            rows={nrOptionRows}
             onCancel={() => {
               if (nrs.pendingIds !== null) return
               setNrs((current) => ({ ...current, editing: false }))
@@ -164,7 +178,6 @@ function MainUnitScreenPage() {
             open={!nrs.editClosing}
             positionName={nrs.unit.name}
             recommendationText="Recomendado para esta unidade."
-            recommendedIds={['nr1', 'nr2', 'nr4', 'nr6']}
           />
         )}
         <AstroChat />
@@ -176,15 +189,16 @@ function MainUnitScreenPage() {
           confirmLabel="Salvar"
           onCancel={() => setNrs((current) => ({ ...current, pendingIds: null, editDimmed: false }))}
           onCancelRequest={() => setNrs((current) => ({ ...current, editDimmed: false }))}
-          onConfirm={() => {
+          onConfirm={async () => {
             const unit = nrs.unit
             const pendingIds = nrs.pendingIds
             if (!unit || !pendingIds) return 'Unidade não encontrada.'
-            const previousSet = new Set(enabledNrsByUnit[unit.id] ?? defaultEnabledNrs)
+            const previousSet = new Set(enabledNrIds)
             const nextSet = new Set(pendingIds)
-            const changedIds = defaultNrsRows.filter((row) => previousSet.has(row.id) !== nextSet.has(row.id)).map((row) => row.id)
-            setEnabledNrsByUnit((current) => ({ ...current, [unit.id]: pendingIds }))
-            changedNrsRef.current = changedIds.length ? changedIds : defaultNrsRows.slice(0, 5).map((row) => row.id)
+            const changedIds = nrOptionRows.filter((row) => previousSet.has(row.id) !== nextSet.has(row.id)).map((row) => row.id)
+            const error = await api.saveNrs(unit.id, pendingIds)
+            if (error) return error
+            changedNrsRef.current = changedIds
             setFeedback(`NRs de ${unit.name} atualizadas.`)
             setNrs((current) => ({ ...current, editClosing: true }))
             return null
@@ -208,7 +222,7 @@ function MainUnitScreenPage() {
             setPendingDeactivation(null)
             actions.triggerRef.current?.focus()
           }}
-          onConfirm={() => { toggleStatus(pendingDeactivation); return null }}
+          onConfirm={() => toggleStatus(pendingDeactivation)}
           onConfirmed={() => {
             setPendingDeactivation(null)
             requestAnimationFrame(() => actions.triggerRef.current?.focus())

@@ -61,7 +61,7 @@ function RegulatoryStandardsDialog({ loading = false, error = '', onRetry, conte
           />
         </div>
 
-        {loading && <p role="status">Carregando NRs do cargo...</p>}
+        {loading && <p role="status">Carregando NRs...</p>}
         {error && <div><p role="alert">{error}</p><button onClick={onRetry} type="button">Tentar novamente</button></div>}
         <div className="nrs-dialog-table">
           <DataTable
