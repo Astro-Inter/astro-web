@@ -69,7 +69,7 @@ function MainWorkspaceSettingsScreenPage() {
       </main>
 
       <HelpLink />
-      {section && <WorkspaceSettingsPasswordModal onCancel={closePassword} onContinue={continueToSection} section={section} />}
+      {section && <WorkspaceSettingsPasswordModal key={section} onCancel={closePassword} onContinue={continueToSection} section={section} />}
     </div>
   )
 }

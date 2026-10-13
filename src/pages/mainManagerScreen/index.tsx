@@ -206,6 +206,7 @@ function MainManagerScreenPage() {
 
       {dialog?.kind === 'edit-password' && (
         <PasswordConfirmationModal
+          key={dialog.manager.id}
           className="textPasswotdAccount1ModalWeb"
           onCancel={() => {
             setDialog(null)

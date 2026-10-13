@@ -65,6 +65,8 @@ html.settings-tab-transition::view-transition-new(settings-content) { animation:
 .workspace-settings-row--saved { animation: workspace-settings-saved 900ms cubic-bezier(.22, 1, .36, 1); }
 .workspace-password-modal form { margin-top: var(--astro-modal-content-gap); }
 .workspace-password-modal .field-group { gap: .2rem; }
+.workspace-password-modal .password-confirmation-status { margin: 1rem 0 0; color: var(--astro-text); }
+.workspace-password-modal :is(.astro-modal-cancel, .astro-action):disabled { cursor: default; opacity: .65; }
 .workspace-settings-back { z-index: 2; }
 
 @keyframes workspace-settings-saved { 0%, 100% { background: transparent; } 35% { background: rgb(156 0 205 / 16%); } }
