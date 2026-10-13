@@ -7,6 +7,10 @@
 }
 
 .account-profile-photo > .manager-avatar--large { width: 100%; height: 100%; font-size: calc(2rem * var(--astro-scale)); }
+.collaborator-identity--large, .collaborator-identity--large .manager-avatar { width: 100%; height: 100%; }
+.collaborator-identity--large .manager-avatar { font-size: calc(2rem * var(--astro-scale)); }
+.collaborator-identity .manager-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.main-collaborator-screen .position-status { padding-inline: calc(0.6rem * var(--astro-scale)); }
 .manager-details-modal .field-group [role="alert"], .manager-details-form-error { color: #eb6264; font-size: var(--astro-label-font-size); line-height: 1.2; }
 .manager-details-modal .field-group input[aria-invalid="true"],
 .manager-details-modal .field-group:has(> [role="alert"]) .password-input input { border-color: #eb6264; }

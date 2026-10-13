@@ -1,36 +1,41 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router-dom'
-import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, InviteEmployeeModal, ManagerDetailsModal, ManagerIdentity, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import CollaboratorDialog from '../../components/collaboratorDialog'
+import CollaboratorIdentity from '../../components/collaboratorIdentity'
 import type { DataTableColumn } from '../../components/dataTable'
 import PasswordConfirmationModal from '../../components/passwordConfirmationModal'
-import { mockEmployees } from '../../data/employees'
 import { useActionsMenu } from '../../hooks'
-import type { Employee, EmployeeInviteValues, ManagerDetailsValues } from '../../types'
+import { useCollaborators } from '../../hooks/useCollaborators'
+import type { Collaborator, CollaboratorFormValues } from '../../types/collaborator'
+import { collaboratorStatusLabels } from '../../utils/collaborator'
 import { iconAsset } from '../../utils/iconAsset'
 
 const statusFilterOptions = [
   { value: '', label: 'Status', triggerLabel: 'Status', tone: 'muted' as const },
-  { value: 'active', label: 'Ativo' },
-  { value: 'inactive', label: 'Inativo' },
+  ...Object.entries(collaboratorStatusLabels).map(([value, label]) => ({ value, label })),
 ]
 
 type EmployeeDialogState =
-  | { kind: 'view' | 'edit' | 'edit-password'; employee: Employee }
-  | { kind: 'confirm-edit'; employee: Employee; values: ManagerDetailsValues }
-  | { kind: 'deactivate'; employee: Employee }
+  | { kind: 'view' | 'edit' | 'edit-password'; employee: Collaborator }
+  | { kind: 'confirm-edit'; employee: Collaborator; values: CollaboratorFormValues }
+  | { kind: 'deactivate'; employee: Collaborator }
 
 function MainEmployeerScreenPage() {
   const location = useLocation()
   const inviteOriginRef = useRef<HTMLButtonElement | null>(null)
   const savedTimerRef = useRef<number | null>(null)
-  const [employees, setEmployees] = useState<Employee[]>(mockEmployees)
   const [filters, setFilters] = useState({ search: '', position: '', status: '' })
   const [inviteOpen, setInviteOpen] = useState(() => location.state?.openCreate === true)
   const [dialog, setDialog] = useState<EmployeeDialogState | null>(null)
+  const detailId = dialog && ['view', 'edit', 'confirm-edit'].includes(dialog.kind) ? dialog.employee.id : undefined
+  const api = useCollaborators(detailId, inviteOpen || dialog?.kind === 'edit' || dialog?.kind === 'confirm-edit')
+  const { employees } = api
   const [details, setDetails] = useState({ dimmed: false, closing: false })
   const [savedEmployeeId, setSavedEmployeeId] = useState<string | null>(null)
   const [feedback, setFeedback] = useState('')
+  const [actionError, setActionError] = useState('')
   const actions = useActionsMenu()
 
   useEffect(() => () => {
@@ -39,30 +44,18 @@ function MainEmployeerScreenPage() {
 
   const positionFilterOptions = [
     { value: '', label: 'Cargos', triggerLabel: 'Cargos', tone: 'muted' as const },
-    ...[...new Set(employees.map((employee) => employee.position))].sort((a, b) => a.localeCompare(b, 'pt-BR')).map((position) => ({ value: position, label: position })),
+    ...[...new Map(employees.map((employee) => [employee.roleId, { value: employee.roleId, label: employee.position }])).values()].sort((a, b) => a.label.localeCompare(b.label, 'pt-BR')),
   ]
   const normalizedSearch = filters.search.trim().toLocaleLowerCase('pt-BR')
   const visibleEmployees = employees.filter((employee) => `${employee.name} ${employee.email}`.toLocaleLowerCase('pt-BR').includes(normalizedSearch)
-    && (!filters.position || employee.position === filters.position)
-    && (!filters.status || (filters.status === 'active') === employee.active))
+    && (!filters.position || employee.roleId === filters.position)
+    && (!filters.status || employee.status === filters.status))
   const openEmployee = visibleEmployees.find((employee) => employee.id === actions.openId)
 
-  function inviteEmployee(values: EmployeeInviteValues): string | null {
-    const email = values.email.toLocaleLowerCase('pt-BR')
-    if (employees.some((employee) => employee.email.toLocaleLowerCase('pt-BR') === email)) return 'Já existe um colaborador com esse e-mail.'
-
-    const newEmployeeId = crypto.randomUUID()
-    setEmployees((current) => [...current, {
-      id: newEmployeeId,
-      name: values.name,
-      email: values.email,
-      unit: values.unit,
-      position: values.position,
-      modality: values.modality,
-      cpf: values.cpf,
-      active: values.status === 'active',
-    }])
-    showSavedEmployee(newEmployeeId, `Colaborador ${values.name} adicionado.`)
+  async function inviteEmployee(values: CollaboratorFormValues): Promise<string | null> {
+    const result = await api.save(values)
+    if (result.error !== null) return result.error
+    showSavedEmployee(result.collaborator.id, `Colaborador ${result.collaborator.name} pré-cadastrado.`)
     return null
   }
 
@@ -76,25 +69,29 @@ function MainEmployeerScreenPage() {
     }, 900)
   }
 
-  function checkDuplicateEmail(values: ManagerDetailsValues, employeeId: string): string | null {
+  function checkDuplicateEmail(values: CollaboratorFormValues, employeeId: string): string | null {
     const email = values.email.toLocaleLowerCase('pt-BR')
     return employees.some((employee) => employee.id !== employeeId && employee.email.toLocaleLowerCase('pt-BR') === email)
       ? 'Já existe um colaborador com esse e-mail.'
       : null
   }
 
-  function saveEmployee(employeeId: string, values: ManagerDetailsValues): string | null {
+  async function saveEmployee(employeeId: string, values: CollaboratorFormValues): Promise<string | null> {
     const duplicateError = checkDuplicateEmail(values, employeeId)
     if (duplicateError) return duplicateError
 
-    setEmployees((current) => current.map((employee) => employee.id === employeeId ? { ...employee, ...values } : employee))
-    showSavedEmployee(employeeId, `Colaborador ${values.name} atualizado.`)
+    const result = await api.save(values, employeeId)
+    if (result.error !== null) return result.error
+    showSavedEmployee(result.collaborator.id, `Colaborador ${result.collaborator.name} atualizado.`)
     return null
   }
 
-  function toggleStatus(employee: Employee) {
-    setEmployees((current) => current.map((item) => item.id === employee.id ? { ...item, active: !item.active } : item))
-    showSavedEmployee(employee.id, `Colaborador ${employee.name} ${employee.active ? 'inativado' : 'ativado'}.`)
+  async function toggleStatus(employee: Collaborator): Promise<string | null> {
+    setActionError('')
+    const result = await api.changeStatus(employee.id, employee.status === 'DESATIVADO' ? 'ATIVO' : 'DESATIVADO')
+    if (result.error !== null) return result.error
+    showSavedEmployee(result.collaborator.id, `Colaborador ${result.collaborator.name} ${collaboratorStatusLabels[result.collaborator.status].toLowerCase()}.`)
+    return null
   }
 
   function closeDetails() {
@@ -109,19 +106,20 @@ function MainEmployeerScreenPage() {
     inviteOriginRef.current?.focus()
   }
 
-  const columns: DataTableColumn<Employee>[] = [
-    { id: 'name', label: 'Colaborador', width: '21%', rowHeader: true, render: (employee) => <ManagerIdentity name={employee.name} /> },
-    { id: 'email', label: 'E-mail', width: '27%', render: (employee) => <TruncatedText>{employee.email}</TruncatedText> },
+  const columns: DataTableColumn<Collaborator>[] = [
+    { id: 'name', label: 'Colaborador', width: '21%', rowHeader: true, render: (employee) => <CollaboratorIdentity name={employee.name} photoUrl={employee.profilePhotoUrl} initials={employee.avatarInitials} /> },
+    { id: 'email', label: 'E-mail', width: '25%', render: (employee) => <TruncatedText>{employee.email}</TruncatedText> },
     { id: 'position', label: 'Cargo', width: '22%', render: (employee) => <TruncatedText>{employee.position}</TruncatedText> },
     {
-      id: 'status', label: 'Status', width: '16.5%',
-      render: (employee) => <span className={`position-status${employee.active ? ' position-status--active' : ''}${employee.id === savedEmployeeId ? ' position-status--saved' : ''}`}><TruncatedText truncate={false}>{employee.active ? 'Ativo' : 'Inativo'}</TruncatedText></span>,
+      id: 'status', label: 'Status', width: '18.5%',
+      render: (employee) => <span className={`position-status${employee.status === 'ATIVO' ? ' position-status--active' : ''}${employee.id === savedEmployeeId ? ' position-status--saved' : ''}`}><TruncatedText truncate={false}>{collaboratorStatusLabels[employee.status]}</TruncatedText></span>,
     },
     {
       id: 'actions', label: 'Ações', width: '13.5%', className: 'position-actions-cell',
       render: (employee) => (
         <div className="position-actions">
           <button
+            disabled={api.loading || api.saving}
             aria-controls={actions.openId === employee.id ? `employee-actions-${employee.id}` : undefined}
             aria-expanded={actions.openId === employee.id}
             aria-haspopup="menu"
@@ -138,7 +136,7 @@ function MainEmployeerScreenPage() {
   ]
 
   return (
-    <div className="main-position-screen main-manager-screen">
+    <div className="main-position-screen main-manager-screen main-collaborator-screen">
       <AppSidebar />
 
       <main className="position-main" id="conteudo-principal">
@@ -149,7 +147,7 @@ function MainEmployeerScreenPage() {
           </header>
 
           <div aria-label="Ações e filtros dos colaboradores" className="position-toolbar" role="group">
-            <CompactPurpleButton onClick={(event) => { inviteOriginRef.current = event.currentTarget; setInviteOpen(true) }} type="button">
+            <CompactPurpleButton disabled={api.loading || api.saving || Boolean(api.error)} onClick={(event) => { inviteOriginRef.current = event.currentTarget; api.retryOptions(); setInviteOpen(true) }} type="button">
               <AstroIcon name="plus" />
               Adicionar colaborador
             </CompactPurpleButton>
@@ -168,8 +166,12 @@ function MainEmployeerScreenPage() {
             </div>
           </div>
 
-          <DataTable ariaLabel="Colaboradores" columns={columns} emptyMessage="Nenhum colaborador encontrado para esses filtros." getRowClassName={(employee) => employee.id === savedEmployeeId ? 'astro-data-table-row--saved' : undefined} getRowKey={(employee) => employee.id} rows={visibleEmployees} />
-          <p className="sr-only" role="status">{feedback}</p>
+          {api.loading && <p className="position-api-feedback" role="status">Carregando colaboradores...</p>}
+          {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button disabled={api.saving} onClick={api.retry} type="button">Tentar novamente</button></div>}
+          {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
+          {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
+          <DataTable ariaLabel="Colaboradores" columns={columns} emptyMessage={api.loading ? 'Carregando colaboradores...' : api.error ? 'Lista de colaboradores indisponível.' : 'Nenhum colaborador encontrado para esses filtros.'} getRowClassName={(employee) => employee.id === savedEmployeeId ? 'astro-data-table-row--saved' : undefined} getRowKey={(employee) => employee.id} rows={visibleEmployees} />
+          <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 
         {openEmployee && createPortal(
@@ -179,11 +181,11 @@ function MainEmployeerScreenPage() {
             id={`employee-actions-${openEmployee.id}`}
             items={[
               { id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
-              { id: 'view', label: 'Ver mais informações', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'view', employee: openEmployee })) },
+              { id: 'view', label: 'Ver mais informações', separatorAfter: true, onSelect: () => actions.close(() => { api.retryDetails(); setDialog({ kind: 'view', employee: openEmployee }) }) },
               { id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit-password', employee: openEmployee })) },
-              { id: 'toggle-status', label: openEmployee.active ? 'Inativar' : 'Ativar', tone: openEmployee.active ? 'danger' : 'default', onSelect: () => actions.close(() => {
-                if (openEmployee.active) setDialog({ kind: 'deactivate', employee: openEmployee })
-                else toggleStatus(openEmployee)
+              { id: 'toggle-status', label: openEmployee.status === 'DESATIVADO' ? 'Ativar' : 'Desativar', tone: openEmployee.status === 'DESATIVADO' ? 'default' : 'danger', onSelect: () => actions.close(() => {
+                if (openEmployee.status !== 'DESATIVADO') setDialog({ kind: 'deactivate', employee: openEmployee })
+                else void toggleStatus(openEmployee).then((error) => { if (error) setActionError(error) })
               }) },
             ]}
             onClose={() => actions.close()}
@@ -195,7 +197,8 @@ function MainEmployeerScreenPage() {
 
       </main>
 
-      {inviteOpen && <InviteEmployeeModal onClose={closeInvite} onInvite={inviteEmployee} />}
+      {inviteOpen && <CollaboratorDialog collaborator={null} mode="create" options={api.options.data} loading={api.options.loading || api.loading}
+        error={api.options.error || api.error} saving={api.saving} onClose={closeInvite} onRetry={() => { api.retryOptions(); if (api.error) api.retry() }} onSubmit={inviteEmployee} />}
 
       {dialog?.kind === 'edit-password' && (
         <PasswordConfirmationModal
@@ -205,14 +208,19 @@ function MainEmployeerScreenPage() {
             setDialog(null)
             actions.triggerRef.current?.focus()
           }}
-          onContinue={() => setDialog({ kind: 'edit', employee: dialog.employee })}
+          onContinue={() => { api.retryDetails(); api.retryOptions(); setDialog({ kind: 'edit', employee: dialog.employee }) }}
         />
       )}
       {dialog && (dialog.kind === 'view' || dialog.kind === 'edit' || dialog.kind === 'confirm-edit') && (
-        <ManagerDetailsModal
+        <CollaboratorDialog
           dimmed={details.dimmed}
           key={dialog.employee.id}
-          manager={dialog.employee}
+          collaborator={api.details.data}
+          options={api.options.data}
+          loading={api.details.loading || (dialog.kind !== 'view' && api.options.loading)}
+          error={api.details.error || (dialog.kind !== 'view' ? api.options.error : '')}
+          saving={api.saving}
+          onRetry={() => { api.retryDetails(); if (dialog.kind !== 'view') api.retryOptions() }}
           mode={dialog.kind === 'view' ? 'view' : 'edit'}
           onClose={closeDetails}
           onSubmit={(values) => {
@@ -223,9 +231,6 @@ function MainEmployeerScreenPage() {
             return null
           }}
           open={!details.closing}
-          positions={employees.map((employee) => employee.position)}
-          subject="colaborador"
-          units={employees.map((employee) => employee.unit)}
         />
       )}
       {dialog?.kind === 'confirm-edit' && (
@@ -237,8 +242,8 @@ function MainEmployeerScreenPage() {
             setDialog({ kind: 'edit', employee: dialog.employee })
           }}
           onCancelRequest={() => setDetails((current) => ({ ...current, dimmed: false }))}
-          onConfirm={() => {
-            const error = saveEmployee(dialog.employee.id, dialog.values)
+          onConfirm={async () => {
+            const error = await saveEmployee(dialog.employee.id, dialog.values)
             if (!error) setDetails((current) => ({ ...current, closing: true }))
             return error
           }}
@@ -254,18 +259,18 @@ function MainEmployeerScreenPage() {
         <ConfirmationModal
           backdrop="dimmed"
           className="position-deactivation-modal"
-          confirmLabel="Inativar"
+          confirmLabel="Desativar"
           icon={<span aria-hidden="true" className="position-deactivation-icon"><img alt="" src={iconAsset('warning.svg')} /></span>}
           onCancel={() => {
             setDialog(null)
             actions.triggerRef.current?.focus()
           }}
-          onConfirm={() => { toggleStatus(dialog.employee); return null }}
+          onConfirm={() => toggleStatus(dialog.employee)}
           onConfirmed={() => {
             setDialog(null)
             requestAnimationFrame(() => actions.triggerRef.current?.focus())
           }}
-          title="Tem certeza de que deseja inativar este colaborador?"
+          title="Tem certeza de que deseja desativar este colaborador?"
           tone="danger"
         />
       )}

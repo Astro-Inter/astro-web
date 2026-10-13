@@ -12,6 +12,7 @@ interface ToolbarSelectOption {
 interface ToolbarSelectProps {
   className?: string
   disabled?: boolean
+  error?: string
   escapeOverflow?: boolean
   id?: string
   label: string
@@ -23,7 +24,7 @@ interface ToolbarSelectProps {
   value: string
 }
 
-function ToolbarSelect({ id, label, options, className = '', disabled = false, escapeOverflow = false, onValueChange, searchable = true, maxVisibleRows = 4, preferredPlacement = 'auto', value }: ToolbarSelectProps) {
+function ToolbarSelect({ id, label, options, className = '', disabled = false, error, escapeOverflow = false, onValueChange, searchable = true, maxVisibleRows = 4, preferredPlacement = 'auto', value }: ToolbarSelectProps) {
   const generatedId = useId()
   const selectId = id ?? generatedId
   const listId = `${selectId}-options`
@@ -189,6 +190,8 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, e
       <label className="sr-only" htmlFor={selectId}>{label}</label>
       <div className="astro-toolbar-select-control">
         <input
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${selectId}-error` : undefined}
           aria-controls={listId}
           aria-expanded={open && !closing}
           aria-haspopup="listbox"
