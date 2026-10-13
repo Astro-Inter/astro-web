@@ -6,6 +6,7 @@ import WorkspaceSettingsBackButton from '../../components/workspaceSettingsBackB
 import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
 import { useSpreadsheetUnits } from '../../hooks/useSpreadsheetUnits'
 import LoginLoadingOverlay from '../../components/loginLoadingOverlay'
+import SpreadsheetEmailMissingModal from '../../components/spreadsheetEmailMissingModal'
 
 function AttachExcelFilePage() {
   const navigate = useNavigate()
@@ -20,7 +21,7 @@ function AttachExcelFilePage() {
     <>
     <main className="attach-excel-page" inert={spreadsheet.loading} aria-busy={spreadsheet.loading}>
       {settingsMode && <WorkspaceSettingsBackButton screen="backExcelModalWeb" />}
-      <AttachExcelFileForm initialFile={settingsMode ? null : draft.file} settingsMode={settingsMode} reading={spreadsheet.loading} readingError={spreadsheet.error} onSelectionChange={spreadsheet.clearError} onContinue={async file => {
+      <AttachExcelFileForm initialFile={settingsMode ? null : draft.file} settingsMode={settingsMode} reading={spreadsheet.loading} readingError={spreadsheet.error} onSelectionChange={file => { spreadsheet.clearError(); if (!settingsMode) updateDraft({ file }) }} onContinue={async file => {
         if (settingsMode) setConfirming(true)
         else if (file) {
           const units = await spreadsheet.readUnits(file, draft.units, draft.email)
@@ -33,6 +34,7 @@ function AttachExcelFilePage() {
       {confirming && <WorkspaceSettingsSaveModal onCancel={() => setConfirming(false)} section="spreadsheet" />}
     </main>
     {spreadsheet.loading && <LoginLoadingOverlay />}
+    {spreadsheet.managerEmailMissing && <SpreadsheetEmailMissingModal onClose={spreadsheet.clearError} />}
     </>
   )
 }

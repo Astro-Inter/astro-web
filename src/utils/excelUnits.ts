@@ -1,5 +1,6 @@
 import { read, utils } from 'xlsx'
 import { normalizeUnitName } from './workspaceUnits'
+import { ManagerEmailMissingError } from './spreadsheetErrors'
 
 export function extractSpreadsheetUnitNames(data: ArrayBuffer, managerEmail: string): string[] {
   const bytes = new Uint8Array(data)
@@ -38,7 +39,7 @@ export function extractSpreadsheetUnitNames(data: ArrayBuffer, managerEmail: str
   const managerRows = rows.slice(1).flatMap((row, index) =>
     String(row[emailColumn] ?? '').trim().toLowerCase() === normalizedEmail ? [{ row, number: firstRow + index + 2 }] : [])
   if (!managerRows.length) {
-    throw new Error(`Inclua na primeira aba uma linha com o e-mail do gestor ${managerEmail.trim()}, informado no cadastro.`)
+    throw new ManagerEmailMissingError()
   }
   if (managerRows.length > 1) {
     throw new Error(`O e-mail do gestor aparece mais de uma vez (linhas ${managerRows.map(entry => entry.number).join(', ')}). Mantenha exatamente uma linha para ele na primeira aba.`)

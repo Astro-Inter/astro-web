@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { useAnimatedDialog } from '../../hooks/useAnimatedDialog'
 import AstroIcon from '../astroIcon'
 import PurpleButton from '../purpleButton'
+import { useSpreadsheetExampleDownload } from '../../hooks/useSpreadsheetExampleDownload'
 
 export interface SpreadsheetExample {
   ariaLabel: string
@@ -36,6 +37,7 @@ const employeeExample: SpreadsheetExample = {
 const columnLetters = ['A', 'B', 'C', 'D', 'E', 'F']
 
 function SpreadsheetExplanationModal({ example = employeeExample, onDismiss, open }: SpreadsheetExplanationModalProps) {
+  const download = useSpreadsheetExampleDownload(example)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose } = useAnimatedDialog({ initialFocusRef: titleRef, onClose: onDismiss, open })
 
@@ -93,10 +95,11 @@ function SpreadsheetExplanationModal({ example = employeeExample, onDismiss, ope
             ))}
           </tbody>
         </table>
-        <span className="spreadsheet-preview-download" aria-hidden="true">
+        <button className="spreadsheet-preview-download" type="button" aria-label="Baixar modelo de planilha Excel" disabled={download.pending} onClick={() => { void download.download() }}>
           <AstroIcon name="download" strokeScale={0.9} />
-        </span>
+        </button>
       </div>
+      {download.error && <p className="login-field-error" role="alert">{download.error}</p>}
 
       <PurpleButton className="spreadsheet-explanation-confirm" onClick={dismiss}>
         Entendi

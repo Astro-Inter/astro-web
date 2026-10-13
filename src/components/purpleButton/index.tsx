@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from 'react'
+import type { ButtonHTMLAttributes, Ref } from 'react'
 
 /**
  * Botão de ação do produto. Toda a geometria (altura, largura máxima, raio,
@@ -8,6 +8,7 @@ import type { ButtonHTMLAttributes } from 'react'
 type PurpleButtonVariant = 'solid' | 'outline' | 'danger'
 
 interface PurpleButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  ref?: Ref<HTMLButtonElement>
   /** solid: ação primária. outline: secundária tracejada. danger: destrutiva. */
   variant?: PurpleButtonVariant
   /**

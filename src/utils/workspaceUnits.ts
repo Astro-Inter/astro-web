@@ -7,12 +7,14 @@ export function normalizeUnitName(name: string): string {
 export function reconcileSpreadsheetUnits(names: string[], previous: WorkspaceUnitAddress[]): WorkspaceUnitAddress[] {
   const existing = new Map(previous.map(unit => [normalizeUnitName(unit.name), unit]))
   let nextId = Math.max(0, ...previous.map(unit => unit.id)) + 1
-  return names.map(name => {
+  const imported: WorkspaceUnitAddress[] = names.map(name => {
     const saved = existing.get(normalizeUnitName(name))
-    return saved ? { ...saved, name } : {
-      id: nextId++, name, cep: '', state: '', city: '', neighborhood: '', street: '', number: '', complement: '',
+    return saved ? { ...saved, name, source: 'spreadsheet' } : {
+      id: nextId++, name, cep: '', state: '', city: '', neighborhood: '', street: '', number: '', complement: '', source: 'spreadsheet',
     }
   })
+  const importedNames = new Set(names.map(normalizeUnitName))
+  return [...imported, ...previous.filter(unit => unit.source === 'manual' && !importedNames.has(normalizeUnitName(unit.name)))]
 }
 
 export function mergePostalAddress(current: WorkspaceUnitAddress, requested: WorkspaceUnitAddress, result: PostalAddress): WorkspaceUnitAddress {

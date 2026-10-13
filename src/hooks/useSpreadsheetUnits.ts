@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import type { WorkspaceUnitAddress } from '../types/address'
 import { readSpreadsheetUnitNames } from '../utils/spreadsheet'
 import { reconcileSpreadsheetUnits } from '../utils/workspaceUnits'
+import { ManagerEmailMissingError } from '../utils/spreadsheetErrors'
 
 export function useSpreadsheetUnits() {
-  const [state, setState] = useState({ loading: false, error: '' })
+  const [state, setState] = useState({ loading: false, error: '', managerEmailMissing: false })
   const mounted = useRef(true)
   const busy = useRef(false)
   useEffect(() => {
@@ -15,19 +16,22 @@ export function useSpreadsheetUnits() {
   async function readUnits(file: File, previous: WorkspaceUnitAddress[], managerEmail: string): Promise<WorkspaceUnitAddress[] | null> {
     if (busy.current) return null
     busy.current = true
-    setState({ loading: true, error: '' })
+    setState({ loading: true, error: '', managerEmailMissing: false })
     try {
       const names = await readSpreadsheetUnitNames(file, managerEmail)
       if (!mounted.current) return null
-      setState({ loading: false, error: '' })
+      setState({ loading: false, error: '', managerEmailMissing: false })
       return reconcileSpreadsheetUnits(names, previous)
     } catch (error: unknown) {
-      if (mounted.current) setState({ loading: false, error: error instanceof Error ? error.message : 'Não foi possível validar a planilha.' })
+      if (mounted.current) setState({ loading: false,
+        managerEmailMissing: error instanceof ManagerEmailMissingError,
+        error: error instanceof ManagerEmailMissingError ? '' : error instanceof Error ? error.message : 'Não foi possível validar a planilha.',
+      })
       return null
     } finally {
       busy.current = false
     }
   }
 
-  return { ...state, readUnits, clearError: () => setState(current => ({ ...current, error: '' })) }
+  return { ...state, readUnits, clearError: () => setState(current => ({ ...current, error: '', managerEmailMissing: false })) }
 }

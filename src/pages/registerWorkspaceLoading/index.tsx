@@ -9,9 +9,9 @@ function RegisterWorkspaceLoadingPage() {
   const ready = Boolean(draft.email && verifiedEmail === draft.email.trim() && draft.password && draft.company.name && draft.file && draft.units.length)
 
   useEffect(() => {
-    if (!ready || result) return
+    if (!ready || result || status !== 'idle') return
     void submit()
-  }, [ready, result, submit])
+  }, [ready, result, status, submit])
 
   if (result) return <Navigate to="/workspaceCreated" replace />
   if (!ready) return <Navigate to="/createWorkspace" replace />

@@ -228,8 +228,7 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
 }
 .create-forms-header { position: static; flex: none; }
 .create-forms-main { margin: 0 auto; }
-.create-forms-page > .payment-back-button,
-.create-forms-page > .help-link { position: absolute; }
+.create-forms-page > .payment-back-button { position: absolute; }
 
 @media (max-width: 1024px) {
   .create-forms-page { padding: 2rem 1.5rem 6rem; gap: 2rem; }

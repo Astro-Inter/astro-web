@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AstroIcon, HelpLink, PaymentMethodForm, PaymentSummary } from '../../components'
 import WorkspaceSettingsBackButton from '../../components/workspaceSettingsBackButton'
@@ -7,6 +7,8 @@ import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
 import { useWorkspaceEmailVerification } from '../../hooks/useWorkspaceEmailVerification'
 import { validateManagerEmail } from '../../utils/workspaceRegistration'
 import LoginLoadingOverlay from '../../components/loginLoadingOverlay'
+import WorkspaceCodeSentModal from '../../components/workspaceCodeSentModal'
+import { useWorkspaceCodeCooldown } from '../../hooks/useWorkspaceCodeCooldown'
 
 function PaymentMethodPage() {
   const navigate = useNavigate()
@@ -16,7 +18,18 @@ function PaymentMethodPage() {
   const { draft, updateDraft } = useWorkspaceRegistration()
   const emailVerification = useWorkspaceEmailVerification()
   const [emailError, setEmailError] = useState('')
-  const pending = !settingsMode && (emailVerification.status === 'loading' || emailVerification.status === 'success')
+  const [codePopup, setCodePopup] = useState<{ email: string; kind: 'sent' | 'already-sent' | 'resent' } | null>(null)
+  const requestedEmails = useRef(new Set<string>())
+  const pending = !settingsMode && emailVerification.status === 'loading'
+  const resendWait = useWorkspaceCodeCooldown(codePopup?.email ?? draft.email)
+
+  async function requestCode(email: string, resend = false): Promise<void> {
+    const result = await emailVerification.requestCode(email)
+    if (result === 'error') return
+    requestedEmails.current.add(email.toLowerCase())
+    updateDraft({ email })
+    setCodePopup({ email, kind: result === 'already-sent' ? 'already-sent' : resend ? 'resent' : 'sent' })
+  }
 
   async function handleCompletePurchase(): Promise<void> {
     if (settingsMode) { setConfirming(true); return }
@@ -25,9 +38,11 @@ function PaymentMethodPage() {
     setEmailError(message)
     if (message) return
     const email = draft.email.trim()
-    if (await emailVerification.requestCode(email)) {
-      updateDraft({ email })
-      navigate('/createWorkspace')
+    if (requestedEmails.current.has(email.toLowerCase())) {
+      emailVerification.clearError()
+      setCodePopup({ email, kind: 'sent' })
+    } else {
+      await requestCode(email)
     }
   }
 
@@ -46,7 +61,7 @@ function PaymentMethodPage() {
             <p>Assinatura mensal de R$ 10 por funcionário ativo</p>
           </div>
 
-          <PaymentMethodForm disabled={pending} emailError={emailError || (!settingsMode && emailVerification.status === 'error' ? emailVerification.message : '')} initialEmail={settingsMode ? '' : draft.email} onEmailChange={settingsMode ? undefined : email => {
+          <PaymentMethodForm disabled={pending} emailError={emailError || (!settingsMode && !codePopup && emailVerification.status === 'error' ? emailVerification.message : '')} initialEmail={settingsMode ? '' : draft.email} onEmailChange={settingsMode ? undefined : email => {
             setEmailError('')
             emailVerification.clearError()
             updateDraft({ email })
@@ -54,14 +69,19 @@ function PaymentMethodPage() {
         </section>
 
         <section className="payment-aside" aria-label="Detalhes da compra">
-          <PaymentSummary settingsMode={settingsMode} status={settingsMode ? 'idle' : emailVerification.status}
+          <PaymentSummary settingsMode={settingsMode} status={pending ? 'loading' : 'idle'}
             onCompletePurchase={() => { void handleCompletePurchase() }} />
         </section>
       </div>
       <HelpLink />
       {confirming && <WorkspaceSettingsSaveModal onCancel={() => setConfirming(false)} section="payments" />}
     </main>
-    {emailVerification.status === 'loading' && !settingsMode && <LoginLoadingOverlay />}
+    {pending && !codePopup && <LoginLoadingOverlay />}
+    {codePopup && <WorkspaceCodeSentModal kind={codePopup.kind} pending={pending} resendWait={resendWait}
+      error={emailVerification.status === 'error' ? emailVerification.message : ''}
+      onResend={() => { void requestCode(codePopup.email, true) }}
+      onContinue={() => { updateDraft({ email: codePopup.email }); navigate('/createWorkspace') }}
+      onClose={() => { setCodePopup(null); emailVerification.clearError() }} />}
     </>
   )
 }

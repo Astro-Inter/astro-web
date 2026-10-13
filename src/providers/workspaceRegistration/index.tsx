@@ -3,15 +3,20 @@ import { WorkspaceRegistrationContext } from '../../contexts/workspaceRegistrati
 import { registerWorkspace, WorkspaceRegistrationError } from '../../services/workspaceRegistration'
 import type { WorkspaceRegistrationDraft, WorkspaceRegistrationProviderProps } from '../../types/workspaceRegistration'
 import { initialRegistrationState, registrationReducer } from '../../utils/workspaceRegistrationReducer'
+import { readWorkspaceCodeEmail, saveWorkspaceCodeEmail } from '../../utils/workspaceCodeSession'
+import { readRegistrationSession, saveRegistrationSession } from '../../utils/workspaceRegistrationSession'
+import InitialLoadingState from '../../components/initialLoadingState'
+import { keepRegistrationLoginCredentials } from '../../utils/workspaceRegistration'
 
 function emptyDraft(): WorkspaceRegistrationDraft {
-  return { email: '', password: '', company: { name: '', cnpj: '' }, units: [], file: null }
+  return { email: readWorkspaceCodeEmail(), password: '', company: { name: '', cnpj: '' }, units: [], file: null }
 }
 
 function WorkspaceRegistrationProvider({ children }: WorkspaceRegistrationProviderProps) {
   const [draft, setDraft] = useState(emptyDraft)
   const draftRef = useRef(draft)
   const [verifiedEmail, setVerifiedEmail] = useState('')
+  const [restoring, setRestoring] = useState(true)
   const [state, dispatch] = useReducer(registrationReducer, initialRegistrationState)
   const pending = useRef<Promise<boolean> | null>(null)
   const completed = useRef(false)
@@ -22,9 +27,33 @@ function WorkspaceRegistrationProvider({ children }: WorkspaceRegistrationProvid
     return () => { mounted.current = false }
   }, [])
 
+  useEffect(() => {
+    let active = true
+    void readRegistrationSession().then(saved => {
+      if (!active) return
+      if (saved) {
+        draftRef.current = saved.draft
+        setDraft(saved.draft)
+        setVerifiedEmail(saved.verifiedEmail)
+        completed.current = saved.state.status === 'success'
+        confirmedWithoutResult.current = saved.state.failureStatus === 201
+        dispatch({ type: 'restored', state: saved.state })
+      }
+      setRestoring(false)
+    })
+    return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    if (restoring) return
+    const hasDraft = Boolean(draft.email || draft.password || draft.company.name || draft.company.cnpj || draft.file || draft.units.length || state.result)
+    void saveRegistrationSession(hasDraft ? { draft, verifiedEmail, state } : null)
+  }, [draft, verifiedEmail, state, restoring])
+
   const updateDraft = useCallback((changes: Partial<WorkspaceRegistrationDraft>) => {
     if (pending.current || completed.current) return
     if (changes.email !== undefined && changes.email.trim() !== draftRef.current.email.trim()) setVerifiedEmail('')
+    if (changes.email !== undefined) saveWorkspaceCodeEmail(changes.email)
     draftRef.current = { ...draftRef.current, ...changes }
     setDraft(draftRef.current)
   }, [])
@@ -35,6 +64,7 @@ function WorkspaceRegistrationProvider({ children }: WorkspaceRegistrationProvid
 
   const reset = useCallback(() => {
     if (pending.current) return
+    saveWorkspaceCodeEmail('')
     draftRef.current = emptyDraft()
     completed.current = false
     confirmedWithoutResult.current = false
@@ -54,7 +84,8 @@ function WorkspaceRegistrationProvider({ children }: WorkspaceRegistrationProvid
       try {
         const result = await registerWorkspace(draftRef.current)
         completed.current = true
-        draftRef.current = emptyDraft()
+        saveWorkspaceCodeEmail('')
+        draftRef.current = keepRegistrationLoginCredentials(draftRef.current)
         if (mounted.current) {
           setDraft(draftRef.current)
           setVerifiedEmail('')
@@ -77,6 +108,7 @@ function WorkspaceRegistrationProvider({ children }: WorkspaceRegistrationProvid
     return pending.current
   }, [])
 
+  if (restoring) return <InitialLoadingState />
   return <WorkspaceRegistrationContext.Provider value={{ draft, verifiedEmail, markEmailVerified, ...state, updateDraft, submit, reset }}>{children}</WorkspaceRegistrationContext.Provider>
 }
 

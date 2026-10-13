@@ -152,6 +152,10 @@
 .spreadsheet-mode { width: 10%; }
 
 .spreadsheet-preview-download {
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  transition: background-color 220ms ease;
   position: absolute;
   right: 0.75rem;
   bottom: 0.75rem;
@@ -163,6 +167,10 @@
   color: #fff;
   background: var(--astro-orb-accent);
 }
+
+.spreadsheet-preview-download:hover:not(:disabled) { background: var(--astro-orb-accent-hover); }
+.spreadsheet-preview-download:focus-visible { outline: 2px solid var(--astro-text); outline-offset: 3px; }
+.spreadsheet-preview-download:disabled { opacity: .6; cursor: wait; }
 
 .spreadsheet-preview-download .astro-icon {
   height: 1.15rem;

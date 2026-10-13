@@ -16,10 +16,11 @@ interface AttachExcelFileFormProps {
   settingsMode?: boolean
   reading?: boolean
   readingError?: string
-  onSelectionChange?: () => void
+  onSelectionChange?: (file: File | null) => void
+  onFileRemove?: () => void
 }
 
-function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = null, reading = false, readingError = '', onSelectionChange }: AttachExcelFileFormProps) {
+function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = null, reading = false, readingError = '', onSelectionChange, onFileRemove }: AttachExcelFileFormProps) {
   const explanationTrigger = useRef<HTMLButtonElement>(null)
   const [selection, setSelection] = useState<SpreadsheetSelection>({ file: initialFile, error: '' })
   const [isExplanationOpen, setIsExplanationOpen] = useState(false)
@@ -31,15 +32,16 @@ function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = n
 
   function selectFile(file?: File) {
     if (!file || reading) return
-    onSelectionChange?.()
 
     if (settingsMode) {
       setSelection({ file, error: '' })
+      onSelectionChange?.(file)
       return
     }
 
     const result = validateSpreadsheetFile(file, 5 * 1024 * 1024)
     setSelection(result.valid ? { file: result.file, error: '' } : { file: null, error: result.message })
+    onSelectionChange?.(result.valid ? result.file : null)
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -71,12 +73,16 @@ function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = n
           file={selection.file}
           id="spreadsheet-file"
           onFileSelect={selectFile}
+          onFileRemove={() => {
+            setSelection({ file: null, error: '' })
+            onSelectionChange?.(null)
+            onFileRemove?.()
+          }}
           disabled={reading}
           maxSizeMb={settingsMode ? 10 : 5}
           errorId={!settingsMode && (selection.error || readingError) ? "spreadsheet-error" : undefined}
         />
 
-        {!settingsMode && <p className="attach-excel-feedback">Use a primeira aba com as colunas nome, cpf, email, unidade, cargo e modalidade. Inclua exatamente uma linha com o e-mail do gestor. Vamos identificar as unidades para você preencher seus endereços na próxima etapa. Use HIBRIDO, REMOTO ou PRESENCIAL.</p>}
         {!settingsMode && (selection.error || readingError) && <p className="login-field-error" id="spreadsheet-error" role="alert">{selection.error || readingError}</p>}
 
         <PurpleButton className="attach-excel-continue" type="submit" disabled={reading}>{settingsMode ? 'Adicionar colaboradores' : 'Continuar'}</PurpleButton>

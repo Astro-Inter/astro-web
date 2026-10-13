@@ -38,6 +38,8 @@
   margin-top: calc(clamp(2.5rem, 3.33vw, 3rem) * var(--astro-scale));
 }
 
+.workspace-created-error { max-width: var(--astro-action-width); margin-top: calc(1rem * var(--astro-scale)); }
+
 @media (max-width: 600px) {
   .workspace-created-page {
     padding-block: 3rem;

@@ -4,12 +4,12 @@ import { usePostalCodeLookup } from './usePostalCodeLookup'
 import { mergePostalAddress } from '../utils/workspaceUnits'
 
 function emptyUnit(id: number): WorkspaceUnitAddress {
-  return { id, name: '', cep: '', state: '', city: '', neighborhood: '', street: '', number: '', complement: '' }
+  return { id, name: '', cep: '', state: '', city: '', neighborhood: '', street: '', number: '', complement: '', source: 'manual' }
 }
 
-export function useWorkspaceAddresses(initialUnits?: WorkspaceUnitAddress[]) {
+export function useWorkspaceAddresses(initialUnits?: WorkspaceUnitAddress[], lockInitialUnits = false) {
   const [address, setAddress] = useState<WorkspaceAddressState>({
-    units: initialUnits?.length ? initialUnits : initialUnits ? [emptyUnit(1)] : [emptyUnit(1), emptyUnit(2)],
+    units: initialUnits?.length ? initialUnits.map(unit => ({ ...unit, source: unit.source ?? (lockInitialUnits ? 'spreadsheet' : 'manual') })) : initialUnits ? [emptyUnit(1)] : [emptyUnit(1), emptyUnit(2)],
     activeId: initialUnits?.[0]?.id ?? 1,
     nextId: initialUnits?.length ? Math.max(...initialUnits.map(unit => unit.id)) + 1 : initialUnits ? 2 : 3,
   })
@@ -24,6 +24,7 @@ export function useWorkspaceAddresses(initialUnits?: WorkspaceUnitAddress[]) {
     ? lookupState : { ...lookupState, status: 'idle' as const, message: '' }
 
   function changeField(field: WorkspaceAddressField, value: string) {
+    if (field === 'name' && activeUnit.source === 'spreadsheet') return
     if (field === 'cep') lookup({ ...activeUnit, cep: value })
     setAddress((current) => ({
       ...current,
@@ -41,8 +42,10 @@ export function useWorkspaceAddresses(initialUnits?: WorkspaceUnitAddress[]) {
   }
 
   function removeUnit() {
+    if (activeUnit.source === 'spreadsheet') return
     resetPostalCode()
     setAddress((current) => {
+      if (current.units.find(unit => unit.id === current.activeId)?.source === 'spreadsheet') return current
       if (current.units.length === 1) {
         return { ...current, units: [emptyUnit(current.activeId)] }
       }
@@ -71,5 +74,5 @@ export function useWorkspaceAddresses(initialUnits?: WorkspaceUnitAddress[]) {
     setAddress(current => ({ ...current, activeId: id }))
   }
 
-  return { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit, selectUnit, postalCode, retryPostalCode: () => lookup(activeUnit) }
+  return { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit, selectUnit, postalCode }
 }

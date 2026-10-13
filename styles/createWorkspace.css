@@ -3,30 +3,29 @@
   max-width: none;
 }
 
+.create-workspace-page .login-panel { padding-block: var(--astro-registration-padding-block); }
+
 .workspace-code-control {
   display: flex;
   flex-direction: column;
   gap: var(--astro-field-gap);
+  width: calc(100% + 2rem * var(--astro-scale));
+  margin-inline: calc(-1rem * var(--astro-scale));
 }
 
 .workspace-code-fields {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: calc(clamp(0.35rem, 0.5vw, 0.45rem) * var(--astro-scale));
-  width: calc(100% + 2rem * var(--astro-scale));
+  width: 100%;
   min-width: 0;
-  margin: 0 calc(-1rem * var(--astro-scale));
+  margin: 0;
   padding: 0;
   border: 0;
 }
 
 .workspace-code-cell {
   min-width: 0;
-}
-
-.workspace-code-email {
-  color: var(--astro-text);
-  overflow-wrap: anywhere;
 }
 
 .workspace-code-fields input {
@@ -56,7 +55,7 @@
     display: none;
   }
 
-  .workspace-code-fields {
+  .workspace-code-control {
     width: 100%;
     margin-inline: 0;
   }

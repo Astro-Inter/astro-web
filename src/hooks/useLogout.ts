@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { flushSync } from 'react-dom'
 import { logout } from '../services/authentication'
 
 interface UseLogoutResult {
@@ -16,6 +17,8 @@ export function useLogout(): UseLogoutResult {
 
   useEffect(() => {
     mounted.current = true
+    // A tela estará pronta quando o Firebase encerrar a sessão.
+    void import('../pages/login').catch(() => undefined)
     return () => { mounted.current = false }
   }, [])
 
@@ -24,8 +27,25 @@ export function useLogout(): UseLogoutResult {
     pending.current = true
     setState({ pending: true, error: '' })
     try {
-      await logout()
-      navigate('/', { replace: true, state: null })
+      await import('../pages/login')
+      const animated = Boolean(document.startViewTransition) && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const leave = async () => {
+        await logout()
+        flushSync(() => navigate('/', { replace: true, state: animated ? { logoutTransition: true } : null }))
+      }
+      if (animated) {
+        document.documentElement.classList.add('logout-transition')
+        try {
+          const transition = document.startViewTransition(leave)
+          void transition.ready.catch(() => undefined)
+          await transition.updateCallbackDone
+          await transition.finished
+        } finally {
+          document.documentElement.classList.remove('logout-transition')
+        }
+      } else {
+        await leave()
+      }
     } catch (error: unknown) {
       if (mounted.current) setState({ pending: false, error: error instanceof Error ? error.message : 'Não foi possível sair da conta. Tente novamente.' })
     } finally {
