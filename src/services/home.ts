@@ -45,7 +45,7 @@ export async function loadWorkspaceHome(signal?: AbortSignal): Promise<Workspace
     const user = firebaseAuth.currentUser
     if (!user) throw new HomeApiError('Entre na sua conta para consultar a Home.')
     const token = await user.getIdToken()
-    const response = await fetch(`${getSystemApiBaseUrl()}/home-workspace`, {
+    const response = await fetch(`${getSystemApiBaseUrl()}/home/workspace`, {
       signal, headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
     })
     const text = await response.text()

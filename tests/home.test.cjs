@@ -34,10 +34,10 @@ function respond(stats = statistics) {
   return new Response(JSON.stringify({ success: true, data: { nome_usuario: ' Gestor do workspace ', estatisticas: stats } }))
 }
 
-test('consulta home-workspace com Bearer sem UID e mapeia todos os indicadores do Swagger', async () => {
+test('consulta home/workspace com Bearer sem UID e mapeia todos os indicadores do Swagger', async () => {
   const controller = new AbortController()
   global.fetch = async (url, init) => {
-    assert.equal(url, 'https://api.example.test/home-workspace')
+    assert.equal(url, 'https://api.example.test/home/workspace')
     assert.equal(init.headers.Authorization, 'Bearer firebase-token')
     assert.equal(init.headers.Accept, 'application/json')
     assert.equal(init.body, undefined)
@@ -107,7 +107,7 @@ test('preserva cancelamento da leitura', async () => {
 
 test('erro 500 real da API informa falha no servidor em vez da mensagem genérica', async () => {
   global.fetch = async () => new Response(JSON.stringify({
-    success: false, message: 'Erro interno do servidor', errors: ['Ocorreu um erro inesperado'], path: '/home-workspace',
+    success: false, message: 'Erro interno do servidor', errors: ['Ocorreu um erro inesperado'], path: '/home/workspace',
   }), { status: 500 })
   await assert.rejects(api.loadWorkspaceHome(), /O servidor não conseguiu carregar os indicadores do workspace \(erro 500\)/)
 })
