@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import type { ChatSessionSummary } from '../../types/chat'
 import { formatChatSessionDate, groupChatSessions } from '../../utils/chatSessions'
@@ -51,7 +52,7 @@ function AstroChatSessions({ sessions, nextCursor, selectedSessionId, openingSes
       <div className="astro-chat-sessions-heading">
         <h2 className="astro-chat-screen-title" id="astro-chat-sessions-title">Suas conversas</h2>
         <p>Retome de onde parou com o Astro.</p>
-        <PurpleButton className="astro-chat-session-new" disabled={disabled} onClick={onNewSession}>
+        <PurpleButton data-track-action={BUTTONS.comuns.nova_conversa} className="astro-chat-session-new" disabled={disabled} onClick={onNewSession}>
           <AstroIcon name="plus" /> Nova conversa
         </PurpleButton>
         <AstroChatTransition className="astro-chat-session-feedback" contentKey={selectionError ? `error-${selectionError}` : openingSessionId ?? 'idle'}>
@@ -85,7 +86,7 @@ function AstroChatSessions({ sessions, nextCursor, selectedSessionId, openingSes
                   const date = formatChatSessionDate(session.updated_at)
                   return (
                     <li key={session.session_id}>
-                      <button
+                      <button data-track-action={BUTTONS.comuns.abrir_conversa}
                         aria-busy={opening}
                         aria-current={selected ? 'true' : undefined}
                         className={`astro-chat-session-item${selected ? ' astro-chat-session-item--selected' : ''}`}
@@ -124,7 +125,7 @@ function AstroChatSessions({ sessions, nextCursor, selectedSessionId, openingSes
           ) : error ? (
             <div className="astro-chat-sessions-message" role="alert">
               <p>{error}</p>
-              <PurpleButton auto className="astro-chat-session-retry" onClick={onRetry}>Tentar novamente</PurpleButton>
+              <PurpleButton data-track-action={BUTTONS.comuns.tentar_novamente} auto className="astro-chat-session-retry" onClick={onRetry}>Tentar novamente</PurpleButton>
             </div>
           ) : !nextCursor && sessions.length > 0 ? <p className="astro-chat-sessions-end">Todas as conversas foram carregadas.</p> : null}
           </AstroChatTransition>

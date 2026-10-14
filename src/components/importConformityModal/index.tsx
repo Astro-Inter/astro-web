@@ -1,3 +1,5 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState, type FormEvent } from 'react'
 import { validateSpreadsheetFile } from '../../utils/spreadsheet'
 import AppModal from '../appModal'
@@ -56,10 +58,10 @@ function ImportConformityModal({ dimmed = false, onClose, onImport, onManualAdd,
 
   return (
     <>
-      <AppModal className="import-conformity-modal" dimmed={dimmed || explanationOpen} onClose={onClose} open={open} title="Adicionar conformidades">
-        {(dismiss) => <form noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
+      <AppModal trackingName={DIALOG_NAMES.adicionar_conformidades} className="import-conformity-modal" dimmed={dimmed || explanationOpen} onClose={onClose} open={open} title="Adicionar conformidades">
+        {(dismiss) => <form data-track-submit={BUTTONS.comuns.adicionar} noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
           <p className="import-conformity-subtitle">Adicione manualmente ou importe conformidades anteriores para o Astro.</p>
-          <CompactPurpleButton aria-haspopup="dialog" className="import-conformity-manual" onClick={onManualAdd} type="button">
+          <CompactPurpleButton data-track-action={BUTTONS.comuns.adicionar_manualmente} aria-haspopup="dialog" className="import-conformity-manual" onClick={onManualAdd} type="button">
             <AstroIcon name="pencil" />
             Adicionar manualmente
           </CompactPurpleButton>
@@ -67,13 +69,13 @@ function ImportConformityModal({ dimmed = false, onClose, onImport, onManualAdd,
           <SpreadsheetDropzone className="import-conformity-dropzone" file={selection.file} id="import-conformity-file" onFileSelect={selectFile} onFileRemove={() => setSelection({ file: null, error: '' })} />
           {selection.error && <p className="attach-excel-feedback" role="alert">{selection.error}</p>}
 
-          <button aria-haspopup="dialog" className="attach-excel-model-link import-conformity-model-link" onClick={() => setExplanationOpen(true)} ref={explanationTriggerRef} type="button">
+          <button data-track-action={BUTTONS.comuns.como_importar_planilha} aria-haspopup="dialog" className="attach-excel-model-link import-conformity-model-link" onClick={() => setExplanationOpen(true)} ref={explanationTriggerRef} type="button">
             Veja o modelo de planilha necessário
           </button>
 
           <div className="astro-modal-actions import-conformity-actions">
-            <button className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
-            <PurpleButton type="submit">Adicionar</PurpleButton>
+            <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
+            <PurpleButton data-track-action={BUTTONS.comuns.adicionar} type="submit">Adicionar</PurpleButton>
           </div>
         </form>}
       </AppModal>

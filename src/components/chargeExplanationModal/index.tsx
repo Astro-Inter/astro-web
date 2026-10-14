@@ -1,3 +1,5 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef } from 'react'
 import { useAnimatedDialog } from '../../hooks/useAnimatedDialog'
 import AstroIcon from '../astroIcon'
@@ -13,7 +15,7 @@ function ChargeExplanationModal({ onDismiss, open }: ChargeExplanationModalProps
   const { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose } = useAnimatedDialog({ initialFocusRef: titleRef, onClose: onDismiss, open })
 
   return (
-    <dialog
+    <dialog data-track-dialog={DIALOG_NAMES.explicacao_pagamento}
       aria-describedby="charge-explanation-subtitle"
       aria-labelledby="charge-explanation-title"
       className={`charge-explanation-modal astro-scale-100${closing ? ' astro-dialog--closing' : ''}`}
@@ -51,7 +53,7 @@ function ChargeExplanationModal({ onDismiss, open }: ChargeExplanationModalProps
         </li>
       </ul>
 
-      <PurpleButton className="charge-explanation-confirm" onClick={dismiss}>
+      <PurpleButton data-track-action={BUTTONS.comuns.entendi} className="charge-explanation-confirm" onClick={dismiss}>
         Entendi
       </PurpleButton>
     </dialog>

@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import type { EventGroup, EventGroupSchedule } from '../../types/eventCreation'
 import FormDatePicker from '../formDatePicker'
 import EventTimePicker from '../eventTimePicker'
@@ -14,7 +15,7 @@ interface EventGroupScheduleModalProps {
 }
 
 function EventGroupScheduleModal({ groups, assignments, schedules, onChange, onBack, onContinue, lockedGroupIds = [] }: EventGroupScheduleModalProps) {
-  return <form onSubmit={event => { event.preventDefault(); onContinue() }}>
+  return <form data-track-submit={BUTTONS.comuns.continuar} onSubmit={event => { event.preventDefault(); onContinue() }}>
     <p className="event-create-description">Defina a data e os horários de cada grupo.</p>
     <div className="event-create-schedule-grid">
       {groups.map(group => {
@@ -32,7 +33,7 @@ function EventGroupScheduleModal({ groups, assignments, schedules, onChange, onB
         </section>
       })}
     </div>
-    <div className="astro-modal-actions event-create-actions"><button className="astro-modal-cancel" onClick={onBack} type="button">Voltar</button><PurpleButton type="submit">Continuar</PurpleButton></div>
+    <div className="astro-modal-actions event-create-actions"><button data-track-action={BUTTONS.comuns.voltar} className="astro-modal-cancel" onClick={onBack} type="button">Voltar</button><PurpleButton data-track-action={BUTTONS.comuns.continuar} type="submit">Continuar</PurpleButton></div>
   </form>
 }
 

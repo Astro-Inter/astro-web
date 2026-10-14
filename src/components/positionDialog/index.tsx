@@ -1,3 +1,5 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState, type FormEvent } from 'react'
 import type { Position, PositionFormValues } from '../../types'
 import { validatePosition, type PositionValidationErrors } from '../../utils/position'
@@ -58,8 +60,8 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
   }
 
   return (
-    <AppModal className="position-dialog" dimmed={dimmed} dismissible={!submitting} onClose={onClose} open={open} title={position ? 'Editar cargo' : 'Adicionar cargo'}>
-      {(dismiss) => <form aria-busy={submitting} autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
+    <AppModal trackingName={position ? DIALOG_NAMES.editar_cargo : DIALOG_NAMES.adicionar_cargo} className="position-dialog" dimmed={dimmed} dismissible={!submitting} onClose={onClose} open={open} title={position ? 'Editar cargo' : 'Adicionar cargo'}>
+      {(dismiss) => <form data-track-submit={position ? BUTTONS.comuns.salvar : BUTTONS.comuns.adicionar} aria-busy={submitting} autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
         <fieldset disabled={submitting} className="position-dialog-fields">
           <div className="position-dialog-row">
             <div className="position-dialog-field">
@@ -82,7 +84,7 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
             </div>
             <div className="position-dialog-field">
               <span className="position-dialog-label">Status</span>
-              <ToolbarSelect
+              <ToolbarSelect trackingAction={BUTTONS.comuns.cargo}
                 className={`position-dialog-select${status ? '' : ' position-dialog-select--placeholder'}${errors.status ? ' position-dialog-select--invalid' : ''}`}
                 label="Status do cargo"
                 disabled={submitting}
@@ -103,8 +105,8 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
         {formError && <p className="position-dialog-form-error" role="alert">{formError}</p>}
 
         <div className="astro-modal-actions">
-          <button className="astro-modal-cancel" disabled={submitting} onClick={dismiss} type="button">Cancelar</button>
-          <PurpleButton disabled={submitting} type="submit">{position ? 'Salvar' : 'Adicionar'}</PurpleButton>
+          <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" disabled={submitting} onClick={dismiss} type="button">Cancelar</button>
+          <PurpleButton data-track-action={position ? BUTTONS.comuns.salvar : BUTTONS.comuns.adicionar} disabled={submitting} type="submit">{position ? 'Salvar' : 'Adicionar'}</PurpleButton>
         </div>
       </form>}
     </AppModal>

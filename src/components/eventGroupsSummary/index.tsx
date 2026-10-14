@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import type { EventGroup, EventGroupSchedule } from '../../types/eventCreation'
 import TruncatedText from '../truncatedText'
 
@@ -22,11 +23,11 @@ function EventGroupsSummary({ groups, assignments, schedules, selectedIds = Obje
       <dt><TruncatedText>{group.name}</TruncatedText></dt>
       <dd>
         <TruncatedText>{`${date} · ${schedule?.startTime || '—'} – ${schedule?.endTime || '—'}`}</TruncatedText>
-        {onViewCollaborators ? <button aria-label={`Ver ${members.length} colaboradores de ${group.name}`} className="event-group-collaborators-link" onClick={() => onViewCollaborators(group, members)} type="button">{members.length} colaboradores</button> : <span>{members.length} participantes</span>}
+        {onViewCollaborators ? <button data-track-action={BUTTONS.comuns.ver_colaboradores} aria-label={`Ver ${members.length} colaboradores de ${group.name}`} className="event-group-collaborators-link" onClick={() => onViewCollaborators(group, members)} type="button">{members.length} colaboradores</button> : <span>{members.length} participantes</span>}
 
       </dd>
     </div>
-  })}{unassigned.length > 0 && <div><dt>Sem grupo</dt><dd>{onViewCollaborators ? <button className="event-group-collaborators-link" onClick={() => onViewCollaborators({ id: 'unassigned', name: 'Sem grupo' }, unassigned)} type="button">{unassigned.length} colaboradores</button> : <span>{unassigned.length} participantes</span>}</dd></div>}</dl>
+  })}{unassigned.length > 0 && <div><dt>Sem grupo</dt><dd>{onViewCollaborators ? <button data-track-action={BUTTONS.comuns.ver_colaboradores} className="event-group-collaborators-link" onClick={() => onViewCollaborators({ id: 'unassigned', name: 'Sem grupo' }, unassigned)} type="button">{unassigned.length} colaboradores</button> : <span>{unassigned.length} participantes</span>}</dd></div>}</dl>
 }
 
 export default EventGroupsSummary

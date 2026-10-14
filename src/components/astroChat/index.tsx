@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { iconAsset } from '../../utils/iconAsset'
 import { useAstroChatController } from '../../hooks/useAstroChatController'
 import { useAuthentication } from '../../hooks/useAuthentication'
@@ -25,7 +26,7 @@ function AstroChatView() {
         >
           <div className="astro-chat-surface" style={expandedChatSize ? { width: expandedChatSize.width, height: expandedChatSize.height } : undefined}>
           <header aria-label="Mover chat com as setas do teclado" className="astro-chat-header" onKeyDown={moveWithKeyboard} tabIndex={0} title="Arraste para mover o chat">
-            <button
+            <button data-track-action={sessionList.panelOpen ? BUTTONS.comuns.voltar_conversa : BUTTONS.comuns.historico_conversas}
               aria-expanded={sessionList.panelOpen}
               aria-label={sessionList.panelOpen ? 'Voltar à conversa' : 'Abrir histórico de conversas'}
               aria-controls={historyVisible ? 'astro-chat-sessions' : undefined}
@@ -46,7 +47,7 @@ function AstroChatView() {
               )}
             </button>
             {!historyVisible && chat.sessionId && (chat.sessionStatus === 'ativa' || chat.sessionStatus === 'encerrando') && (
-              <button
+              <button data-track-action={BUTTONS.comuns.encerrar_conversa}
                 aria-label={chat.sessionStatus === 'encerrando' ? 'Finalizar conversa' : 'Encerrar conversa'}
                 className="astro-chat-header-button astro-chat-end-session"
                 disabled={chat.busy !== 'idle'}
@@ -57,7 +58,7 @@ function AstroChatView() {
                 <img alt="" aria-hidden="true" height="24" src={iconAsset('endSession.svg')} width="24" />
               </button>
             )}
-            <button
+            <button data-track-action={chat.expanded ? BUTTONS.comuns.recolher_chat : BUTTONS.comuns.ampliar_chat}
               aria-label={chat.expanded ? 'Recolher chat' : 'Ampliar chat'}
               className="astro-chat-header-button astro-chat-header-button--resize"
               onClick={toggleExpanded}
@@ -66,7 +67,7 @@ function AstroChatView() {
               <img alt="" className={`astro-chat-resize-icon${chat.expanded ? '' : ' astro-chat-resize-icon--active'}`} draggable={false} height="24" src={iconAsset('expand.svg')} width="24" />
               <img alt="" className={`astro-chat-resize-icon astro-chat-resize-icon--collapse${chat.expanded ? ' astro-chat-resize-icon--active' : ''}`} draggable={false} height="24" src={iconAsset('collapse.svg')} width="24" />
             </button>
-            <button aria-label="Fechar chat" className="astro-chat-header-button" onClick={closeChat} type="button">
+            <button data-track-action={BUTTONS.comuns.fechar_chat} aria-label="Fechar chat" className="astro-chat-header-button" onClick={closeChat} type="button">
               <img alt="" height="21" src={iconAsset('close.svg')} width="21" />
             </button>
           </header>
@@ -77,7 +78,7 @@ function AstroChatView() {
             ) : !authState.authenticated ? (
               <div className="astro-chat-auth-message">
                 <h2 className="astro-chat-screen-title">Entre na sua conta Astro para conversar com a IA e acessar suas conversas.</h2>
-                <button className="astro-chat-login-button" onClick={() => navigate('/')} type="button">Ir para o login</button>
+                <button data-track-action={BUTTONS.comuns.login} className="astro-chat-login-button" onClick={() => navigate('/')} type="button">Ir para o login</button>
               </div>
             ) : sessionList.panelOpen ? (
               <AstroChatSessions
@@ -100,7 +101,7 @@ function AstroChatView() {
                 <h2 className="astro-chat-screen-title">Olá! Estou aqui para te ajudar a entender como a plataforma Astro funciona.</h2>
                 <div aria-label="Perguntas sugeridas" className="astro-chat-suggestions">
                   {suggestions.map((suggestion) => (
-                    <button key={suggestion} disabled={chat.busy !== 'idle'} onClick={() => { void sendMessage(suggestion) }} type="button">{suggestion}</button>
+                    <button data-track-action={BUTTONS.comuns.pergunta_sugerida} key={suggestion} disabled={chat.busy !== 'idle'} onClick={() => { void sendMessage(suggestion) }} type="button">{suggestion}</button>
                   ))}
                 </div>
               </div>
@@ -114,7 +115,7 @@ function AstroChatView() {
             </AstroChatTransition>}
           </div>
 
-          {!historyVisible && <form className="astro-chat-form" onSubmit={(event) => { event.preventDefault(); sendMessage(chat.draft) }}>
+          {!historyVisible && <form data-track-submit={BUTTONS.comuns.enviar_mensagem} className="astro-chat-form" onSubmit={(event) => { event.preventDefault(); sendMessage(chat.draft) }}>
             <label className="sr-only" htmlFor="astro-chat-input">Digite sua mensagem</label>
             <input
               autoComplete="off"
@@ -127,14 +128,14 @@ function AstroChatView() {
               type="text"
               value={chat.draft}
             />
-            <button aria-label="Enviar mensagem" disabled={!authState.authenticated || chat.busy !== 'idle' || !chat.draft.trim()} type="submit">
+            <button data-track-action={BUTTONS.comuns.enviar_mensagem} aria-label="Enviar mensagem" disabled={!authState.authenticated || chat.busy !== 'idle' || !chat.draft.trim()} type="submit">
               <img alt="" height="62" src={iconAsset('sendMessage.svg')} width="62" />
             </button>
           </form>}
           </div>
         </section>
       ) : (
-        <button
+        <button data-track-action={BUTTONS.comuns.ia}
           aria-controls="astro-chat-window"
           aria-expanded="false"
           aria-label="Abrir chat do Astro"

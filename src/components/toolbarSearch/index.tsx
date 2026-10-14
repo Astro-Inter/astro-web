@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { iconAsset } from '../../utils/iconAsset'
 import { useId, useRef, type InputHTMLAttributes } from 'react'
 import AstroIcon from '../astroIcon'
@@ -19,7 +20,7 @@ function ToolbarSearch({ id, label, className = '', onClear, value, ...inputProp
       <AstroIcon name="search" />
       <input id={inputId} ref={inputRef} type="search" value={value} {...inputProps} />
       {canClear && (
-        <button aria-label="Limpar busca" className="astro-toolbar-search-clear" onClick={() => { onClear(); inputRef.current?.focus() }} type="button">
+        <button data-track-action={BUTTONS.comuns.limpar_busca} aria-label="Limpar busca" className="astro-toolbar-search-clear" onClick={() => { onClear(); inputRef.current?.focus() }} type="button">
           <img alt="" aria-hidden="true" height="24" src={iconAsset('close.svg')} width="24" />
         </button>
       )}

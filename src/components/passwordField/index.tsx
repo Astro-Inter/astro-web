@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { iconAsset } from '../../utils/iconAsset'
 
 interface PasswordFieldProps {
@@ -38,7 +39,7 @@ function PasswordField({ autoComplete = 'off', id, label, placeholder, value, vi
           type={visible ? 'text' : 'password'}
           value={value}
         />
-        <button
+        <button data-track-action={visible ? BUTTONS.comuns.ocultar_senha : BUTTONS.comuns.mostrar_senha}
           aria-label={`${visible ? 'Ocultar' : 'Mostrar'} ${label.toLowerCase()}`}
           aria-pressed={visible}
           className="password-visibility"

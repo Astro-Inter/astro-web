@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { Link } from 'react-router-dom'
 import AstroIcon from '../astroIcon'
 import PurpleButton from '../purpleButton'
@@ -42,14 +43,14 @@ function PaymentSummary({ onCompletePurchase, settingsMode = false, status = 'id
           <strong>R$ 10 reais</strong>
         </div>
 
-        <PurpleButton className="finish-payment-button" disabled={pending} onClick={onCompletePurchase}>
+        <PurpleButton data-track-action={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.finalizar_compra} className="finish-payment-button" disabled={pending} onClick={onCompletePurchase}>
           {settingsMode ? 'Salvar alterações' : 'Finalizar compra'}
         </PurpleButton>
         {status === 'error' && message && <p className="login-field-error" role="alert">{message}</p>}
         {status === 'success' && message && <p className="login-feedback" role="status">{message}</p>}
 
         {!settingsMode && <p className="workspace-key-link">
-          Já tem uma chave do workspace? {pending ? 'Verificar' : <Link to="/createWorkspace">Verificar</Link>}
+          Já tem uma chave do workspace? {pending ? 'Verificar' : <Link data-track-action={BUTTONS.comuns.chave} to="/createWorkspace">Verificar</Link>}
         </p>}
       </div>
     </aside>

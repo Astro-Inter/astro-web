@@ -194,7 +194,7 @@ function inviteEnvironment(operation) {
   const code = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
   new Function('require', 'module', 'exports', code)(name => {
     if (name === 'react') return react
-    if (name.startsWith('../../utils/')) return loadTs(path.resolve(path.dirname(filename), `${name}.ts`))
+    if (name.startsWith('../../utils/') || name.startsWith('../../gtm/')) return loadTs(path.resolve(path.dirname(filename), `${name}.ts`))
     if (name.startsWith('../')) return { default: name }
     return require(name)
   }, module, module.exports)

@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useNavigate } from 'react-router-dom'
 import { AstroBrand, AstroIcon } from '../../components'
 import DashboardBarChart from '../../components/dashboardBarChart'
@@ -7,9 +8,9 @@ import { dashboardDetailCharts, dashboardDetailMetrics, dashboardOverviewChart, 
 function MainDashboardsScreenPage() {
   const navigate = useNavigate()
   return <div className="create-forms-page astro-scale-90 dashboards-page">
-    <button aria-label="Voltar" className="payment-back-button" onClick={() => navigate('/mainHomeScreen')} type="button"><AstroIcon name="back" /></button>
+    <button data-track-action={BUTTONS.comuns.voltar} aria-label="Voltar" className="payment-back-button" onClick={() => navigate('/mainHomeScreen')} type="button"><AstroIcon name="back" /></button>
     <header className="create-password-header create-forms-header"><AstroBrand /></header>
-    <main className="create-forms-main dashboards-content" aria-labelledby="dashboards-title">
+    <main data-track-page={true} className="create-forms-main dashboards-content" aria-labelledby="dashboards-title">
       <h1 id="dashboards-title">Dashboards</h1>
       <div className="dashboard-overview-grid">
         <DashboardBarChart chart={dashboardOverviewChart} />

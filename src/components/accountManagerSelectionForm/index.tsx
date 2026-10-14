@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import type { EventCollaborator } from '../../types/eventCreation'
 import PurpleButton from '../purpleButton'
 import ToolbarSelect from '../toolbarSelect'
@@ -18,18 +19,18 @@ function AccountManagerSelectionForm({ collaborators, value, onChange, onCancel,
   ]
 
   return (
-      <form className="account-manager-selection-form" noValidate onSubmit={event => {
+      <form data-track-submit={BUTTONS.comuns.continuar} className="account-manager-selection-form" noValidate onSubmit={event => {
         event.preventDefault()
         if (!hasSelection) return
         onContinue()
       }}>
         <div className="field-group">
           <label htmlFor="account-replacement-email">E-mail do colaborador</label>
-          <ToolbarSelect className="account-field-select" id="account-replacement-email" label="E-mail do colaborador" onValueChange={onChange} options={options} value={value} />
+          <ToolbarSelect trackingAction={BUTTONS.comuns.colaborador} className="account-field-select" id="account-replacement-email" label="E-mail do colaborador" onValueChange={onChange} options={options} value={value} />
         </div>
         <div className="astro-modal-actions">
-          <button className="astro-modal-cancel" onClick={onCancel} type="button">Cancelar</button>
-          <PurpleButton disabled={!hasSelection} type="submit" variant="danger">Continuar</PurpleButton>
+          <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" onClick={onCancel} type="button">Cancelar</button>
+          <PurpleButton data-track-action={BUTTONS.comuns.continuar} disabled={!hasSelection} type="submit" variant="danger">Continuar</PurpleButton>
         </div>
       </form>
   )

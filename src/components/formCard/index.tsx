@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import type { MouseEvent } from 'react'
 import AstroIcon from '../astroIcon'
 import { formStatusLabels } from '../../data/forms'
@@ -18,7 +19,7 @@ function FormCard({ form, menuOpen, onOpenMenu }: FormCardProps) {
           <h2 id={`form-title-${form.id}`}>{form.name}</h2>
           <p>{form.description}</p>
         </div>
-        <button aria-controls={menuOpen ? `form-options-${form.id}` : undefined} aria-expanded={menuOpen} aria-haspopup="menu" aria-label={`Opções para ${form.name}`} className="form-card-options" onClick={onOpenMenu} type="button">
+        <button data-track-item={BUTTONS.comuns.acoes} aria-controls={menuOpen ? `form-options-${form.id}` : undefined} aria-expanded={menuOpen} aria-haspopup="menu" aria-label={`Opções para ${form.name}`} className="form-card-options" onClick={onOpenMenu} type="button">
           <AstroIcon className="form-card-options-dots" name="dots" />
         </button>
       </div>

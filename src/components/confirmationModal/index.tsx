@@ -1,8 +1,10 @@
+import { BUTTONS, confirmationAction } from '../../gtm/buttons'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import AppModal from '../appModal'
 import PurpleButton from '../purpleButton'
 
 interface ConfirmationModalProps {
+  trackingName?: string
   cancelLabel?: string
   className?: string
   backdrop?: 'dimmed' | 'transparent'
@@ -20,7 +22,7 @@ interface ConfirmationModalProps {
   tone?: 'default' | 'danger'
 }
 
-function ConfirmationModal({ cancelLabel = 'Cancelar', className = '', backdrop = 'transparent', preservePageScroll = false, confirmCloseDelay = 0, confirmLabel, progressLabel = 'Salvando alterações...', description, icon, onCancel, onCancelRequest, onConfirm, onConfirmed, title, tone = 'default' }: ConfirmationModalProps) {
+function ConfirmationModal({ trackingName, cancelLabel = 'Cancelar', className = '', backdrop = 'transparent', preservePageScroll = false, confirmCloseDelay = 0, confirmLabel, progressLabel = 'Salvando alterações...', description, icon, onCancel, onCancelRequest, onConfirm, onConfirmed, title, tone = 'default' }: ConfirmationModalProps) {
   const confirmedRef = useRef(false)
   const confirmTimerRef = useRef<number | null>(null)
   const [error, setError] = useState('')
@@ -32,7 +34,7 @@ function ConfirmationModal({ cancelLabel = 'Cancelar', className = '', backdrop 
   }, [])
 
   return (
-    <AppModal dismissible={!submitting} backdrop={backdrop} preservePageScroll={preservePageScroll} className={`astro-confirmation-modal${icon ? ' astro-confirmation-modal--with-icon' : ''}${className ? ` ${className}` : ''}`} onClose={() => {
+    <AppModal trackingName={trackingName} dismissible={!submitting} backdrop={backdrop} preservePageScroll={preservePageScroll} className={`astro-confirmation-modal${icon ? ' astro-confirmation-modal--with-icon' : ''}${className ? ` ${className}` : ''}`} onClose={() => {
       if (confirmedRef.current) onConfirmed()
       else onCancel()
     }} onDismissRequest={() => {
@@ -43,8 +45,8 @@ function ConfirmationModal({ cancelLabel = 'Cancelar', className = '', backdrop 
         {submitting && progressLabel && <p role="status">{progressLabel}</p>}
         {error && <p className="astro-confirmation-error" role="alert">{error}</p>}
         <div className="astro-modal-actions">
-          <button className="astro-modal-cancel" disabled={submitting} onClick={dismiss} type="button">{cancelLabel}</button>
-          <PurpleButton variant={tone === 'danger' ? 'danger' : 'solid'} disabled={submitting} onClick={async () => {
+          <button data-track-action={cancelLabel === 'Voltar' ? BUTTONS.comuns.voltar : BUTTONS.comuns.cancelar} className="astro-modal-cancel" disabled={submitting} onClick={dismiss} type="button">{cancelLabel}</button>
+          <PurpleButton data-track-action={confirmationAction(confirmLabel)} variant={tone === 'danger' ? 'danger' : 'solid'} disabled={submitting} onClick={async () => {
             if (submittingRef.current || confirmedRef.current) return
             submittingRef.current = true
             setSubmitting(true)

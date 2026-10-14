@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import type { EventDraft, EventGroup, EventGroupSchedule, EventSettings } from '../../types/eventCreation'
 import PurpleButton from '../purpleButton'
 import EventGroupsSummary from '../eventGroupsSummary'
@@ -28,7 +29,7 @@ function EventReviewModal({ draft, groups, assignments, schedules, settings, onB
         <div><dt>Descrição</dt><dd><TruncatedText>{draft.description || 'Não informada'}</TruncatedText></dd></div>
         <div><dt>Tipo do evento</dt><dd><TruncatedText>{draft.type || 'Não informado'}</TruncatedText></dd></div>
         <div><dt>NR</dt><dd><TruncatedText>{formatRegulatoryStandardCode(draft.nr) || 'Não informada'}</TruncatedText></dd></div>
-        <div><dt>Link externo</dt><dd>{link ? <a href={link} rel="noopener noreferrer" target="_blank"><TruncatedText>{draft.externalLink}</TruncatedText></a> : <TruncatedText>{draft.externalLink || 'Não informado'}</TruncatedText>}</dd></div>
+        <div><dt>Link externo</dt><dd>{link ? <a data-track-action={BUTTONS.comuns.abrir_link_evento} href={link} rel="noopener noreferrer" target="_blank"><TruncatedText>{draft.externalLink}</TruncatedText></a> : <TruncatedText>{draft.externalLink || 'Não informado'}</TruncatedText>}</dd></div>
       </dl></section>
       <section className="event-create-summary-card event-create-summary-card--groups"><h3>Grupos</h3><EventGroupsSummary assignments={assignments} groups={groups} schedules={schedules} onViewCollaborators={onViewCollaborators} /></section>
       <section className="event-create-summary-card"><h3>Configurações</h3><dl aria-label="Configurações do evento" tabIndex={0}>
@@ -39,7 +40,7 @@ function EventReviewModal({ draft, groups, assignments, schedules, settings, onB
       </dl></section>
     </div>
     {error && <p className="event-create-error" role="alert">{error}</p>}
-    <div className="astro-modal-actions event-create-actions"><button className="astro-modal-cancel" onClick={onBack} type="button">Voltar</button><PurpleButton onClick={onCreate} type="button">{editing ? 'Salvar alterações' : 'Criar evento'}</PurpleButton></div>
+    <div className="astro-modal-actions event-create-actions"><button data-track-action={BUTTONS.comuns.voltar} className="astro-modal-cancel" onClick={onBack} type="button">Voltar</button><PurpleButton data-track-action={editing ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.criar_evento} onClick={onCreate} type="button">{editing ? 'Salvar alterações' : 'Criar evento'}</PurpleButton></div>
   </>
 }
 

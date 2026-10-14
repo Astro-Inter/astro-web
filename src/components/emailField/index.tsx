@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef } from 'react'
 import { blockEmailWhitespaceInput, blockEmailWhitespaceKey, sanitizeEmail } from '../../utils/inputFormatting'
 import { iconAsset } from '../../utils/iconAsset'
@@ -27,7 +28,7 @@ function EmailField({ id, label, placeholder, value, onChange, error, invalid = 
       disabled={disabled} error={error} id={id} label={label} maxLength={254} name="email"
       onBeforeInput={blockEmailWhitespaceInput} onChange={event => onChange(sanitizeEmail(event.target.value))}
       onKeyDown={blockEmailWhitespaceKey} placeholder={placeholder} required={required} type="email" value={value} />
-    {clearable && (value || fieldInvalid) && <button aria-label="Limpar email" className={`login-email-clear${fieldInvalid ? ' login-email-clear--invalid' : ''}`}
+    {clearable && (value || fieldInvalid) && <button data-track-action={BUTTONS.comuns.limpar_email} aria-label="Limpar email" className={`login-email-clear${fieldInvalid ? ' login-email-clear--invalid' : ''}`}
       disabled={disabled} onClick={() => { onChange(''); fieldRef.current?.querySelector('input')?.focus() }} type="button">
       <span aria-hidden="true" className="login-email-error-icon" style={{ maskImage: `url("${iconAsset('close.svg')}")` }} />
     </button>}

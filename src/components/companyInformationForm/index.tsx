@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useState } from 'react'
 import type { CompanyInformation } from '../../types/company'
 import { formatCnpj } from '../../utils/corporateTaxId'
@@ -29,7 +30,7 @@ function CompanyInformationForm({ onContinue, settingsMode = false, initialCompa
     <>
       <PageHeading description={settingsMode ? 'Altere os dados da sua empresa.' : 'Preencha os dados para continuar.'} title="Dados da empresa" titleId="company-information-title" />
 
-      <form className="company-information-form" noValidate onSubmit={(event) => {
+      <form data-track-submit={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.continuar} className="company-information-form" noValidate onSubmit={(event) => {
         event.preventDefault()
         const nextErrors = settingsMode ? {} : validateRegistrationCompanyFields(company)
         setErrors(nextErrors)
@@ -60,7 +61,7 @@ function CompanyInformationForm({ onContinue, settingsMode = false, initialCompa
             value={company.cnpj}
           />
 
-        <PurpleButton className="astro-form-action" type="submit">{settingsMode ? 'Salvar alterações' : 'Continuar'}</PurpleButton>
+        <PurpleButton data-track-action={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.continuar} className="astro-form-action" type="submit">{settingsMode ? 'Salvar alterações' : 'Continuar'}</PurpleButton>
       </form>
     </>
   )

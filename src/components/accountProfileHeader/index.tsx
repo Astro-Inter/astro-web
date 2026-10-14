@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import type { AccountProfile } from '../../types/account'
 import AstroIcon from '../astroIcon'
 
@@ -12,7 +13,7 @@ function AccountProfileHeader({ profile, editable = false, onEditPhoto }: Accoun
     <div className="account-profile-header">
       <div className="account-profile-photo">
         <img alt={`Foto de ${profile.name}`} height={96} src={profile.photoUrl ?? `${import.meta.env.BASE_URL}kirkProfileImage.png`} width={96} />
-        {editable && <button aria-label="Alterar foto do perfil" onClick={onEditPhoto} type="button"><AstroIcon name="pencil" /></button>}
+        {editable && <button data-track-action={BUTTONS.comuns.alterar_foto} aria-label="Alterar foto do perfil" onClick={onEditPhoto} type="button"><AstroIcon name="pencil" /></button>}
       </div>
       <div className="account-profile-identity"><h3>{profile.name}</h3><p>{profile.email}</p></div>
     </div>

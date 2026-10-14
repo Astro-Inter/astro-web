@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState } from 'react'
 import AstroIcon from '../astroIcon'
 import PurpleButton from '../purpleButton'
@@ -69,7 +70,7 @@ function SpreadsheetDropzone({ id, file, onFileSelect, onFileRemove, className =
           >
             {file && <AstroIcon className="attach-excel-file-icon" name="document-lines" />}
             <span className={file ? 'attach-excel-file-name' : 'attach-excel-drop-title'} title={file?.name}>{file ? file.name : 'Arraste e solte sua planilha aqui'}</span>
-            {file && onFileRemove && <button
+            {file && onFileRemove && <button data-track-action={BUTTONS.comuns.remover_arquivo}
               className="attach-excel-remove-file"
               type="button"
               aria-label={`Remover arquivo ${file.name}`}
@@ -78,7 +79,7 @@ function SpreadsheetDropzone({ id, file, onFileSelect, onFileRemove, className =
             ><AstroIcon name="close" /></button>}
           </div>
           {!file && <span className="attach-excel-drop-subtitle">Ou clique para selecionar.</span>}
-          <PurpleButton ref={selectButtonRef} disabled={disabled} aria-disabled={unavailable} aria-controls={id} className="attach-excel-select-button" onClick={() => { if (!unavailable) inputRef.current?.click() }}>
+          <PurpleButton data-track-action={file ? BUTTONS.comuns.substituir : BUTTONS.comuns.anexar_arquivo} ref={selectButtonRef} disabled={disabled} aria-disabled={unavailable} aria-controls={id} className="attach-excel-select-button" onClick={() => { if (!unavailable) inputRef.current?.click() }}>
             <AstroIcon name="upload" />{file ? 'Trocar arquivo' : 'Selecionar arquivo'}
           </PurpleButton>
           <span className="attach-excel-formats">Formatos aceitos: .xlsx, .xls · Tamanho máximo: {maxSizeMb} MB</span>

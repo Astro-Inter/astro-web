@@ -1,3 +1,5 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useState, type FormEvent } from 'react'
 import type { ConformityFilters } from '../../types'
 import { emptyConformityFilters, validateConformityFilters, type ConformityFilterErrors } from '../../utils/conformity'
@@ -47,16 +49,16 @@ function ConformityFilterModal({ filters, nrs, onApply, onClose }: ConformityFil
   }
 
   return (
-    <AppModal className="position-dialog invite-manager-dialog conformity-filter-modal" onClose={onClose} title="Filtros">
-      {(dismiss) => <form autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
+    <AppModal trackingName={DIALOG_NAMES.filtros_conformidade} className="position-dialog invite-manager-dialog conformity-filter-modal" onClose={onClose} title="Filtros">
+      {(dismiss) => <form data-track-submit={BUTTONS.comuns.aplicar_filtros} autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
         <div className="position-dialog-row conformity-form-row">
           <div className="position-dialog-field">
             <label htmlFor="conformity-filter-nr">NR</label>
-            <ToolbarSelect className={selectClassName('nr')} id="conformity-filter-nr" label="NR" onValueChange={(nr) => update('nr', nr)} options={nrOptions} value={values.nr} />
+            <ToolbarSelect trackingAction={BUTTONS.comuns.nr} className={selectClassName('nr')} id="conformity-filter-nr" label="NR" onValueChange={(nr) => update('nr', nr)} options={nrOptions} value={values.nr} />
           </div>
           <div className="position-dialog-field">
             <label htmlFor="conformity-filter-origin">Origem</label>
-            <ToolbarSelect className={selectClassName('origin')} id="conformity-filter-origin" label="Origem" onValueChange={(origin) => update('origin', origin === 'Evento' || origin === 'Manual' ? origin : '')} options={originOptions} searchable={false} value={values.origin} />
+            <ToolbarSelect trackingAction={BUTTONS.comuns.origem} className={selectClassName('origin')} id="conformity-filter-origin" label="Origem" onValueChange={(origin) => update('origin', origin === 'Evento' || origin === 'Manual' ? origin : '')} options={originOptions} searchable={false} value={values.origin} />
           </div>
           <div className="position-dialog-field">
             <label htmlFor="conformity-filter-from">Data de validade (início)</label>
@@ -71,8 +73,8 @@ function ConformityFilterModal({ filters, nrs, onApply, onClose }: ConformityFil
         </div>
 
         <div className="astro-modal-actions">
-          <button className="astro-modal-cancel" onClick={() => { onApply(emptyConformityFilters); dismiss() }} type="button">Limpar filtros</button>
-          <PurpleButton type="submit">Aplicar filtros</PurpleButton>
+          <button data-track-action={BUTTONS.comuns.limpar_filtros} className="astro-modal-cancel" onClick={() => { onApply(emptyConformityFilters); dismiss() }} type="button">Limpar filtros</button>
+          <PurpleButton data-track-action={BUTTONS.comuns.aplicar_filtros} type="submit">Aplicar filtros</PurpleButton>
         </div>
       </form>}
     </AppModal>

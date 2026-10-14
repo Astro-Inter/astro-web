@@ -1,3 +1,5 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router-dom'
@@ -157,17 +159,17 @@ function MainEventScreenPage() {
   return (
     <div className="main-position-screen main-event-screen">
       <AppSidebar />
-      <main className="position-main" id="conteudo-principal">
+      <main data-track-page={true} className="position-main" id="conteudo-principal">
         <section aria-labelledby="events-title" className="position-content astro-scale-90">
           <header className="position-heading">
             <h1 id="events-title" ref={headingRef} tabIndex={-1}>Eventos</h1>
             <p>Organize eventos, acompanhe as atividades e gerencie a criação e programação de cada evento.</p>
           </header>
           <div aria-label="Ações e filtros dos eventos" className="position-toolbar" role="group">
-            <CompactPurpleButton className="event-create-button" onClick={() => { setOpenId(null); setEditor({ mode: 'create' }) }} type="button"><AstroIcon name="plus" />Criar evento</CompactPurpleButton>
+            <CompactPurpleButton data-track-action={BUTTONS.comuns.criar_evento} className="event-create-button" onClick={() => { setOpenId(null); setEditor({ mode: 'create' }) }} type="button"><AstroIcon name="plus" />Criar evento</CompactPurpleButton>
             <ToolbarSearch label="Buscar eventos" placeholder="Buscar eventos..." value={searchText} onChange={event => changeCalendar(() => setSearchText(event.target.value))} onClear={() => changeCalendar(() => setSearchText(''))} />
             <div className="position-toolbar-selects">
-              <ToolbarSelect label="Visualização do calendário" options={viewOptions} searchable={false} value={view} onValueChange={value => changeCalendar(() => { setOpenId(null); setView(value as CalendarView) })} />
+              <ToolbarSelect trackingAction={BUTTONS.comuns.calendario} label="Visualização do calendário" options={viewOptions} searchable={false} value={view} onValueChange={value => changeCalendar(() => { setOpenId(null); setView(value as CalendarView) })} />
             </div>
           </div>
           <div className="event-board">
@@ -183,7 +185,7 @@ function MainEventScreenPage() {
         setInformationEvent(null)
         requestAnimationFrame(() => (triggerRef.current?.isConnected ? triggerRef.current : headingRef.current)?.focus({ preventScroll: true }))
       }} />}
-      {pendingInactivation && <ConfirmationModal backdrop="dimmed" preservePageScroll className="event-deactivation-modal" confirmLabel="Inativar" tone="danger" title="Tem certeza de que deseja inativar este evento?" icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={() => setPendingInactivation(null)} onConfirm={() => null} onConfirmed={() => {
+      {pendingInactivation && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_inativacao_evento} backdrop="dimmed" preservePageScroll className="event-deactivation-modal" confirmLabel="Inativar" tone="danger" title="Tem certeza de que deseja inativar este evento?" icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={() => setPendingInactivation(null)} onConfirm={() => null} onConfirmed={() => {
         setAnimateCalendar(true)
         setEvents(current => current.map(event => (event.eventId ?? event.id) === (pendingInactivation.eventId ?? pendingInactivation.id) ? { ...event, inactive: true } : event))
         setFeedback(`Evento ${pendingInactivation.title} inativado.`)

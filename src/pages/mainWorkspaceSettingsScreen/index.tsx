@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AstroBrand, AstroIcon, CompactPurpleButton, HelpLink } from '../../components'
@@ -41,12 +42,12 @@ function MainWorkspaceSettingsScreenPage() {
 
   return (
     <div className="create-forms-page astro-scale-90 workspace-settings-page">
-      <button aria-label="Voltar" className="payment-back-button workspace-settings-back" onClick={() => navigate(returnPath)} type="button">
+      <button data-track-action={BUTTONS.comuns.voltar} aria-label="Voltar" className="payment-back-button workspace-settings-back" onClick={() => navigate(returnPath)} type="button">
         <AstroIcon name="back" />
       </button>
       <header className="create-password-header create-forms-header"><AstroBrand /></header>
 
-      <main className="create-forms-main workspace-settings-content" aria-labelledby="workspace-settings-title">
+      <main data-track-page={true} className="create-forms-main workspace-settings-content" aria-labelledby="workspace-settings-title">
         <SettingsTabs active="workspace" from={returnPath} />
 
         <div className="settings-tab-content">
@@ -57,7 +58,7 @@ function MainWorkspaceSettingsScreenPage() {
             {sections.map(item => (
               <div className={`workspace-settings-row${navigationState?.savedSection === item.id ? ' workspace-settings-row--saved' : ''}`} key={item.id}>
                 <div><h3>{item.title}</h3><p>{item.description}</p></div>
-                <CompactPurpleButton aria-haspopup="dialog" onClick={event => {
+                <CompactPurpleButton data-track-action={({ company: BUTTONS.comuns.editar_dados, spreadsheet: BUTTONS.comuns.anexar_arquivo, addresses: BUTTONS.comuns.editar_endereco, payments: BUTTONS.comuns.editar_pagamento })[item.id]} aria-haspopup="dialog" onClick={event => {
                   triggerRef.current = event.currentTarget
                   setSection(item.id)
                 }} type="button">{item.action}</CompactPurpleButton>

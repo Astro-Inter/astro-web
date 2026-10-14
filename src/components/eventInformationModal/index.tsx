@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { defaultNrsRows } from '../../data/regulatoryStandards'
 import type { EventDraft } from '../../types/eventCreation'
 import PurpleButton from '../purpleButton'
@@ -23,7 +24,7 @@ function EventInformationModal({ draft, onCancel, onChange, onContinue, editing 
   const options = nr && !nrOptions.some(option => option.value === nr)
     ? [...nrOptions, { value: nr, label: formatRegulatoryStandardCode(nr) }]
     : nrOptions
-  return <form className="event-create-step event-create-details" noValidate onSubmit={event => { event.preventDefault(); onContinue() }}>
+  return <form data-track-submit={BUTTONS.comuns.continuar} className="event-create-step event-create-details" noValidate onSubmit={event => { event.preventDefault(); onContinue() }}>
     {editing && <p className="event-create-description">{detailsLocked ? 'O evento já começou. Título, descrição e link externo não podem ser alterados.' : 'Edite o título, a descrição e o link externo. A NR é definida na criação do evento.'}</p>}
     <div className="event-create-fields">
       <label className="event-create-field" htmlFor="event-create-title">
@@ -36,7 +37,7 @@ function EventInformationModal({ draft, onCancel, onChange, onContinue, editing 
       </label>
       <div className="event-create-field">
         <label htmlFor="event-create-nr">NR</label>
-        <ToolbarSelect escapeOverflow disabled={editing} className="event-create-select" id="event-create-nr" label="NR do evento" maxVisibleRows={2.5} onValueChange={nr => onChange({ nr })} options={options} value={nr} />
+        <ToolbarSelect trackingAction={BUTTONS.comuns.nr} escapeOverflow disabled={editing} className="event-create-select" id="event-create-nr" label="NR do evento" maxVisibleRows={2.5} onValueChange={nr => onChange({ nr })} options={options} value={nr} />
       </div>
       <label className="event-create-field" htmlFor="event-create-link">
         <span>Link externo (opcional)</span>
@@ -44,8 +45,8 @@ function EventInformationModal({ draft, onCancel, onChange, onContinue, editing 
       </label>
     </div>
     <div className="astro-modal-actions event-create-actions">
-      <button className="astro-modal-cancel" onClick={onCancel} type="button">Cancelar</button>
-      <PurpleButton type="submit">Continuar</PurpleButton>
+      <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" onClick={onCancel} type="button">Cancelar</button>
+      <PurpleButton data-track-action={BUTTONS.comuns.continuar} type="submit">Continuar</PurpleButton>
     </div>
   </form>
 }

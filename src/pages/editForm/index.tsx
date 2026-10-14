@@ -1,3 +1,5 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -191,7 +193,7 @@ function EditFormPage() {
 
   return (
     <div className={`create-forms-page edit-forms-page astro-scale-90${leaving ? ' create-forms-page--leaving' : ''}`}>
-      <button
+      <button data-track-action={BUTTONS.comuns.acoes}
         aria-controls="edit-forms-options"
         aria-expanded={menuOpen}
         aria-haspopup="menu"
@@ -207,9 +209,9 @@ function EditFormPage() {
         <AstroBrand />
       </header>
 
-      <main className="create-forms-main edit-forms-main">
+      <main data-track-page={true} className="create-forms-main edit-forms-main">
         <h1>Editar formulário</h1>
-        <form noValidate onSubmit={(event) => {
+        <form data-track-submit={BUTTONS.comuns.salvar_alteracoes} noValidate onSubmit={(event) => {
           event.preventDefault()
           if (!deadlineValid) { setValidationError('Informe uma data limite válida ou deixe o campo vazio.'); return }
           const validation = validateAndSanitizeForm(values)
@@ -224,9 +226,9 @@ function EditFormPage() {
             <h2 id="edit-forms-initial-title">Informações do formulário</h2>
             <div className="create-forms-field"><label htmlFor="edit-forms-name">Nome do formulário</label><input id="edit-forms-name" maxLength={100} onChange={(event) => { setValues((current) => ({ ...current, name: event.target.value })) }} value={values.name} /></div>
             <div className="create-forms-field"><label htmlFor="edit-forms-description">Descrição do formulário</label><input id="edit-forms-description" maxLength={240} onChange={(event) => { setValues((current) => ({ ...current, description: event.target.value })) }} value={values.description} /></div>
-            <div className="create-forms-field"><span className="create-forms-label">Gestor</span><ToolbarSelect className="create-forms-select" label="Gestor" onValueChange={(manager) => { setValues((current) => ({ ...current, manager })) }} options={managerOptions} value={values.manager} /></div>
-            <div className="create-forms-field"><span className="create-forms-label">NR (opcional)</span><ToolbarSelect className="create-forms-select" label="NR (opcional)" onValueChange={(nr) => { setValues((current) => ({ ...current, nr })) }} options={nrOptions} value={values.nr} /></div>
-            <div className="create-forms-field"><span className="create-forms-label">Unidade (opcional)</span><ToolbarSelect className="create-forms-select" label="Unidade (opcional)" onValueChange={(unit) => { setValues((current) => ({ ...current, unit })) }} options={unitOptions} value={values.unit} /></div>
+            <div className="create-forms-field"><span className="create-forms-label">Gestor</span><ToolbarSelect trackingAction={BUTTONS.comuns.gestor} className="create-forms-select" label="Gestor" onValueChange={(manager) => { setValues((current) => ({ ...current, manager })) }} options={managerOptions} value={values.manager} /></div>
+            <div className="create-forms-field"><span className="create-forms-label">NR (opcional)</span><ToolbarSelect trackingAction={BUTTONS.comuns.nr} className="create-forms-select" label="NR (opcional)" onValueChange={(nr) => { setValues((current) => ({ ...current, nr })) }} options={nrOptions} value={values.nr} /></div>
+            <div className="create-forms-field"><span className="create-forms-label">Unidade (opcional)</span><ToolbarSelect trackingAction={BUTTONS.comuns.unidade} className="create-forms-select" label="Unidade (opcional)" onValueChange={(unit) => { setValues((current) => ({ ...current, unit })) }} options={unitOptions} value={values.unit} /></div>
             <div className="create-forms-field"><label htmlFor="edit-forms-deadline">Data limite (opcional)</label><FormDatePicker id="edit-forms-deadline" label="Data limite" onValidityChange={setDeadlineValid} onChange={(deadline) => { setValues((current) => ({ ...current, deadline })) }} value={values.deadline} /></div>
           </section>
 
@@ -256,22 +258,22 @@ function EditFormPage() {
 
 
           <div className="create-forms-footer edit-forms-footer">
-            <button className="create-forms-add-question" onClick={() => setShowAddQuestion(true)} type="button">
+            <button data-track-action={BUTTONS.comuns.adicionar_pergunta} className="create-forms-add-question" onClick={() => setShowAddQuestion(true)} type="button">
               <AstroIcon className="create-forms-add-question-icon" name="plus-square" />
               Adicionar pergunta
             </button>
-            <PurpleButton type="submit"><AstroIcon name="file-plus" />Salvar alterações</PurpleButton>
+            <PurpleButton data-track-action={BUTTONS.comuns.salvar_alteracoes} type="submit"><AstroIcon name="file-plus" />Salvar alterações</PurpleButton>
           </div>
         </form>
       </main>
 
-      {menuOpen && createPortal(<OptionsPopup
+      {menuOpen && createPortal(<OptionsPopup trackingName={DIALOG_NAMES.acoes_formulario}
         ariaLabel="Opções do formulário"
         closing={menuClosing}
         id="edit-forms-options"
         items={[
-          { id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => closeMenu() },
-          { id: 'exit', label: 'Sair', tone: 'danger', onSelect: () => closeMenu(() => setShowBackConfirmation(true)) },
+          { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => closeMenu() },
+          { trackingAction: BUTTONS.comuns.sair, id: 'exit', label: 'Sair', tone: 'danger', onSelect: () => closeMenu(() => setShowBackConfirmation(true)) },
         ]}
         onClose={() => closeMenu()}
         panelRef={menuPanelRef}
@@ -279,7 +281,7 @@ function EditFormPage() {
       />, document.body)}
 
       {showAddQuestion && <AddFormQuestionModal onCancel={() => setShowAddQuestion(false)} onChoose={addQuestion} />}
-      {showBackConfirmation && <ConfirmationModal
+      {showBackConfirmation && <ConfirmationModal trackingName={DIALOG_NAMES.descartar_alteracoes_formulario}
         backdrop="dimmed"
         preservePageScroll
         className="create-forms-exit-modal edit-forms-back-modal"
@@ -295,7 +297,7 @@ function EditFormPage() {
         title="Tem certeza de que deseja voltar? As alterações não serão salvas."
         tone="danger"
       />}
-      {showSaveConfirmation && <ConfirmationModal
+      {showSaveConfirmation && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_alteracoes_formulario}
         backdrop="dimmed"
         preservePageScroll
         className="edit-forms-save-modal"

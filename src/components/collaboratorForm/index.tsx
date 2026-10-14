@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState, type FormEvent } from 'react'
 import type { CollaboratorDetails, CollaboratorFormValues, CollaboratorOptions, CollaboratorStatus } from '../../types/collaborator'
 import { collaboratorModalityLabels, collaboratorStatusLabels, validateCollaborator, type CollaboratorValidationErrors } from '../../utils/collaborator'
@@ -67,7 +68,7 @@ function CollaboratorForm({ subject = 'colaborador', collaborator, mode, options
     const id = `collaborator-${field}`
     return <div className="field-group">
       <label htmlFor={id}>{label}</label>
-      <ToolbarSelect className="account-field-select" disabled={locked} error={errors[field]} id={id} label={label}
+      <ToolbarSelect trackingAction={({ Cargo: BUTTONS.comuns.cargo, Unidades: BUTTONS.comuns.unidade, Modalidade: BUTTONS.comuns.modalidade, Status: BUTTONS.comuns.status } as Record<string, string>)[label] ?? BUTTONS.comuns.selecionar_opcao} className="account-field-select" disabled={locked} error={errors[field]} id={id} label={label}
         onValueChange={(value) => {
           if (field === 'modality') update(field, value as CollaboratorFormValues['modality'])
           else if (field === 'status') update(field, value as CollaboratorStatus)
@@ -77,7 +78,7 @@ function CollaboratorForm({ subject = 'colaborador', collaborator, mode, options
     </div>
   }
 
-  return <form aria-busy={saving || submission.saving} className="account-details-form" noValidate onSubmit={(event) => { void handleSubmit(event) }}>
+  return <form data-track-submit={mode === 'create' ? BUTTONS.comuns.adicionar : BUTTONS.comuns.salvar_alteracoes} aria-busy={saving || submission.saving} className="account-details-form" noValidate onSubmit={(event) => { void handleSubmit(event) }}>
     {collaborator && <div className="account-profile-header">
       <div className="account-profile-photo"><CollaboratorIdentity large name={collaborator.name} photoUrl={collaborator.profilePhotoUrl} initials={collaborator.avatarInitials} /></div>
       <div className="account-profile-identity"><h3>{collaborator.name}</h3><p>{collaborator.email}</p></div>
@@ -98,8 +99,8 @@ function CollaboratorForm({ subject = 'colaborador', collaborator, mode, options
     {submission.saving && <p role="status">Salvando {subject}...</p>}
     {submission.error && <p className="manager-details-form-error" role="alert">{submission.error}</p>}
     <div className="astro-modal-actions">
-      <button className="astro-modal-cancel" disabled={saving || submission.saving} onClick={onCancel} type="button">{editable ? 'Cancelar' : 'Voltar'}</button>
-      {editable && <PurpleButton disabled={locked} type="submit">{mode === 'create' ? 'Adicionar' : 'Salvar alterações'}</PurpleButton>}
+      <button data-track-action={editable ? BUTTONS.comuns.cancelar : BUTTONS.comuns.voltar} className="astro-modal-cancel" disabled={saving || submission.saving} onClick={onCancel} type="button">{editable ? 'Cancelar' : 'Voltar'}</button>
+      {editable && <PurpleButton data-track-action={mode === 'create' ? BUTTONS.comuns.adicionar : BUTTONS.comuns.salvar_alteracoes} disabled={locked} type="submit">{mode === 'create' ? 'Adicionar' : 'Salvar alterações'}</PurpleButton>}
     </div>
   </form>
 }

@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { LoginCredentials, LoginFieldErrors, LoginStatus } from '../../types/authentication'
@@ -24,7 +25,7 @@ function LoginForm({ credentials, errors, status, message, invalidCredentials, o
     <>
       <PageHeading description="Acesse sua conta para continuar." title="Acesse sua conta" titleId="login-title" />
 
-      <form aria-busy={status === 'loading'} className="login-form" noValidate onSubmit={(event) => {
+      <form data-track-submit={BUTTONS.comuns.enviar} aria-busy={status === 'loading'} className="login-form" noValidate onSubmit={(event) => {
         event.preventDefault()
         if (!pending) void onSubmit()
       }}>
@@ -48,11 +49,11 @@ function LoginForm({ credentials, errors, status, message, invalidCredentials, o
 
         {status === 'error' && message && !invalidCredentials && <p className="login-authentication-error" id="login-authentication-error" role="alert">{message}</p>}
 
-        <a className="forgot-link" href="#forgot-password">
+        <a data-track-action={BUTTONS.comuns.esqueceu_senha} className="forgot-link" href="#forgot-password">
           Esqueceu a senha?
         </a>
 
-        <PurpleButton className="astro-form-action" disabled={pending} type="submit">
+        <PurpleButton data-track-action={BUTTONS.comuns.enviar} className="astro-form-action" disabled={pending} type="submit">
           {status === 'success' ? 'Login realizado' : 'Entrar'}
         </PurpleButton>
         {status === 'success' && message && <p className="login-feedback" role="status">{message}</p>}
@@ -60,7 +61,7 @@ function LoginForm({ credentials, errors, status, message, invalidCredentials, o
 
       <p className="workspace-link">
         Não tem uma conta?{' '}
-        <Link to="/paymentMethod">Criar workspace</Link>
+        <Link data-track-action={BUTTONS.comuns.criar_workspace} to="/paymentMethod">Criar workspace</Link>
       </p>
     </>
   )

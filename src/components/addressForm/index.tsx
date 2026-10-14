@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState } from 'react'
 import type { useWorkspaceAddresses } from '../../hooks/useWorkspaceAddresses'
 import { formatCep, formatState, handleMaskedInput } from '../../utils/inputFormatting'
@@ -47,7 +48,7 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
         <p>Informe o endereço de cada unidade para que<br className="set-address-desktop-break" /> possamos identificar sua localização.</p>
       </header>
 
-      <form ref={formRef} className="set-address-form" noValidate onSubmit={(event) => {
+      <form data-track-submit={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.finalizar_workspace} ref={formRef} className="set-address-form" noValidate onSubmit={(event) => {
         event.preventDefault()
         if (postalCode.status === 'loading') return
         const nextErrors: typeof unitErrors = {}
@@ -68,7 +69,7 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
         onComplete(address.units)
       }}>
         <div className="set-address-carousel">
-          <button
+          <button data-track-action={BUTTONS.comuns.sede_anterior}
             aria-label="Sede anterior"
             className="set-address-arrow set-address-arrow--previous"
             disabled={activeIndex === 0}
@@ -94,7 +95,7 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
                     <p>{importedUnit ? 'Unidade importada da planilha' : 'Informe os dados da unidade'}</p>
                   </div>
                 </div>
-                  {!importedUnit && <PurpleButton aria-label="Remover sede" auto className="set-address-remove" onClick={() => {
+                  {!importedUnit && <PurpleButton data-track-action={BUTTONS.comuns.remover_rede} aria-label="Remover sede" auto className="set-address-remove" onClick={() => {
                     changeUnit(removeUnit)
                     requestAnimationFrame(() => formRef.current?.querySelector<HTMLButtonElement>('.set-address-add')?.focus())
                   }} variant="danger">
@@ -124,7 +125,7 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
           </div>
 
           <span className="set-address-position" aria-live="polite">Sede {activeIndex + 1} de {address.units.length}</span>
-          <button
+          <button data-track-action={BUTTONS.comuns.proxima_sede}
             aria-label="Próxima sede"
             className="set-address-arrow set-address-arrow--next"
             disabled={activeIndex === address.units.length - 1}
@@ -135,14 +136,14 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
           </button>
         </div>
 
-        <PurpleButton className="set-address-add" onClick={() => {
+        <PurpleButton data-track-action={BUTTONS.comuns.adicionar_sede} className="set-address-add" onClick={() => {
           changeUnit(addUnit)
           requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>('#unit-name')?.focus())
         }} variant="outline">
           <AstroIcon name="plus" />
           Adicionar outra sede
         </PurpleButton>
-        <PurpleButton className="set-address-finish" disabled={postalCode.status === 'loading'} type="submit">{settingsMode ? 'Salvar alterações' : 'Finalizar workspace'}</PurpleButton>
+        <PurpleButton data-track-action={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.finalizar_workspace} className="set-address-finish" disabled={postalCode.status === 'loading'} type="submit">{settingsMode ? 'Salvar alterações' : 'Finalizar workspace'}</PurpleButton>
       </form>
     </section>
   )

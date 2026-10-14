@@ -1,3 +1,5 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useId, useState } from 'react'
 import AppModal from '../appModal'
 import TruncatedText from '../truncatedText'
@@ -22,7 +24,7 @@ function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
   const [collaboratorGroup, setCollaboratorGroup] = useState<{ name: string; ids: string[] } | null>(null)
 
 
-  return <><AppModal className="event-create-modal event-create-modal--review event-information-modal" dimmed={Boolean(collaboratorGroup)} title="Informações do evento" onClose={onClose}>
+  return <><AppModal trackingName={DIALOG_NAMES.informacoes_evento} className="event-create-modal event-create-modal--review event-information-modal" dimmed={Boolean(collaboratorGroup)} title="Informações do evento" onClose={onClose}>
     {dismiss => <>
       <div className="event-information-heading">
         <p>Consulte os dados e a programação de todas as turmas deste evento.</p>
@@ -34,7 +36,7 @@ function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
               <div><dt>Título</dt><dd><TruncatedText>{draft.title || 'Não informado'}</TruncatedText></dd></div>
               <div><dt>Descrição</dt><dd className="event-information-description"><TruncatedText>{draft.description || 'Não informada'}</TruncatedText></dd></div>
               <div><dt>NR</dt><dd><TruncatedText>{formatRegulatoryStandardCode(draft.nr) || 'Não informada'}</TruncatedText></dd></div>
-              <div><dt>Link externo</dt><dd>{link ? <a href={link} target="_blank" rel="noopener noreferrer"><TruncatedText>{draft.externalLink}</TruncatedText></a> : <TruncatedText>{draft.externalLink || 'Não informado'}</TruncatedText>}</dd></div>
+              <div><dt>Link externo</dt><dd>{link ? <a data-track-action={BUTTONS.comuns.abrir_link_evento} href={link} target="_blank" rel="noopener noreferrer"><TruncatedText>{draft.externalLink}</TruncatedText></a> : <TruncatedText>{draft.externalLink || 'Não informado'}</TruncatedText>}</dd></div>
             </dl>
         </section>
         <section aria-labelledby={`${id}-groups`} className="event-create-summary-card event-create-summary-card--groups event-information-panel">
@@ -51,7 +53,7 @@ function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
             </dl>
         </section>
       </div>
-      <div className="astro-modal-actions"><button className="astro-modal-cancel" type="button" onClick={dismiss}>Voltar</button></div>
+      <div className="astro-modal-actions"><button data-track-action={BUTTONS.comuns.voltar} className="astro-modal-cancel" type="button" onClick={dismiss}>Voltar</button></div>
     </>}
   </AppModal>{collaboratorGroup && <EventGroupCollaboratorsModal groupName={collaboratorGroup.name} participantIds={collaboratorGroup.ids} onClose={() => setCollaboratorGroup(null)} />}</>
 }

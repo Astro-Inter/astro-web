@@ -1,3 +1,5 @@
+import { SHOWCASE_NAMES } from '../../gtm/showcases'
+import { BUTTONS } from '../../gtm/buttons'
 import { useMemo, useState } from 'react'
 import { mockEventCollaborators } from '../../data/eventCreation'
 import type { EventCollaborator } from '../../types/eventCreation'
@@ -49,14 +51,14 @@ function EventParticipantsModal({ nr, onBack, onContinue, onSelectionChange, sel
   return <div className="event-create-step event-create-collaborators">
     <p className="event-create-description">Selecione os colaboradores que participarão do evento{nr ? ` da ${nr}` : ''}.{lockedParticipantIds.length > 0 ? ' Participantes de turmas que já começaram estão bloqueados.' : ''}</p>
     <div className="event-create-filters">
-      <div className="event-create-field"><label htmlFor="event-create-selected">Selecionado</label><ToolbarSelect escapeOverflow className="event-create-select" id="event-create-selected" label="Filtrar por seleção" onValueChange={selected => setFilters(current => ({ ...current, selected }))} options={[{ value: '', label: 'Todos', tone: 'muted' }, { value: 'selected', label: 'Selecionados' }, { value: 'unselected', label: 'Não selecionados' }]} searchable={false} value={filters.selected} /></div>
-      <div className="event-create-field"><label htmlFor="event-create-unit">Unidade</label><ToolbarSelect escapeOverflow className="event-create-select" id="event-create-unit" label="Filtrar por unidade" onValueChange={unit => setFilters(current => ({ ...current, unit }))} options={selectOptions(['Matriz', 'Campinas', 'Filial 2'])} searchable={false} value={filters.unit} /></div>
-      <div className="event-create-field"><label htmlFor="event-create-position">Cargo</label><ToolbarSelect escapeOverflow className="event-create-select" id="event-create-position" label="Filtrar por cargo" onValueChange={position => setFilters(current => ({ ...current, position }))} options={selectOptions(mockEventCollaborators.map(person => person.position))} searchable={false} value={filters.position} /></div>
-      <div className="event-create-field"><label htmlFor="event-create-modality">Modalidade</label><ToolbarSelect escapeOverflow className="event-create-select" id="event-create-modality" label="Filtrar por modalidade" onValueChange={modality => setFilters(current => ({ ...current, modality }))} options={selectOptions(['Presencial', 'Remoto'])} searchable={false} value={filters.modality} /></div>
+      <div className="event-create-field"><label htmlFor="event-create-selected">Selecionado</label><ToolbarSelect trackingAction={BUTTONS.comuns.selecionar_opcao} escapeOverflow className="event-create-select" id="event-create-selected" label="Filtrar por seleção" onValueChange={selected => setFilters(current => ({ ...current, selected }))} options={[{ value: '', label: 'Todos', tone: 'muted' }, { value: 'selected', label: 'Selecionados' }, { value: 'unselected', label: 'Não selecionados' }]} searchable={false} value={filters.selected} /></div>
+      <div className="event-create-field"><label htmlFor="event-create-unit">Unidade</label><ToolbarSelect trackingAction={BUTTONS.comuns.unidade} escapeOverflow className="event-create-select" id="event-create-unit" label="Filtrar por unidade" onValueChange={unit => setFilters(current => ({ ...current, unit }))} options={selectOptions(['Matriz', 'Campinas', 'Filial 2'])} searchable={false} value={filters.unit} /></div>
+      <div className="event-create-field"><label htmlFor="event-create-position">Cargo</label><ToolbarSelect trackingAction={BUTTONS.comuns.cargo} escapeOverflow className="event-create-select" id="event-create-position" label="Filtrar por cargo" onValueChange={position => setFilters(current => ({ ...current, position }))} options={selectOptions(mockEventCollaborators.map(person => person.position))} searchable={false} value={filters.position} /></div>
+      <div className="event-create-field"><label htmlFor="event-create-modality">Modalidade</label><ToolbarSelect trackingAction={BUTTONS.comuns.modalidade} escapeOverflow className="event-create-select" id="event-create-modality" label="Filtrar por modalidade" onValueChange={modality => setFilters(current => ({ ...current, modality }))} options={selectOptions(['Presencial', 'Remoto'])} searchable={false} value={filters.modality} /></div>
     </div>
     <div className="astro-data-table-shell event-create-table-shell">
       <div aria-label="Colaboradores disponíveis" className="astro-data-table-scroll event-create-table-scroll" role="region" tabIndex={0}>
-      <table className="astro-data-table event-create-table">
+      <table data-track-showcase={SHOWCASE_NAMES.lista_dialog_evento} className="astro-data-table event-create-table">
         <colgroup><col style={{ width: 'var(--event-selection-column-width, 5%)' }} /><col style={{ width: '18%' }} /><col style={{ width: '29%' }} /><col style={{ width: '22%' }} /><col style={{ width: '14%' }} /><col style={{ width: '12%' }} /></colgroup>
         <thead><tr>
           <th scope="col"><EventCheckbox disabled={selectionLocked || !visibleIds.length} checked={allVisibleSelected} label="Selecionar todos os colaboradores visíveis" onChange={toggleVisible} /></th>
@@ -72,8 +74,8 @@ function EventParticipantsModal({ nr, onBack, onContinue, onSelectionChange, sel
       </div>
     </div>
     <div className="astro-modal-actions event-create-actions">
-      <button className="astro-modal-cancel" onClick={onBack} type="button">Voltar</button>
-      <PurpleButton onClick={onContinue} type="button">Continuar</PurpleButton>
+      <button data-track-action={BUTTONS.comuns.voltar} className="astro-modal-cancel" onClick={onBack} type="button">Voltar</button>
+      <PurpleButton data-track-action={BUTTONS.comuns.continuar} onClick={onContinue} type="button">Continuar</PurpleButton>
     </div>
   </div>
 }

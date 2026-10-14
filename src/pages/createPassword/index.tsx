@@ -8,7 +8,7 @@ function CreatePasswordPage() {
   if (!draft.email || verifiedEmail !== draft.email.trim()) return <Navigate to="/createWorkspace" replace />
 
   return (
-    <main className="create-password-page">
+    <main data-track-page={true} className="create-password-page">
       <header className="create-password-header">
         <AstroBrand />
       </header>

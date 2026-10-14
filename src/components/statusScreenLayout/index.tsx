@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import AstroBrand from '../astroBrand'
 import PurpleButton from '../purpleButton'
 
@@ -21,7 +22,7 @@ function StatusScreenLayout({ titleId, title, description, illustration, illustr
   const imageTop = 60 - illustrationBounds.top * imageScale
   return (
     <div className="access-verified-page status-screen-page">
-      <main aria-labelledby={titleId} className="access-verified-content astro-scale-90">
+      <main data-track-page={true} aria-labelledby={titleId} className="access-verified-content astro-scale-90">
         <header><AstroBrand /></header>
         <div className="access-verified-illustration status-screen-illustration">
           <img alt="" height={illustrationHeight} src={import.meta.env.BASE_URL + illustration} style={{ left: `${imageLeft / 509 * 100}%`, top: `${imageTop / 339 * 100}%`, width: `${illustrationWidth * imageScale / 509 * 100}%` }} width={illustrationWidth} />
@@ -30,9 +31,9 @@ function StatusScreenLayout({ titleId, title, description, illustration, illustr
           <h1 id={titleId}>{title}</h1>
           <p>{description}</p>
         </header>
-        {actionLabel && <PurpleButton className="access-verified-button" onClick={onAction}>{actionLabel}</PurpleButton>}
+        {actionLabel && <PurpleButton data-track-action={BUTTONS.comuns.voltar_inicio} className="access-verified-button" onClick={onAction}>{actionLabel}</PurpleButton>}
       </main>
-      <button className="help-link" type="button"><span aria-hidden="true" className="help-icon" /><span>Precisa de ajuda</span></button>
+      <button data-track-action={BUTTONS.comuns.ajuda} className="help-link" type="button"><span aria-hidden="true" className="help-icon" /><span>Precisa de ajuda</span></button>
     </div>
   )
 }

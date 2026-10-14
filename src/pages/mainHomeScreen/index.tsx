@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppSidebar, ComplianceOverviewCard, NotificationButton, NotificationModal, QuickActionCard, SummaryStatCard } from '../../components'
@@ -14,7 +15,7 @@ function MainHomeScreenPage() {
   return (
     <div className="main-position-screen main-home-screen">
       <AppSidebar />
-      <main className="position-main" id="conteudo-principal">
+      <main data-track-page={true} className="position-main" id="conteudo-principal">
         <section aria-labelledby="home-title" className="position-content home-content astro-scale-90">
           <header className="position-heading home-heading">
             <div className="home-heading-copy">
@@ -27,7 +28,7 @@ function MainHomeScreenPage() {
           <section aria-labelledby="home-dashboards-title" aria-busy={loading} className="home-section">
             <h2 id="home-dashboards-title">Dashboards</h2>
             {loading && <HomeDashboardSkeleton />}
-            {error && <div className="home-card home-api-feedback"><p role="alert">{error}</p><button className="astro-action" onClick={retry} type="button">Tentar novamente</button></div>}
+            {error && <div className="home-card home-api-feedback"><p role="alert">{error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} className="astro-action" onClick={retry} type="button">Tentar novamente</button></div>}
             {data && <>
               <p className="home-reference-date">Dados de <time dateTime={data.referenceDate}>{data.referenceDate.split('-').reverse().join('/')}</time></p>
               <div className="home-dashboards home-dashboards--ready">

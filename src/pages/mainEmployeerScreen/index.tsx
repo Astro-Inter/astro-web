@@ -1,3 +1,6 @@
+import { SHOWCASE_NAMES } from '../../gtm/showcases'
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router-dom'
@@ -119,7 +122,7 @@ function MainEmployeerScreenPage() {
       id: 'actions', label: 'Ações', width: '13.5%', className: 'position-actions-cell',
       render: (employee) => (
         <div className="position-actions">
-          <button
+          <button data-track-item={BUTTONS.comuns.acoes}
             disabled={api.loading || api.saving}
             aria-controls={actions.openId === employee.id ? `employee-actions-${employee.id}` : undefined}
             aria-expanded={actions.openId === employee.id}
@@ -140,7 +143,7 @@ function MainEmployeerScreenPage() {
     <div className="main-position-screen main-manager-screen main-collaborator-screen" data-collaborators-loading={api.loading}>
       <AppSidebar />
 
-      <main className="position-main" id="conteudo-principal">
+      <main data-track-page={true} className="position-main" id="conteudo-principal">
         <section aria-labelledby="employees-title" aria-busy={api.loading} className="position-content astro-scale-90">
           <header className="position-heading">
             <h1 id="employees-title">Colaboradores</h1>
@@ -148,7 +151,7 @@ function MainEmployeerScreenPage() {
           </header>
 
           <div aria-label="Ações e filtros dos colaboradores" className="position-toolbar" role="group">
-            <CompactPurpleButton disabled={api.loading || api.saving || Boolean(api.error)} onClick={(event) => { inviteOriginRef.current = event.currentTarget; api.retryOptions(); setInviteOpen(true) }} type="button">
+            <CompactPurpleButton data-track-action={BUTTONS.comuns.adicionar} disabled={api.loading || api.saving || Boolean(api.error)} onClick={(event) => { inviteOriginRef.current = event.currentTarget; api.retryOptions(); setInviteOpen(true) }} type="button">
               <AstroIcon name="plus" />
               Adicionar colaborador
             </CompactPurpleButton>
@@ -162,28 +165,28 @@ function MainEmployeerScreenPage() {
             />
 
             <div className="position-toolbar-selects">
-              <ToolbarSelect label="Filtrar por cargo" onValueChange={(position) => setFilters((current) => ({ ...current, position }))} options={positionFilterOptions} value={filters.position} />
-              <ToolbarSelect label="Filtrar por status" onValueChange={(status) => setFilters((current) => ({ ...current, status }))} options={statusFilterOptions} value={filters.status} />
+              <ToolbarSelect trackingAction={BUTTONS.comuns.cargo} label="Filtrar por cargo" onValueChange={(position) => setFilters((current) => ({ ...current, position }))} options={positionFilterOptions} value={filters.position} />
+              <ToolbarSelect trackingAction={BUTTONS.comuns.status} label="Filtrar por status" onValueChange={(status) => setFilters((current) => ({ ...current, status }))} options={statusFilterOptions} value={filters.status} />
             </div>
           </div>
 
-          {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button disabled={api.saving} onClick={api.retry} type="button">Tentar novamente</button></div>}
+          {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} disabled={api.saving} onClick={api.retry} type="button">Tentar novamente</button></div>}
           {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
           {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
-          <DataTable ariaLabel="Colaboradores" columns={columns} loadingContent={api.loading ? <CollaboratorTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de colaboradores indisponível.' : 'Nenhum colaborador encontrado para esses filtros.'} getRowClassName={(employee) => employee.id === savedEmployeeId ? 'astro-data-table-row--saved' : undefined} getRowKey={(employee) => employee.id} rows={visibleEmployees} />
+          <DataTable trackingName={SHOWCASE_NAMES.lista_colaboradores} ariaLabel="Colaboradores" columns={columns} loadingContent={api.loading ? <CollaboratorTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de colaboradores indisponível.' : 'Nenhum colaborador encontrado para esses filtros.'} getRowClassName={(employee) => employee.id === savedEmployeeId ? 'astro-data-table-row--saved' : undefined} getRowKey={(employee) => employee.id} rows={visibleEmployees} />
           <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 
         {openEmployee && createPortal(
-          <OptionsPopup
+          <OptionsPopup trackingName={DIALOG_NAMES.acoes_colaborador}
             ariaLabel={`Opções para ${openEmployee.name}`}
             closing={actions.closing}
             id={`employee-actions-${openEmployee.id}`}
             items={[
-              { id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
-              { id: 'view', label: 'Ver mais informações', separatorAfter: true, onSelect: () => actions.close(() => { api.retryDetails(); setDialog({ kind: 'view', employee: openEmployee }) }) },
-              { id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit-password', employee: openEmployee })) },
-              { id: 'toggle-status', label: openEmployee.status === 'DESATIVADO' ? 'Ativar' : 'Desativar', tone: openEmployee.status === 'DESATIVADO' ? 'default' : 'danger', onSelect: () => actions.close(() => {
+              { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
+              { trackingAction: BUTTONS.comuns.informacoes, id: 'view', label: 'Ver mais informações', separatorAfter: true, onSelect: () => actions.close(() => { api.retryDetails(); setDialog({ kind: 'view', employee: openEmployee }) }) },
+              { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit-password', employee: openEmployee })) },
+              { trackingAction: openEmployee.status === 'DESATIVADO'  ? BUTTONS.comuns.ativar : BUTTONS.comuns.inativar, id: 'toggle-status', label: openEmployee.status === 'DESATIVADO' ? 'Ativar' : 'Desativar', tone: openEmployee.status === 'DESATIVADO' ? 'default' : 'danger', onSelect: () => actions.close(() => {
                 if (openEmployee.status !== 'DESATIVADO') setDialog({ kind: 'deactivate', employee: openEmployee })
                 else void toggleStatus(openEmployee).then((error) => { if (error) setActionError(error) })
               }) },
@@ -234,7 +237,7 @@ function MainEmployeerScreenPage() {
         />
       )}
       {dialog?.kind === 'confirm-edit' && (
-        <ConfirmationModal
+        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_alteracoes_colaborador}
           confirmCloseDelay={60}
           confirmLabel="Salvar"
           onCancel={() => {
@@ -256,7 +259,7 @@ function MainEmployeerScreenPage() {
         />
       )}
       {dialog?.kind === 'deactivate' && (
-        <ConfirmationModal
+        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_inativacao_colaborador}
           backdrop="dimmed"
           className="position-deactivation-modal"
           confirmLabel="Desativar"

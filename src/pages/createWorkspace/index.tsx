@@ -21,7 +21,7 @@ function CreateWorkspacePage() {
 
   return (
     <>
-    <main className="login-page create-workspace-page" inert={busy} aria-busy={busy}>
+    <main data-track-page={true} className="login-page create-workspace-page" inert={busy} aria-busy={busy}>
       <AnimatedWelcome
         title={<>Crie seu workspace<br />no Astro!</>}
         description={<>Insira o código enviado por e-mail<br className="create-workspace-desktop-break" />{' '}para criar seu workspace.</>}

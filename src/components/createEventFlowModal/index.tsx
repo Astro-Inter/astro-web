@@ -1,3 +1,4 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { usePopupStepTransition } from '../../hooks/usePopupStepTransition'
 import { mockEventCollaborators } from '../../data/eventCreation'
@@ -142,7 +143,7 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode
   }
 
   return <>
-    <AppModal className={`event-create-modal event-create-modal--${step}`} dimmed={saveDimmed || (randomOpen && !randomClosing) || Boolean(collaboratorGroup)} onClose={() => { if (!pendingSave) onClose() }} open={!saveClosing} preservePageScroll title={mode === 'edit' && step === 'details' ? 'Editar evento' : titles[step]}>
+    <AppModal trackingName={({ details: DIALOG_NAMES.informacoes_evento, collaborators: DIALOG_NAMES.selecionar_colaboradores_evento, groups: DIALOG_NAMES.organizar_equipes_evento, schedule: DIALOG_NAMES.editar_equipes_evento, settings: DIALOG_NAMES.configuracoes_evento, review: DIALOG_NAMES.detalhes_evento })[step]} className={`event-create-modal event-create-modal--${step}`} dimmed={saveDimmed || (randomOpen && !randomClosing) || Boolean(collaboratorGroup)} onClose={() => { if (!pendingSave) onClose() }} open={!saveClosing} preservePageScroll title={mode === 'edit' && step === 'details' ? 'Editar evento' : titles[step]}>
       {dismiss => <div className="event-create-step-frame">
         {step === 'details' && <EventInformationModal editing={mode === 'edit'} detailsLocked={detailsLocked} draft={draft} onCancel={dismiss} onChange={changes => { if (!detailsLocked) setDraft(current => ({ ...current, ...changes, ...(mode === 'edit' && initialValue ? { nr: initialValue.draft.nr, type: initialValue.draft.type } : {}) })) }} onContinue={() => changeStep('collaborators')} />}
         {step === 'collaborators' && <EventParticipantsModal selectionLocked={mode === 'edit' && lockedGroupIds.length === groups.length} lockedParticipantIds={lockedParticipantIds} nr={draft.nr} onBack={() => changeStep('details')} onContinue={() => changeStep('groups')} onSelectionChange={updateSelection} selectedIds={selectedIds} />}
@@ -154,7 +155,7 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode
     </AppModal>
     {collaboratorGroup && <EventGroupCollaboratorsModal groupName={collaboratorGroup.name} participantIds={collaboratorGroup.ids} onClose={() => setCollaboratorGroup(null)} />}
     {randomOpen && <EventGroupDistributionModal onDismissRequest={() => setRandomClosing(true)} onCancel={() => setRandomOpen(false)} onContinue={distributeRandomly} />}
-    {pendingSave && <ConfirmationModal
+    {pendingSave && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_alteracoes_evento}
       className="event-save-modal"
       confirmCloseDelay={60}
       confirmLabel="Salvar"

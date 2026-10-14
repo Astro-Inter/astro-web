@@ -1,3 +1,4 @@
+import Tracking from './gtm/Tracking'
 import AppRoutes from './routes'
 import { useLocation } from 'react-router-dom'
 import AstroChat from './components/astroChat'
@@ -32,6 +33,7 @@ function App() {
 
   return (
     <>
+      <Tracking />
       <AppRoutes />
       {status === 'ready' && user && <div hidden={!chatVisible}>
         <AstroChat key={user.uid} />

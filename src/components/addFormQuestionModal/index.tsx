@@ -1,3 +1,5 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { iconAsset } from '../../utils/iconAsset'
 import { useRef } from 'react'
 import AppModal from '../appModal'
@@ -18,17 +20,17 @@ const questionKinds: { kind: FormQuestionKind; label: string; icon: string }[] =
 function AddFormQuestionModal({ onCancel, onChoose }: AddFormQuestionModalProps) {
   const selectedKindRef = useRef<FormQuestionKind | null>(null)
   return (
-    <AppModal preservePageScroll className="create-forms-add-modal" onClose={() => {
+    <AppModal trackingName={DIALOG_NAMES.selecionar_tipo_pergunta} preservePageScroll className="create-forms-add-modal" onClose={() => {
       if (selectedKindRef.current) onChoose(selectedKindRef.current)
       else onCancel()
     }} title="Adicionar nova pergunta">
       {(dismiss) => <div className="create-forms-add-grid">
         {questionKinds.map(({ kind, label, icon }) => (
-          <button className="create-forms-kind-button" key={kind} onClick={() => { selectedKindRef.current = kind; dismiss() }} type="button">
+          <button data-track-action={kind === 'nr' ? BUTTONS.comuns.nr : kind === 'photo' ? BUTTONS.comuns.foto : kind === 'date' ? BUTTONS.comuns.data : kind === 'text' ? BUTTONS.comuns.texto : kind === 'unit' ? BUTTONS.comuns.unidade : BUTTONS.comuns.selecao} className="create-forms-kind-button" key={kind} onClick={() => { selectedKindRef.current = kind; dismiss() }} type="button">
             <img alt="" src={iconAsset(icon)} /><span>{label}</span>
           </button>
         ))}
-        <button className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
+        <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
       </div>}
     </AppModal>
   )
