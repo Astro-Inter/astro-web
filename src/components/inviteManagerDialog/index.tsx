@@ -1,6 +1,5 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import type { ManagerInviteValues } from '../../types'
-import type { EventCollaborator } from '../../types/eventCreation'
 import { validateManagerInvite, type ManagerInviteValidationErrors } from '../../utils/manager'
 import AppModal from '../appModal'
 import PurpleButton from '../purpleButton'
@@ -13,45 +12,65 @@ const statusOptions = [
 ]
 
 interface InviteManagerDialogProps {
-  candidates: readonly Pick<EventCollaborator, 'id' | 'email'>[]
+  candidates: readonly { id: string; email: string }[]
+  loading: boolean
+  error: string
+  saving: boolean
+  onRetry: () => void
   onClose: () => void
-  onInvite: (values: ManagerInviteValues) => string | null
+  onInvite: (values: ManagerInviteValues) => Promise<string | null>
 }
 
-function InviteManagerDialog({ candidates, onClose, onInvite }: InviteManagerDialogProps) {
+function InviteManagerDialog({ candidates, loading, error, saving, onRetry, onClose, onInvite }: InviteManagerDialogProps) {
   const [values, setValues] = useState<ManagerInviteValues>({ collaboratorId: '', status: '' })
   const [errors, setErrors] = useState<ManagerInviteValidationErrors>({})
   const [formError, setFormError] = useState('')
+  const busy = useRef(false)
+  const [submitting, setSubmitting] = useState(false)
+  const locked = loading || Boolean(error) || saving || submitting
   const emailOptions = [
     { value: '', label: 'Selecione o colaborador', tone: 'muted' as const },
     ...candidates.map((candidate) => ({ value: candidate.id, label: candidate.email })),
   ]
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>, dismiss: () => void) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>, dismiss: () => void) {
     event.preventDefault()
+    if (locked || busy.current) return
     const nextErrors = validateManagerInvite(values, candidates.map((candidate) => candidate.id))
     setErrors(nextErrors)
     setFormError('')
     if (Object.keys(nextErrors).length > 0) return
 
-    const inviteError = onInvite(values)
-    if (inviteError) {
-      setFormError(inviteError)
-      return
+    busy.current = true
+    setSubmitting(true)
+    try {
+      const inviteError = await onInvite(values)
+      if (inviteError) setFormError(inviteError)
+      else dismiss()
+    } catch (error: unknown) {
+      setFormError(error instanceof Error ? error.message : 'Não foi possível promover o colaborador.')
+    } finally {
+      busy.current = false
+      setSubmitting(false)
     }
-
-    dismiss()
   }
 
   return (
-    <AppModal className="position-dialog invite-manager-dialog" onClose={onClose} title="Convidar gestor">
-      {(dismiss) => <form autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
+    <AppModal className="position-dialog invite-manager-dialog" dismissible={!saving && !submitting} onClose={onClose} title="Convidar gestor">
+      {(dismiss) => <form aria-busy={saving || submitting} autoComplete="off" noValidate onSubmit={(event) => { void handleSubmit(event, dismiss) }}>
+        <p className="astro-modal-description">Selecione um colaborador ativo para promovê-lo a gestor, preservando sua conta.</p>
+        {loading && <p role="status">Carregando colaboradores ativos...</p>}
+        {error && <div className="position-api-feedback"><p role="alert">{error}</p><button onClick={onRetry} type="button">Tentar novamente</button></div>}
+        {!loading && !error && candidates.length === 0 && <p role="status">Nenhum colaborador ativo disponível para promoção.</p>}
+        {submitting && <p role="status">Promovendo colaborador a gestor...</p>}
         <div className="position-dialog-row">
           <div className="position-dialog-field">
             <label htmlFor="invite-manager-email">E-mail</label>
             <ToolbarSelect
               className={`position-dialog-select${values.collaboratorId ? '' : ' position-dialog-select--placeholder'}${errors.collaboratorId ? ' position-dialog-select--invalid' : ''}`}
               id="invite-manager-email"
+              disabled={locked}
+              error={errors.collaboratorId}
               label="E-mail do colaborador"
               onValueChange={(collaboratorId) => {
                 setValues((current) => ({ ...current, collaboratorId }))
@@ -61,13 +80,15 @@ function InviteManagerDialog({ candidates, onClose, onInvite }: InviteManagerDia
               options={emailOptions}
               value={values.collaboratorId}
             />
-            {errors.collaboratorId && <span role="alert">{errors.collaboratorId}</span>}
+            {errors.collaboratorId && <span id="invite-manager-email-error" role="alert">{errors.collaboratorId}</span>}
           </div>
           <div className="position-dialog-field">
             <label htmlFor="invite-manager-status">Status</label>
             <ToolbarSelect
               className={`position-dialog-select${values.status ? '' : ' position-dialog-select--placeholder'}${errors.status ? ' position-dialog-select--invalid' : ''}`}
               id="invite-manager-status"
+              disabled={locked}
+              error={errors.status}
               label="Status do gestor"
               onValueChange={(status) => {
                 setValues((current) => ({ ...current, status: status === 'active' || status === 'inactive' ? status : '' }))
@@ -77,14 +98,14 @@ function InviteManagerDialog({ candidates, onClose, onInvite }: InviteManagerDia
               options={statusOptions}
               value={values.status}
             />
-            {errors.status && <span role="alert">{errors.status}</span>}
+            {errors.status && <span id="invite-manager-status-error" role="alert">{errors.status}</span>}
           </div>
         </div>
         {formError && <p className="position-dialog-form-error" role="alert">{formError}</p>}
 
         <div className="astro-modal-actions">
-          <button className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
-          <PurpleButton type="submit">Convidar</PurpleButton>
+          <button className="astro-modal-cancel" disabled={saving || submitting} onClick={dismiss} type="button">Cancelar</button>
+          <PurpleButton disabled={locked || candidates.length === 0} type="submit">Convidar</PurpleButton>
         </div>
       </form>}
     </AppModal>
