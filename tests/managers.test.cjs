@@ -65,6 +65,50 @@ test('promoção inativa, edição de pré-cadastro e PATCH enviam status explí
   assert.deepEqual(calls.slice(2), [{ status: 'ATIVO' }, { status: 'ATIVO' }])
 })
 
+test('preserva foto e iniciais na lista, detalhes e retornos de promoção, edição e status', async () => {
+  const photo = { profilePhotoUrl: 'https://images.example.test/ana.jpg', avatarInitials: 'AS' }
+  global.fetch = async (_url, init) => respond(init.method === 'GET' && _url.endsWith('/managers') ? [{ ...summary, ...photo }] : { ...details, ...photo })
+  const managers = [
+    (await api.listManagers())[0], await api.getManager('42'),
+    await api.promoteManager({ collaboratorId: '42', status: 'active' }),
+    await api.updateManager('42', values), await api.changeManagerStatus('42', 'ATIVO'),
+  ]
+  for (const manager of managers) {
+    assert.equal(manager.profilePhotoUrl, photo.profilePhotoUrl)
+    assert.equal(manager.avatarInitials, 'AS')
+  }
+  const React = require('react')
+  const { renderToStaticMarkup } = require('react-dom/server')
+  const Identity = loadTs(path.join(__dirname, '../src/components/collaboratorIdentity/index.tsx')).default
+  const Form = loadTs(path.join(__dirname, '../src/components/collaboratorForm/index.tsx')).default
+  const avatar = renderToStaticMarkup(React.createElement(Identity, { name: managers[0].name, photoUrl: managers[0].profilePhotoUrl, initials: managers[0].avatarInitials }))
+  assert.match(avatar, /<img[^>]*src="https:\/\/images.example.test\/ana.jpg"/)
+  const form = renderToStaticMarkup(React.createElement(Form, { subject: 'gestor', collaborator: managers[1], mode: 'view', options: { positions: [], units: [] }, disabled: false, saving: false, onCancel() {}, onSubmit() {} }))
+  assert.match(form, /<img[^>]*src="https:\/\/images.example.test\/ana.jpg"/)
+})
+
+test('foto ausente ou com protocolo inválido usa fallback e campos malformados são recusados', async () => {
+  const React = require('react')
+  const { renderToStaticMarkup } = require('react-dom/server')
+  const Identity = loadTs(path.join(__dirname, '../src/components/collaboratorIdentity/index.tsx')).default
+  for (const photo of [undefined, null, '', 'javascript:alert(1)', 'data:image/png;base64,a']) {
+    global.fetch = async () => respond([{ ...summary, profilePhotoUrl: photo, avatarInitials: 'AN' }])
+    const manager = (await api.listManagers())[0]
+    assert.equal(manager.profilePhotoUrl, null)
+    const markup = renderToStaticMarkup(React.createElement(Identity, { name: manager.name, photoUrl: manager.profilePhotoUrl, initials: manager.avatarInitials }))
+    assert.match(markup, />AN</)
+    assert.doesNotMatch(markup, /<img/)
+  }
+  global.fetch = async () => respond(details)
+  assert.equal((await api.getManager('42')).avatarInitials, null)
+  for (const malformed of [{ profilePhotoUrl: 123 }, { avatarInitials: [] }]) {
+    global.fetch = async () => respond([{ ...summary, ...malformed }])
+    await assert.rejects(api.listManagers(), /dados inválidos/)
+    global.fetch = async () => respond({ ...details, ...malformed })
+    await assert.rejects(api.getManager('42'), /dados inválidos/)
+  }
+})
+
 test('detalhes toleram campos opcionais ausentes; edição exige CPF e modalidade válidos', async () => {
   for (const missing of [null, '', undefined]) {
     global.fetch = async () => respond({ ...details, cpf: missing, modalidade: missing })
