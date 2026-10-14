@@ -1,58 +1,62 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, InviteManagerDialog, ManagerDetailsModal, ManagerIdentity, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import ManagerDetailsModal from '../../components/managerDetailsModal'
+import ManagerIdentity from '../../components/managerIdentity'
+import InviteManagerDialog from '../../components/inviteManagerDialog'
 import type { DataTableColumn } from '../../components/dataTable'
 import PasswordConfirmationModal from '../../components/passwordConfirmationModal'
-import { mockEventCollaborators } from '../../data/eventCreation'
-import { managerUnits, mockManagers } from '../../data/managers'
 import { useActionsMenu } from '../../hooks'
-import type { Manager, ManagerDetailsValues, ManagerInviteValues } from '../../types'
+import { useManagers } from '../../hooks/useManagers'
+import type { ManagerSummary, ManagerFormValues, ManagerInviteValues } from '../../types/manager'
+import { collaboratorStatusLabels } from '../../utils/collaborator'
 import { iconAsset } from '../../utils/iconAsset'
 
-const unitFilterOptions = [
-  { value: '', label: 'Unidade', triggerLabel: 'Unidade', tone: 'muted' as const },
-  ...managerUnits.map((unit) => ({ value: unit, label: unit })),
-]
 const statusFilterOptions = [
   { value: '', label: 'Status', triggerLabel: 'Status', tone: 'muted' as const },
-  { value: 'active', label: 'Ativo' },
-  { value: 'inactive', label: 'Inativo' },
+  ...Object.entries(collaboratorStatusLabels).map(([value, label]) => ({ value, label })),
 ]
 
 type ManagerDialogState =
-  | { kind: 'view' | 'edit' | 'edit-password'; manager: Manager }
-  | { kind: 'confirm-edit'; manager: Manager; values: ManagerDetailsValues }
-  | { kind: 'deactivate'; manager: Manager }
-
-function normalizeKey(value: string) {
-  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('pt-BR')
-}
+  | { kind: 'view' | 'edit' | 'edit-password'; manager: ManagerSummary }
+  | { kind: 'confirm-edit'; manager: ManagerSummary; values: ManagerFormValues }
+  | { kind: 'deactivate'; manager: ManagerSummary }
 
 function MainManagerScreenPage() {
   const inviteOriginRef = useRef<HTMLButtonElement | null>(null)
   const savedTimerRef = useRef<number | null>(null)
-  const [managers, setManagers] = useState<Manager[]>(mockManagers)
   const [filters, setFilters] = useState({ search: '', unit: '', status: '' })
   const [inviteOpen, setInviteOpen] = useState(false)
   const [dialog, setDialog] = useState<ManagerDialogState | null>(null)
+  const detailId = dialog && ['view', 'edit', 'confirm-edit'].includes(dialog.kind) ? dialog.manager.id : undefined
+  const api = useManagers(detailId, dialog?.kind === 'edit' || dialog?.kind === 'confirm-edit', inviteOpen)
+  const { managers } = api
   const [details, setDetails] = useState({ dimmed: false, closing: false })
   const [savedManagerId, setSavedManagerId] = useState<string | null>(null)
   const [feedback, setFeedback] = useState('')
+  const [actionError, setActionError] = useState('')
   const actions = useActionsMenu()
 
   useEffect(() => () => {
     if (savedTimerRef.current !== null) window.clearTimeout(savedTimerRef.current)
   }, [])
 
-  const managerKeys = new Set(managers.flatMap((manager) => [manager.name, manager.email].map(normalizeKey)))
-  const inviteCandidates = mockEventCollaborators.filter((collaborator) => !managerKeys.has(normalizeKey(collaborator.name)) && !managerKeys.has(normalizeKey(collaborator.email)))
-
+  const unitFilterOptions = [
+    { value: '', label: 'Unidade', triggerLabel: 'Unidade', tone: 'muted' as const },
+    ...[...new Map(managers.map((manager) => [manager.unitId, { value: manager.unitId, label: manager.unit }])).values()].sort((a, b) => a.label.localeCompare(b.label, 'pt-BR')),
+  ]
   const normalizedSearch = filters.search.trim().toLocaleLowerCase('pt-BR')
   const visibleManagers = managers.filter((manager) => `${manager.name} ${manager.email}`.toLocaleLowerCase('pt-BR').includes(normalizedSearch)
-    && (!filters.unit || manager.unit.split(', ').includes(filters.unit))
-    && (!filters.status || (filters.status === 'active') === manager.active))
+    && (!filters.unit || manager.unitId === filters.unit)
+    && (!filters.status || manager.status === filters.status))
   const openManager = visibleManagers.find((manager) => manager.id === actions.openId)
-  const positionNames = [...new Set([...managers, ...mockEventCollaborators].map((person) => person.position))]
+
+  async function inviteManager(values: ManagerInviteValues): Promise<string | null> {
+    const result = await api.promote(values)
+    if (result.error !== null) return result.error
+    showSavedManager(result.manager.id, `${result.manager.name} promovido a gestor.`)
+    return null
+  }
 
   function showSavedManager(managerId: string, message: string) {
     if (savedTimerRef.current !== null) window.clearTimeout(savedTimerRef.current)
@@ -64,49 +68,29 @@ function MainManagerScreenPage() {
     }, 900)
   }
 
-  function inviteManager(values: ManagerInviteValues): string | null {
-    const collaborator = inviteCandidates.find((candidate) => candidate.id === values.collaboratorId)
-    if (!collaborator) return 'Esse colaborador já é gestor ou não foi encontrado.'
-
-    const newManagerId = crypto.randomUUID()
-    setManagers((current) => [...current, {
-      id: newManagerId,
-      name: collaborator.name,
-      email: collaborator.email,
-      unit: collaborator.unit,
-      active: values.status === 'active',
-      cpf: '',
-      position: collaborator.position,
-      modality: collaborator.modality,
-    }])
-    showSavedManager(newManagerId, `Convite enviado para ${collaborator.email}.`)
-    return null
-  }
-
-  function closeInvite() {
-    setInviteOpen(false)
-    inviteOriginRef.current?.focus()
-  }
-
-  function checkDuplicateEmail(values: ManagerDetailsValues, managerId: string): string | null {
-    const email = normalizeKey(values.email)
-    return managers.some((manager) => manager.id !== managerId && normalizeKey(manager.email) === email)
+  function checkDuplicateEmail(values: ManagerFormValues, managerId: string): string | null {
+    const email = values.email.toLocaleLowerCase('pt-BR')
+    return managers.some((manager) => manager.id !== managerId && manager.email.toLocaleLowerCase('pt-BR') === email)
       ? 'Já existe um gestor com esse e-mail.'
       : null
   }
 
-  function saveManager(managerId: string, values: ManagerDetailsValues): string | null {
+  async function saveManager(managerId: string, values: ManagerFormValues): Promise<string | null> {
     const duplicateError = checkDuplicateEmail(values, managerId)
     if (duplicateError) return duplicateError
 
-    setManagers((current) => current.map((manager) => manager.id === managerId ? { ...manager, ...values } : manager))
-    showSavedManager(managerId, `Gestor ${values.name} atualizado.`)
+    const result = await api.save(values, managerId)
+    if (result.error !== null) return result.error
+    showSavedManager(result.manager.id, `Gestor ${result.manager.name} atualizado.`)
     return null
   }
 
-  function toggleStatus(manager: Manager) {
-    setManagers((current) => current.map((item) => item.id === manager.id ? { ...item, active: !item.active } : item))
-    showSavedManager(manager.id, `Gestor ${manager.name} ${manager.active ? 'inativado' : 'ativado'}.`)
+  async function toggleStatus(manager: ManagerSummary): Promise<string | null> {
+    setActionError('')
+    const result = await api.changeStatus(manager.id, manager.status === 'DESATIVADO' ? 'ATIVO' : 'DESATIVADO')
+    if (result.error !== null) return result.error
+    showSavedManager(result.manager.id, `Gestor ${result.manager.name} ${collaboratorStatusLabels[result.manager.status].toLowerCase()}.`)
+    return null
   }
 
   function closeDetails() {
@@ -116,19 +100,25 @@ function MainManagerScreenPage() {
     actions.triggerRef.current?.focus()
   }
 
-  const columns: DataTableColumn<Manager>[] = [
+  function closeInvite() {
+    setInviteOpen(false)
+    inviteOriginRef.current?.focus()
+  }
+
+  const columns: DataTableColumn<ManagerSummary>[] = [
     { id: 'name', label: 'Gestor', width: '23%', rowHeader: true, render: (manager) => <ManagerIdentity name={manager.name} /> },
     { id: 'email', label: 'E-mail', width: '29%', render: (manager) => <TruncatedText>{manager.email}</TruncatedText> },
     { id: 'unit', label: 'Unidades', width: '18%', render: (manager) => <TruncatedText>{manager.unit}</TruncatedText> },
     {
       id: 'status', label: 'Status', width: '16.5%',
-      render: (manager) => <span className={`position-status${manager.active ? ' position-status--active' : ''}${manager.id === savedManagerId ? ' position-status--saved' : ''}`}><TruncatedText truncate={false}>{manager.active ? 'Ativo' : 'Inativo'}</TruncatedText></span>,
+      render: (manager) => <span className={`position-status${manager.status === 'ATIVO' ? ' position-status--active' : ''}${manager.id === savedManagerId ? ' position-status--saved' : ''}`}><TruncatedText truncate={false}>{collaboratorStatusLabels[manager.status]}</TruncatedText></span>,
     },
     {
       id: 'actions', label: 'Ações', width: '13.5%', className: 'position-actions-cell',
       render: (manager) => (
         <div className="position-actions">
           <button
+            disabled={api.loading || api.saving}
             aria-controls={actions.openId === manager.id ? `manager-actions-${manager.id}` : undefined}
             aria-expanded={actions.openId === manager.id}
             aria-haspopup="menu"
@@ -156,7 +146,7 @@ function MainManagerScreenPage() {
           </header>
 
           <div aria-label="Ações e filtros dos gestores" className="position-toolbar" role="group">
-            <CompactPurpleButton onClick={(event) => { inviteOriginRef.current = event.currentTarget; setInviteOpen(true) }} type="button">
+            <CompactPurpleButton disabled={api.loading || api.saving || Boolean(api.error)} onClick={(event) => { inviteOriginRef.current = event.currentTarget; api.retryCandidates(); setInviteOpen(true) }} type="button">
               <AstroIcon name="plus" />
               Convidar gestor
             </CompactPurpleButton>
@@ -175,8 +165,12 @@ function MainManagerScreenPage() {
             </div>
           </div>
 
-          <DataTable ariaLabel="Gestores" columns={columns} emptyMessage="Nenhum gestor encontrado para esses filtros." getRowClassName={(manager) => manager.id === savedManagerId ? 'astro-data-table-row--saved' : undefined} getRowKey={(manager) => manager.id} rows={visibleManagers} />
-          <p className="sr-only" role="status">{feedback}</p>
+          {api.loading && <p className="position-api-feedback" role="status">Carregando gestores...</p>}
+          {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button disabled={api.saving} onClick={api.retry} type="button">Tentar novamente</button></div>}
+          {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
+          {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
+          <DataTable ariaLabel="Gestores" columns={columns} emptyMessage={api.loading ? 'Carregando gestores...' : api.error ? 'Lista de gestores indisponível.' : 'Nenhum gestor encontrado para esses filtros.'} getRowClassName={(manager) => manager.id === savedManagerId ? 'astro-data-table-row--saved' : undefined} getRowKey={(manager) => manager.id} rows={visibleManagers} />
+          <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 
         {openManager && createPortal(
@@ -186,11 +180,11 @@ function MainManagerScreenPage() {
             id={`manager-actions-${openManager.id}`}
             items={[
               { id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
-              { id: 'view', label: 'Ver mais informações', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'view', manager: openManager })) },
+              { id: 'view', label: 'Ver mais informações', separatorAfter: true, onSelect: () => actions.close(() => { api.retryDetails(); setDialog({ kind: 'view', manager: openManager }) }) },
               { id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit-password', manager: openManager })) },
-              { id: 'toggle-status', label: openManager.active ? 'Inativar' : 'Ativar', tone: openManager.active ? 'danger' : 'default', onSelect: () => actions.close(() => {
-                if (openManager.active) setDialog({ kind: 'deactivate', manager: openManager })
-                else toggleStatus(openManager)
+              { id: 'toggle-status', label: openManager.status === 'DESATIVADO' ? 'Ativar' : 'Desativar', tone: openManager.status === 'DESATIVADO' ? 'default' : 'danger', onSelect: () => actions.close(() => {
+                if (openManager.status !== 'DESATIVADO') setDialog({ kind: 'deactivate', manager: openManager })
+                else void toggleStatus(openManager).then((error) => { if (error) setActionError(error) })
               }) },
             ]}
             onClose={() => actions.close()}
@@ -202,7 +196,8 @@ function MainManagerScreenPage() {
 
       </main>
 
-      {inviteOpen && <InviteManagerDialog candidates={inviteCandidates} onClose={closeInvite} onInvite={inviteManager} />}
+      {inviteOpen && <InviteManagerDialog candidates={api.candidates.data} loading={api.candidates.loading || api.loading}
+        error={api.candidates.error || api.error} saving={api.saving} onClose={closeInvite} onRetry={() => { api.retryCandidates(); if (api.error) api.retry() }} onInvite={inviteManager} />}
 
       {dialog?.kind === 'edit-password' && (
         <PasswordConfirmationModal
@@ -212,14 +207,19 @@ function MainManagerScreenPage() {
             setDialog(null)
             actions.triggerRef.current?.focus()
           }}
-          onContinue={() => setDialog({ kind: 'edit', manager: dialog.manager })}
+          onContinue={() => { api.retryDetails(); api.retryOptions(); setDialog({ kind: 'edit', manager: dialog.manager }) }}
         />
       )}
       {dialog && (dialog.kind === 'view' || dialog.kind === 'edit' || dialog.kind === 'confirm-edit') && (
         <ManagerDetailsModal
           dimmed={details.dimmed}
           key={dialog.manager.id}
-          manager={dialog.manager}
+          manager={api.details.data}
+          options={api.options.data}
+          loading={api.details.loading || (dialog.kind !== 'view' && api.options.loading)}
+          error={api.details.error || (dialog.kind !== 'view' ? api.options.error : '')}
+          saving={api.saving}
+          onRetry={() => { api.retryDetails(); if (dialog.kind !== 'view') api.retryOptions() }}
           mode={dialog.kind === 'view' ? 'view' : 'edit'}
           onClose={closeDetails}
           onSubmit={(values) => {
@@ -230,8 +230,6 @@ function MainManagerScreenPage() {
             return null
           }}
           open={!details.closing}
-          positions={positionNames}
-          units={managerUnits}
         />
       )}
       {dialog?.kind === 'confirm-edit' && (
@@ -243,8 +241,8 @@ function MainManagerScreenPage() {
             setDialog({ kind: 'edit', manager: dialog.manager })
           }}
           onCancelRequest={() => setDetails((current) => ({ ...current, dimmed: false }))}
-          onConfirm={() => {
-            const error = saveManager(dialog.manager.id, dialog.values)
+          onConfirm={async () => {
+            const error = await saveManager(dialog.manager.id, dialog.values)
             if (!error) setDetails((current) => ({ ...current, closing: true }))
             return error
           }}
@@ -260,18 +258,19 @@ function MainManagerScreenPage() {
         <ConfirmationModal
           backdrop="dimmed"
           className="position-deactivation-modal"
-          confirmLabel="Inativar"
+          confirmLabel="Desativar"
+          description="A desativação afeta toda a conta deste gestor."
           icon={<span aria-hidden="true" className="position-deactivation-icon"><img alt="" src={iconAsset('warning.svg')} /></span>}
           onCancel={() => {
             setDialog(null)
             actions.triggerRef.current?.focus()
           }}
-          onConfirm={() => { toggleStatus(dialog.manager); return null }}
+          onConfirm={() => toggleStatus(dialog.manager)}
           onConfirmed={() => {
             setDialog(null)
             requestAnimationFrame(() => actions.triggerRef.current?.focus())
           }}
-          title="Tem certeza de que deseja inativar este gestor?"
+          title="Tem certeza de que deseja desativar este gestor?"
           tone="danger"
         />
       )}

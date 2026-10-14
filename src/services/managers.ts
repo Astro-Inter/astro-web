@@ -1,0 +1,99 @@
+import { firebaseAuth } from './firebase'
+import { getSystemApiBaseUrl } from './systemApi'
+import { formatCpfCnpj } from '../utils/inputFormatting'
+import { isPositiveId, validateCollaborator } from '../utils/collaborator'
+import { validateManagerInvite } from '../utils/manager'
+import type { ManagerDetails, ManagerDetailsResponse, ManagerFormValues, ManagerInviteValues, ManagerSummary, ManagerSummaryResponse, PromoteManagerRequest, UpdateManagerRequest } from '../types/manager'
+
+export class ManagersApiError extends Error {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options)
+    this.name = 'ManagersApiError'
+  }
+}
+
+async function requestManagers<T>(path: string, method = 'GET', payload?: object, signal?: AbortSignal): Promise<T> {
+  try {
+    const user = firebaseAuth.currentUser
+    if (!user) throw new ManagersApiError('Entre na sua conta para gerenciar os gestores.')
+    const token = await user.getIdToken()
+    signal?.throwIfAborted()
+    const response = await fetch(`${getSystemApiBaseUrl()}${path}`, {
+      method, signal,
+      headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(payload ? { 'Content-Type': 'application/json' } : {}) },
+      ...(payload ? { body: JSON.stringify(payload) } : {}),
+    })
+    const text = await response.text()
+    let body: unknown = null
+    try { body = text ? JSON.parse(text) : null } catch { /* O servidor pode retornar erros sem JSON. */ }
+    const result = typeof body === 'object' && body !== null ? body as Record<string, unknown> : null
+    if (!response.ok || result?.success === false) {
+      const details = Array.isArray(result?.errors) ? result.errors.filter((item): item is string => typeof item === 'string').join(' ') : ''
+      throw new ManagersApiError(details || (typeof result?.message === 'string' && result.message) ||
+        (response.status === 401 ? 'Sua sessão expirou. Entre novamente.' : response.status === 403 ? 'Você não tem permissão para gerenciar estes gestores.' : response.status === 404 ? 'Gestor, colaborador, cargo ou unidade não encontrado no seu workspace.' : 'Não foi possível concluir a operação de gestores. Tente novamente.'))
+    }
+    if (result?.success !== true) throw new ManagersApiError('A API retornou uma resposta inválida para gestores.')
+    return result.data as T
+  } catch (error: unknown) {
+    if (signal?.aborted || error instanceof ManagersApiError) throw error
+    throw new ManagersApiError('Não foi possível conectar à API de gestores. Tente novamente.', { cause: error })
+  }
+}
+
+function managerPath(id: string): string {
+  if (!isPositiveId(id)) throw new ManagersApiError('Identificador do gestor inválido.')
+  return `/managers/${id}`
+}
+
+function toManager(row: ManagerSummaryResponse): ManagerSummary {
+  if (!row || !Number.isSafeInteger(row.id_usuario) || row.id_usuario <= 0
+    || !Number.isSafeInteger(row.unidade_id) || row.unidade_id <= 0
+    || typeof row.nome !== 'string' || typeof row.email !== 'string' || typeof row.unidade !== 'string'
+    || !['PRE_CADASTRADO', 'ATIVO', 'DESATIVADO'].includes(row.status)) {
+    throw new ManagersApiError('A API retornou dados inválidos para o gestor.')
+  }
+  return { id: String(row.id_usuario), name: row.nome, email: row.email, unitId: String(row.unidade_id), unit: row.unidade, status: row.status }
+}
+
+function toDetails(row: ManagerDetailsResponse): ManagerDetails {
+  const manager = toManager(row)
+  if (!Number.isSafeInteger(row.cargo_id) || row.cargo_id <= 0 || typeof row.cargo !== 'string'
+    || (row.cpf != null && typeof row.cpf !== 'string')
+    || (row.modalidade != null && row.modalidade !== '' && !['HIBRIDO', 'REMOTO', 'PRESENCIAL'].includes(row.modalidade))) {
+    throw new ManagersApiError('A API retornou detalhes inválidos para o gestor.')
+  }
+  const cpf = row.cpf?.trim() ?? ''
+  const digits = cpf.replace(/[.\-\s]/g, '')
+  return { ...manager, roleId: String(row.cargo_id), position: row.cargo, cpf: /^\d{11}$/.test(digits) ? formatCpfCnpj(digits) : cpf,
+    modality: row.modalidade || '', profilePhotoUrl: null, avatarInitials: null }
+}
+
+export async function listManagers(signal?: AbortSignal): Promise<ManagerSummary[]> {
+  const data = await requestManagers<ManagerSummaryResponse[]>('/managers', 'GET', undefined, signal)
+  if (!Array.isArray(data)) throw new ManagersApiError('A API retornou uma lista de gestores inválida.')
+  return data.map(toManager)
+}
+
+export async function getManager(id: string, signal?: AbortSignal): Promise<ManagerDetails> {
+  return toDetails(await requestManagers<ManagerDetailsResponse>(managerPath(id), 'GET', undefined, signal))
+}
+
+export async function promoteManager(values: ManagerInviteValues): Promise<ManagerDetails> {
+  const errors = validateManagerInvite(values, [values.collaboratorId])
+  if (!isPositiveId(values.collaboratorId) || Object.keys(errors).length) throw new ManagersApiError('Selecione um colaborador ativo e um status válido.')
+  const payload: PromoteManagerRequest = { collaboratorId: Number(values.collaboratorId), status: values.status === 'active' ? 'ATIVO' : 'DESATIVADO' }
+  return toDetails(await requestManagers<ManagerDetailsResponse>('/managers', 'POST', payload))
+}
+
+export async function updateManager(id: string, values: ManagerFormValues): Promise<ManagerDetails> {
+  const errors = validateCollaborator(values)
+  if (Object.keys(errors).length) throw new ManagersApiError(Object.values(errors).join(' '))
+  const payload: UpdateManagerRequest = { nome: values.name.trim(), cpf: values.cpf.replace(/[.\-\s]/g, ''), email: values.email.trim().toLowerCase(),
+    roleId: Number(values.roleId), unitId: Number(values.unitId), modalidade: values.modality as UpdateManagerRequest['modalidade'], status: values.status }
+  return toDetails(await requestManagers<ManagerDetailsResponse>(managerPath(id), 'PUT', payload))
+}
+
+export async function changeManagerStatus(id: string, status: 'ATIVO' | 'DESATIVADO'): Promise<ManagerDetails> {
+  if (status !== 'ATIVO' && status !== 'DESATIVADO') throw new ManagersApiError('Status inválido. Selecione ativo ou desativado.')
+  return toDetails(await requestManagers<ManagerDetailsResponse>(`${managerPath(id)}/status`, 'PATCH', { status }))
+}

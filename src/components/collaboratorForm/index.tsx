@@ -8,6 +8,7 @@ import PurpleButton from '../purpleButton'
 import CollaboratorIdentity from '../collaboratorIdentity'
 
 interface CollaboratorFormProps {
+  subject?: 'colaborador' | 'gestor'
   collaborator: CollaboratorDetails | null
   mode: 'create' | 'view' | 'edit'
   options: CollaboratorOptions
@@ -17,7 +18,7 @@ interface CollaboratorFormProps {
   onSubmit: (values: CollaboratorFormValues) => string | null | Promise<string | null>
 }
 
-function CollaboratorForm({ collaborator, mode, options, disabled, saving, onCancel, onSubmit }: CollaboratorFormProps) {
+function CollaboratorForm({ subject = 'colaborador', collaborator, mode, options, disabled, saving, onCancel, onSubmit }: CollaboratorFormProps) {
   const editable = mode !== 'view'
   const [values, setValues] = useState<CollaboratorFormValues>(() => collaborator
     ? { name: collaborator.name, cpf: collaborator.cpf, email: collaborator.email, roleId: collaborator.roleId, unitId: collaborator.unitId, modality: collaborator.modality, status: collaborator.status }
@@ -48,7 +49,7 @@ function CollaboratorForm({ collaborator, mode, options, disabled, saving, onCan
       setSubmission({ saving: false, error: error ?? '' })
       if (!error && mode === 'create') onCancel()
     } catch (error: unknown) {
-      setSubmission({ saving: false, error: error instanceof Error ? error.message : 'Não foi possível salvar o colaborador.' })
+      setSubmission({ saving: false, error: error instanceof Error ? error.message : `Não foi possível salvar o ${subject}.` })
     } finally { busy.current = false }
   }
 
@@ -83,7 +84,7 @@ function CollaboratorForm({ collaborator, mode, options, disabled, saving, onCan
     </div>}
     {mode === 'create' && <p className="astro-modal-description">O colaborador será pré-cadastrado. A conclusão do cadastro segue o fluxo por e-mail.</p>}
     <fieldset className="position-dialog-fields" disabled={locked}>
-      <legend className="sr-only">Dados do colaborador</legend>
+      <legend className="sr-only">Dados do {subject}</legend>
       <div className="account-details-grid">
         <FormField error={errors.name} id="collaborator-name" label="Nome" maxLength={255} onChange={(event) => update('name', event.target.value)} readOnly={!editable} value={values.name} />
         <FormField error={errors.cpf} id="collaborator-cpf" inputMode="numeric" label="CPF" maxLength={14} onChange={(event) => update('cpf', formatCpfCnpj(event.target.value.replace(/\D/g, '').slice(0, 11)))} placeholder="Não informado" readOnly={!editable} value={values.cpf} />
@@ -94,7 +95,7 @@ function CollaboratorForm({ collaborator, mode, options, disabled, saving, onCan
         {mode === 'edit' ? select('status', 'Status', statusOptions) : <FormField id="collaborator-status" label="Status" readOnly value={collaboratorStatusLabels[values.status]} />}
       </div>
     </fieldset>
-    {submission.saving && <p role="status">Salvando colaborador...</p>}
+    {submission.saving && <p role="status">Salvando {subject}...</p>}
     {submission.error && <p className="manager-details-form-error" role="alert">{submission.error}</p>}
     <div className="astro-modal-actions">
       <button className="astro-modal-cancel" disabled={saving || submission.saving} onClick={onCancel} type="button">{editable ? 'Cancelar' : 'Voltar'}</button>
