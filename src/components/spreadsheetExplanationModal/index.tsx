@@ -1,3 +1,5 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef } from 'react'
 import { useAnimatedDialog } from '../../hooks/useAnimatedDialog'
 import AstroIcon from '../astroIcon'
@@ -42,7 +44,7 @@ function SpreadsheetExplanationModal({ example = employeeExample, onDismiss, ope
   const { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose } = useAnimatedDialog({ initialFocusRef: titleRef, onClose: onDismiss, open })
 
   return (
-    <dialog
+    <dialog data-track-dialog={DIALOG_NAMES.instrucoes_importacao_conformidades}
       aria-describedby="spreadsheet-explanation-subtitle"
       aria-labelledby="spreadsheet-explanation-title"
       className={`spreadsheet-explanation-modal astro-scale-100${closing ? ' astro-dialog--closing' : ''}`}
@@ -95,13 +97,13 @@ function SpreadsheetExplanationModal({ example = employeeExample, onDismiss, ope
             ))}
           </tbody>
         </table>
-        <button className="spreadsheet-preview-download" type="button" aria-label="Baixar modelo de planilha Excel" disabled={download.pending} onClick={() => { void download.download() }}>
+        <button data-track-action={BUTTONS.comuns.modelo} className="spreadsheet-preview-download" type="button" aria-label="Baixar modelo de planilha Excel" disabled={download.pending} onClick={() => { void download.download() }}>
           <AstroIcon name="download" strokeScale={0.9} />
         </button>
       </div>
       {download.error && <p className="login-field-error" role="alert">{download.error}</p>}
 
-      <PurpleButton className="spreadsheet-explanation-confirm" onClick={dismiss}>
+      <PurpleButton data-track-action={BUTTONS.comuns.entendi} className="spreadsheet-explanation-confirm" onClick={dismiss}>
         Entendi
       </PurpleButton>
     </dialog>

@@ -1,3 +1,5 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { WorkspaceSettingsNavigationState } from '../../types/workspaceSettings'
@@ -15,11 +17,11 @@ function WorkspaceSettingsBackButton({ screen }: WorkspaceSettingsBackButtonProp
   const [confirming, setConfirming] = useState(false)
   return (
     <>
-      <button aria-haspopup="dialog" aria-label="Voltar para configurações" className="payment-back-button workspace-settings-back" onClick={() => setConfirming(true)} type="button">
+      <button data-track-action={BUTTONS.comuns.voltar} aria-haspopup="dialog" aria-label="Voltar para configurações" className="payment-back-button workspace-settings-back" onClick={() => setConfirming(true)} type="button">
         <AstroIcon name="back" />
       </button>
       {confirming && (
-        <ConfirmationModal
+        <ConfirmationModal trackingName={DIALOG_NAMES.descartar_alteracoes_configuracoes}
           backdrop="dimmed"
           className={`create-forms-exit-modal ${screen}`}
           confirmLabel="Sair"

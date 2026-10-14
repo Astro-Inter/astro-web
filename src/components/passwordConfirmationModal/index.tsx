@@ -1,3 +1,4 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { useRef } from 'react'
 import { usePasswordConfirmation } from '../../hooks/usePasswordConfirmation'
 import AppModal from '../appModal'
@@ -17,7 +18,7 @@ function PasswordConfirmationModal({ className, confirmLabel = 'Continuar', dang
   const actionRef = useRef(onContinue)
   const confirmation = usePasswordConfirmation()
   return (
-    <AppModal backdrop={backdrop} className={`workspace-password-modal ${className}`} dismissible={confirmation.status !== 'success'} onDismissRequest={() => { if (!continuingRef.current) confirmation.cancel() }} onClose={() => confirmation.consumeConfirmation() ? actionRef.current() : onCancel()} preservePageScroll title="Digite sua senha atual para poder continuar">
+    <AppModal trackingName={DIALOG_NAMES.confirmar_senha} backdrop={backdrop} className={`workspace-password-modal ${className}`} dismissible={confirmation.status !== 'success'} onDismissRequest={() => { if (!continuingRef.current) confirmation.cancel() }} onClose={() => confirmation.consumeConfirmation() ? actionRef.current() : onCancel()} preservePageScroll title="Digite sua senha atual para poder continuar">
       {dismiss => <PasswordConfirmationForm confirmation={confirmation} confirmLabel={confirmLabel} danger={danger} onCancel={dismiss} onContinue={async () => {
         if (await confirmation.submit()) { continuingRef.current = true; dismiss() }
       }} />}

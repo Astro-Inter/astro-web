@@ -1,3 +1,5 @@
+import { SHOWCASE_NAMES, SIDEBAR_ITEMS } from '../../gtm/showcases'
+import { BUTTONS } from '../../gtm/buttons'
 import { useEffect, useRef, useState, type ComponentProps } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import AstroBrand from '../astroBrand'
@@ -81,7 +83,7 @@ function AppSidebar({ items = navigationItems }: AppSidebarProps) {
   return (
     <>
       <header className="app-mobile-header">
-        <button
+        <button data-track-action={open ? BUTTONS.comuns.fechar_menu : BUTTONS.comuns.abrir_menu}
           aria-controls="app-navigation"
           aria-expanded={open}
           aria-label={open ? 'Fechar menu' : 'Abrir menu'}
@@ -95,16 +97,16 @@ function AppSidebar({ items = navigationItems }: AppSidebarProps) {
         <AstroBrand />
       </header>
 
-      {open && <button aria-label="Fechar menu" className="app-sidebar-backdrop" onClick={closeMenu} tabIndex={-1} type="button" />}
+      {open && <button data-track-action={BUTTONS.comuns.fechar_menu} aria-label="Fechar menu" className="app-sidebar-backdrop" onClick={closeMenu} tabIndex={-1} type="button" />}
 
       <aside ref={sidebarRef} className={`app-sidebar astro-scale-90${open ? ' app-sidebar--open' : ''}`} id="app-navigation">
         <AstroBrand />
-        <nav aria-label="Menu principal" className="app-navigation">
+        <nav data-track-showcase={SHOWCASE_NAMES.sidebar} aria-label="Menu principal" className="app-navigation">
           <ul>
             {items.map((item) => (
               <li className={item.alignBottom ? 'app-navigation-settings' : ''} key={item.label}>
                 {item.path ? (
-                  <NavLink
+                  <NavLink data-track-item={SIDEBAR_ITEMS[item.path]}
                     className={({ isActive }) => `app-navigation-link${isActive ? ' app-navigation-link--active' : ''}`}
                     onClick={() => setOpen(false)}
                     to={item.path}

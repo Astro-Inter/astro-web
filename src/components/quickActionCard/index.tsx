@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import AstroIcon from '../astroIcon'
 import PurpleButton from '../purpleButton'
 import type { QuickAction } from '../../types/home'
@@ -17,7 +18,7 @@ function QuickActionCard({ action, onSelect }: QuickActionCardProps) {
           <p>{action.description}</p>
         </div>
       </div>
-      <PurpleButton
+      <PurpleButton data-track-action={({ 'add-collaborator': BUTTONS.comuns.adicionar_colaborador, 'add-form': BUTTONS.comuns.adicionar_forms, 'add-event': BUTTONS.comuns.adicionar_evento } as Record<string, string>)[action.id]}
         aria-disabled={onSelect ? undefined : true}
         className="quick-action-button"
         onClick={onSelect}

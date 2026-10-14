@@ -10,6 +10,7 @@ interface ToolbarSelectOption {
 }
 
 interface ToolbarSelectProps {
+  trackingAction?: string
   className?: string
   disabled?: boolean
   error?: string
@@ -24,7 +25,7 @@ interface ToolbarSelectProps {
   value: string
 }
 
-function ToolbarSelect({ id, label, options, className = '', disabled = false, error, escapeOverflow = false, onValueChange, searchable = true, maxVisibleRows = 4, preferredPlacement = 'auto', value }: ToolbarSelectProps) {
+function ToolbarSelect({ trackingAction, id, label, options, className = '', disabled = false, error, escapeOverflow = false, onValueChange, searchable = true, maxVisibleRows = 4, preferredPlacement = 'auto', value }: ToolbarSelectProps) {
   const generatedId = useId()
   const selectId = id ?? generatedId
   const listId = `${selectId}-options`
@@ -189,7 +190,7 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, e
     >
       <label className="sr-only" htmlFor={selectId}>{label}</label>
       <div className="astro-toolbar-select-control">
-        <input
+        <input data-track-action={trackingAction}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${selectId}-error` : undefined}
           aria-controls={listId}
@@ -211,7 +212,7 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, e
           type="text"
           value={searchable && open && !closing ? searchTerm : closing ? valueWhileClosing : selectedLabel}
         />
-        <button
+        <button data-track-action={trackingAction}
           aria-controls={listId}
           aria-expanded={open && !closing}
           aria-label={open && !closing ? `Fechar opções de ${label}` : `Abrir opções de ${label}`}
@@ -233,6 +234,7 @@ function ToolbarSelect({ id, label, options, className = '', disabled = false, e
                 onMouseDown={event => event.preventDefault()}
                 ref={(element) => { optionRefs.current[index] = element }}
                 role="option"
+                data-track-action={trackingAction}
                 tabIndex={-1}
                 type="button"
               >{option.label}</button>

@@ -1,3 +1,6 @@
+import { SHOWCASE_NAMES } from '../../gtm/showcases'
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
@@ -108,18 +111,18 @@ function MainFormScreenPage() {
   return (
     <div className="main-position-screen main-form-screen">
       <AppSidebar />
-      <main className="position-main" id="conteudo-principal">
+      <main data-track-page={true} className="position-main" id="conteudo-principal">
         <section aria-labelledby="forms-title" className="position-content astro-scale-90" ref={contentRef}>
           <header className="position-heading">
             <h1 id="forms-title" ref={headingRef} tabIndex={-1}>Formulários</h1>
             <p>Gerencie e organize todos os formulários.</p>
           </header>
           <div aria-label="Ações e filtros dos formulários" className="position-toolbar" role="group">
-            <CompactPurpleButton onClick={() => navigate('/createForms')} type="button"><AstroIcon name="plus" />Criar novo formulário</CompactPurpleButton>
+            <CompactPurpleButton data-track-action={BUTTONS.comuns.criar_forms} onClick={() => navigate('/createForms')} type="button"><AstroIcon name="plus" />Criar novo formulário</CompactPurpleButton>
             <ToolbarSearch label="Buscar formulários" placeholder="Buscar formulários..." value={filters.search} onChange={event => setFilters(current => ({ ...current, search: event.target.value, page: 1 }))} onClear={() => setFilters(current => ({ ...current, search: '', page: 1 }))} />
-            <div className="position-toolbar-selects"><ToolbarSelect label="Filtrar por status" options={statusOptions} value={filters.status} onValueChange={status => setFilters(current => ({ ...current, status, page: 1 }))} /></div>
+            <div className="position-toolbar-selects"><ToolbarSelect trackingAction={BUTTONS.comuns.status} label="Filtrar por status" options={statusOptions} value={filters.status} onValueChange={status => setFilters(current => ({ ...current, status, page: 1 }))} /></div>
           </div>
-          <div aria-busy={results.exiting} className={`forms-grid${results.changed ? ' forms-grid--animated' : ''}${results.direction ? ` forms-grid--${results.direction}` : ''}${results.exiting ? ' forms-grid--exiting' : ''}`} key={results.signature}>
+          <div data-track-showcase={SHOWCASE_NAMES.lista_formularios} aria-busy={results.exiting} className={`forms-grid${results.changed ? ' forms-grid--animated' : ''}${results.direction ? ` forms-grid--${results.direction}` : ''}${results.exiting ? ' forms-grid--exiting' : ''}`} key={results.signature}>
             {results.items.map(form => <FormCard key={form.id} form={form} menuOpen={openId === form.id} onOpenMenu={event => {
               const trigger = event.currentTarget
               const open = () => { triggerRef.current = trigger; setMenuPosition(null); setOpenId(form.id) }
@@ -132,20 +135,20 @@ function MainFormScreenPage() {
           <footer className="forms-pagination">
             <span aria-live="polite">Página {page} de {pageCount}</span>
             <nav aria-label="Paginação dos formulários">
-              {page > 1 && <button aria-label="Página anterior" onClick={() => setFilters(current => ({ ...current, page: page - 1 }))} type="button"><AstroIcon className="forms-pagination-previous" name="chevron-down" /></button>}
+              {page > 1 && <button data-track-action={BUTTONS.comuns.pagina_anterior} aria-label="Página anterior" onClick={() => setFilters(current => ({ ...current, page: page - 1 }))} type="button"><AstroIcon className="forms-pagination-previous" name="chevron-down" /></button>}
               <span aria-current="page" className="forms-current-page" key={page}>{page}</span>
-              <button aria-label="Próxima página" disabled={page === pageCount} onClick={() => setFilters(current => ({ ...current, page: page + 1 }))} type="button"><AstroIcon className="forms-pagination-next" name="chevron-down" /></button>
+              <button data-track-action={BUTTONS.comuns.proxima_pagina} aria-label="Próxima página" disabled={page === pageCount} onClick={() => setFilters(current => ({ ...current, page: page + 1 }))} type="button"><AstroIcon className="forms-pagination-next" name="chevron-down" /></button>
             </nav>
           </footer>
           <p className="sr-only" role="status">{feedback}</p>
         </section>
       </main>
-      {selected && createPortal(<OptionsPopup ariaLabel={`Opções para ${selected.name}`} closing={closing} id={`form-options-${selected.id}`} panelRef={panelRef} onClose={() => closeMenu()} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} items={[
-        { id: 'cancel', label: 'Cancelar', tone: 'muted', separatorAfter: true, onSelect: () => closeMenu() },
-        { id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => closeMenu(() => navigate('/editForms', { state: { form: selected } })) },
-        { id: 'delete', label: 'Excluir', tone: 'danger', onSelect: () => closeMenu(() => setPendingDeletion(selected)) },
+      {selected && createPortal(<OptionsPopup trackingName={DIALOG_NAMES.acoes_formulario} ariaLabel={`Opções para ${selected.name}`} closing={closing} id={`form-options-${selected.id}`} panelRef={panelRef} onClose={() => closeMenu()} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} items={[
+        { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', tone: 'muted', separatorAfter: true, onSelect: () => closeMenu() },
+        { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => closeMenu(() => navigate('/editForms', { state: { form: selected } })) },
+        { trackingAction: BUTTONS.comuns.excluir, id: 'delete', label: 'Excluir', tone: 'danger', onSelect: () => closeMenu(() => setPendingDeletion(selected)) },
       ]} />, document.body)}
-      {pendingDeletion && <ConfirmationModal backdrop="dimmed" preservePageScroll className="forms-deletion-modal" confirmLabel="Excluir" tone="danger" title="Tem certeza de que deseja excluir este formulário?" icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={() => setPendingDeletion(null)} onConfirm={() => {
+      {pendingDeletion && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_exclusao_formulario} backdrop="dimmed" preservePageScroll className="forms-deletion-modal" confirmLabel="Excluir" tone="danger" title="Tem certeza de que deseja excluir este formulário?" icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={() => setPendingDeletion(null)} onConfirm={() => {
         return null
       }} onConfirmed={() => {
         setForms(current => current.filter(form => form.id !== pendingDeletion.id))

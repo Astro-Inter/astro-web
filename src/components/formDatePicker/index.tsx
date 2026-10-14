@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import AstroIcon from '../astroIcon'
@@ -213,7 +214,7 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, validate
     <div className="create-forms-date-picker" data-placement={placement} ref={containerRef}>
       <label className="sr-only" htmlFor={id}>{label}</label>
       <div className="create-forms-date-control">
-        <input
+        <input data-track-action={BUTTONS.comuns.calendario}
           aria-label={label}
           aria-describedby={showError ? `${id}-error` : undefined}
           aria-invalid={showError}
@@ -232,7 +233,7 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, validate
           type="text"
           value={inputValue}
         />
-        <button
+        <button data-track-action={BUTTONS.comuns.calendario}
           aria-controls={calendarId}
           aria-expanded={open && !closing}
           aria-label={open && !closing ? 'Fechar calendário' : `Abrir calendário de ${label.toLocaleLowerCase('pt-BR')}`}
@@ -248,9 +249,9 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, validate
 
       {open && <div aria-label={`Calendário: ${label}`} className={`create-forms-calendar${closing ? ' create-forms-calendar--closing' : ''}`} id={calendarId} popover={escapeOverflow ? 'manual' : undefined} ref={calendarRef} role="dialog" style={escapeOverflow ? { maxHeight: calendarMaxHeight } : undefined}>
         <div className="create-forms-calendar-header">
-          <button aria-label="Mês anterior" onClick={() => changeMonth(-1)} type="button"><AstroIcon name="chevron-left" /></button>
+          <button data-track-action={BUTTONS.comuns.mes_anterior} aria-label="Mês anterior" onClick={() => changeMonth(-1)} type="button"><AstroIcon name="chevron-left" /></button>
           <h3 aria-live="polite" key={`${year}-${month}`}>{formatMonthTitle(visibleMonth)}</h3>
-          <button aria-label="Próximo mês" onClick={() => changeMonth(1)} type="button"><AstroIcon name="chevron-right" /></button>
+          <button data-track-action={BUTTONS.comuns.proximo_mes} aria-label="Próximo mês" onClick={() => changeMonth(1)} type="button"><AstroIcon name="chevron-right" /></button>
         </div>
 
         <div aria-hidden="true" className="create-forms-calendar-weekdays">
@@ -262,7 +263,7 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, validate
           {days.map((date) => {
             const isSelected = sameDate(selectedDate, date)
             const isToday = sameDate(today, date)
-            return <button
+            return <button data-track-action={BUTTONS.comuns.selecionar_data}
               aria-current={isToday ? 'date' : undefined}
               aria-label={dateFormatter.format(date)}
               aria-pressed={isSelected}
@@ -278,7 +279,7 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, validate
 
         <div className="create-forms-calendar-footer">
           <span>{selectedDate ? dateFormatter.format(selectedDate) : 'Selecione uma data'}</span>
-          <button onClick={() => chooseDate(new Date())} type="button">Hoje</button>
+          <button data-track-action={BUTTONS.comuns.hoje} onClick={() => chooseDate(new Date())} type="button">Hoje</button>
         </div>
       </div>}
     </div>

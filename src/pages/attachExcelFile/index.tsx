@@ -19,7 +19,7 @@ function AttachExcelFilePage() {
 
   return (
     <>
-    <main className="attach-excel-page" inert={spreadsheet.loading} aria-busy={spreadsheet.loading}>
+    <main data-track-page={true} className="attach-excel-page" inert={spreadsheet.loading} aria-busy={spreadsheet.loading}>
       {settingsMode && <WorkspaceSettingsBackButton screen="backExcelModalWeb" />}
       <AttachExcelFileForm initialFile={settingsMode ? null : draft.file} settingsMode={settingsMode} reading={spreadsheet.loading} readingError={spreadsheet.error} onSelectionChange={file => { spreadsheet.clearError(); if (!settingsMode) updateDraft({ file }) }} onContinue={async file => {
         if (settingsMode) setConfirming(true)

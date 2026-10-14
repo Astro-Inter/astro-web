@@ -1,3 +1,6 @@
+import { SHOWCASE_NAMES, NOTIFICATION_ITEMS } from '../../gtm/showcases'
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import AppModal from '../appModal'
 import AstroIcon from '../astroIcon'
 import { notificationKindAppearance } from '../../data/notifications'
@@ -10,16 +13,16 @@ interface NotificationModalProps {
 
 function NotificationModal({ notifications, onClose }: NotificationModalProps) {
   return (
-    <AppModal className="notification-modal" onClose={onClose} title="Notificações">
+    <AppModal trackingName={DIALOG_NAMES.notificacoes} className="notification-modal" onClose={onClose} title="Notificações">
       {(dismiss) => <>
         <p className="notification-modal-subtitle">Acompanhe os últimos avisos da sua empresa</p>
 
         {notifications.length > 0 ? (
-          <ul aria-label="Últimas notificações" className="notification-list">
+          <ul data-track-showcase={SHOWCASE_NAMES.notificacoes} aria-label="Últimas notificações" className="notification-list">
             {notifications.map((notification) => {
               const appearance = notificationKindAppearance[notification.kind]
               return (
-                <li className="notification-item" key={notification.id}>
+                <li data-track-item={NOTIFICATION_ITEMS[notification.kind]} className="notification-item" key={notification.id}>
                   <span aria-hidden="true" className={`notification-item-icon notification-item-icon--${appearance.color}`}><AstroIcon name={appearance.icon} /></span>
                   <div className="notification-item-copy">
                     <h3>{notification.title}</h3>
@@ -34,7 +37,7 @@ function NotificationModal({ notifications, onClose }: NotificationModalProps) {
         )}
 
         <div className="astro-modal-actions">
-          <button
+          <button data-track-action={BUTTONS.comuns.voltar}
             className="astro-modal-cancel"
             onClick={dismiss}
             onKeyDown={(event) => {

@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import AstroIcon from '../astroIcon'
@@ -49,7 +50,7 @@ function PaymentMethodForm({ initialEmail = '', onEmailChange, disabled = false,
 
         <fieldset className="payment-method-options">
           <legend className="sr-only">Método de pagamento</legend>
-          <button
+          <button data-track-action={BUTTONS.comuns.pagar_cartao}
             aria-pressed={selectedMethod === 'card'}
             className={`payment-method-option${selectedMethod === 'card' ? ' is-selected' : ''}`}
             onClick={() => setSelectedMethod('card')}
@@ -58,7 +59,7 @@ function PaymentMethodForm({ initialEmail = '', onEmailChange, disabled = false,
             <AstroIcon className="card-symbol" name="card" />
             Cartão
           </button>
-          <button
+          <button data-track-action={BUTTONS.comuns.pagar_pix}
             aria-pressed={selectedMethod === 'pix'}
             className={`payment-method-option${selectedMethod === 'pix' ? ' is-selected' : ''}`}
             onClick={() => setSelectedMethod('pix')}
@@ -148,7 +149,7 @@ function PaymentMethodForm({ initialEmail = '', onEmailChange, disabled = false,
           </div>
         )}
 
-        <button
+        <button data-track-action={BUTTONS.comuns.ajuda}
           className="payment-info-link"
           onClick={() => setIsExplanationOpen(true)}
           ref={explanationTrigger}

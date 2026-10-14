@@ -22,7 +22,7 @@ function SetAddressPage() {
 
   return (
     <>
-    <main className="set-address-page" aria-busy={lookingUpPostalCode} inert={lookingUpPostalCode}>
+    <main data-track-page={true} className="set-address-page" aria-busy={lookingUpPostalCode} inert={lookingUpPostalCode}>
       {settingsMode && <WorkspaceSettingsBackButton screen="backAdressesModalWeb" />}
       <AddressForm addresses={addresses} settingsMode={settingsMode} unitsFromSpreadsheet={!settingsMode} onComplete={units => {
         if (settingsMode) setConfirming(true)

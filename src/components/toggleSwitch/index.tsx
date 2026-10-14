@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useId } from 'react'
 
 interface ToggleSwitchProps {
@@ -10,7 +11,7 @@ function ToggleSwitch({ checked, label, onChange }: ToggleSwitchProps) {
   const inputId = useId()
   return (
     <label className="astro-toggle-switch" htmlFor={inputId}>
-      <input
+      <input data-track-action={BUTTONS.comuns.status}
         id={inputId}
         aria-label={label}
         checked={checked}

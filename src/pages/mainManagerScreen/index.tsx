@@ -1,3 +1,6 @@
+import { SHOWCASE_NAMES } from '../../gtm/showcases'
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
@@ -117,7 +120,7 @@ function MainManagerScreenPage() {
       id: 'actions', label: 'Ações', width: '13.5%', className: 'position-actions-cell',
       render: (manager) => (
         <div className="position-actions">
-          <button
+          <button data-track-item={BUTTONS.comuns.acoes}
             disabled={api.loading || api.saving}
             aria-controls={actions.openId === manager.id ? `manager-actions-${manager.id}` : undefined}
             aria-expanded={actions.openId === manager.id}
@@ -138,7 +141,7 @@ function MainManagerScreenPage() {
     <div className="main-position-screen main-manager-screen">
       <AppSidebar />
 
-      <main className="position-main" id="conteudo-principal">
+      <main data-track-page={true} className="position-main" id="conteudo-principal">
         <section aria-labelledby="managers-title" className="position-content astro-scale-90">
           <header className="position-heading">
             <h1 id="managers-title">Gestores</h1>
@@ -146,7 +149,7 @@ function MainManagerScreenPage() {
           </header>
 
           <div aria-label="Ações e filtros dos gestores" className="position-toolbar" role="group">
-            <CompactPurpleButton disabled={api.loading || api.saving || Boolean(api.error)} onClick={(event) => { inviteOriginRef.current = event.currentTarget; api.retryCandidates(); setInviteOpen(true) }} type="button">
+            <CompactPurpleButton data-track-action={BUTTONS.comuns.adicionar} disabled={api.loading || api.saving || Boolean(api.error)} onClick={(event) => { inviteOriginRef.current = event.currentTarget; api.retryCandidates(); setInviteOpen(true) }} type="button">
               <AstroIcon name="plus" />
               Convidar gestor
             </CompactPurpleButton>
@@ -160,29 +163,29 @@ function MainManagerScreenPage() {
             />
 
             <div className="position-toolbar-selects">
-              <ToolbarSelect label="Filtrar por unidade" onValueChange={(unit) => setFilters((current) => ({ ...current, unit }))} options={unitFilterOptions} value={filters.unit} />
-              <ToolbarSelect label="Filtrar por status" onValueChange={(status) => setFilters((current) => ({ ...current, status }))} options={statusFilterOptions} value={filters.status} />
+              <ToolbarSelect trackingAction={BUTTONS.comuns.unidade} label="Filtrar por unidade" onValueChange={(unit) => setFilters((current) => ({ ...current, unit }))} options={unitFilterOptions} value={filters.unit} />
+              <ToolbarSelect trackingAction={BUTTONS.comuns.status} label="Filtrar por status" onValueChange={(status) => setFilters((current) => ({ ...current, status }))} options={statusFilterOptions} value={filters.status} />
             </div>
           </div>
 
           {api.loading && <p className="position-api-feedback" role="status">Carregando gestores...</p>}
-          {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button disabled={api.saving} onClick={api.retry} type="button">Tentar novamente</button></div>}
+          {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} disabled={api.saving} onClick={api.retry} type="button">Tentar novamente</button></div>}
           {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
           {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
-          <DataTable ariaLabel="Gestores" columns={columns} emptyMessage={api.loading ? 'Carregando gestores...' : api.error ? 'Lista de gestores indisponível.' : 'Nenhum gestor encontrado para esses filtros.'} getRowClassName={(manager) => manager.id === savedManagerId ? 'astro-data-table-row--saved' : undefined} getRowKey={(manager) => manager.id} rows={visibleManagers} />
+          <DataTable trackingName={SHOWCASE_NAMES.lista_gestores} ariaLabel="Gestores" columns={columns} emptyMessage={api.loading ? 'Carregando gestores...' : api.error ? 'Lista de gestores indisponível.' : 'Nenhum gestor encontrado para esses filtros.'} getRowClassName={(manager) => manager.id === savedManagerId ? 'astro-data-table-row--saved' : undefined} getRowKey={(manager) => manager.id} rows={visibleManagers} />
           <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 
         {openManager && createPortal(
-          <OptionsPopup
+          <OptionsPopup trackingName={DIALOG_NAMES.acoes_gestor}
             ariaLabel={`Opções para ${openManager.name}`}
             closing={actions.closing}
             id={`manager-actions-${openManager.id}`}
             items={[
-              { id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
-              { id: 'view', label: 'Ver mais informações', separatorAfter: true, onSelect: () => actions.close(() => { api.retryDetails(); setDialog({ kind: 'view', manager: openManager }) }) },
-              { id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit-password', manager: openManager })) },
-              { id: 'toggle-status', label: openManager.status === 'DESATIVADO' ? 'Ativar' : 'Desativar', tone: openManager.status === 'DESATIVADO' ? 'default' : 'danger', onSelect: () => actions.close(() => {
+              { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
+              { trackingAction: BUTTONS.comuns.informacoes, id: 'view', label: 'Ver mais informações', separatorAfter: true, onSelect: () => actions.close(() => { api.retryDetails(); setDialog({ kind: 'view', manager: openManager }) }) },
+              { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit-password', manager: openManager })) },
+              { trackingAction: openManager.status === 'DESATIVADO'  ? BUTTONS.comuns.ativar : BUTTONS.comuns.inativar, id: 'toggle-status', label: openManager.status === 'DESATIVADO' ? 'Ativar' : 'Desativar', tone: openManager.status === 'DESATIVADO' ? 'default' : 'danger', onSelect: () => actions.close(() => {
                 if (openManager.status !== 'DESATIVADO') setDialog({ kind: 'deactivate', manager: openManager })
                 else void toggleStatus(openManager).then((error) => { if (error) setActionError(error) })
               }) },
@@ -233,7 +236,7 @@ function MainManagerScreenPage() {
         />
       )}
       {dialog?.kind === 'confirm-edit' && (
-        <ConfirmationModal
+        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_alteracoes_gestor}
           confirmCloseDelay={60}
           confirmLabel="Salvar"
           onCancel={() => {
@@ -255,7 +258,7 @@ function MainManagerScreenPage() {
         />
       )}
       {dialog?.kind === 'deactivate' && (
-        <ConfirmationModal
+        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_inativacao_gestor}
           backdrop="dimmed"
           className="position-deactivation-modal"
           confirmLabel="Desativar"

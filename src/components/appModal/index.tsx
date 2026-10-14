@@ -2,6 +2,7 @@ import { useId, useRef, type ReactNode, type RefObject } from 'react'
 import { useAnimatedDialog } from '../../hooks/useAnimatedDialog'
 
 interface AppModalProps {
+  trackingName?: string
   children: ReactNode | ((dismiss: () => void) => ReactNode)
   className?: string
   backdrop?: 'dimmed' | 'transparent'
@@ -15,13 +16,13 @@ interface AppModalProps {
   title: ReactNode
 }
 
-function AppModal({ children, className = '', backdrop = 'dimmed', preservePageScroll = false, dimmed = false, dismissible = true, initialFocusRef, onClose, onDismissRequest, open = true, title }: AppModalProps) {
+function AppModal({ trackingName, children, className = '', backdrop = 'dimmed', preservePageScroll = false, dimmed = false, dismissible = true, initialFocusRef, onClose, onDismissRequest, open = true, title }: AppModalProps) {
   const titleId = useId()
   const titleRef = useRef<HTMLHeadingElement>(null)
   const { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose } = useAnimatedDialog({ initialFocusRef: initialFocusRef ?? titleRef, onClose, onDismissRequest, open })
 
   return (
-    <dialog
+    <dialog data-track-dismissible={dismissible} data-track-dialog={trackingName}
       aria-labelledby={titleId}
       data-backdrop={backdrop}
       data-page-scroll={preservePageScroll ? 'preserve' : 'lock'}

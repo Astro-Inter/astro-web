@@ -1,3 +1,6 @@
+import { SHOWCASE_NAMES } from '../../gtm/showcases'
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AppSidebar, AstroChat, AstroIcon, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, OptionsPopup, RegulatoryStandardsDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
@@ -77,7 +80,7 @@ function MainUnitScreenPage() {
       id: 'actions', label: 'Ações', width: '13.5%', className: 'position-actions-cell',
       render: (unit) => (
         <div className="position-actions">
-          <button
+          <button data-track-item={BUTTONS.comuns.acoes}
             disabled={api.saving || api.loading}
             aria-controls={actions.openId === unit.id ? `unit-actions-${unit.id}` : undefined}
             aria-expanded={actions.openId === unit.id}
@@ -98,7 +101,7 @@ function MainUnitScreenPage() {
     <div className="main-position-screen main-manager-screen main-unit-screen" data-table-loading={api.loading}>
       <AppSidebar />
 
-      <main className="position-main" id="conteudo-principal">
+      <main data-track-page={true} className="position-main" id="conteudo-principal">
         <section aria-labelledby="units-title" aria-busy={api.loading} className="position-content astro-scale-90">
           <header className="position-heading">
             <h1 id="units-title">Unidades</h1>
@@ -115,26 +118,26 @@ function MainUnitScreenPage() {
             />
 
             <div className="position-toolbar-selects">
-              <ToolbarSelect label="Filtrar por status" onValueChange={(status) => setFilters((current) => ({ ...current, status }))} options={statusFilterOptions} value={filters.status} />
+              <ToolbarSelect trackingAction={BUTTONS.comuns.status} label="Filtrar por status" onValueChange={(status) => setFilters((current) => ({ ...current, status }))} options={statusFilterOptions} value={filters.status} />
             </div>
           </div>
 
-          {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button onClick={api.retry} type="button">Tentar novamente</button></div>}
+          {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} onClick={api.retry} type="button">Tentar novamente</button></div>}
           {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
           {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
-          <DataTable ariaLabel="Unidades" columns={columns} loadingContent={api.loading ? <WorkspaceTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de unidades indisponível.' : 'Nenhuma unidade encontrada para esses filtros.'} getRowClassName={(unit) => unit.id === savedUnitId ? 'astro-data-table-row--saved' : undefined} getRowKey={(unit) => unit.id} rows={visibleUnits} />
+          <DataTable trackingName={SHOWCASE_NAMES.lista_unidades} ariaLabel="Unidades" columns={columns} loadingContent={api.loading ? <WorkspaceTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de unidades indisponível.' : 'Nenhuma unidade encontrada para esses filtros.'} getRowClassName={(unit) => unit.id === savedUnitId ? 'astro-data-table-row--saved' : undefined} getRowKey={(unit) => unit.id} rows={visibleUnits} />
           <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 
         {openUnit && createPortal(
-          <OptionsPopup
+          <OptionsPopup trackingName={DIALOG_NAMES.acoes_unidade}
             ariaLabel={`Opções para ${openUnit.name}`}
             closing={actions.closing}
             id={`unit-actions-${openUnit.id}`}
             items={[
-              { id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
-              { id: 'manage-nrs', label: 'Gerenciar NRs', separatorAfter: true, onSelect: () => actions.close(() => { api.retryNrs(); setSavedNrIds([]); setNrs({ ...closedNrs, unit: openUnit }) }) },
-              { id: 'toggle-status', label: openUnit.active ? 'Inativar' : 'Ativar', tone: openUnit.active ? 'danger' : 'default', onSelect: () => actions.close(() => {
+              { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
+              { trackingAction: BUTTONS.comuns.gerenciar_nrs, id: 'manage-nrs', label: 'Gerenciar NRs', separatorAfter: true, onSelect: () => actions.close(() => { api.retryNrs(); setSavedNrIds([]); setNrs({ ...closedNrs, unit: openUnit }) }) },
+              { trackingAction: openUnit.active  ? BUTTONS.comuns.inativar : BUTTONS.comuns.ativar, id: 'toggle-status', label: openUnit.active ? 'Inativar' : 'Ativar', tone: openUnit.active ? 'danger' : 'default', onSelect: () => actions.close(() => {
                 if (openUnit.active) setPendingDeactivation(openUnit)
                 else void toggleStatus(openUnit).then((error) => { if (error) setActionError(error) })
               }) },
@@ -184,7 +187,7 @@ function MainUnitScreenPage() {
       </main>
 
       {nrs.unit && nrs.pendingIds !== null && (
-        <ConfirmationModal
+        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_alteracoes_nrs_unidade}
           confirmCloseDelay={60}
           confirmLabel="Salvar"
           onCancel={() => setNrs((current) => ({ ...current, pendingIds: null, editDimmed: false }))}
@@ -213,7 +216,7 @@ function MainUnitScreenPage() {
         />
       )}
       {pendingDeactivation && (
-        <ConfirmationModal
+        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_inativacao_unidade}
           backdrop="dimmed"
           className="position-deactivation-modal"
           confirmLabel="Inativar"

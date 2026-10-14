@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import CompactPurpleButton from '../compactPurpleButton'
 import ComplianceDonutChart from '../complianceDonutChart'
 import type { ComplianceOverview } from '../../types/home'
@@ -15,7 +16,7 @@ function ComplianceOverviewCard({ overview, onViewDashboards }: ComplianceOvervi
           <h3 id="compliance-overview-title">Visão geral de conformidade</h3>
           <p>Status de requisitos e treinamentos de toda empresa</p>
         </div>
-        <CompactPurpleButton
+        <CompactPurpleButton data-track-action={BUTTONS.comuns.dashboard}
           aria-disabled={onViewDashboards ? undefined : true}
           className="compliance-overview-action"
           onClick={onViewDashboards}

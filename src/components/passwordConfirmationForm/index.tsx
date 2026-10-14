@@ -1,3 +1,4 @@
+import { BUTTONS, confirmationAction } from '../../gtm/buttons'
 import { useId } from 'react'
 import type { PasswordConfirmationController } from '../../types/identityConfirmation'
 import PasswordField from '../passwordField'
@@ -14,7 +15,7 @@ interface PasswordConfirmationFormProps {
 function PasswordConfirmationForm({ confirmation, confirmLabel = 'Continuar', danger = false, onCancel, onContinue }: PasswordConfirmationFormProps) {
   const passwordId = useId()
   return (
-    <form aria-busy={confirmation.status === 'loading'} noValidate onSubmit={event => {
+    <form data-track-submit={confirmationAction(confirmLabel)} aria-busy={confirmation.status === 'loading'} noValidate onSubmit={event => {
       event.preventDefault()
       if (!confirmation.blocked) void onContinue()
     }}>
@@ -22,8 +23,8 @@ function PasswordConfirmationForm({ confirmation, confirmLabel = 'Continuar', da
       {confirmation.status === 'loading' && <p className="password-confirmation-status" role="status">Confirmando sua identidade…</p>}
       {confirmation.status === 'success' && <p className="password-confirmation-status" role="status">Identidade confirmada.</p>}
       <div className="astro-modal-actions">
-        <button className="astro-modal-cancel" disabled={confirmation.status === 'success'} onClick={onCancel} type="button">Cancelar</button>
-        <PurpleButton disabled={confirmation.blocked} type="submit" variant={danger ? 'danger' : 'solid'}>{confirmation.status === 'loading' ? 'Confirmando…' : confirmLabel}</PurpleButton>
+        <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" disabled={confirmation.status === 'success'} onClick={onCancel} type="button">Cancelar</button>
+        <PurpleButton data-track-action={confirmationAction(confirmLabel)} disabled={confirmation.blocked} type="submit" variant={danger ? 'danger' : 'solid'}>{confirmation.status === 'loading' ? 'Confirmando…' : confirmLabel}</PurpleButton>
       </div>
     </form>
   )

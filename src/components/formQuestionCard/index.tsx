@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { iconAsset } from '../../utils/iconAsset'
 import ToggleSwitch from '../toggleSwitch'
 import ToolbarSelect from '../toolbarSelect'
@@ -68,7 +69,7 @@ function FormQuestionCard({ index, question, onChange, onCopy, onDelete, onPoint
   return (
     <section aria-label={questionHeading(question.kind, index)} className="create-forms-card create-forms-question-card">
       {onPointerDown && onMove && <>
-        <button
+        <button data-track-action={BUTTONS.comuns.reordenar_pergunta}
         aria-label={`Arrastar ${questionHeading(question.kind, index)} para reordenar. Use Alt e as setas para mover pelo teclado.`}
         className="create-forms-drag-handle"
         onPointerDown={onPointerDown}
@@ -89,7 +90,7 @@ function FormQuestionCard({ index, question, onChange, onCopy, onDelete, onPoint
           <circle cx="12" cy="13" r="1.242" />
         </svg>
         </button>
-        <button
+        <button data-track-action={BUTTONS.comuns.reordenar_pergunta}
         aria-label={`Arrastar ${questionHeading(question.kind, index)} pela barra roxa superior. Use Alt e as setas para mover pelo teclado.`}
         className="create-forms-drag-bar-handle"
         onPointerDown={onPointerDown}
@@ -105,15 +106,15 @@ function FormQuestionCard({ index, question, onChange, onCopy, onDelete, onPoint
       <div className="create-forms-question-header">
         <h2>{questionHeading(question.kind, index)}</h2>
         <div className="create-forms-question-actions">
-          <button aria-label={`Duplicar ${questionHeading(question.kind, index)}`} onClick={onCopy} title="Duplicar" type="button"><img alt="" src={iconAsset('copy.svg')} /></button>
-          <button aria-label={`Excluir ${questionHeading(question.kind, index)}`} onClick={onDelete} title="Excluir" type="button"><img alt="" src={iconAsset('trash.svg')} /></button>
+          <button data-track-action={BUTTONS.comuns.duplicar_pergunta} aria-label={`Duplicar ${questionHeading(question.kind, index)}`} onClick={onCopy} title="Duplicar" type="button"><img alt="" src={iconAsset('copy.svg')} /></button>
+          <button data-track-action={BUTTONS.comuns.excluir_pergunta} aria-label={`Excluir ${questionHeading(question.kind, index)}`} onClick={onDelete} title="Excluir" type="button"><img alt="" src={iconAsset('trash.svg')} /></button>
         </div>
       </div>
 
       {isAttachment ? (
         <div className="create-forms-field">
           <span className="create-forms-label">{question.kind === 'nr' ? 'NR' : 'Unidade'}</span>
-          <ToolbarSelect
+          <ToolbarSelect trackingAction={BUTTONS.comuns.unidade}
             className="create-forms-select"
             label={question.kind === 'nr' ? 'Selecionar NR' : 'Selecionar unidade'}
             onValueChange={(answer) => onChange({ ...question, answer })}
@@ -139,15 +140,15 @@ function FormQuestionCard({ index, question, onChange, onCopy, onDelete, onPoint
                   <label className="sr-only" htmlFor={`${fieldId}-option-${option.id}`}>Opção {optionIndex + 1}</label>
                   <input id={`${fieldId}-option-${option.id}`} maxLength={80} onChange={(event) => updateOption(option.id, event.target.value)} placeholder={`Opção ${optionIndex + 1}`} value={option.value} />
                 </>}
-                <button aria-label={`Excluir opção ${option.isOther ? 'de resposta livre' : optionIndex + 1}`} disabled={question.options.length <= 2 || removingOptionId !== null} onClick={() => deleteOption(option.id)} type="button"><img alt="" src={iconAsset('trash.svg')} /></button>
+                <button data-track-action={BUTTONS.comuns.excluir_opcao} aria-label={`Excluir opção ${option.isOther ? 'de resposta livre' : optionIndex + 1}`} disabled={question.options.length <= 2 || removingOptionId !== null} onClick={() => deleteOption(option.id)} type="button"><img alt="" src={iconAsset('trash.svg')} /></button>
               </div>
             ))}
             <div className="create-forms-option-links">
-              <button onClick={() => onChange({ ...question, options: otherOptionsLast([...question.options, { id: crypto.randomUUID(), value: '' }]) })} type="button">
+              <button data-track-action={BUTTONS.comuns.adicionar_opcao} onClick={() => onChange({ ...question, options: otherOptionsLast([...question.options, { id: crypto.randomUUID(), value: '' }]) })} type="button">
                 <span aria-hidden="true" className="create-forms-option-link-icon" />
                 <span className="create-forms-option-link-label">Adicionar opção</span>
               </button>
-              <button disabled={hasOtherOption} onClick={() => onChange({ ...question, options: [...question.options, { id: crypto.randomUUID(), value: '', isOther: true }] })} type="button">
+              <button data-track-action={BUTTONS.comuns.adicionar_resposta_livre} disabled={hasOtherOption} onClick={() => onChange({ ...question, options: [...question.options, { id: crypto.randomUUID(), value: '', isOther: true }] })} type="button">
                 <span aria-hidden="true" className="create-forms-option-link-icon" />
                 <span className="create-forms-option-link-label">Adicionar opção outros</span>
               </button>
@@ -163,7 +164,7 @@ function FormQuestionCard({ index, question, onChange, onCopy, onDelete, onPoint
             <div className="create-forms-photo-settings">
               <div className="create-forms-photo-setting">
                 <span className="create-forms-label">Limite de arquivos:</span>
-                <ToolbarSelect
+                <ToolbarSelect trackingAction={BUTTONS.comuns.limite_arquivos}
                   className="create-forms-photo-select create-forms-photo-count-select"
                   label="Limite de arquivos"
                   onValueChange={(maxFiles) => onChange({ ...question, maxFiles: Number(maxFiles) })}
@@ -174,7 +175,7 @@ function FormQuestionCard({ index, question, onChange, onCopy, onDelete, onPoint
               </div>
               <div className="create-forms-photo-setting create-forms-photo-size-setting">
                 <span className="create-forms-label">Limite de tamanho<br />de arquivo único:</span>
-                <ToolbarSelect
+                <ToolbarSelect trackingAction={BUTTONS.comuns.limite_tamanho}
                   className="create-forms-photo-select create-forms-photo-size-select"
                   label="Limite de tamanho por arquivo"
                   onValueChange={(maxFileSizeMb) => onChange({ ...question, maxFileSizeMb: Number(maxFileSizeMb) })}

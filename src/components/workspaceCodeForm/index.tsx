@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState } from 'react'
 import type { ClipboardEvent, FormEvent, KeyboardEvent } from 'react'
 import { Link } from 'react-router-dom'
@@ -69,7 +70,7 @@ function WorkspaceCodeForm({ onVerify, status, message }: WorkspaceCodeFormProps
     <>
       <PageHeading description="Insira o código enviado por e-mail." title="Criar workspace" titleId="create-workspace-title" />
 
-      <form className="workspace-code-form" aria-busy={pending} noValidate onSubmit={handleSubmit}>
+      <form data-track-submit={BUTTONS.comuns.validar_codigo} className="workspace-code-form" aria-busy={pending} noValidate onSubmit={handleSubmit}>
         <div className="workspace-code-control">
         <fieldset className="workspace-code-fields">
           <legend className="sr-only">Código de verificação enviado por e-mail</legend>
@@ -100,11 +101,11 @@ function WorkspaceCodeForm({ onVerify, status, message }: WorkspaceCodeFormProps
 
         {(error || apiError) && <p className="login-field-error" id="workspace-code-error" role="alert">{error || apiError}</p>}
         </div>
-        <PurpleButton className="astro-form-action" disabled={pending} type="submit">Verificar código</PurpleButton>
+        <PurpleButton data-track-action={BUTTONS.comuns.validar_codigo} className="astro-form-action" disabled={pending} type="submit">Verificar código</PurpleButton>
       </form>
 
       <p className="workspace-link">
-        Já tem uma conta? <Link to="/">Fazer login</Link>
+        Já tem uma conta? <Link data-track-action={BUTTONS.comuns.login} to="/">Fazer login</Link>
       </p>
     </>
   )

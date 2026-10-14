@@ -1,3 +1,6 @@
+import { SHOWCASE_NAMES } from '../../gtm/showcases'
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { getPopupDuration } from '../../utils/popupMotion'
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -181,7 +184,7 @@ function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = fals
           label={`${form.enabledIds.has(row.id) ? 'Desativar' : 'Ativar'} ${row.code}`}
           onChange={(enabled) => toggleNr(row.id, enabled)}
         />
-        {recommendedIds.includes(row.id) && <button
+        {recommendedIds.includes(row.id) && <button data-track-action={BUTTONS.comuns.ia}
           aria-describedby={recommendationTooltip?.row.id === row.id ? tooltipId : undefined}
           aria-label={`Ver recomendação de IA para ${row.code}`}
           className="nrs-edit-row-recommendation"
@@ -224,7 +227,7 @@ function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = fals
   ) : null
 
   return <>
-    <AppModal
+    <AppModal trackingName={contextLabel ? DIALOG_NAMES.editar_nrs_unidade : DIALOG_NAMES.editar_nrs_cargo}
       backdrop="transparent"
       className="nrs-dialog nrs-edit-dialog"
       dimmed={dimmed}
@@ -249,7 +252,7 @@ function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = fals
         </div>
 
         <div className="nrs-dialog-table nrs-edit-table">
-          <DataTable
+          <DataTable trackingName={contextLabel ? SHOWCASE_NAMES.lista_dialog_unidade : SHOWCASE_NAMES.lista_dialog_cargo}
             ariaLabel="Editar Normas Regulamentadoras"
             columns={columns}
             emptyMessage="Nenhuma NR encontrada."
@@ -261,8 +264,8 @@ function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = fals
         <div className="nrs-edit-footer">
           {recommendedIds.length > 0 && <span className="nrs-edit-recommendation"><img alt="" aria-hidden="true" draggable={false} src={import.meta.env.BASE_URL + "aiRecommendationRobot.png"} />Recomendação de IA</span>}
           <div className="nrs-edit-footer-actions">
-            <button className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
-            <PurpleButton onClick={() => {
+            <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
+            <PurpleButton data-track-action={BUTTONS.comuns.salvar} onClick={() => {
               onRequestConfirmation(rows.filter((row) => form.enabledIds.has(row.id)).map((row) => row.id))
             }} type="button">Salvar</PurpleButton>
           </div>

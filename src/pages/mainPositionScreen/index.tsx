@@ -1,3 +1,6 @@
+import { SHOWCASE_NAMES } from '../../gtm/showcases'
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { iconAsset } from '../../utils/iconAsset'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -177,7 +180,7 @@ function MainPositionScreenPage() {
             }
           }}
         >
-          <button
+          <button data-track-item={BUTTONS.comuns.acoes}
             disabled={api.saving || api.loading}
             aria-controls={openActionsId === position.id ? `position-actions-${position.id}` : undefined}
             aria-expanded={openActionsId === position.id}
@@ -217,7 +220,7 @@ function MainPositionScreenPage() {
     <div className="main-position-screen" data-table-loading={api.loading}>
       <AppSidebar />
 
-      <main className="position-main" id="conteudo-principal">
+      <main data-track-page={true} className="position-main" id="conteudo-principal">
         <section aria-labelledby="positions-title" aria-busy={api.loading} className="position-content astro-scale-90">
           <header className="position-heading">
             <h1 id="positions-title">Cargos</h1>
@@ -225,7 +228,7 @@ function MainPositionScreenPage() {
           </header>
 
           <div aria-label="Ações e filtros dos cargos" className="position-toolbar" role="group">
-            <CompactPurpleButton disabled={api.loading || api.saving || Boolean(api.error)} onClick={(event) => { dialogOriginRef.current = event.currentTarget; setDialog({ kind: 'form', position: null }) }} type="button">
+            <CompactPurpleButton data-track-action={BUTTONS.comuns.adicionar} disabled={api.loading || api.saving || Boolean(api.error)} onClick={(event) => { dialogOriginRef.current = event.currentTarget; setDialog({ kind: 'form', position: null }) }} type="button">
               <AstroIcon name="plus" />
               Adicionar cargo
             </CompactPurpleButton>
@@ -239,35 +242,35 @@ function MainPositionScreenPage() {
             />
 
             <div className="position-toolbar-selects">
-              <ToolbarSelect label="Filtrar por status" onValueChange={(status) => setFilters((current) => ({ ...current, status }))} options={statusFilterOptions} value={filters.status} />
+              <ToolbarSelect trackingAction={BUTTONS.comuns.status} label="Filtrar por status" onValueChange={(status) => setFilters((current) => ({ ...current, status }))} options={statusFilterOptions} value={filters.status} />
             </div>
           </div>
 
-          {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button onClick={api.retry} type="button">Tentar novamente</button></div>}
+          {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} onClick={api.retry} type="button">Tentar novamente</button></div>}
           {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
           {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
-          <DataTable ariaLabel="Cargos" columns={columns} loadingContent={api.loading ? <WorkspaceTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de cargos indisponível.' : 'Nenhum cargo encontrado para esses filtros.'} getRowClassName={(position) => position.id === savedPositionId ? 'astro-data-table-row--saved' : undefined} getRowKey={(position) => position.id} rows={visiblePositions} />
+          <DataTable trackingName={SHOWCASE_NAMES.lista_cargos} ariaLabel="Cargos" columns={columns} loadingContent={api.loading ? <WorkspaceTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de cargos indisponível.' : 'Nenhum cargo encontrado para esses filtros.'} getRowClassName={(position) => position.id === savedPositionId ? 'astro-data-table-row--saved' : undefined} getRowKey={(position) => position.id} rows={visiblePositions} />
           <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 
         {openPosition && createPortal(
-          <OptionsPopup
+          <OptionsPopup trackingName={DIALOG_NAMES.acoes_cargo}
             ariaLabel={`Opções para ${openPosition.name}`}
             closing={actionsClosing}
             id={`position-actions-${openPosition.id}`}
             items={[
-              { id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => closeActions() },
-              { id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => closeActions(() => {
+              { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => closeActions() },
+              { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => closeActions(() => {
                 dialogOriginRef.current = actionsTriggerRef.current
                 setDialog({ kind: 'form', position: openPosition })
               }) },
-              { id: 'manage-nrs', label: 'Gerenciar NRs', separatorAfter: true, onSelect: () => closeActions(() => {
+              { trackingAction: BUTTONS.comuns.gerenciar_nrs, id: 'manage-nrs', label: 'Gerenciar NRs', separatorAfter: true, onSelect: () => closeActions(() => {
                 setNrsEditing(false)
                 setNrsViewDimmed(false)
                 api.retryNrs()
                 setNrsPosition(openPosition)
               }) },
-              { id: 'toggle-status', label: openPosition.active ? 'Inativar' : 'Ativar', tone: openPosition.active ? 'danger' : 'default', onSelect: () => closeActions(() => {
+              { trackingAction: openPosition.active  ? BUTTONS.comuns.inativar : BUTTONS.comuns.ativar, id: 'toggle-status', label: openPosition.active ? 'Inativar' : 'Ativar', tone: openPosition.active ? 'danger' : 'default', onSelect: () => closeActions(() => {
                 if (openPosition.active) setPendingDeactivation(openPosition)
                 else void toggleStatus(openPosition).then((error) => { if (error) setActionError(error) })
               }) },
@@ -338,7 +341,7 @@ function MainPositionScreenPage() {
         />
       )}
       {dialog?.kind === 'confirmation' && (
-        <ConfirmationModal
+        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_alteracoes_cargo}
           confirmCloseDelay={60}
           confirmLabel="Salvar"
           onCancel={() => {
@@ -361,7 +364,7 @@ function MainPositionScreenPage() {
         />
       )}
       {nrsPosition && pendingNrsIds !== null && (
-        <ConfirmationModal
+        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_alteracoes_nrs_cargo}
           confirmCloseDelay={60}
           confirmLabel="Salvar"
           onCancel={() => {
@@ -394,7 +397,7 @@ function MainPositionScreenPage() {
         />
       )}
       {pendingDeactivation && (
-        <ConfirmationModal
+        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_inativacao_cargo}
           backdrop="dimmed"
           className="position-deactivation-modal"
           confirmLabel="Inativar"

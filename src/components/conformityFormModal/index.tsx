@@ -1,3 +1,5 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useState, type FormEvent } from 'react'
 import type { ConformityFormValues } from '../../types'
 import { getInitials } from '../../utils/manager'
@@ -60,8 +62,8 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
   }
 
   return (
-    <AppModal className="position-dialog invite-manager-dialog conformity-form-modal" dimmed={dimmed} onClose={onClose} onDismissRequest={onDismissRequest} open={open} title={editing ? 'Editar conformidade' : 'Adicionar conformidade'}>
-      {(dismiss) => <form autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
+    <AppModal trackingName={editing ? DIALOG_NAMES.editar_conformidade : DIALOG_NAMES.adicionar_conformidade} className="position-dialog invite-manager-dialog conformity-form-modal" dimmed={dimmed} onClose={onClose} onDismissRequest={onDismissRequest} open={open} title={editing ? 'Editar conformidade' : 'Adicionar conformidade'}>
+      {(dismiss) => <form data-track-submit={editing ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.adicionar} autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
         {employee && (
           <div className="account-profile-header conformity-form-employee">
             <div className="account-profile-photo"><span aria-hidden="true" className="manager-avatar manager-avatar--large">{getInitials(employee.name)}</span></div>
@@ -72,13 +74,13 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
           {!employee && (
             <div className="position-dialog-field">
               <label htmlFor="conformity-form-employee">Colaborador</label>
-              <ToolbarSelect className={selectClassName('employeeId')} id="conformity-form-employee" label="Colaborador" onValueChange={(employeeId) => update('employeeId', employeeId)} options={employeeOptions} value={values.employeeId} />
+              <ToolbarSelect trackingAction={BUTTONS.comuns.selecionar_opcao} className={selectClassName('employeeId')} id="conformity-form-employee" label="Colaborador" onValueChange={(employeeId) => update('employeeId', employeeId)} options={employeeOptions} value={values.employeeId} />
               {errors.employeeId && <span role="alert">{errors.employeeId}</span>}
             </div>
           )}
           <div className="position-dialog-field">
             <label htmlFor="conformity-form-nr">NR</label>
-            <ToolbarSelect className={selectClassName('nr')} id="conformity-form-nr" label="NR" onValueChange={(nr) => update('nr', nr)} options={nrOptions} value={values.nr} />
+            <ToolbarSelect trackingAction={BUTTONS.comuns.nr} className={selectClassName('nr')} id="conformity-form-nr" label="NR" onValueChange={(nr) => update('nr', nr)} options={nrOptions} value={values.nr} />
             {errors.nr && <span role="alert">{errors.nr}</span>}
           </div>
           <div className="position-dialog-field">
@@ -89,8 +91,8 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
         {formError && <p className="position-dialog-form-error" role="alert">{formError}</p>}
 
         <div className="astro-modal-actions">
-          <button className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
-          <PurpleButton type="submit">{editing ? 'Salvar alterações' : 'Adicionar'}</PurpleButton>
+          <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
+          <PurpleButton data-track-action={editing ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.adicionar} type="submit">{editing ? 'Salvar alterações' : 'Adicionar'}</PurpleButton>
         </div>
       </form>}
     </AppModal>

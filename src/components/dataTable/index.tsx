@@ -10,6 +10,7 @@ export interface DataTableColumn<Row> {
 }
 
 interface DataTableProps<Row> {
+  trackingName?: string
   ariaLabel: string
   columns: readonly DataTableColumn<Row>[]
   emptyMessage: string
@@ -19,9 +20,9 @@ interface DataTableProps<Row> {
   loadingContent?: ReactNode
 }
 
-function DataTable<Row>({ ariaLabel, columns, emptyMessage, getRowClassName, getRowKey, rows, loadingContent }: DataTableProps<Row>) {
+function DataTable<Row>({ trackingName, ariaLabel, columns, emptyMessage, getRowClassName, getRowKey, rows, loadingContent }: DataTableProps<Row>) {
   return (
-    <div className="astro-data-table-shell">
+    <div data-track-showcase={loadingContent ? undefined : trackingName} className="astro-data-table-shell">
       {loadingContent && <span className="sr-only" role="status">Carregando {ariaLabel.toLocaleLowerCase('pt-BR')}.</span>}
       <div className="astro-data-table-scroll" tabIndex={0} role="region" aria-label={`${ariaLabel}: deslize horizontalmente para ver todas as colunas`}>
         <table className="astro-data-table" aria-busy={Boolean(loadingContent)}>

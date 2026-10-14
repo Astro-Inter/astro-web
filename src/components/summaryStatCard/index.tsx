@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { Link } from 'react-router-dom'
 import AstroIcon from '../astroIcon'
 import type { SummaryStat } from '../../types/home'
@@ -17,7 +18,7 @@ function SummaryStatCard({ stat }: SummaryStatCardProps) {
       <div className="summary-stat-row">
         <strong className="summary-stat-value">{numberFormatter.format(stat.value)}</strong>
         {stat.path ? (
-          <Link aria-label={`Ver ${stat.label.toLocaleLowerCase('pt-BR')}`} className="summary-stat-link" to={stat.path}>{icon}</Link>
+          <Link data-track-action={stat.path === '/mainUnitScreen' ? BUTTONS.comuns.unidade : BUTTONS.comuns.colaboradores} aria-label={`Ver ${stat.label.toLocaleLowerCase('pt-BR')}`} className="summary-stat-link" to={stat.path}>{icon}</Link>
         ) : (
           <span aria-hidden="true" className="summary-stat-link summary-stat-link--unavailable" title="Em breve">{icon}</span>
         )}

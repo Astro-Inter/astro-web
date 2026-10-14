@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { validateSpreadsheetFile } from '../../utils/spreadsheet'
@@ -68,7 +69,7 @@ function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = n
         <p>{settingsMode ? 'A planilha abaixo serve para o aplicativo identificar os colaboradores e montar os cadastros.' : <>A planilha serve para identificar os colaboradores e<br className="attach-excel-desktop-break" /> cadastrá-los automaticamente.</>}</p>
       </header>
 
-      <form className="attach-excel-form" onSubmit={handleSubmit} noValidate aria-busy={reading}>
+      <form data-track-submit={settingsMode ? BUTTONS.comuns.adicionar : BUTTONS.comuns.continuar} className="attach-excel-form" onSubmit={handleSubmit} noValidate aria-busy={reading}>
         <SpreadsheetDropzone
           file={selection.file}
           id="spreadsheet-file"
@@ -85,8 +86,8 @@ function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = n
 
         {!settingsMode && (selection.error || readingError) && <p className="login-field-error" id="spreadsheet-error" role="alert">{selection.error || readingError}</p>}
 
-        <PurpleButton className="attach-excel-continue" type="submit" disabled={reading}>{settingsMode ? 'Adicionar colaboradores' : 'Continuar'}</PurpleButton>
-        <button
+        <PurpleButton data-track-action={settingsMode ? BUTTONS.comuns.adicionar : BUTTONS.comuns.continuar} className="attach-excel-continue" type="submit" disabled={reading}>{settingsMode ? 'Adicionar colaboradores' : 'Continuar'}</PurpleButton>
+        <button data-track-action={BUTTONS.comuns.modelo}
           aria-haspopup="dialog"
           className="attach-excel-model-link"
           onClick={() => setIsExplanationOpen(true)}

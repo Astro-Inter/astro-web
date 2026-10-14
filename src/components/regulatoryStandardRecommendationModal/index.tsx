@@ -1,3 +1,4 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
 import AppModal from '../appModal'
 
 interface RegulatoryStandardRecommendationModalProps {
@@ -8,7 +9,7 @@ interface RegulatoryStandardRecommendationModalProps {
 
 function RegulatoryStandardRecommendationModal({ description, onClose, title }: RegulatoryStandardRecommendationModalProps) {
   return (
-    <AppModal backdrop="transparent" className="nrs-recommendation-modal" onClose={onClose} title={title}>
+    <AppModal trackingName={DIALOG_NAMES.informacoes_nr} backdrop="transparent" className="nrs-recommendation-modal" onClose={onClose} title={title}>
       <p className="nrs-recommendation-description">{description}</p>
     </AppModal>
   )

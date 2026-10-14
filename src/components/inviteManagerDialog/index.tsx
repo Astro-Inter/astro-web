@@ -1,3 +1,5 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState, type FormEvent } from 'react'
 import type { ManagerInviteValues } from '../../types'
 import { validateManagerInvite, type ManagerInviteValidationErrors } from '../../utils/manager'
@@ -56,17 +58,17 @@ function InviteManagerDialog({ candidates, loading, error, saving, onRetry, onCl
   }
 
   return (
-    <AppModal className="position-dialog invite-manager-dialog" dismissible={!saving && !submitting} onClose={onClose} title="Convidar gestor">
-      {(dismiss) => <form aria-busy={saving || submitting} autoComplete="off" noValidate onSubmit={(event) => { void handleSubmit(event, dismiss) }}>
+    <AppModal trackingName={DIALOG_NAMES.convidar_gestor} className="position-dialog invite-manager-dialog" dismissible={!saving && !submitting} onClose={onClose} title="Convidar gestor">
+      {(dismiss) => <form data-track-submit={BUTTONS.comuns.convidar} aria-busy={saving || submitting} autoComplete="off" noValidate onSubmit={(event) => { void handleSubmit(event, dismiss) }}>
         <p className="astro-modal-description">Selecione um colaborador ativo para promovê-lo a gestor, preservando sua conta.</p>
         {loading && <p role="status">Carregando colaboradores ativos...</p>}
-        {error && <div className="position-api-feedback"><p role="alert">{error}</p><button onClick={onRetry} type="button">Tentar novamente</button></div>}
+        {error && <div className="position-api-feedback"><p role="alert">{error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} onClick={onRetry} type="button">Tentar novamente</button></div>}
         {!loading && !error && candidates.length === 0 && <p role="status">Nenhum colaborador ativo disponível para promoção.</p>}
         {submitting && <p role="status">Promovendo colaborador a gestor...</p>}
         <div className="position-dialog-row">
           <div className="position-dialog-field">
             <label htmlFor="invite-manager-email">E-mail</label>
-            <ToolbarSelect
+            <ToolbarSelect trackingAction={BUTTONS.comuns.colaborador}
               className={`position-dialog-select${values.collaboratorId ? '' : ' position-dialog-select--placeholder'}${errors.collaboratorId ? ' position-dialog-select--invalid' : ''}`}
               id="invite-manager-email"
               disabled={locked}
@@ -84,7 +86,7 @@ function InviteManagerDialog({ candidates, loading, error, saving, onRetry, onCl
           </div>
           <div className="position-dialog-field">
             <label htmlFor="invite-manager-status">Status</label>
-            <ToolbarSelect
+            <ToolbarSelect trackingAction={BUTTONS.comuns.status}
               className={`position-dialog-select${values.status ? '' : ' position-dialog-select--placeholder'}${errors.status ? ' position-dialog-select--invalid' : ''}`}
               id="invite-manager-status"
               disabled={locked}
@@ -104,8 +106,8 @@ function InviteManagerDialog({ candidates, loading, error, saving, onRetry, onCl
         {formError && <p className="position-dialog-form-error" role="alert">{formError}</p>}
 
         <div className="astro-modal-actions">
-          <button className="astro-modal-cancel" disabled={saving || submitting} onClick={dismiss} type="button">Cancelar</button>
-          <PurpleButton disabled={locked || candidates.length === 0} type="submit">Convidar</PurpleButton>
+          <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" disabled={saving || submitting} onClick={dismiss} type="button">Cancelar</button>
+          <PurpleButton data-track-action={BUTTONS.comuns.convidar} disabled={locked || candidates.length === 0} type="submit">Convidar</PurpleButton>
         </div>
       </form>}
     </AppModal>

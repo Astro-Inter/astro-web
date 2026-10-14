@@ -14,7 +14,7 @@ function IncludeCompanyInformationPage() {
   if (!settingsMode && !draft.password) return <Navigate to="/createPassword" replace />
 
   return (
-    <main className="create-password-page include-company-page">
+    <main data-track-page={true} className="create-password-page include-company-page">
       {settingsMode && <WorkspaceSettingsBackButton screen="backCompanyModalWeb" />}
       <header className="create-password-header">
         <AstroBrand />

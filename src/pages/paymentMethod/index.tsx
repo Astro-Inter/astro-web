@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AstroIcon, HelpLink, PaymentMethodForm, PaymentSummary } from '../../components'
@@ -48,8 +49,8 @@ function PaymentMethodPage() {
 
   return (
     <>
-    <main className="payment-page" aria-busy={pending} inert={pending}>
-      {settingsMode ? <WorkspaceSettingsBackButton screen="backPaymentsModalWeb" /> : <button className="payment-back-button" disabled={pending} onClick={() => navigate('/')} type="button">
+    <main data-track-page={true} className="payment-page" aria-busy={pending} inert={pending}>
+      {settingsMode ? <WorkspaceSettingsBackButton screen="backPaymentsModalWeb" /> : <button data-track-action={BUTTONS.comuns.voltar} className="payment-back-button" disabled={pending} onClick={() => navigate('/')} type="button">
         <AstroIcon name="back" />
         <span className="sr-only">Voltar para o login</span>
       </button>}

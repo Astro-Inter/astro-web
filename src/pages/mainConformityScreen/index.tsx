@@ -1,3 +1,6 @@
+import { SHOWCASE_NAMES } from '../../gtm/showcases'
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, ConformityFilterModal, ConformityFormModal, DataTable, ImportConformityModal, ManagerIdentity, OptionsPopup, ToolbarSearch, TruncatedText } from '../../components'
@@ -124,7 +127,7 @@ function MainConformityScreenPage() {
       id: 'actions', label: 'Ações', width: '13.5%', className: 'position-actions-cell',
       render: (conformity) => (
         <div className="position-actions">
-          <button
+          <button data-track-item={BUTTONS.comuns.acoes}
             aria-controls={actions.openId === conformity.id ? `conformity-actions-${conformity.id}` : undefined}
             aria-expanded={actions.openId === conformity.id}
             aria-haspopup="menu"
@@ -145,7 +148,7 @@ function MainConformityScreenPage() {
     <div className="main-position-screen main-manager-screen main-conformity-screen">
       <AppSidebar />
 
-      <main className="position-main" id="conteudo-principal">
+      <main data-track-page={true} className="position-main" id="conteudo-principal">
         <section aria-labelledby="conformities-title" className="position-content astro-scale-90">
           <header className="position-heading">
             <h1 id="conformities-title">Conformidades</h1>
@@ -153,7 +156,7 @@ function MainConformityScreenPage() {
           </header>
 
           <div aria-label="Ações e filtros das conformidades" className="position-toolbar" role="group">
-            <CompactPurpleButton aria-haspopup="dialog" onClick={(event) => { addOriginRef.current = event.currentTarget; setAddFlow({ ...closedAddFlow, importOpen: true }) }} type="button">
+            <CompactPurpleButton data-track-action={BUTTONS.comuns.adicionar} aria-haspopup="dialog" onClick={(event) => { addOriginRef.current = event.currentTarget; setAddFlow({ ...closedAddFlow, importOpen: true }) }} type="button">
               <AstroIcon name="plus" />
               Adicionar conformidade
             </CompactPurpleButton>
@@ -167,25 +170,25 @@ function MainConformityScreenPage() {
             />
 
             <div className="position-toolbar-selects">
-              <button aria-haspopup="dialog" aria-label={activeFilterCount ? `Filtros, ${activeFilterCount} ${activeFilterCount === 1 ? 'ativo' : 'ativos'}` : 'Filtros'} className="conformity-filter-button" onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button">
+              <button data-track-action={BUTTONS.comuns.filtro} aria-haspopup="dialog" aria-label={activeFilterCount ? `Filtros, ${activeFilterCount} ${activeFilterCount === 1 ? 'ativo' : 'ativos'}` : 'Filtros'} className="conformity-filter-button" onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button">
                 {activeFilterCount ? `Filtros (${activeFilterCount})` : 'Filtros'}
                 <AstroIcon name="chevron-down" />
               </button>
             </div>
           </div>
 
-          <DataTable ariaLabel="Conformidades" columns={columns} emptyMessage="Nenhuma conformidade encontrada para esses filtros." getRowClassName={(conformity) => conformity.id === savedConformityId ? 'astro-data-table-row--saved' : undefined} getRowKey={(conformity) => conformity.id} rows={visibleConformities} />
+          <DataTable trackingName={SHOWCASE_NAMES.lista_conformidades} ariaLabel="Conformidades" columns={columns} emptyMessage="Nenhuma conformidade encontrada para esses filtros." getRowClassName={(conformity) => conformity.id === savedConformityId ? 'astro-data-table-row--saved' : undefined} getRowKey={(conformity) => conformity.id} rows={visibleConformities} />
           <p className="sr-only" role="status">{feedback}</p>
         </section>
         {openConformity && createPortal(
-          <OptionsPopup
+          <OptionsPopup trackingName={DIALOG_NAMES.acoes_conformidade}
             ariaLabel={`Opções para ${openConformity.employeeName} na ${openConformity.nr}`}
             closing={actions.closing}
             id={`conformity-actions-${openConformity.id}`}
             items={[
-              { id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
-              { id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit', conformity: openConformity })) },
-              { id: 'remove', label: 'Tornar não aplicável', tone: 'danger', onSelect: () => actions.close(() => setDialog({ kind: 'remove', conformity: openConformity })) },
+              { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
+              { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit', conformity: openConformity })) },
+              { trackingAction: BUTTONS.comuns.tornar_nao_aplicavel, id: 'remove', label: 'Tornar não aplicável', tone: 'danger', onSelect: () => actions.close(() => setDialog({ kind: 'remove', conformity: openConformity })) },
             ]}
             onClose={() => actions.close()}
             panelRef={actions.panelRef}
@@ -246,7 +249,7 @@ function MainConformityScreenPage() {
         />
       )}
       {dialog?.kind === 'confirm-edit' && (
-        <ConfirmationModal
+        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_alteracoes_conformidade}
           confirmCloseDelay={60}
           confirmLabel="Salvar"
           onCancel={() => {
@@ -264,7 +267,7 @@ function MainConformityScreenPage() {
         />
       )}
       {dialog?.kind === 'remove' && (
-        <ConfirmationModal
+        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_conformidade_nao_aplicavel}
           backdrop="dimmed"
           className="position-deactivation-modal"
           confirmLabel="Tornar não aplicável"

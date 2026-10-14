@@ -181,7 +181,7 @@ function AppRoutes() {
 
   return (
     <Suspense fallback={null}>
-    <div className={`astro-route-transition${tabChange ? ' astro-route-transition--tab-change' : ''}${tabChange && tabFallback ? ' astro-route-transition--tab-fallback' : ''}${isSettingsLocation(renderedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={renderedLocation.key} ref={routeRef}>
+    <div data-track-route={renderedLocation.pathname} data-track-search={renderedLocation.search} data-track-visit={renderedLocation.key} className={`astro-route-transition${tabChange ? ' astro-route-transition--tab-change' : ''}${tabChange && tabFallback ? ' astro-route-transition--tab-fallback' : ''}${isSettingsLocation(renderedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={renderedLocation.key} ref={routeRef}>
       <Routes location={renderedLocation}>
         <Route element={<GuestRoute />}>
           <Route path="/" element={<LoginPage />} />

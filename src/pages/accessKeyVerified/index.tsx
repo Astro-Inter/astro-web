@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { AstroBrand, PurpleButton } from '../../components'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
@@ -8,7 +9,7 @@ function AccessKeyVerifiedPage() {
   if (!draft.email || verifiedEmail !== draft.email.trim()) return <Navigate to="/createWorkspace" replace />
 
   return (
-    <main className="access-verified-page">
+    <main data-track-page={true} className="access-verified-page">
       <section className="access-verified-content astro-scale-90" aria-labelledby="access-verified-title">
         <AstroBrand />
 
@@ -25,7 +26,7 @@ function AccessKeyVerifiedPage() {
           <p>Seu e-mail foi confirmado. Siga os próximos passos<br className="access-verified-desktop-break" /> para cadastrar seu workspace.</p>
         </header>
 
-        <PurpleButton className="access-verified-button" onClick={() => navigate('/createPassword')}>Começar</PurpleButton>
+        <PurpleButton data-track-action={BUTTONS.comuns.comecar} className="access-verified-button" onClick={() => navigate('/createPassword')}>Começar</PurpleButton>
       </section>
     </main>
   )

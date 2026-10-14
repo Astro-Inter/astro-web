@@ -1,6 +1,7 @@
 import { useEffect, useRef, type CSSProperties, type KeyboardEvent, type RefObject } from 'react'
 
 export interface OptionsPopupItem {
+  trackingAction?: string
   disabled?: boolean
   id: string
   label: string
@@ -10,6 +11,7 @@ export interface OptionsPopupItem {
 }
 
 interface OptionsPopupProps {
+  trackingName?: string
   ariaLabel: string
   closing?: boolean
   id?: string
@@ -19,7 +21,7 @@ interface OptionsPopupProps {
   style: CSSProperties
 }
 
-function OptionsPopup({ ariaLabel, closing = false, id, items, onClose, panelRef, style }: OptionsPopupProps) {
+function OptionsPopup({ trackingName, ariaLabel, closing = false, id, items, onClose, panelRef, style }: OptionsPopupProps) {
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   useEffect(() => {
@@ -49,9 +51,9 @@ function OptionsPopup({ ariaLabel, closing = false, id, items, onClose, panelRef
   }
 
   return (
-    <div aria-label={ariaLabel} className={`astro-options-popup${closing ? ' astro-options-popup--closing' : ''}`} id={id} onKeyDown={handleKeyDown} ref={panelRef} role="menu" style={style}>
+    <div data-track-dialog={trackingName} aria-label={ariaLabel} className={`astro-options-popup${closing ? ' astro-options-popup--closing' : ''}`} id={id} onKeyDown={handleKeyDown} ref={panelRef} role="menu" style={style}>
       {items.map((item, index) => (
-        <button
+        <button data-track-action={item.trackingAction}
           aria-disabled={item.disabled || undefined}
           className={`astro-options-popup-item${item.separatorAfter ? ' astro-options-popup-item--separated' : ''}${item.tone === 'danger' ? ' astro-options-popup-item--danger' : ''}${item.tone === 'muted' ? ' astro-options-popup-item--muted' : ''}${item.disabled ? ' astro-options-popup-item--disabled' : ''}`}
           key={item.id}

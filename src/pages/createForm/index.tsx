@@ -1,3 +1,5 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
@@ -142,7 +144,7 @@ function CreateFormPage() {
 
   return (
     <div className={`create-forms-page astro-scale-90${leaving ? ' create-forms-page--leaving' : ''}`}>
-      <button
+      <button data-track-action={BUTTONS.comuns.acoes}
         aria-controls="create-forms-options"
         aria-expanded={menuOpen}
         aria-haspopup="menu"
@@ -158,16 +160,16 @@ function CreateFormPage() {
         <AstroBrand />
       </header>
 
-      <main className="create-forms-main">
+      <main data-track-page={true} className="create-forms-main">
         <h1>Crie seu formulário</h1>
-        <form noValidate onSubmit={submitForm}>
+        <form data-track-submit={BUTTONS.comuns.criar_forms} noValidate onSubmit={submitForm}>
           <section aria-labelledby="create-forms-initial-title" className="create-forms-card">
             <h2 id="create-forms-initial-title">Informações iniciais</h2>
             <div className="create-forms-field"><label htmlFor="create-forms-name">Nome do formulário</label><input id="create-forms-name" maxLength={100} onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))} placeholder="Digite o nome do formulário" value={values.name} /></div>
             <div className="create-forms-field"><label htmlFor="create-forms-description">Descrição do formulário</label><input id="create-forms-description" maxLength={240} onChange={(event) => setValues((current) => ({ ...current, description: event.target.value }))} placeholder="Digite a descrição do formulário" value={values.description} /></div>
-            <div className="create-forms-field"><span className="create-forms-label">Gestor</span><ToolbarSelect className="create-forms-select" label="Gestor" onValueChange={(manager) => setValues((current) => ({ ...current, manager }))} options={managerOptions} value={values.manager} /></div>
-            <div className="create-forms-field"><span className="create-forms-label">NR (opcional)</span><ToolbarSelect className="create-forms-select" label="NR (opcional)" onValueChange={(nr) => setValues((current) => ({ ...current, nr }))} options={nrOptions} value={values.nr} /></div>
-            <div className="create-forms-field"><span className="create-forms-label">Unidade (opcional)</span><ToolbarSelect className="create-forms-select" label="Unidade (opcional)" onValueChange={(unit) => setValues((current) => ({ ...current, unit }))} options={unitOptions} value={values.unit} /></div>
+            <div className="create-forms-field"><span className="create-forms-label">Gestor</span><ToolbarSelect trackingAction={BUTTONS.comuns.gestor} className="create-forms-select" label="Gestor" onValueChange={(manager) => setValues((current) => ({ ...current, manager }))} options={managerOptions} value={values.manager} /></div>
+            <div className="create-forms-field"><span className="create-forms-label">NR (opcional)</span><ToolbarSelect trackingAction={BUTTONS.comuns.nr} className="create-forms-select" label="NR (opcional)" onValueChange={(nr) => setValues((current) => ({ ...current, nr }))} options={nrOptions} value={values.nr} /></div>
+            <div className="create-forms-field"><span className="create-forms-label">Unidade (opcional)</span><ToolbarSelect trackingAction={BUTTONS.comuns.unidade} className="create-forms-select" label="Unidade (opcional)" onValueChange={(unit) => setValues((current) => ({ ...current, unit }))} options={unitOptions} value={values.unit} /></div>
             <div className="create-forms-field"><label htmlFor="create-forms-deadline">Data limite (opcional)</label><FormDatePicker id="create-forms-deadline" label="Data limite" onValidityChange={setDeadlineValid} onChange={(deadline) => setValues((current) => ({ ...current, deadline }))} value={values.deadline} /></div>
           </section>
 
@@ -207,20 +209,20 @@ function CreateFormPage() {
           {feedback && <p className="sr-only" role="status">{feedback}</p>}
 
           <div className="create-forms-footer">
-            <button className="create-forms-add-question" onClick={() => setShowAddQuestion(true)} type="button"><AstroIcon className="create-forms-add-question-icon" name="plus-square" />Adicionar pergunta</button>
-            <PurpleButton type="submit"><AstroIcon name="file-plus" />Criar formulário</PurpleButton>
+            <button data-track-action={BUTTONS.comuns.adicionar_pergunta} className="create-forms-add-question" onClick={() => setShowAddQuestion(true)} type="button"><AstroIcon className="create-forms-add-question-icon" name="plus-square" />Adicionar pergunta</button>
+            <PurpleButton data-track-action={BUTTONS.comuns.criar_forms} type="submit"><AstroIcon name="file-plus" />Criar formulário</PurpleButton>
           </div>
         </form>
       </main>
 
-      {menuOpen && createPortal(<OptionsPopup
+      {menuOpen && createPortal(<OptionsPopup trackingName={DIALOG_NAMES.acoes_formulario}
         ariaLabel="Opções do formulário"
         closing={menuClosing}
         id="create-forms-options"
         items={[
-          { id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => closeMenu() },
-          { id: 'draft', label: 'Salvar rascunho', separatorAfter: true, onSelect: () => closeMenu(saveDraft) },
-          { id: 'exit', label: 'Sair', tone: 'danger', onSelect: () => closeMenu(() => setShowBackConfirmation(true)) },
+          { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => closeMenu() },
+          { trackingAction: BUTTONS.comuns.salvar_rascunho, id: 'draft', label: 'Salvar rascunho', separatorAfter: true, onSelect: () => closeMenu(saveDraft) },
+          { trackingAction: BUTTONS.comuns.sair, id: 'exit', label: 'Sair', tone: 'danger', onSelect: () => closeMenu(() => setShowBackConfirmation(true)) },
         ]}
         onClose={() => closeMenu()}
         panelRef={menuPanelRef}
@@ -228,7 +230,7 @@ function CreateFormPage() {
       />, document.body)}
 
       {showAddQuestion && <AddFormQuestionModal onCancel={() => setShowAddQuestion(false)} onChoose={addQuestion} />}
-      {showBackConfirmation && <ConfirmationModal
+      {showBackConfirmation && <ConfirmationModal trackingName={DIALOG_NAMES.descartar_alteracoes_formulario}
         backdrop="dimmed"
         preservePageScroll
         className="create-forms-exit-modal"

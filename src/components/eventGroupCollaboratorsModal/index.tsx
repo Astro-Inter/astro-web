@@ -1,3 +1,6 @@
+import { SHOWCASE_NAMES } from '../../gtm/showcases'
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import AppModal from '../appModal'
 import DataTable, { type DataTableColumn } from '../dataTable'
 import TruncatedText from '../truncatedText'
@@ -20,11 +23,11 @@ const columns: readonly DataTableColumn<EventCollaborator>[] = [
 
 function EventGroupCollaboratorsModal({ groupName, participantIds, onClose }: EventGroupCollaboratorsModalProps) {
   const collaborators = mockEventCollaborators.filter(person => participantIds.includes(person.id))
-  return <AppModal backdrop="transparent" className="event-group-collaborators-modal" preservePageScroll title="Colaboradores do grupo" onClose={onClose}>
+  return <AppModal trackingName={DIALOG_NAMES.colaboradores_grupo_evento} backdrop="transparent" className="event-group-collaborators-modal" preservePageScroll title="Colaboradores do grupo" onClose={onClose}>
     {dismiss => <>
       <p className="astro-modal-description"><TruncatedText>{`${groupName} · ${collaborators.length} colaboradores`}</TruncatedText></p>
-      <DataTable ariaLabel={`Colaboradores de ${groupName}`} columns={columns} rows={collaborators} getRowKey={person => person.id} emptyMessage="Nenhum colaborador neste grupo." />
-      <div className="astro-modal-actions"><button className="astro-modal-cancel" onClick={dismiss} type="button">Voltar</button></div>
+      <DataTable trackingName={SHOWCASE_NAMES.lista_dialog_evento} ariaLabel={`Colaboradores de ${groupName}`} columns={columns} rows={collaborators} getRowKey={person => person.id} emptyMessage="Nenhum colaborador neste grupo." />
+      <div className="astro-modal-actions"><button data-track-action={BUTTONS.comuns.voltar} className="astro-modal-cancel" onClick={dismiss} type="button">Voltar</button></div>
     </>}
   </AppModal>
 }

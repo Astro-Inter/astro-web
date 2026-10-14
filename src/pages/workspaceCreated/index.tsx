@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { AstroBrand, PurpleButton } from '../../components'
 import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
@@ -12,7 +13,7 @@ function WorkspaceCreatedPage() {
 
   return (
     <>
-    <main className="workspace-created-page" inert={login.pending} aria-busy={login.pending}>
+    <main data-track-page={true} className="workspace-created-page" inert={login.pending} aria-busy={login.pending}>
       <section className="workspace-created-content astro-scale-90" aria-labelledby="workspace-created-title">
         <AstroBrand />
 
@@ -33,7 +34,7 @@ function WorkspaceCreatedPage() {
 
         {login.error && <p className="login-field-error workspace-created-error" role="alert">{login.error}</p>}
 
-        <PurpleButton className="workspace-created-button" disabled={login.pending} onClick={async () => {
+        <PurpleButton data-track-action={login.canSignIn ? (login.error ? BUTTONS.comuns.tentar_novamente : BUTTONS.comuns.continuar) : BUTTONS.comuns.login} className="workspace-created-button" disabled={login.pending} onClick={async () => {
           if (!login.canSignIn) { reset(); navigate('/', { replace: true }); return }
           if (await login.submit()) navigate('/mainHomeScreen', { replace: true })
         }}>

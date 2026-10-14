@@ -20,7 +20,7 @@ function LoginPage() {
 
   return (
     <>
-    <main className="login-page" inert={status === 'loading'} aria-busy={status === 'loading'}>
+    <main data-track-page={true} className="login-page" inert={status === 'loading'} aria-busy={status === 'loading'}>
       <AnimatedWelcome
         title="Seja bem-vindo ao Astro!"
         description="Insira suas credenciais para entrar no seu workspace."

@@ -1,3 +1,6 @@
+import { SHOWCASE_NAMES } from '../../gtm/showcases'
+import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { BUTTONS } from '../../gtm/buttons'
 import { useMemo, useState } from 'react'
 import AppModal from '../appModal'
 import AstroIcon from '../astroIcon'
@@ -35,7 +38,7 @@ function RegulatoryStandardsDialog({ loading = false, error = '', onRetry, conte
   ]
 
   return (
-    <AppModal
+    <AppModal trackingName={contextLabel ? DIALOG_NAMES.nrs_unidade : DIALOG_NAMES.nrs_cargo}
       className="nrs-dialog"
       dimmed={dimmed}
       onClose={onClose}
@@ -46,7 +49,7 @@ function RegulatoryStandardsDialog({ loading = false, error = '', onRetry, conte
         <p className="nrs-dialog-subtitle">Edite, organize e mantenha todas as Normas Regulamentadoras.</p>
 
         <div className="nrs-dialog-toolbar">
-          <CompactPurpleButton className="nrs-dialog-edit" disabled={loading || Boolean(error) || !onEdit} onClick={onEdit} type="button">
+          <CompactPurpleButton data-track-action={BUTTONS.comuns.editar_nrs} className="nrs-dialog-edit" disabled={loading || Boolean(error) || !onEdit} onClick={onEdit} type="button">
             <AstroIcon name="pencil" strokeScale={1} />
             Editar NRs
           </CompactPurpleButton>
@@ -62,9 +65,9 @@ function RegulatoryStandardsDialog({ loading = false, error = '', onRetry, conte
         </div>
 
         {loading && <p role="status">Carregando NRs...</p>}
-        {error && <div><p role="alert">{error}</p><button onClick={onRetry} type="button">Tentar novamente</button></div>}
+        {error && <div><p role="alert">{error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} onClick={onRetry} type="button">Tentar novamente</button></div>}
         <div className="nrs-dialog-table">
-          <DataTable
+          <DataTable trackingName={contextLabel ? SHOWCASE_NAMES.lista_dialog_unidade : SHOWCASE_NAMES.lista_dialog_cargo}
             ariaLabel="Normas Regulamentadoras"
             columns={columns}
             emptyMessage={loading ? 'Carregando NRs...' : error ? 'NRs indisponíveis.' : 'Nenhuma NR vinculada encontrada.'}
@@ -75,7 +78,7 @@ function RegulatoryStandardsDialog({ loading = false, error = '', onRetry, conte
         </div>
 
         <div className="nrs-dialog-footer">
-          <button className="astro-modal-cancel nrs-dialog-back" onClick={dismiss} type="button">Voltar</button>
+          <button data-track-action={BUTTONS.comuns.voltar} className="astro-modal-cancel nrs-dialog-back" onClick={dismiss} type="button">Voltar</button>
         </div>
       </>}
     </AppModal>

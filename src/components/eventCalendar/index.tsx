@@ -1,3 +1,5 @@
+import { SHOWCASE_NAMES } from '../../gtm/showcases'
+import { BUTTONS } from '../../gtm/buttons'
 import { useLayoutEffect, useRef } from 'react'
 import AstroIcon from '../astroIcon'
 import { eventCategoryLabels } from '../../data/events'
@@ -72,7 +74,7 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
       title={`${event.title}${event.inactive ? ' — Inativo' : ''}`}
     >{itemContent}</span>
 
-    return <button
+    return <button data-track-item={BUTTONS.comuns.evento}
       aria-controls={selectedEventId === event.id ? `event-options-${event.id}` : undefined}
       aria-expanded={selectedEventId === event.id}
       aria-haspopup="menu"
@@ -86,11 +88,11 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
   }
 
   return (
-    <section aria-label={`Calendário de ${label}`} className={`event-calendar-panel event-calendar-panel--${view}`}>
+    <section data-track-showcase={SHOWCASE_NAMES.calendario_eventos} aria-label={`Calendário de ${label}`} className={`event-calendar-panel event-calendar-panel--${view}`}>
       <div className="event-calendar-heading">
-        <button aria-label={`${period} anterior`} className="event-month-arrow event-month-arrow--previous" onClick={() => onMonthChange(-1)} type="button"><AstroIcon name="chevron-left" /></button>
+        <button data-track-action={BUTTONS.comuns.periodo_anterior} aria-label={`${period} anterior`} className="event-month-arrow event-month-arrow--previous" onClick={() => onMonthChange(-1)} type="button"><AstroIcon name="chevron-left" /></button>
         <h2 aria-live="polite">{label}</h2>
-        <button aria-label={view === 'week' ? 'Próxima semana' : `Próximo ${period.toLocaleLowerCase('pt-BR')}`} className="event-month-arrow event-month-arrow--next" onClick={() => onMonthChange(1)} type="button"><AstroIcon name="chevron-right" /></button>
+        <button data-track-action={BUTTONS.comuns.proximo_periodo} aria-label={view === 'week' ? 'Próxima semana' : `Próximo ${period.toLocaleLowerCase('pt-BR')}`} className="event-month-arrow event-month-arrow--next" onClick={() => onMonthChange(1)} type="button"><AstroIcon name="chevron-right" /></button>
       </div>
       <div className="event-calendar-scroll" ref={scrollRef}>
         {view === 'week' ? <table className="event-week-table">

@@ -1,3 +1,4 @@
+import { BUTTONS } from '../../gtm/buttons'
 import { useState } from 'react'
 import PasswordField from '../passwordField'
 import PageHeading from '../pageHeading'
@@ -40,7 +41,7 @@ function CreatePasswordForm({ onContinue, initialPassword = '' }: CreatePassword
     <>
       <PageHeading description="Defina sua senha de acesso." title="Crie sua senha" titleId="create-password-title" />
 
-      <form autoComplete="off" className="create-password-form" onSubmit={(event) => {
+      <form data-track-submit={BUTTONS.comuns.continuar} autoComplete="off" className="create-password-form" onSubmit={(event) => {
         event.preventDefault()
         setSubmitted(true)
         const nextErrors = validateRegistrationPasswordFields(values.password, values.confirmation)
@@ -74,7 +75,7 @@ function CreatePasswordForm({ onContinue, initialPassword = '' }: CreatePassword
           visible={visible.confirmation}
         />
 
-        <PurpleButton className="astro-form-action" type="submit">Continuar</PurpleButton>
+        <PurpleButton data-track-action={BUTTONS.comuns.continuar} className="astro-form-action" type="submit">Continuar</PurpleButton>
       </form>
     </>
   )

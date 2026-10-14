@@ -1,3 +1,4 @@
+import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { WorkspaceSettingsNavigationState, WorkspaceSettingsSection } from '../../types/workspaceSettings'
 import ConfirmationModal from '../confirmationModal'
@@ -20,7 +21,7 @@ function WorkspaceSettingsSaveModal({ section, onCancel }: WorkspaceSettingsSave
   const from = (location.state as WorkspaceSettingsNavigationState | null)?.from
 
   return (
-    <ConfirmationModal
+    <ConfirmationModal trackingName={({ company: DIALOG_NAMES.confirmar_alteracoes_dados_empresa, spreadsheet: DIALOG_NAMES.confirmar_adicao_colaboradores, addresses: DIALOG_NAMES.confirmar_alteracoes_endereco, payments: DIALOG_NAMES.confirmar_alteracoes_pagamento })[section]}
       backdrop="dimmed"
       className={screens[section].name}
       confirmLabel="Salvar"
