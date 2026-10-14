@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import ManagerDetailsModal from '../../components/managerDetailsModal'
-import ManagerIdentity from '../../components/managerIdentity'
+import CollaboratorIdentity from '../../components/collaboratorIdentity'
 import InviteManagerDialog from '../../components/inviteManagerDialog'
 import type { DataTableColumn } from '../../components/dataTable'
 import PasswordConfirmationModal from '../../components/passwordConfirmationModal'
@@ -106,7 +106,7 @@ function MainManagerScreenPage() {
   }
 
   const columns: DataTableColumn<ManagerSummary>[] = [
-    { id: 'name', label: 'Gestor', width: '23%', rowHeader: true, render: (manager) => <ManagerIdentity name={manager.name} /> },
+    { id: 'name', label: 'Gestor', width: '23%', rowHeader: true, render: (manager) => <CollaboratorIdentity name={manager.name} photoUrl={manager.profilePhotoUrl} initials={manager.avatarInitials} /> },
     { id: 'email', label: 'E-mail', width: '29%', render: (manager) => <TruncatedText>{manager.email}</TruncatedText> },
     { id: 'unit', label: 'Unidades', width: '18%', render: (manager) => <TruncatedText>{manager.unit}</TruncatedText> },
     {
