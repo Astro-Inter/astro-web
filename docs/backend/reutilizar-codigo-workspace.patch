@@ -1,0 +1,106 @@
+diff --git a/README.md b/README.md
+index b6e4c7f..94a5cf7 100644
+--- a/README.md
++++ b/README.md
+@@ -37,7 +37,7 @@ Configure as variáveis em `.env` (consulte `.env.example`):
+ | `WORKSPACE_EMAIL_QUEUE_KEY` | Lista Redis que contém apenas e-mails, por exemplo `astro:workspace:email:queue`. |
+ | `WORKSPACE_ACCESS_TOKEN_PREFIX` | Prefixo da chave do código, por exemplo `astro:workspace:access:token:`. |
+ 
+-O worker usa `LPOP` na fila. O e-mail é normalizado com `trim()` e letras minúsculas antes de compor a chave `<WORKSPACE_ACCESS_TOKEN_PREFIX><email>`. O valor é o código de seis dígitos, sem expiração automática. Um novo pedido para o mesmo e-mail substitui o código anterior.
++O worker usa `LPOP` na fila. O e-mail é normalizado com `trim()` e letras minúsculas antes de compor a chave `<WORKSPACE_ACCESS_TOKEN_PREFIX><email>`. O valor é o código de seis dígitos, sem expiração automática. Um novo pedido para o mesmo e-mail reutiliza o código já salvo no Redis, inclusive após reiniciar o worker. O SET com NX garante que pedidos simultâneos não substituam a chave: todos os envios usam o valor persistido. Uma chave nova só é criada quando não existe uma chave pendente para esse e-mail.
+ 
+ O aplicativo principal deve consultar essa mesma chave para validar o código e concluir a criação do workspace. Este worker apenas gera e envia o código. Após o uso, o aplicativo deve remover a chave para impedir reutilização.
+ 
+diff --git a/src/services/workspaceTokenService.js b/src/services/workspaceTokenService.js
+index f24ddf5..6c79b56 100644
+--- a/src/services/workspaceTokenService.js
++++ b/src/services/workspaceTokenService.js
+@@ -11,11 +11,19 @@ export function getWorkspaceTokenPrefix() {
+     return prefix;
+ }
+ 
+-export async function createWorkspaceAccessToken(email) {
++export async function createWorkspaceAccessToken(email, { client = redisClient, generateToken = generateAccessToken } = {}) {
+     const prefix = getWorkspaceTokenPrefix();
+-    const token = generateAccessToken();
++    const key = `${prefix}${email.trim().toLowerCase()}`;
++    const existing = await client.get(key);
++    if (existing !== null) return existing;
+ 
+-    await redisClient.set(`${prefix}${email}`, token);
++    const token = generateToken();
++    const created = await client.set(key, token, { NX: true });
++    if (created === "OK") return token;
+ 
+-    return token;
++    // Outro worker pode ter criado a chave entre o GET e o SET.
++    // Enviar sempre o valor efetivamente salvo, sem substituir a chave.
++    const current = await client.get(key);
++    if (current !== null) return current;
++    throw new Error("Não foi possível recuperar o código de acesso do workspace.");
+ }
+diff --git a/test/workspaceTokenService.test.js b/test/workspaceTokenService.test.js
+new file mode 100644
+index 0000000..c7d3c93
+--- /dev/null
++++ b/test/workspaceTokenService.test.js
+@@ -0,0 +1,59 @@
++import assert from "node:assert/strict";
++import { afterEach, test } from "node:test";
++import { createWorkspaceAccessToken } from "../src/services/workspaceTokenService.js";
++
++const originalPrefix = process.env.WORKSPACE_ACCESS_TOKEN_PREFIX;
++afterEach(() => {
++    if (originalPrefix === undefined) delete process.env.WORKSPACE_ACCESS_TOKEN_PREFIX;
++    else process.env.WORKSPACE_ACCESS_TOKEN_PREFIX = originalPrefix;
++});
++
++function redisMemory() {
++    const values = new Map();
++    return {
++        values,
++        get: async key => values.get(key) ?? null,
++        set: async (key, token, options) => {
++            assert.deepEqual(options, { NX: true });
++            if (values.has(key)) return null;
++            values.set(key, token);
++            return "OK";
++        }
++    };
++}
++
++test("reenvio reutiliza a chave existente sem gerar ou substituir outra", async () => {
++    process.env.WORKSPACE_ACCESS_TOKEN_PREFIX = "workspace:";
++    const client = redisMemory();
++    client.values.set("workspace:gestor@example.com", "012345");
++    const token = await createWorkspaceAccessToken(" GESTOR@EXAMPLE.COM ", {
++        client,
++        generateToken: () => { throw new Error("Não deveria gerar outra chave"); }
++    });
++    assert.equal(token, "012345");
++    assert.equal(client.values.get("workspace:gestor@example.com"), "012345");
++});
++
++test("primeiro envio salva uma chave que permanece em novas execuções", async () => {
++    process.env.WORKSPACE_ACCESS_TOKEN_PREFIX = "workspace:";
++    const client = redisMemory();
++    assert.equal(await createWorkspaceAccessToken("gestor@example.com", { client, generateToken: () => "123456" }), "123456");
++    assert.equal(await createWorkspaceAccessToken("gestor@example.com", { client, generateToken: () => "654321" }), "123456");
++});
++
++test("pedidos simultâneos para o mesmo e-mail enviam a mesma chave persistida", async () => {
++    process.env.WORKSPACE_ACCESS_TOKEN_PREFIX = "workspace:";
++    const client = redisMemory();
++    let sequence = 100000;
++    const tokens = await Promise.all(Array.from({ length: 5 }, () => createWorkspaceAccessToken("gestor@example.com", {
++        client, generateToken: () => String(sequence++)
++    })));
++    assert.equal(new Set(tokens).size, 1);
++    assert.equal(tokens[0], client.values.get("workspace:gestor@example.com"));
++});
++
++test("não envia código descartado se a chave desaparecer durante uma disputa", async () => {
++    process.env.WORKSPACE_ACCESS_TOKEN_PREFIX = "workspace:";
++    const client = { get: async () => null, set: async () => null };
++    await assert.rejects(createWorkspaceAccessToken("gestor@example.com", { client, generateToken: () => "123456" }), /recuperar o código/);
++});

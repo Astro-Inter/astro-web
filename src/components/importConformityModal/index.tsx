@@ -64,7 +64,7 @@ function ImportConformityModal({ dimmed = false, onClose, onImport, onManualAdd,
             Adicionar manualmente
           </CompactPurpleButton>
 
-          <SpreadsheetDropzone className="import-conformity-dropzone" file={selection.file} id="import-conformity-file" onFileSelect={selectFile} />
+          <SpreadsheetDropzone className="import-conformity-dropzone" file={selection.file} id="import-conformity-file" onFileSelect={selectFile} onFileRemove={() => setSelection({ file: null, error: '' })} />
           {selection.error && <p className="attach-excel-feedback" role="alert">{selection.error}</p>}
 
           <button aria-haspopup="dialog" className="attach-excel-model-link import-conformity-model-link" onClick={() => setExplanationOpen(true)} ref={explanationTriggerRef} type="button">

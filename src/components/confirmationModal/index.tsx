@@ -9,6 +9,7 @@ interface ConfirmationModalProps {
   preservePageScroll?: boolean
   confirmCloseDelay?: number
   confirmLabel: string
+  progressLabel?: string
   description?: ReactNode
   icon?: ReactNode
   onCancel: () => void
@@ -19,7 +20,7 @@ interface ConfirmationModalProps {
   tone?: 'default' | 'danger'
 }
 
-function ConfirmationModal({ cancelLabel = 'Cancelar', className = '', backdrop = 'transparent', preservePageScroll = false, confirmCloseDelay = 0, confirmLabel, description, icon, onCancel, onCancelRequest, onConfirm, onConfirmed, title, tone = 'default' }: ConfirmationModalProps) {
+function ConfirmationModal({ cancelLabel = 'Cancelar', className = '', backdrop = 'transparent', preservePageScroll = false, confirmCloseDelay = 0, confirmLabel, progressLabel = 'Salvando alterações...', description, icon, onCancel, onCancelRequest, onConfirm, onConfirmed, title, tone = 'default' }: ConfirmationModalProps) {
   const confirmedRef = useRef(false)
   const confirmTimerRef = useRef<number | null>(null)
   const [error, setError] = useState('')
@@ -39,7 +40,7 @@ function ConfirmationModal({ cancelLabel = 'Cancelar', className = '', backdrop 
     }} title={icon ? <><span className="astro-confirmation-title-icon">{icon}</span><span className="astro-confirmation-title-text">{title}</span></> : title}>
       {(dismiss) => <>
         {description && <p className="astro-confirmation-description">{description}</p>}
-        {submitting && <p role="status">Salvando alterações...</p>}
+        {submitting && progressLabel && <p role="status">{progressLabel}</p>}
         {error && <p className="astro-confirmation-error" role="alert">{error}</p>}
         <div className="astro-modal-actions">
           <button className="astro-modal-cancel" disabled={submitting} onClick={dismiss} type="button">{cancelLabel}</button>

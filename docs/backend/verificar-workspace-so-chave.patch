@@ -1,0 +1,229 @@
+diff --git a/src/main/java/com/astro/api/auth/security/SecurityConfig.java b/src/main/java/com/astro/api/auth/security/SecurityConfig.java
+index 4de2b4c..eda9f95 100644
+--- a/src/main/java/com/astro/api/auth/security/SecurityConfig.java
++++ b/src/main/java/com/astro/api/auth/security/SecurityConfig.java
+@@ -42,6 +42,7 @@ public class SecurityConfig {
+                     "/verify-email",
+                     "/activate",
+                     "/verify-key",
++                    "/verify-workspace-key",
+                     "/add-manager-email",
+                     "/register-workspace"
+                 ).permitAll()
+diff --git a/src/main/java/com/astro/api/workspace/controller/WorkspaceKeyVerificationController.java b/src/main/java/com/astro/api/workspace/controller/WorkspaceKeyVerificationController.java
+new file mode 100644
+index 0000000..d732b3b
+--- /dev/null
++++ b/src/main/java/com/astro/api/workspace/controller/WorkspaceKeyVerificationController.java
+@@ -0,0 +1,39 @@
++package com.astro.api.workspace.controller;
++
++import com.astro.api.common.response.ApiResult;
++import com.astro.api.workspace.dto.request.WorkspaceKeyVerificationRequest;
++import com.astro.api.workspace.service.WorkspaceKeyVerificationService;
++import jakarta.servlet.http.HttpServletRequest;
++import jakarta.validation.Valid;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.RequestBody;
++import org.springframework.web.bind.annotation.RestController;
++import org.springframework.web.bind.annotation.ExceptionHandler;
++import org.springframework.http.ResponseEntity;
++import org.springframework.web.server.ResponseStatusException;
++
++@RestController
++public class WorkspaceKeyVerificationController {
++    private final WorkspaceKeyVerificationService service;
++
++    public WorkspaceKeyVerificationController(WorkspaceKeyVerificationService service) {
++        this.service = service;
++    }
++
++    public record VerifiedWorkspaceEmail(String email) {}
++
++    @ExceptionHandler(ResponseStatusException.class)
++    public ResponseEntity<ApiResult<Void>> verificationError(ResponseStatusException error, HttpServletRequest request) {
++        return ResponseEntity.status(error.getStatusCode()).body(ApiResult.error(
++                error.getReason() == null ? "Não foi possível verificar a chave." : error.getReason(),
++                null, request.getRequestURI()));
++    }
++
++    @PostMapping("/verify-workspace-key")
++    public ApiResult<VerifiedWorkspaceEmail> verify(@RequestBody @Valid WorkspaceKeyVerificationRequest dto,
++                                                   HttpServletRequest request) {
++        String email = service.verify(dto.accessKey(), request.getRemoteAddr());
++        return ApiResult.success("Chave de acesso verificada.", new VerifiedWorkspaceEmail(email),
++                request.getRequestURI());
++    }
++}
+diff --git a/src/main/java/com/astro/api/workspace/dto/request/WorkspaceKeyVerificationRequest.java b/src/main/java/com/astro/api/workspace/dto/request/WorkspaceKeyVerificationRequest.java
+new file mode 100644
+index 0000000..62ba3dc
+--- /dev/null
++++ b/src/main/java/com/astro/api/workspace/dto/request/WorkspaceKeyVerificationRequest.java
+@@ -0,0 +1,8 @@
++package com.astro.api.workspace.dto.request;
++
++import jakarta.validation.constraints.NotBlank;
++import jakarta.validation.constraints.Pattern;
++
++public record WorkspaceKeyVerificationRequest(
++        @NotBlank @Pattern(regexp = "[0-9]{6}") String accessKey
++) {}
+diff --git a/src/main/java/com/astro/api/workspace/service/WorkspaceKeyVerificationService.java b/src/main/java/com/astro/api/workspace/service/WorkspaceKeyVerificationService.java
+new file mode 100644
+index 0000000..b65fe8a
+--- /dev/null
++++ b/src/main/java/com/astro/api/workspace/service/WorkspaceKeyVerificationService.java
+@@ -0,0 +1,59 @@
++package com.astro.api.workspace.service;
++
++import org.springframework.beans.factory.annotation.Value;
++import org.springframework.data.redis.core.ScanOptions;
++import org.springframework.data.redis.core.StringRedisTemplate;
++import org.springframework.http.HttpStatus;
++import org.springframework.stereotype.Service;
++import org.springframework.web.server.ResponseStatusException;
++
++import java.time.Duration;
++import java.util.HashSet;
++import java.util.Set;
++
++@Service
++public class WorkspaceKeyVerificationService {
++    private final StringRedisTemplate redis;
++    private final String prefix;
++
++    public WorkspaceKeyVerificationService(StringRedisTemplate redis,
++            @Value("${WORKSPACE_ACCESS_TOKEN_PREFIX}") String prefix) {
++        this.redis = redis;
++        this.prefix = prefix;
++    }
++
++    public String verify(String accessKey, String clientAddress) {
++        // Limita tentativas sem armazenar a chave digitada em logs ou contadores.
++        String attemptsKey = prefix + "verification-attempts:" + clientAddress;
++        Long attempts = redis.opsForValue().increment(attemptsKey);
++        if (attempts == null) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
++        if (attempts == 1) redis.expire(attemptsKey, Duration.ofMinutes(1));
++        if (attempts > 10) throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
++                "Muitas tentativas. Aguarde um minuto e tente novamente.");
++
++        // SCAN mantém compatibilidade com as chaves já enviadas pelo worker atual.
++        // Escapa caracteres especiais do prefixo para não consultar outros namespaces.
++        String pattern = prefix.replace("\\", "\\\\").replace("*", "\\*")
++                .replace("?", "\\?").replace("[", "\\[") + "*";
++        Set<String> matches = new HashSet<>();
++        try (var keys = redis.scan(ScanOptions.scanOptions().match(pattern).count(100).build())) {
++            while (keys.hasNext()) {
++                String key = keys.next();
++                if (!key.startsWith(prefix)) continue;
++                String email = key.substring(prefix.length());
++                if (!email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")) continue;
++                if (accessKey.equals(redis.opsForValue().get(key))) matches.add(email);
++            }
++        }
++        if (matches.size() > 1) throw new ResponseStatusException(HttpStatus.CONFLICT,
++                "Esta chave está associada a mais de um e-mail. Solicite outra chave.");
++        if (matches.isEmpty()) throw new ResponseStatusException(HttpStatus.FORBIDDEN,
++                "Código inválido ou substituído. Confira seu e-mail novamente e use a nova chave recebida.");
++        String email = matches.iterator().next();
++        if (!accessKey.equals(redis.opsForValue().get(prefix + email))) {
++            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
++                    "Código inválido ou substituído. Confira seu e-mail novamente e use a nova chave recebida.");
++        }
++        return email;
++    }
++}
+diff --git a/src/test/java/com/astro/api/workspace/service/WorkspaceKeyVerificationServiceTest.java b/src/test/java/com/astro/api/workspace/service/WorkspaceKeyVerificationServiceTest.java
+new file mode 100644
+index 0000000..1651c8d
+--- /dev/null
++++ b/src/test/java/com/astro/api/workspace/service/WorkspaceKeyVerificationServiceTest.java
+@@ -0,0 +1,87 @@
++package com.astro.api.workspace.service;
++
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.Test;
++import org.springframework.data.redis.core.Cursor;
++import org.springframework.data.redis.core.ScanOptions;
++import org.springframework.data.redis.core.StringRedisTemplate;
++import org.springframework.data.redis.core.ValueOperations;
++import org.springframework.http.HttpStatus;
++import org.springframework.web.server.ResponseStatusException;
++
++import java.util.List;
++
++import static org.junit.jupiter.api.Assertions.*;
++import static org.mockito.Mockito.*;
++
++class WorkspaceKeyVerificationServiceTest {
++    private StringRedisTemplate redis;
++    private ValueOperations<String, String> values;
++    private WorkspaceKeyVerificationService service;
++
++    @BeforeEach
++    @SuppressWarnings("unchecked")
++    void setup() {
++        redis = mock(StringRedisTemplate.class);
++        values = mock(ValueOperations.class);
++        when(redis.opsForValue()).thenReturn(values);
++        when(values.increment(anyString())).thenReturn(1L);
++        service = new WorkspaceKeyVerificationService(redis, "workspace:");
++    }
++
++    @SuppressWarnings("unchecked")
++    private void keys(String... names) {
++        Cursor<String> cursor = mock(Cursor.class);
++        var iterator = List.of(names).iterator();
++        when(cursor.hasNext()).thenAnswer(invocation -> iterator.hasNext());
++        when(cursor.next()).thenAnswer(invocation -> iterator.next());
++        when(redis.scan(any(ScanOptions.class))).thenReturn(cursor);
++    }
++
++    @Test
++    void findsEmailWithoutPreviousSessionAndPreservesLeadingZero() {
++        keys("workspace:ana@example.com");
++        when(values.get("workspace:ana@example.com")).thenReturn("012345");
++        assertEquals("ana@example.com", service.verify("012345", "127.0.0.1"));
++    }
++
++    @Test
++    void rejectsReplacedOrMissingKey() {
++        keys("workspace:ana@example.com");
++        when(values.get("workspace:ana@example.com")).thenReturn("123456");
++        var error = assertThrows(ResponseStatusException.class, () -> service.verify("012345", "127.0.0.1"));
++        assertEquals(HttpStatus.FORBIDDEN, error.getStatusCode());
++        assertTrue(error.getReason().contains("Confira seu e-mail novamente"));
++    }
++
++    @Test
++    void rejectsAmbiguousCodesInsteadOfSelectingAnAccount() {
++        keys("workspace:ana@example.com", "workspace:bia@example.com");
++        when(values.get(anyString())).thenReturn("012345");
++        var error = assertThrows(ResponseStatusException.class, () -> service.verify("012345", "127.0.0.1"));
++        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
++    }
++
++    @Test
++    void rechecksKeyAfterLookupToRejectConcurrentReplacement() {
++        keys("workspace:ana@example.com");
++        when(values.get("workspace:ana@example.com")).thenReturn("012345", "123456");
++        var error = assertThrows(ResponseStatusException.class, () -> service.verify("012345", "127.0.0.1"));
++        assertEquals(HttpStatus.FORBIDDEN, error.getStatusCode());
++    }
++
++    @Test
++    void limitsAttemptsBeforeReadingWorkspaceKeys() {
++        when(values.increment(anyString())).thenReturn(11L);
++        var error = assertThrows(ResponseStatusException.class, () -> service.verify("012345", "127.0.0.1"));
++        assertEquals(HttpStatus.TOO_MANY_REQUESTS, error.getStatusCode());
++        verify(redis, never()).scan(any(ScanOptions.class));
++    }
++
++    @Test
++    void ignoresKeysOutsideWorkspaceNamespaceAndCounters() {
++        keys("collaborator:ana@example.com", "workspace:verification-attempts:127.0.0.1");
++        assertThrows(ResponseStatusException.class, () -> service.verify("012345", "127.0.0.1"));
++        verify(values, never()).get(anyString());
++    }
++}

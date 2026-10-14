@@ -10,13 +10,16 @@
 .workspace-settings-content h1 { font-size: var(--workspace-settings-heading-size); }
 
 .astro-route-transition.astro-route-transition--tab-change { animation: none; }
+/* O cabeçalho e as abas ficam opacos durante a troca de conteúdo. */
+.astro-route-transition--settings-page .astro-route-content { animation: none; }
+.astro-route-transition--tab-fallback .settings-tab-content { animation: astro-popup-in 260ms ease both; }
 .settings-tab-content { view-transition-name: settings-content; }
 html.settings-tab-transition::view-transition-group(root),
 html.settings-tab-transition::view-transition-old(root),
 html.settings-tab-transition::view-transition-new(root),
 html.settings-tab-transition::view-transition-group(settings-content) { animation: none; }
 html.settings-tab-transition::view-transition-old(root) { display: none; }
-html.settings-tab-transition::view-transition-image-pair(settings-content) { isolation: isolate; }
+html.settings-tab-transition::view-transition-image-pair(settings-content) { isolation: isolate; overflow: clip; }
 html.settings-tab-transition::view-transition-old(settings-content),
 html.settings-tab-transition::view-transition-new(settings-content) {
   width: 100%; height: 100%; object-fit: none; object-position: top center; mix-blend-mode: plus-lighter;
@@ -88,6 +91,7 @@ html.settings-tab-transition::view-transition-new(settings-content) { animation:
 
 @media (prefers-reduced-motion: reduce) {
   .astro-route-transition--settings-page, .astro-route-transition--settings-leaving { animation: none; }
+  .astro-route-transition--tab-fallback .settings-tab-content { animation: none; }
   .workspace-settings-row--saved { animation: none; }
 }
 

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { AppSidebar, AstroChat, AstroIcon, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, OptionsPopup, RegulatoryStandardsDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import type { DataTableColumn } from '../../components/dataTable'
 import { useUnits } from '../../hooks/useUnits'
+import WorkspaceTableSkeleton from '../../components/workspaceTableSkeleton'
 import { useActionsMenu } from '../../hooks'
 import type { Unit } from '../../types'
 import { iconAsset } from '../../utils/iconAsset'
@@ -94,11 +95,11 @@ function MainUnitScreenPage() {
   ]
 
   return (
-    <div className="main-position-screen main-manager-screen main-unit-screen">
+    <div className="main-position-screen main-manager-screen main-unit-screen" data-table-loading={api.loading}>
       <AppSidebar />
 
       <main className="position-main" id="conteudo-principal">
-        <section aria-labelledby="units-title" className="position-content astro-scale-90">
+        <section aria-labelledby="units-title" aria-busy={api.loading} className="position-content astro-scale-90">
           <header className="position-heading">
             <h1 id="units-title">Unidades</h1>
             <p>Organize, cadastre suas unidades e acompanhe o gerenciamento de cada local.</p>
@@ -118,11 +119,10 @@ function MainUnitScreenPage() {
             </div>
           </div>
 
-          {api.loading && <p className="position-api-feedback" role="status">Carregando unidades...</p>}
           {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button onClick={api.retry} type="button">Tentar novamente</button></div>}
           {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
           {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
-          <DataTable ariaLabel="Unidades" columns={columns} emptyMessage={api.loading ? 'Carregando unidades...' : api.error ? 'Lista de unidades indisponível.' : 'Nenhuma unidade encontrada para esses filtros.'} getRowClassName={(unit) => unit.id === savedUnitId ? 'astro-data-table-row--saved' : undefined} getRowKey={(unit) => unit.id} rows={visibleUnits} />
+          <DataTable ariaLabel="Unidades" columns={columns} loadingContent={api.loading ? <WorkspaceTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de unidades indisponível.' : 'Nenhuma unidade encontrada para esses filtros.'} getRowClassName={(unit) => unit.id === savedUnitId ? 'astro-data-table-row--saved' : undefined} getRowKey={(unit) => unit.id} rows={visibleUnits} />
           <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 

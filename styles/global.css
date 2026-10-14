@@ -31,6 +31,7 @@
   --astro-popup-duration: 260ms;
   --astro-popover-duration: 200ms;
   --astro-background: #1c1839;
+  --astro-registration-padding-block: clamp(4.5rem, 8svh, 6rem);
   --astro-orb-base: #272149;
   --astro-orb-mid: #4f1479;
   --astro-orb-accent: #8f00c4;
@@ -523,10 +524,9 @@ textarea::selection {
   text-underline-offset: 0.25em;
 }
 
-/* No canto inferior da página (ou do painel nas telas divididas). Assim o link
-   acompanha o fim do conteúdo quando a página precisa rolar. */
+/* Ajuda permanece no canto da janela, inclusive durante a rolagem. */
 .help-link {
-  position: absolute;
+  position: fixed;
   z-index: 2;
   right: clamp(1.5rem, 4vw, 3.5rem);
   bottom: clamp(2rem, 5vh, 3rem);
@@ -579,11 +579,17 @@ textarea::selection {
 
 /* Animate page content, keeping the background and fixed controls opaque. */
 .astro-route-transition { min-height: 100dvh; }
+.astro-route-content { animation: astro-route-enter 550ms cubic-bezier(.2, .8, .2, 1) both; }
+.astro-route-content--logout,
+.astro-route-content--logout :is(.login-welcome, .login-card) { animation: none; }
+html.logout-transition::view-transition-group(root) { animation-duration: 550ms; }
+html.logout-transition::view-transition-old(root) { animation: astro-route-exit 180ms ease-in both; }
+html.logout-transition::view-transition-new(root) { animation: astro-route-enter 550ms cubic-bezier(.2, .8, .2, 1) both; }
 .astro-route-transition--exiting { pointer-events: none; }
 .astro-route-transition h1:focus { outline: none; }
 @keyframes astro-route-enter { from { opacity: 0; } to { opacity: 1; } }
 @keyframes astro-route-exit { from { opacity: 1; } to { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .astro-route-transition, .astro-route-transition--exiting { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .astro-route-transition, .astro-route-transition--exiting, .astro-route-content { animation: none; } }
 
 :where(button, a, [tabindex]):focus-visible:not(:where(input, textarea, select, [tabindex="-1"])) {
   outline: 2px solid var(--astro-focus-border);

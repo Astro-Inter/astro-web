@@ -12,6 +12,7 @@ export type RegistrationState =
   | (Feedback & { status: 'error'; result: null })
 
 export type RegistrationAction =
+  | { type: 'restored'; state: RegistrationState }
   | { type: 'started' }
   | { type: 'succeeded'; result: WorkspaceRegistrationResult }
   | ({ type: 'failed' } & Feedback)
@@ -24,6 +25,7 @@ export const initialRegistrationState: RegistrationState = {
 // Cada transição atualiza resultado e erros juntos: sucesso nunca retém erros anteriores.
 export function registrationReducer(state: RegistrationState, action: RegistrationAction): RegistrationState {
   switch (action.type) {
+    case 'restored': return action.state
     case 'started': return state.status === 'success' ? state : { ...initialRegistrationState, status: 'loading', result: null }
     case 'succeeded': return { ...initialRegistrationState, status: 'success', result: action.result }
     case 'failed': return { status: 'error', result: null, error: action.error, failureStatus: action.failureStatus, importErrors: action.importErrors }

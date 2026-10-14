@@ -23,10 +23,13 @@ function CreatePasswordForm({ onContinue, initialPassword = '' }: CreatePassword
   const [values, setValues] = useState<PasswordValues>({ password: initialPassword, confirmation: initialPassword })
   const [errors, setErrors] = useState<{ password?: string; confirmation?: string }>({})
   const [visible, setVisible] = useState<PasswordVisibility>({ password: false, confirmation: false })
+  const [submitted, setSubmitted] = useState(false)
+  const error = errors.confirmation ?? errors.password
 
   function updateValue(field: keyof PasswordValues, value: string) {
-    setValues((current) => ({ ...current, [field]: value }))
-    setErrors(current => ({ ...current, [field]: undefined, ...(field === 'password' ? { confirmation: undefined } : {}) }))
+    const nextValues = { ...values, [field]: value }
+    setValues(nextValues)
+    if (submitted) setErrors(validateRegistrationPasswordFields(nextValues.password, nextValues.confirmation))
   }
 
   function toggleVisibility(field: keyof PasswordVisibility) {
@@ -39,16 +42,18 @@ function CreatePasswordForm({ onContinue, initialPassword = '' }: CreatePassword
 
       <form autoComplete="off" className="create-password-form" onSubmit={(event) => {
         event.preventDefault()
+        setSubmitted(true)
         const nextErrors = validateRegistrationPasswordFields(values.password, values.confirmation)
         setErrors(nextErrors)
         if (!Object.keys(nextErrors).length) onContinue(values.password)
       }} noValidate>
         <PasswordField
           id="new-password"
-          autoComplete="new-password"
+          autoComplete="off"
           required
           label="Senha"
-          error={errors.password}
+          invalid={Boolean(error)}
+          describedBy={error ? 'confirm-password-error' : undefined}
           onChange={(value) => updateValue('password', value)}
           onToggleVisibility={() => toggleVisibility('password')}
           placeholder="Digite sua senha"
@@ -57,9 +62,10 @@ function CreatePasswordForm({ onContinue, initialPassword = '' }: CreatePassword
         />
         <PasswordField
           id="confirm-password"
-          autoComplete="new-password"
+          autoComplete="off"
           required
-          error={errors.confirmation}
+          error={error}
+          invalid={Boolean(error)}
           label="Confirmar senha"
           onChange={(value) => updateValue('confirmation', value)}
           onToggleVisibility={() => toggleVisibility('confirmation')}

@@ -16,20 +16,23 @@ interface DataTableProps<Row> {
   getRowClassName?: (row: Row) => string | undefined
   getRowKey: (row: Row) => string
   rows: readonly Row[]
+  loadingContent?: ReactNode
 }
 
-function DataTable<Row>({ ariaLabel, columns, emptyMessage, getRowClassName, getRowKey, rows }: DataTableProps<Row>) {
+function DataTable<Row>({ ariaLabel, columns, emptyMessage, getRowClassName, getRowKey, rows, loadingContent }: DataTableProps<Row>) {
   return (
     <div className="astro-data-table-shell">
+      {loadingContent && <span className="sr-only" role="status">Carregando {ariaLabel.toLocaleLowerCase('pt-BR')}.</span>}
       <div className="astro-data-table-scroll" tabIndex={0} role="region" aria-label={`${ariaLabel}: deslize horizontalmente para ver todas as colunas`}>
-        <table className="astro-data-table">
+        <table className="astro-data-table" aria-busy={Boolean(loadingContent)}>
           <colgroup>
             {columns.map((column) => <col key={column.id} style={column.width ? { width: column.width } : undefined} />)}
           </colgroup>
           <thead>
             <tr>{columns.map((column) => <th key={column.id} scope="col" title={column.label}>{column.label}</th>)}</tr>
           </thead>
-          <tbody>
+          <tbody aria-hidden={loadingContent ? true : undefined}>
+            {loadingContent ?? <>
             {rows.map((row) => (
               <tr className={getRowClassName?.(row)} key={getRowKey(row)}>
                 {columns.map((column) => {
@@ -41,6 +44,7 @@ function DataTable<Row>({ ariaLabel, columns, emptyMessage, getRowClassName, get
               </tr>
             ))}
             {rows.length === 0 && <tr><td className="astro-data-table-empty" colSpan={columns.length}>{emptyMessage}</td></tr>}
+            </>}
           </tbody>
         </table>
       </div>

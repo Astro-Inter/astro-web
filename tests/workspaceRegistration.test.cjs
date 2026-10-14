@@ -23,15 +23,141 @@ function loadTs(filename) {
   return module.exports
 }
 
-const { buildWorkspaceRegistration, validateManagerEmail, validateRegistrationPassword, validateRegistrationUnits } = loadTs(path.join(__dirname, '../src/utils/workspaceRegistration.ts'))
+const { buildWorkspaceRegistration, keepRegistrationLoginCredentials, validateManagerEmail, validateRegistrationPassword, validateRegistrationPasswordFields, validateRegistrationUnits } = loadTs(path.join(__dirname, '../src/utils/workspaceRegistration.ts'))
 const { registerWorkspace, WorkspaceRegistrationError } = loadTs(path.join(__dirname, '../src/services/workspaceRegistration.ts'))
-const { addManagerEmail, verifyManagerEmail, WorkspaceEmailError } = loadTs(path.join(__dirname, '../src/services/workspaceEmail.ts'))
+const { addManagerEmail, verifyManagerEmail, verifyWorkspaceKey, WorkspaceEmailError, isWorkspaceCodeAlreadySent } = loadTs(path.join(__dirname, '../src/services/workspaceEmail.ts'))
 const { readSpreadsheetUnitNames } = loadTs(path.join(__dirname, '../src/utils/spreadsheet.ts'))
 const { reconcileSpreadsheetUnits, mergePostalAddress } = loadTs(path.join(__dirname, '../src/utils/workspaceUnits.ts'))
 const { lookupPostalCode } = loadTs(path.join(__dirname, '../src/services/postalCode.ts'))
+const { ManagerEmailMissingError } = loadTs(path.join(__dirname, '../src/utils/spreadsheetErrors.ts'))
+const { createSpreadsheetExampleBlob } = loadTs(path.join(__dirname, '../src/utils/spreadsheetExample.ts'))
 const XLSX = require('xlsx')
 const originalFetch = global.fetch
-afterEach(() => { global.fetch = originalFetch })
+const originalSessionStorage = global.sessionStorage
+test('modelo para download é um Excel legível com os mesmos cabeçalhos e valores do popup', async () => {
+  const example = { columns: [{ label: 'CPF' }, { label: 'NR' }, { label: 'Data de validade' }, { label: '' }],
+    rows: [['000.000.000-00', '10', '02/12/2026']] }
+  const blob = await createSpreadsheetExampleBlob(example)
+  assert.equal(blob.type, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+  const book = XLSX.read(await blob.arrayBuffer(), { type: 'array' })
+  assert.deepEqual(XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]], { header: 1 }), [
+    ['CPF', 'NR', 'Data de validade'], ['000.000.000-00', '10', '02/12/2026'],
+  ])
+})
+test('senha do cadastro exige oito caracteres, maiúscula, minúscula e número sem exigir símbolo', () => {
+  for (const password of ['Senha12', 'senha123', 'SENHA123', 'Senhaabc']) {
+    assert.match(validateRegistrationPasswordFields(password, password).password, /8 caracteres.*maiúscula.*minúscula.*número/)
+  }
+  assert.deepEqual(validateRegistrationPasswordFields('Senha123', 'Senha123'), {})
+  assert.deepEqual(validateRegistrationPasswordFields(' Senha123 ', ' Senha123 '), {})
+  assert.match(validateRegistrationPasswordFields('A'.repeat(129), 'A'.repeat(129)).password, /128/)
+})
+
+test('confirmação divergente tem mensagem própria e não substitui o erro de força da senha', () => {
+  assert.deepEqual(validateRegistrationPasswordFields('Senha123', 'Senha124'), { confirmation: 'As senhas não conferem.' })
+  const errors = validateRegistrationPasswordFields('teste@teste', 'teste@tes')
+  assert.match(errors.password, /maiúscula/)
+  assert.equal(errors.confirmation, 'As senhas não conferem.')
+  assert.equal(validateRegistrationPasswordFields('Senha123', '').confirmation, 'Confirme sua senha.')
+})
+test('chave recebida valida pela rota publicada usando o e-mail da solicitação, sem chamar rota ausente', async () => {
+  let calls = 0
+  global.fetch = async (url, options) => {
+    calls++
+    assert.equal(url, 'https://astro-api-h2hx.onrender.com/verify-key?tipoConta=GESTOR_WORKSPACE')
+    assert.deepEqual(JSON.parse(options.body), { email: 'ana@example.com', accessKey: '012345' })
+    return new Response(null, { status: 204 })
+  }
+  assert.equal(await verifyWorkspaceKey('012345', ' ANA@example.com '), 'ana@example.com')
+  assert.equal(calls, 1)
+})
+
+test('recusa da rota publicada não confirma e-mail nem tenta outro endpoint', async () => {
+  let calls = 0
+  global.fetch = async () => { calls++; return new Response(null, { status: 403 }) }
+  await assert.rejects(verifyWorkspaceKey('012345', 'ana@example.com'), error => error.status === 403)
+  assert.equal(calls, 1)
+})
+
+test('rota publicada só aceita 204 e chave incompleta não inicia validação', async () => {
+  global.fetch = async () => Response.json({ success: true })
+  await assert.rejects(verifyWorkspaceKey('012345', 'ana@example.com'))
+  global.fetch = async () => { assert.fail('não deve consultar') }
+  await assert.rejects(verifyWorkspaceKey('123', 'ana@example.com'))
+})
+
+test('verificação direta envia somente a chave e usa o e-mail confirmado pela API', async () => {
+  global.fetch = async (url, options) => {
+    assert.equal(url, 'https://astro-api-h2hx.onrender.com/verify-workspace-key')
+    assert.deepEqual(JSON.parse(options.body), { accessKey: '012345' })
+    return Response.json({ success: true, data: { email: 'ANA@example.com' } })
+  }
+  assert.equal(await verifyWorkspaceKey('012345'), 'ana@example.com')
+})
+
+test('verificação só pela chave recusa respostas sem e-mail confirmado e endpoint ainda não publicado', async () => {
+  for (const data of [{ success: true }, { success: false, data: { email: 'ana@example.com' } }, { success: true, data: { email: 'invalid' } }]) {
+    global.fetch = async () => Response.json(data)
+    await assert.rejects(verifyWorkspaceKey('012345'), /não confirmou/)
+  }
+  global.fetch = async () => new Response(null, { status: 404 })
+  await assert.rejects(verifyWorkspaceKey('012345'), /verificação.*indisponível/)
+})
+
+test('chave inválida não consulta a API e 403 vazio não atribui recusa à chave', async () => {
+  global.fetch = async () => { assert.fail('não deve consultar') }
+  await assert.rejects(verifyWorkspaceKey('123'))
+  global.fetch = async () => new Response(null, { status: 403 })
+  await assert.rejects(verifyWorkspaceKey('012345'), error => error.status === 403
+    && /serviço de verificação recusou/.test(error.message)
+    && !/inválido|substituído|nova chave/.test(error.message))
+})
+
+test('preserva o aviso quando a API confirma explicitamente código inválido ou substituído', async () => {
+  const message = 'Código inválido ou substituído. Confira seu e-mail novamente e use a nova chave recebida.'
+  global.fetch = async () => Response.json({ success: false, message }, { status: 403 })
+  await assert.rejects(verifyWorkspaceKey('012345'), error => error.status === 403 && error.message === message)
+})
+afterEach(() => { global.fetch = originalFetch; global.sessionStorage = originalSessionStorage })
+
+function mockSessionStorage() {
+  const values = new Map()
+  global.sessionStorage = {
+    getItem: key => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: key => values.delete(key),
+  }
+  return values
+}
+
+test('reenvio aguarda 30 segundos por e-mail e conserva o prazo depois de recarregar', () => {
+  mockSessionStorage()
+  const filename = path.resolve(__dirname, '../src/utils/workspaceCodeCooldown.ts')
+  const cooldown = loadTs(filename)
+  const now = 100000
+  assert.equal(cooldown.reserveWorkspaceCodeRequest(' TESTE@empresa.com ', now), true)
+  assert.equal(cooldown.reserveWorkspaceCodeRequest('teste@empresa.com', now + 29999), false)
+  assert.equal(cooldown.getWorkspaceCodeWait('teste@empresa.com', now + 29999), 1)
+  assert.equal(cooldown.reserveWorkspaceCodeRequest('outro@empresa.com', now + 1000), true)
+  cache.delete(filename)
+  const reloaded = loadTs(filename)
+  assert.equal(reloaded.getWorkspaceCodeWait('teste@empresa.com', now + 1000), 29)
+  assert.equal(reloaded.reserveWorkspaceCodeRequest('teste@empresa.com', now + 30000), true)
+})
+
+test('retomada guarda somente o e-mail e descarta sessões inválidas ou incompatíveis', () => {
+  const stored = mockSessionStorage()
+  const session = loadTs(path.resolve(__dirname, '../src/utils/workspaceCodeSession.ts'))
+  session.saveWorkspaceCodeEmail(' TESTE@empresa.com ')
+  assert.equal(session.readWorkspaceCodeEmail(), 'teste@empresa.com')
+  assert.deepEqual(JSON.parse(stored.get('astro.workspace-code-session')), { _versao: 1, email: 'teste@empresa.com' })
+  stored.set('astro.workspace-code-session', JSON.stringify({ _versao: 2, email: 'teste@empresa.com' }))
+  assert.equal(session.readWorkspaceCodeEmail(), '')
+  stored.set('astro.workspace-code-session', '{inválido')
+  assert.equal(session.readWorkspaceCodeEmail(), '')
+  session.saveWorkspaceCodeEmail('')
+  assert.equal(stored.has('astro.workspace-code-session'), false)
+})
 
 function draft() {
   return {
@@ -61,6 +187,17 @@ test('valida credenciais e confirmação sem alterar caracteres da senha', () =>
   assert.ok(validateRegistrationPassword('', ''))
   assert.ok(validateRegistrationPassword(' Senha123 ', 'Senha123'))
   assert.equal(validateRegistrationPassword(' Senha123 ', ' Senha123 '), '')
+})
+
+test('após criar guarda só credenciais próprias para entrar, sem planilha e dados empresariais', () => {
+  const input = draft()
+  const saved = keepRegistrationLoginCredentials(input)
+  assert.equal(saved.email, input.email.trim())
+  assert.equal(saved.password, input.password)
+  assert.equal(saved.file, null)
+  assert.deepEqual(saved.units, [])
+  assert.deepEqual(saved.company, { name: '', cnpj: '' })
+  assert.equal(input.file.name, 'colaboradores.xlsx')
 })
 
 test('bloqueia unidades vazias, CEP incorreto, nomes duplicados e campos curtos', () => {
@@ -179,9 +316,9 @@ test('e-mail inválido e código incompleto não fazem requisição', async () =
   assert.equal(calls, 0)
 })
 
-test('recusa 403 sem corpo informa a resposta da API, sem assumir que o código expirou', async () => {
+test('recusa 403 sem corpo orienta conferir o e-mail e usar a nova chave, sem afirmar que toda recusa é substituição', async () => {
   global.fetch = async () => new Response(null, { status: 403 })
-  await assert.rejects(verifyManagerEmail('gestor@empresa.com', '012345'), error => error instanceof WorkspaceEmailError && error.status === 403 && /API recusou/.test(error.message))
+  await assert.rejects(verifyManagerEmail('gestor@empresa.com', '012345'), error => error instanceof WorkspaceEmailError && error.status === 403 && error.message === 'Código inválido ou substituído. Confira seu e-mail novamente e use a nova chave recebida.')
 })
 
 test('verificação preserva o motivo da recusa informado pelo backend', async () => {
@@ -201,6 +338,43 @@ test('solicitação de e-mail propaga falhas de servidor e rede', async () => {
   await assert.rejects(addManagerEmail('gestor@empresa.com'), /solicitar o código/)
   global.fetch = async () => { throw new TypeError('Failed to fetch') }
   await assert.rejects(addManagerEmail('gestor@empresa.com'), /conectar à API/)
+})
+
+test('solicitação preserva aviso de código já enviado em texto, message ou detail', async () => {
+  const message = 'Já foi enviado um código para este e-mail. Confira sua caixa de entrada.'
+  for (const response of [new Response(message, { status: 400 }), Response.json({ message }, { status: 409 }), Response.json({ detail: message }, { status: 400 })]) {
+    global.fetch = async () => response
+    await assert.rejects(addManagerEmail('gestor@empresa.com'), error => error instanceof WorkspaceEmailError && error.message === message)
+  }
+})
+
+test('conflito vazio orienta usar a chave existente sem ocultar erros de verificação', async () => {
+  global.fetch = async () => new Response(null, { status: 409 })
+  await assert.rejects(addManagerEmail('gestor@empresa.com'), /Já existe uma solicitação.*Verificar/)
+  await assert.rejects(verifyManagerEmail('gestor@empresa.com', '012345'), /Não foi possível verificar/)
+})
+
+test('popup de código já enviado distingue esse aviso de conta existente e falhas de rede', () => {
+  assert.equal(isWorkspaceCodeAlreadySent(new WorkspaceEmailError('Já foi enviado um código para este e-mail.', 400)), true)
+  assert.equal(isWorkspaceCodeAlreadySent(new WorkspaceEmailError('A code has already been sent.', 409)), true)
+  assert.equal(isWorkspaceCodeAlreadySent(new WorkspaceEmailError('Já existe uma solicitação para este e-mail.', 409)), true)
+  assert.equal(isWorkspaceCodeAlreadySent(new WorkspaceEmailError('E-mail já cadastrado.', 409)), false)
+  assert.equal(isWorkspaceCodeAlreadySent(new WorkspaceEmailError('Não foi possível conectar à API.', 0)), false)
+})
+
+test('404 orienta sobre indisponibilidade em vez de exibir Not Found', async () => {
+  global.fetch = async () => Response.json({ detail: 'Not Found' }, { status: 404 })
+  await assert.rejects(addManagerEmail('gestor@empresa.com'), error => error.status === 404 && /serviço de envio.*indisponível/.test(error.message))
+  await assert.rejects(verifyManagerEmail('gestor@empresa.com', '012345'), /serviço de verificação.*indisponível/)
+})
+
+test('requisições possuem limite de espera e timeout não indica código enviado com sucesso', async () => {
+  global.fetch = async (_, init) => {
+    assert.ok(init.signal instanceof AbortSignal)
+    throw new DOMException('Tempo esgotado', 'TimeoutError')
+  }
+  await assert.rejects(addManagerEmail('gestor@empresa.com'), /Confira se o código chegou.*antes de tentar novamente/)
+  await assert.rejects(verifyManagerEmail('gestor@empresa.com', '012345'), /verificação demorou/)
 })
 
 function spreadsheet(rows, bookType = 'xlsx', secondSheet) {
@@ -230,7 +404,7 @@ test('bloqueia arquivos inválidos, cabeçalho ausente ou duplicado e unidades v
   await assert.rejects(read(spreadsheet([['unidade', 'UNIDADE'], ['Matriz', 'Matriz']])), /única coluna/)
   const header = ['nome', 'cpf', 'email', 'unidade', 'cargo', 'modalidade']
   await assert.rejects(read(spreadsheet([header, ['Gestor', '', 'gestor@empresa.com', '', 'Diretor', '']])), /Linha 2.*unidade/)
-  await assert.rejects(read(spreadsheet([header])), /Inclua.*e-mail do gestor/)
+  await assert.rejects(read(spreadsheet([header])), error => error instanceof ManagerEmailMissingError)
   await assert.rejects(read(spreadsheet([header, ['Gestor', '', 'gestor@empresa.com', 'A'.repeat(81), 'Diretor', '']])), /2 a 80/)
 })
 
@@ -245,7 +419,7 @@ test('localiza gestor pelo e-mail do cadastro com espaços e maiúsculas, em cab
 test('gestor precisa estar na primeira aba e corresponder ao e-mail do cadastro', async () => {
   const header = ['nome', 'cpf', 'email', 'unidade', 'cargo', 'modalidade']
   const file = spreadsheet([header, ['Pessoa', '', 'outro@empresa.com', 'Matriz', 'Analista', 'REMOTO']], 'xlsx', [header, ['Gestor', '', 'gestor@empresa.com', 'Matriz', 'Diretor', '']])
-  await assert.rejects(readSpreadsheetUnitNames(file, 'gestor@empresa.com'), /Inclua.*gestor@empresa.com/)
+  await assert.rejects(readSpreadsheetUnitNames(file, 'gestor@empresa.com'), error => error instanceof ManagerEmailMissingError)
   await assert.rejects(readSpreadsheetUnitNames(file, ''), /e-mail do gestor no cadastro/)
 })
 
@@ -288,6 +462,37 @@ test('nova planilha preserva endereços de unidades equivalentes e remove unidad
   assert.equal(units[1].cep, '')
   assert.equal(units.length, 2)
   assert.equal(previous[0].name, 'Matriz São Paulo')
+})
+
+test('nova leitura preserva unidades manuais e protege unidade manual que passou a constar na planilha', () => {
+  const previous = [
+    { ...draft().units[0], source: 'spreadsheet' },
+    { ...draft().units[0], id: 2, name: 'Unidade extra', source: 'manual' },
+  ]
+  const first = reconcileSpreadsheetUnits(['Matriz', 'Filial'], previous)
+  assert.equal(first.length, 3)
+  assert.equal(first[0].source, 'spreadsheet')
+  assert.equal(first[1].source, 'spreadsheet')
+  assert.equal(first[2].source, 'manual')
+  assert.equal(first[2].id, 2)
+  const second = reconcileSpreadsheetUnits(['Matriz', ' UNIDADE EXTRA '], first)
+  assert.equal(second.length, 2)
+  assert.equal(second[1].id, 2)
+  assert.equal(second[1].source, 'spreadsheet')
+  assert.equal(previous[1].source, 'manual')
+})
+
+test('unidade extra segue no cadastro com endereço, sem metadados locais ou vínculo fictício', () => {
+  const input = draft()
+  input.units[0].source = 'spreadsheet'
+  input.units.push({ ...input.units[0], id: 2, name: 'Unidade extra', source: 'manual' })
+  const data = buildWorkspaceRegistration(input)
+  assert.equal(data.units.length, 2)
+  assert.equal(data.units[1].name, 'Unidade extra')
+  assert.equal(data.units[1].city, 'São Paulo')
+  for (const field of ['source', 'id', 'roles', 'collaborators', 'users']) assert.equal(field in data.units[1], false)
+  input.units[1].name = 'Mátriz'
+  assert.match(validateRegistrationUnits(input.units), /já foi usado/)
 })
 
 test('consulta ViaCEP com CEP sem máscara e retorna somente os campos de endereço', async () => {

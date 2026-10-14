@@ -1,6 +1,7 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import { useAuthentication } from '../../hooks/useAuthentication'
-import LoadingScreenState from '../loadingScreenState'
+import InitialLoadingState from '../initialLoadingState'
+import RouteContent from '../routeContent'
 
 interface PrivateRouteProps {
   required?: boolean
@@ -8,19 +9,18 @@ interface PrivateRouteProps {
 
 function PrivateRoute({ required = true }: PrivateRouteProps) {
   const { user, status, error } = useAuthentication()
-  const location = useLocation()
 
   if (!required) return <Outlet />
 
   if (status !== 'ready') {
-    return <LoadingScreenState label="Verificando sua sessão" busy={status === 'loading'} error={error} />
+    return <InitialLoadingState error={error} />
   }
 
   if (!user) {
-    return <Navigate to="/" replace state={{ returnTo: location.pathname + location.search + location.hash }} />
+    return <Navigate to="/" replace />
   }
 
-  return <Outlet />
+  return <RouteContent />
 }
 
 export default PrivateRoute

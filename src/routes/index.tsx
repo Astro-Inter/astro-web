@@ -1,8 +1,8 @@
 import { Route, Routes, useLocation, type Location } from 'react-router-dom'
-import { lazy, Suspense, useEffect, useRef, useState, useTransition } from 'react'
-import { flushSync } from 'react-dom'
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, useTransition } from 'react'
 import PrivateRoute from '../components/privateRoute'
 import GuestRoute from '../components/guestRoute'
+import { useAuthentication } from '../hooks/useAuthentication'
 
 const MainHomeScreenPage = lazy(() => import('../pages/mainHomeScreen'))
 const MainDashboardsScreenPage = lazy(() => import('../pages/mainDashboardsScreen'))
@@ -70,17 +70,33 @@ function isSettingsLocation(location: Location): boolean {
 
 function AppRoutes() {
   const location = useLocation()
+  const { user, status } = useAuthentication()
   const [displayedLocation, setDisplayedLocation] = useState(location)
+  // O snapshot do logout precisa capturar o login já montado, sem esperar outro efeito.
+  const renderedLocation = location.pathname === '/' && status === 'ready' && !user ? location : displayedLocation
   const [leavingKey, setLeavingKey] = useState<string | null>(null)
   const exiting = location.key !== displayedLocation.key
   const [, startTransition] = useTransition()
   const routeRef = useRef<HTMLDivElement>(null)
   const tabChangeRef = useRef(false)
   const [tabChange, setTabChange] = useState(false)
+  const [tabFallback, setTabFallback] = useState(false)
   const tabScrollRef = useRef(0)
+  const tabViewTransitionRef = useRef<ViewTransition | null>(null)
+  const tabCommitRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     if (location.key === displayedLocation.key) return
+    // Após sair, a rota privada já ocultou o conteúdo: não há tela para animar na saída.
+    if (location.pathname === '/' && status === 'ready' && !user) {
+      tabChangeRef.current = false
+      startTransition(() => {
+        setTabChange(false)
+        setLeavingKey(null)
+        setDisplayedLocation(location)
+      })
+      return
+    }
     if (!isSettingsLocation(location) && !isSettingsLocation(displayedLocation)) {
       startTransition(() => setDisplayedLocation(location))
       return
@@ -91,22 +107,33 @@ function AppRoutes() {
       && ['/mainWorkspaceSettingsScreen', '/mainAccountScreen'].includes(displayedLocation.pathname)
     if (isTabChange) {
       const scrollTop = window.scrollY
+      const useSnapshots = Boolean(document.startViewTransition) && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
       void (settingsRouteLoaders[location.pathname]?.() ?? Promise.resolve()).then(() => {
         if (cancelled) return
-        const update = () => {
+        const update = () => new Promise<void>(resolve => {
           tabChangeRef.current = true
           tabScrollRef.current = scrollTop
-          flushSync(() => { setTabChange(true); setDisplayedLocation(location) })
-          window.scrollTo({ top: scrollTop, behavior: 'instant' })
-        }
-        if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          update()
+          tabCommitRef.current?.()
+          tabCommitRef.current = resolve
+          // Na primeira visita, React.lazy ainda pode suspender após o preload.
+          // A transition mantém a tela anterior e o snapshot aguarda o commit real.
+          startTransition(() => { setTabChange(true); setTabFallback(!useSnapshots); setDisplayedLocation(location) })
+        })
+        if (!useSnapshots) {
+          void update()
           return
         }
+        tabViewTransitionRef.current?.skipTransition()
         document.documentElement.classList.add('settings-tab-transition')
         const transition = document.startViewTransition(update)
+        tabViewTransitionRef.current = transition
         void transition.ready.catch(() => undefined)
-        void transition.finished.finally(() => document.documentElement.classList.remove('settings-tab-transition'))
+        const finish = () => {
+          if (tabViewTransitionRef.current !== transition) return
+          tabViewTransitionRef.current = null
+          document.documentElement.classList.remove('settings-tab-transition')
+        }
+        void transition.finished.then(finish, finish)
       })
       return () => { cancelled = true }
     }
@@ -119,7 +146,7 @@ function AppRoutes() {
     }
     void ready.then(beginExit, beginExit)
     return () => { cancelled = true }
-  }, [location, displayedLocation, startTransition])
+  }, [location, displayedLocation, startTransition, status, user])
 
   useEffect(() => {
     if (leavingKey !== location.key || !exiting) return
@@ -140,19 +167,22 @@ function AppRoutes() {
     return () => { cancelled = true }
   }, [displayedLocation.key, exiting, leavingKey, location, startTransition])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     window.scrollTo({ top: tabChangeRef.current ? tabScrollRef.current : 0, behavior: 'instant' })
     const heading = routeRef.current?.querySelector('h1')
     if (heading) {
       heading.tabIndex = -1
       heading.focus({ preventScroll: true })
     }
+    const committed = tabCommitRef.current
+    tabCommitRef.current = null
+    committed?.()
   }, [displayedLocation.key])
 
   return (
     <Suspense fallback={null}>
-    <div className={`astro-route-transition${tabChange ? ' astro-route-transition--tab-change' : ''}${isSettingsLocation(displayedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={displayedLocation.key} ref={routeRef}>
-      <Routes location={displayedLocation}>
+    <div className={`astro-route-transition${tabChange ? ' astro-route-transition--tab-change' : ''}${tabChange && tabFallback ? ' astro-route-transition--tab-fallback' : ''}${isSettingsLocation(renderedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={renderedLocation.key} ref={routeRef}>
+      <Routes location={renderedLocation}>
         <Route element={<GuestRoute />}>
           <Route path="/" element={<LoginPage />} />
           <Route path="/createWorkspace" element={<CreateWorkspacePage />} />

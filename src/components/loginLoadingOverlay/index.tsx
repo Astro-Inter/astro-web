@@ -5,7 +5,7 @@ function LoginLoadingOverlay() {
     <div className="login-loading-overlay astro-scale-90" role="status" aria-live="polite">
       <div className="loading-planet">
         <span className="login-loading-spinner" aria-hidden="true" />
-        <p className="login-loading-label">Carregando...</p>
+        <p className="login-loading-label">Carregando<span className="loading-planet-dots" aria-hidden="true" /></p>
       </div>
     </div>,
     document.body,

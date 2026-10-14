@@ -21,7 +21,7 @@ function IncludeCompanyInformationPage() {
       </header>
 
       <section className="login-card create-password-card astro-scale-90" aria-labelledby="company-information-title">
-        <CompanyInformationForm initialCompany={settingsMode ? undefined : draft.company} settingsMode={settingsMode} onContinue={company => {
+        <CompanyInformationForm initialCompany={settingsMode ? undefined : draft.company} settingsMode={settingsMode} onChange={settingsMode ? undefined : company => updateDraft({ company })} onContinue={company => {
           if (settingsMode) setConfirming(true)
           else {
             updateDraft({ company })

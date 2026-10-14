@@ -1,14 +1,18 @@
 import { Navigate, useNavigate } from 'react-router-dom'
 import { AstroBrand, PurpleButton } from '../../components'
 import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
+import { useCreatedWorkspaceLogin } from '../../hooks/useCreatedWorkspaceLogin'
+import LoginLoadingOverlay from '../../components/loginLoadingOverlay'
 
 function WorkspaceCreatedPage() {
   const navigate = useNavigate()
-  const { result } = useWorkspaceRegistration()
+  const { result, reset } = useWorkspaceRegistration()
+  const login = useCreatedWorkspaceLogin()
   if (!result) return <Navigate to="/createWorkspace" replace />
 
   return (
-    <main className="workspace-created-page">
+    <>
+    <main className="workspace-created-page" inert={login.pending} aria-busy={login.pending}>
       <section className="workspace-created-content astro-scale-90" aria-labelledby="workspace-created-title">
         <AstroBrand />
 
@@ -24,14 +28,21 @@ function WorkspaceCreatedPage() {
 
         <header className="login-heading">
           <h1 id="workspace-created-title">Criação do workspace concluída!</h1>
-          <p role="status">Seu workspace foi cadastrado com sucesso. Continue para entrar com o e-mail e a senha do gestor.</p>
+          <p role="status">Seu workspace foi cadastrado com sucesso. {login.canSignIn ? 'Continue para acessar sua conta.' : 'Faça login para acessar sua conta.'}</p>
         </header>
 
-        <PurpleButton className="workspace-created-button" onClick={() => navigate('/', { replace: true })}>
-          Continuar
+        {login.error && <p className="login-field-error workspace-created-error" role="alert">{login.error}</p>}
+
+        <PurpleButton className="workspace-created-button" disabled={login.pending} onClick={async () => {
+          if (!login.canSignIn) { reset(); navigate('/', { replace: true }); return }
+          if (await login.submit()) navigate('/mainHomeScreen', { replace: true })
+        }}>
+          {login.canSignIn ? (login.error ? 'Tentar novamente' : 'Continuar') : 'Ir para o login'}
         </PurpleButton>
       </section>
     </main>
+    {login.pending && <LoginLoadingOverlay />}
+    </>
   )
 }
 

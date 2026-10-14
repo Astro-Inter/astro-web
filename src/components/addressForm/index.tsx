@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { useWorkspaceAddresses } from '../../hooks/useWorkspaceAddresses'
 import { formatCep, formatState, handleMaskedInput } from '../../utils/inputFormatting'
 import AstroIcon from '../astroIcon'
@@ -6,6 +6,8 @@ import PurpleButton from '../purpleButton'
 import { validateRegistrationUnitFields } from '../../utils/workspaceRegistration'
 import type { WorkspaceAddressField, WorkspaceUnitAddress } from '../../types/address'
 import FormField from '../formField'
+import { postalCodeFieldError } from '../../utils/postalCodeFeedback'
+import { normalizeUnitName } from '../../utils/workspaceUnits'
 
 interface AddressFormProps {
   onComplete: (units: WorkspaceUnitAddress[]) => void
@@ -15,10 +17,18 @@ interface AddressFormProps {
 }
 
 function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = false, addresses }: AddressFormProps) {
-  const { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit, postalCode, retryPostalCode } = addresses
+  const { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit, postalCode } = addresses
   const [unitErrors, setUnitErrors] = useState<Record<number, Partial<Record<WorkspaceAddressField, string>>>>({})
-  const errors = unitErrors[activeUnit.id] ?? {}
+  const formRef = useRef<HTMLFormElement>(null)
+  const currentValidation = validateRegistrationUnitFields(activeUnit)
+  const errors: Partial<Record<WorkspaceAddressField, string>> = {}
+  for (const field of Object.keys(unitErrors[activeUnit.id] ?? {}) as WorkspaceAddressField[]) {
+    if (!unitErrors[activeUnit.id]?.[field]) continue
+    if (currentValidation[field]) errors[field] = currentValidation[field]
+    else if (field === 'name' && address.units.some(unit => unit.id !== activeUnit.id && normalizeUnitName(unit.name) === normalizeUnitName(activeUnit.name))) errors.name = unitErrors[activeUnit.id].name
+  }
   const [hasChangedUnit, setHasChangedUnit] = useState(false)
+  const importedUnit = activeUnit.source === 'spreadsheet'
 
   function changeUnit(action: () => void) {
     setHasChangedUnit(true)
@@ -35,24 +45,24 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
       <header className="login-heading set-address-heading">
         <h1 id="set-address-title">{settingsMode ? 'Altere o endereço das unidades' : 'Defina o endereço das unidades'}</h1>
         <p>Informe o endereço de cada unidade para que<br className="set-address-desktop-break" /> possamos identificar sua localização.</p>
-        {unitsFromSpreadsheet && <p className="set-address-import-note">{address.units.length} {address.units.length === 1 ? 'unidade identificada' : 'unidades identificadas'} na planilha. Preencha o endereço de cada uma.</p>}
       </header>
 
-      <form className="set-address-form" noValidate onSubmit={(event) => {
+      <form ref={formRef} className="set-address-form" noValidate onSubmit={(event) => {
         event.preventDefault()
         if (postalCode.status === 'loading') return
         const nextErrors: typeof unitErrors = {}
         const names = new Set<string>()
         if (!settingsMode) for (const unit of address.units) {
           nextErrors[unit.id] = validateRegistrationUnitFields(unit)
-          const name = unit.name.trim().toLowerCase()
+          const name = normalizeUnitName(unit.name)
           if (names.has(name)) nextErrors[unit.id].name = 'O nome da unidade já foi usado. Escolha um nome diferente.'
           names.add(name)
         }
         setUnitErrors(nextErrors)
         const invalidUnit = address.units.find(unit => Object.keys(nextErrors[unit.id] ?? {}).length)
         if (invalidUnit) {
-          changeUnit(() => addresses.selectUnit(invalidUnit.id))
+          if (invalidUnit.id !== activeUnit.id) changeUnit(() => addresses.selectUnit(invalidUnit.id))
+          requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>('input[aria-invalid="true"]')?.focus())
           return
         }
         onComplete(address.units)
@@ -80,11 +90,14 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
                     <AstroIcon name="building" strokeScale={0.9} />
                   </span>
                   <div aria-live="polite">
-                    <h2>{unitsFromSpreadsheet ? activeUnit.name : `Sede ${activeIndex + 1}`}</h2>
-                    <p>Informe os dados da unidade</p>
+                    <h2>{unitsFromSpreadsheet && importedUnit ? activeUnit.name : `Sede ${activeIndex + 1}`}</h2>
+                    <p>{importedUnit ? 'Unidade importada da planilha' : 'Informe os dados da unidade'}</p>
                   </div>
                 </div>
-                  {!unitsFromSpreadsheet && <PurpleButton aria-label="Remover sede" auto className="set-address-remove" onClick={() => changeUnit(removeUnit)} variant="danger">
+                  {!importedUnit && <PurpleButton aria-label="Remover sede" auto className="set-address-remove" onClick={() => {
+                    changeUnit(removeUnit)
+                    requestAnimationFrame(() => formRef.current?.querySelector<HTMLButtonElement>('.set-address-add')?.focus())
+                  }} variant="danger">
                   <AstroIcon name="trash" strokeScale={0.9} />
                   <span className="set-address-remove-label">Remover sede</span>
                 </PurpleButton>}
@@ -92,10 +105,11 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
 
               <div className="set-address-fields">
                 <div className="set-address-row set-address-row--first">
-                  <div className="field-group"><label htmlFor="unit-name">Nome da sede</label><input id="unit-name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? 'unit-name-error' : unitsFromSpreadsheet ? 'unit-name-source' : undefined} maxLength={80} readOnly={unitsFromSpreadsheet} onChange={(event) => updateField('name', event.target.value)} placeholder="Ex: Matriz São Paulo" value={activeUnit.name} />{errors.name && <p className="login-field-error" id="unit-name-error" role="alert">{errors.name}</p>}{unitsFromSpreadsheet && <span className="set-address-field-help" id="unit-name-source">Nome identificado na planilha.</span>}</div>
-                  <FormField id="unit-cep" label="CEP" autoComplete="postal-code" maxLength={9} inputMode="numeric" error={errors.cep || (postalCode.status === 'error' ? postalCode.message : '')} onChange={event => handleMaskedInput(event, formatCep, cep => updateField('cep', cep))} placeholder="00000-000" value={activeUnit.cep} />
+                  <div className="field-group"><label htmlFor="unit-name">Nome da sede</label><input id="unit-name" aria-invalid={Boolean(errors.name)} aria-describedby={[errors.name ? 'unit-name-error' : '', importedUnit ? 'unit-name-source' : ''].filter(Boolean).join(' ') || undefined} maxLength={80} readOnly={importedUnit} onChange={(event) => updateField('name', event.target.value)} placeholder="Ex: Matriz São Paulo" value={activeUnit.name} />{errors.name && <p className="login-field-error" id="unit-name-error" role="alert">{errors.name}</p>}{importedUnit && <span className="sr-only" id="unit-name-source">Nome identificado na planilha.</span>}</div>
+                  <FormField id="unit-cep" label="CEP" autoComplete="postal-code" maxLength={9} inputMode="numeric" error={errors.cep || (postalCode.status === 'error' ? postalCodeFieldError(postalCode.message) : '')} aria-describedby={postalCode.message && postalCode.status !== 'error' ? 'unit-cep-feedback' : undefined} onChange={event => handleMaskedInput(event, formatCep, cep => updateField('cep', cep))} placeholder="00000-000" value={activeUnit.cep} />
                   <FormField id="unit-state" label="Estado" autoComplete="address-level1" maxLength={2} error={errors.state} onChange={event => updateField('state', formatState(event.target.value))} placeholder="SP" value={activeUnit.state} />
                 </div>
+                {postalCode.message && postalCode.status !== 'error' && <p className="set-address-cep-feedback" id="unit-cep-feedback" role="status">{postalCode.message}</p>}
                 <div className="set-address-row set-address-row--middle">
                   <FormField id="unit-city" label="Cidade" autoComplete="address-level2" maxLength={80} error={errors.city} onChange={event => updateField('city', event.target.value)} placeholder="Ex: São Paulo" value={activeUnit.city} />
                   <FormField id="unit-neighborhood" label="Bairro" maxLength={80} error={errors.neighborhood} onChange={event => updateField('neighborhood', event.target.value)} placeholder="Ex: Centro" value={activeUnit.neighborhood} />
@@ -106,8 +120,6 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
                   <FormField id="unit-complement" label="Complemento (opcional)" autoComplete="address-line2" maxLength={120} error={errors.complement} onChange={event => updateField('complement', event.target.value)} placeholder="Ex: Sala 402" value={activeUnit.complement} />
                 </div>
               </div>
-              {postalCode.message && postalCode.status !== 'error' && <p className="set-address-cep-feedback" id="unit-cep-feedback" role="status">{postalCode.message}</p>}
-              {postalCode.status === 'error' && <PurpleButton auto variant="outline" className="set-address-cep-retry" onClick={retryPostalCode}>Consultar CEP novamente</PurpleButton>}
             </div>
           </div>
 
@@ -123,10 +135,13 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
           </button>
         </div>
 
-        {!unitsFromSpreadsheet && <PurpleButton className="set-address-add" onClick={() => changeUnit(addUnit)} variant="outline">
+        <PurpleButton className="set-address-add" onClick={() => {
+          changeUnit(addUnit)
+          requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>('#unit-name')?.focus())
+        }} variant="outline">
           <AstroIcon name="plus" />
           Adicionar outra sede
-        </PurpleButton>}
+        </PurpleButton>
         <PurpleButton className="set-address-finish" disabled={postalCode.status === 'loading'} type="submit">{settingsMode ? 'Salvar alterações' : 'Finalizar workspace'}</PurpleButton>
       </form>
     </section>

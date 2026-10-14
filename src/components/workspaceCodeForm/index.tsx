@@ -10,13 +10,12 @@ const CODE_LENGTH = 6
 const CODE_POSITIONS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'] as const
 
 interface WorkspaceCodeFormProps {
-  email: string
   onVerify: (accessKey: string) => Promise<void>
   status: WorkspaceRegistrationStatus
   message: string
 }
 
-function WorkspaceCodeForm({ email, onVerify, status, message }: WorkspaceCodeFormProps) {
+function WorkspaceCodeForm({ onVerify, status, message }: WorkspaceCodeFormProps) {
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''))
   const inputRefs = useRef<Array<HTMLInputElement | null>>([])
   const submittedCodeRef = useRef('')
@@ -68,9 +67,9 @@ function WorkspaceCodeForm({ email, onVerify, status, message }: WorkspaceCodeFo
 
   return (
     <>
-      <PageHeading description={<>Insira o código enviado para <span className="workspace-code-email">{email}</span>.</>} title="Criar workspace" titleId="create-workspace-title" />
+      <PageHeading description="Insira o código enviado por e-mail." title="Criar workspace" titleId="create-workspace-title" />
 
-      <form className="workspace-code-form" aria-busy={status === 'loading'} noValidate onSubmit={handleSubmit}>
+      <form className="workspace-code-form" aria-busy={pending} noValidate onSubmit={handleSubmit}>
         <div className="workspace-code-control">
         <fieldset className="workspace-code-fields">
           <legend className="sr-only">Código de verificação enviado por e-mail</legend>
@@ -102,13 +101,11 @@ function WorkspaceCodeForm({ email, onVerify, status, message }: WorkspaceCodeFo
         {(error || apiError) && <p className="login-field-error" id="workspace-code-error" role="alert">{error || apiError}</p>}
         </div>
         <PurpleButton className="astro-form-action" disabled={pending} type="submit">Verificar código</PurpleButton>
-        {status === 'success' && message && <p className="login-feedback" role="status">{message}</p>}
       </form>
 
       <p className="workspace-link">
         Já tem uma conta? <Link to="/">Fazer login</Link>
       </p>
-      {!pending && <p className="workspace-link"><Link to="/paymentMethod">Alterar e-mail</Link></p>}
     </>
   )
 }

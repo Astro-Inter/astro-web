@@ -78,8 +78,7 @@ function MainAccountScreenPage() {
           </div>
           {emailPreview && <p className="account-email-preview" role="status">Informe o CPF ou o e-mail do novo gestor e as evidências da solicitação.</p>}
         </section>
-        <div className="account-logout-action"><CompactPurpleButton aria-haspopup="dialog" disabled={logoutPending} id="account-logout-action" onClick={event => openPopup('logout', event.currentTarget)} variant="danger">{logoutPending ? 'Saindo…' : 'Sair da conta'}</CompactPurpleButton></div>
-        {logoutPending && <p role="status">Encerrando sua sessão…</p>}
+        <div className="account-logout-action"><CompactPurpleButton aria-haspopup="dialog" aria-busy={logoutPending} disabled={logoutPending} id="account-logout-action" onClick={event => openPopup('logout', event.currentTarget)} variant="danger">Sair da conta</CompactPurpleButton></div>
         {logoutError && <p role="alert">{logoutError}</p>}
         </div>
       </main>
@@ -89,7 +88,7 @@ function MainAccountScreenPage() {
       {popup === 'edit-password' && <PasswordConfirmationModal className="textPasswotdAccount1ModalWeb" onCancel={closePopup} onContinue={() => setPopup('edit')} />}
       {popup === 'edit' && <AccountDetailsModal mode="edit" onCancel={closePopup} onSave={nextProfile => { setProfile(nextProfile); setSavedVersion(current => current + 1); closePopup() }} profile={profile} />}
       {popup === 'replace' && <ReplaceAccountFlowModal collaborators={replacementCandidates} onCancel={closePopup} onReplaced={() => { setIsWorkspaceManager(false); closePopup() }} />}
-      {popup === 'logout' && <ConfirmationModal backdrop="dimmed" className="position-deactivation-modal logoutManagerAccountModalWeb" confirmLabel="Sair" icon={warningIcon} onCancel={closePopup} onConfirm={() => null} onConfirmed={() => { closePopup(); void submitLogout() }} preservePageScroll title="Tem certeza que deseja sair da conta?" tone="danger" />}
+      {popup === 'logout' && <ConfirmationModal backdrop="dimmed" className="position-deactivation-modal logoutManagerAccountModalWeb" confirmLabel="Sair" progressLabel="" icon={warningIcon} onCancel={closePopup} onConfirm={() => null} onConfirmed={() => { closePopup(); void submitLogout() }} preservePageScroll title="Tem certeza que deseja sair da conta?" tone="danger" />}
     </div>
   )
 }

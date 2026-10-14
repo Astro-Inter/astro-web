@@ -25,13 +25,13 @@ export function usePostalCodeLookup(activeId: number, onResolved: (unit: Workspa
     const requestId = sequence.current
     const requestController = new AbortController()
     controller.current = requestController
-    setState({ unitId: unit.id, cep, status: 'loading', message: 'Buscando endereço pelo CEP…' })
+    setState({ unitId: unit.id, cep, status: 'loading', message: '' })
     timer.current = setTimeout(async () => {
       try {
         const result = await lookupPostalCode(cep, requestController.signal)
         if (requestId !== sequence.current || requestController.signal.aborted) return
         onResolved(unit, result)
-        setState({ unitId: unit.id, cep, status: 'success', message: 'CEP encontrado. Confira o endereço e preencha o número e os campos que faltarem.' })
+        setState({ unitId: unit.id, cep, status: 'success', message: 'Endereço preenchido pelo CEP. Confira os dados.' })
       } catch (error: unknown) {
         if (requestId !== sequence.current || requestController.signal.aborted) return
         setState({ unitId: unit.id, cep, status: 'error', message: error instanceof Error ? error.message : 'Não foi possível consultar o CEP. Preencha o endereço manualmente.' })

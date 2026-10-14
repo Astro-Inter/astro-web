@@ -11,11 +11,19 @@ interface CompanyInformationFormProps {
   onContinue: (company: CompanyInformation) => void
   initialCompany?: CompanyInformation
   settingsMode?: boolean
+  onChange?: (company: CompanyInformation) => void
 }
 
-function CompanyInformationForm({ onContinue, settingsMode = false, initialCompany }: CompanyInformationFormProps) {
+function CompanyInformationForm({ onContinue, settingsMode = false, initialCompany, onChange }: CompanyInformationFormProps) {
   const [company, setCompany] = useState<CompanyInformation>(initialCompany ?? { name: '', cnpj: '' })
   const [errors, setErrors] = useState<Partial<Record<keyof CompanyInformation, string>>>({})
+
+  function changeField(field: keyof CompanyInformation, value: string) {
+    const next = { ...company, [field]: value }
+    setCompany(next)
+    setErrors(current => ({ ...current, [field]: undefined }))
+    onChange?.(next)
+  }
 
   return (
     <>
@@ -33,7 +41,7 @@ function CompanyInformationForm({ onContinue, settingsMode = false, initialCompa
             label="Nome da empresa"
             error={errors.name}
             maxLength={120}
-            onChange={(event) => { setCompany((current) => ({ ...current, name: event.target.value })); setErrors(current => ({ ...current, name: undefined })) }}
+            onChange={(event) => changeField('name', event.target.value)}
             placeholder="Digite o nome da empresa"
             type="text"
             value={company.name}
@@ -46,7 +54,7 @@ function CompanyInformationForm({ onContinue, settingsMode = false, initialCompa
             error={errors.cnpj}
             inputMode="numeric"
             maxLength={18}
-            onChange={(event) => handleMaskedInput(event, formatCnpj, (cnpj) => { setCompany((current) => ({ ...current, cnpj })); setErrors(current => ({ ...current, cnpj: undefined })) })}
+            onChange={(event) => handleMaskedInput(event, formatCnpj, cnpj => changeField('cnpj', cnpj))}
             placeholder="00.000.000/0000-00"
             type="text"
             value={company.cnpj}

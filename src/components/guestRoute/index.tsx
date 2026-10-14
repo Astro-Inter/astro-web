@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuthentication } from '../../hooks/useAuthentication'
-import LoadingScreenState from '../loadingScreenState'
-import { getLoginDestination } from '../../utils/authentication'
+import InitialLoadingState from '../initialLoadingState'
+import RouteContent from '../routeContent'
 
 interface GuestRouteProps {
   enabled?: boolean
@@ -14,14 +14,14 @@ function GuestRoute({ enabled = true }: GuestRouteProps) {
   if (!enabled) return <Outlet />
 
   if (status !== 'ready') {
-    return <LoadingScreenState label="Verificando sua sessão" busy={status === 'loading'} error={error} />
+    return <InitialLoadingState error={error} />
   }
 
   if (user && location.pathname === '/') {
-    return <Navigate to="/loadingScreen" replace state={{ afterLogin: true, returnTo: getLoginDestination(location.state) }} />
+    return <Navigate to="/loadingScreen" replace state={{ afterLogin: true }} />
   }
 
-  return user ? <Navigate to="/mainHomeScreen" replace /> : <Outlet />
+  return user ? <Navigate to="/mainHomeScreen" replace /> : <RouteContent />
 }
 
 export default GuestRoute
