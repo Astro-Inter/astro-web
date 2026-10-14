@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom'
 import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import CollaboratorDialog from '../../components/collaboratorDialog'
 import CollaboratorIdentity from '../../components/collaboratorIdentity'
+import CollaboratorTableSkeleton from '../../components/collaboratorTableSkeleton'
 import type { DataTableColumn } from '../../components/dataTable'
 import PasswordConfirmationModal from '../../components/passwordConfirmationModal'
 import { useActionsMenu } from '../../hooks'
@@ -136,11 +137,11 @@ function MainEmployeerScreenPage() {
   ]
 
   return (
-    <div className="main-position-screen main-manager-screen main-collaborator-screen">
+    <div className="main-position-screen main-manager-screen main-collaborator-screen" data-collaborators-loading={api.loading}>
       <AppSidebar />
 
       <main className="position-main" id="conteudo-principal">
-        <section aria-labelledby="employees-title" className="position-content astro-scale-90">
+        <section aria-labelledby="employees-title" aria-busy={api.loading} className="position-content astro-scale-90">
           <header className="position-heading">
             <h1 id="employees-title">Colaboradores</h1>
             <p>Administre acessos, acompanhe a atuação e gerencie colaboradores de cada unidade.</p>
@@ -166,11 +167,10 @@ function MainEmployeerScreenPage() {
             </div>
           </div>
 
-          {api.loading && <p className="position-api-feedback" role="status">Carregando colaboradores...</p>}
           {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button disabled={api.saving} onClick={api.retry} type="button">Tentar novamente</button></div>}
           {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
           {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
-          <DataTable ariaLabel="Colaboradores" columns={columns} emptyMessage={api.loading ? 'Carregando colaboradores...' : api.error ? 'Lista de colaboradores indisponível.' : 'Nenhum colaborador encontrado para esses filtros.'} getRowClassName={(employee) => employee.id === savedEmployeeId ? 'astro-data-table-row--saved' : undefined} getRowKey={(employee) => employee.id} rows={visibleEmployees} />
+          <DataTable ariaLabel="Colaboradores" columns={columns} loadingContent={api.loading ? <CollaboratorTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de colaboradores indisponível.' : 'Nenhum colaborador encontrado para esses filtros.'} getRowClassName={(employee) => employee.id === savedEmployeeId ? 'astro-data-table-row--saved' : undefined} getRowKey={(employee) => employee.id} rows={visibleEmployees} />
           <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 

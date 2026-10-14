@@ -2,7 +2,6 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuthentication } from '../../hooks/useAuthentication'
 import InitialLoadingState from '../initialLoadingState'
 import RouteContent from '../routeContent'
-import { getLoginDestination } from '../../utils/authentication'
 
 interface GuestRouteProps {
   enabled?: boolean
@@ -19,7 +18,7 @@ function GuestRoute({ enabled = true }: GuestRouteProps) {
   }
 
   if (user && location.pathname === '/') {
-    return <Navigate to="/loadingScreen" replace state={{ afterLogin: true, returnTo: getLoginDestination(location.state) }} />
+    return <Navigate to="/loadingScreen" replace state={{ afterLogin: true }} />
   }
 
   return user ? <Navigate to="/mainHomeScreen" replace /> : <RouteContent />

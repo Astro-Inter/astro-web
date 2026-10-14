@@ -4,6 +4,7 @@ import { AppSidebar, ComplianceOverviewCard, NotificationButton, NotificationMod
 import { quickActions } from '../../data/home'
 import { useWorkspaceHome } from '../../hooks/useWorkspaceHome'
 import { mockNotifications } from '../../data/notifications'
+import HomeDashboardSkeleton from '../../components/homeDashboardSkeleton'
 
 function MainHomeScreenPage() {
   const navigate = useNavigate()
@@ -25,11 +26,11 @@ function MainHomeScreenPage() {
 
           <section aria-labelledby="home-dashboards-title" aria-busy={loading} className="home-section">
             <h2 id="home-dashboards-title">Dashboards</h2>
-            {loading && <p role="status">Carregando os indicadores do workspace…</p>}
+            {loading && <HomeDashboardSkeleton />}
             {error && <div className="home-card home-api-feedback"><p role="alert">{error}</p><button className="astro-action" onClick={retry} type="button">Tentar novamente</button></div>}
             {data && <>
               <p className="home-reference-date">Dados de <time dateTime={data.referenceDate}>{data.referenceDate.split('-').reverse().join('/')}</time></p>
-              <div className="home-dashboards">
+              <div className="home-dashboards home-dashboards--ready">
                 <ComplianceOverviewCard overview={data.complianceOverview} onViewDashboards={() => navigate('/mainDashboardsScreen')} />
                 <div className="home-summary">
                   {data.summaryStats.map((stat) => <SummaryStatCard key={stat.id} stat={stat} />)}

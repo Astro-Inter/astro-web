@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, RegulatoryStandardsDialog, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import { usePositions } from '../../hooks/usePositions'
+import WorkspaceTableSkeleton from '../../components/workspaceTableSkeleton'
 import type { DataTableColumn } from '../../components/dataTable'
 import type { Position, PositionFormValues } from '../../types'
 
@@ -213,11 +214,11 @@ function MainPositionScreenPage() {
   ]
 
   return (
-    <div className="main-position-screen">
+    <div className="main-position-screen" data-table-loading={api.loading}>
       <AppSidebar />
 
       <main className="position-main" id="conteudo-principal">
-        <section aria-labelledby="positions-title" className="position-content astro-scale-90">
+        <section aria-labelledby="positions-title" aria-busy={api.loading} className="position-content astro-scale-90">
           <header className="position-heading">
             <h1 id="positions-title">Cargos</h1>
             <p>Organize, cadastre seus cargos e acompanhe as responsabilidades de cada função.</p>
@@ -242,11 +243,10 @@ function MainPositionScreenPage() {
             </div>
           </div>
 
-          {api.loading && <p className="position-api-feedback" role="status">Carregando cargos...</p>}
           {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button onClick={api.retry} type="button">Tentar novamente</button></div>}
           {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
           {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
-          <DataTable ariaLabel="Cargos" columns={columns} emptyMessage={api.loading ? 'Carregando cargos...' : api.error ? 'Lista de cargos indisponível.' : 'Nenhum cargo encontrado para esses filtros.'} getRowClassName={(position) => position.id === savedPositionId ? 'astro-data-table-row--saved' : undefined} getRowKey={(position) => position.id} rows={visiblePositions} />
+          <DataTable ariaLabel="Cargos" columns={columns} loadingContent={api.loading ? <WorkspaceTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de cargos indisponível.' : 'Nenhum cargo encontrado para esses filtros.'} getRowClassName={(position) => position.id === savedPositionId ? 'astro-data-table-row--saved' : undefined} getRowKey={(position) => position.id} rows={visiblePositions} />
           <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 
