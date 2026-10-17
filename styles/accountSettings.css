@@ -11,6 +11,12 @@
 .account-profile-identity { min-width: 0; }
 .account-profile-identity h3 { margin: 0 0 var(--astro-field-gap); font-size: var(--astro-subtitle-font-size); font-weight: 500; line-height: 1.3; overflow-wrap: anywhere; }
 .account-profile-identity p { margin: 0; color: #c4bdd4; font-size: var(--astro-label-font-size); line-height: 1.3; overflow-wrap: anywhere; }
+.account-profile-identity .account-photo-hint { margin-top: var(--astro-field-gap); font-size: var(--astro-label-font-size); }
+.account-profile-identity p[role] { margin-top: var(--astro-field-gap); line-height: 1.5; }
+.account-profile-identity p[role='alert'] { color: #ffc2c9; }
+.account-profile-photo button:disabled { opacity: .55; cursor: default; }
+.account-photo-refresh { margin-top: var(--astro-field-gap); padding: .4rem .6rem; border: 1px solid #c4bdd4; border-radius: var(--astro-control-radius); background: transparent; color: var(--astro-text); font: inherit; cursor: pointer; }
+.account-photo-refresh:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
 .account-main-fields { display: grid; gap: var(--create-forms-stack-gap); margin-top: var(--create-forms-section-gap); }
 .account-main-actions { display: flex; justify-content: center; gap: calc(.9rem * var(--astro-scale)); margin-top: var(--create-forms-section-gap); }
 .account-main-actions > button { min-width: 0; flex: 0 1 var(--astro-compact-action-width); }

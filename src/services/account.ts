@@ -1,6 +1,7 @@
 import { firebaseAuth } from './firebase'
 import { getSystemApiBaseUrl } from './systemApi'
 import type { AccountProfile, AccountProfileResponse } from '../types/account'
+import { validateAccountPhoto } from '../utils/account'
 
 export class AccountApiError extends Error {
   constructor(message: string) {
@@ -55,5 +56,39 @@ export async function getAccountProfile(signal?: AbortSignal): Promise<AccountPr
   } catch (error: unknown) {
     if (signal?.aborted || error instanceof AccountApiError) throw error
     throw new AccountApiError('Não foi possível conectar para carregar sua conta. Tente novamente.')
+  }
+}
+
+export async function updateAccountPhoto(file: File, signal?: AbortSignal): Promise<void> {
+  try {
+    const validationError = validateAccountPhoto(file)
+    if (validationError) throw new AccountApiError(validationError)
+    const user = firebaseAuth.currentUser
+    if (!user) throw new AccountApiError('Entre na sua conta para alterar a foto.')
+    signal?.throwIfAborted()
+    const token = await user.getIdToken()
+    signal?.throwIfAborted()
+    if (firebaseAuth.currentUser !== user) throw new AccountApiError('Sua sessão mudou. Entre novamente na sua conta.')
+    const body = new FormData()
+    body.append('file', file)
+    const timeout = AbortSignal.timeout(60000)
+    const response = await fetch(`${getSystemApiBaseUrl()}/user/me/profile-photo`, {
+      method: 'PUT', body,
+      signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
+      headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+    })
+    signal?.throwIfAborted()
+    if (firebaseAuth.currentUser !== user) throw new AccountApiError('Sua sessão mudou. Entre novamente na sua conta.')
+    if (response.status !== 204) {
+      throw new AccountApiError(response.status === 400 ? 'A imagem foi recusada. Use JPEG, PNG ou WebP de até 5 MB.'
+        : response.status === 401 ? 'Sua sessão expirou. Entre novamente.'
+          : response.status === 403 ? 'Você não tem permissão para alterar esta foto.'
+            : response.status === 404 ? 'Seu perfil não foi encontrado.'
+              : response.status === 413 ? 'A foto excede o limite permitido. Escolha uma imagem menor.'
+                : 'Não foi possível salvar sua foto. Tente novamente.')
+    }
+  } catch (error: unknown) {
+    if (signal?.aborted || error instanceof AccountApiError) throw error
+    throw new AccountApiError('Não foi possível enviar sua foto. Confira sua conexão e tente novamente.')
   }
 }

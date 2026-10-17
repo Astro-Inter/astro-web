@@ -15,3 +15,10 @@ export interface AccountProfileResponse {
   modalidade: string | null
   profilePhotoUrl: string | null
 }
+
+export interface AccountPhotoUpdate {
+  pending: boolean
+  error: string
+  message: string
+  needsRefresh: boolean
+}

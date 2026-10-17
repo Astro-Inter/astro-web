@@ -1,6 +1,6 @@
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
-import type { AccountProfile } from '../../types/account'
+import type { AccountPhotoUpdate, AccountProfile } from '../../types/account'
 import AccountProfileHeader from '../accountProfileHeader'
 import AppModal from '../appModal'
 import FormField from '../formField'
@@ -8,13 +8,16 @@ import FormField from '../formField'
 interface AccountDetailsModalProps {
   profile: AccountProfile
   onCancel: () => void
+  onPhotoSelected?: (file: File) => void
+  photoUpdate?: AccountPhotoUpdate
+  onRefreshPhoto?: () => void
 }
 
-function AccountDetailsModal({ profile, onCancel }: AccountDetailsModalProps) {
+function AccountDetailsModal({ profile, onCancel, onPhotoSelected, photoUpdate, onRefreshPhoto }: AccountDetailsModalProps) {
   return (
     <AppModal trackingName={DIALOG_NAMES.informacoes_conta} className="account-details-modal" onClose={onCancel} preservePageScroll title="Veja suas informações">
       {dismiss => <div className="account-details-form">
-        <AccountProfileHeader profile={profile} />
+        <AccountProfileHeader onPhotoSelected={onPhotoSelected} onRefreshPhoto={onRefreshPhoto} photoUpdate={photoUpdate} profile={profile} />
         <div className="account-details-grid">
           <FormField id="account-detail-name" label="Nome" readOnly value={profile.name} />
           <FormField id="account-detail-cpf" label="CPF" readOnly value="" />

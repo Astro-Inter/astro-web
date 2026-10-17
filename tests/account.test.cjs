@@ -99,6 +99,61 @@ test('descarta o perfil se a sessão mudar durante a leitura e preserva cancelam
   await assert.rejects(api.getAccountProfile(controller.signal), { name: 'AbortError' })
 })
 
+test('atualiza a foto existente com PUT multipart, arquivo original e Bearer, aceitando 204 sem JSON', async () => {
+  const file = new File(['photo'], 'nova-foto.webp', { type: 'image/webp' })
+  const controller = new AbortController()
+  global.fetch = async (url, init) => {
+    assert.equal(url, 'https://api.example.test/user/me/profile-photo')
+    assert.equal(init.method, 'PUT')
+    assert.equal(init.headers.Authorization, 'Bearer firebase-token')
+    assert.equal(init.headers['Content-Type'], undefined)
+    assert.deepEqual([...init.body.keys()], ['file'])
+    assert.equal(init.body.get('file'), file)
+    assert.equal(init.signal.aborted, false)
+    controller.abort()
+    assert.equal(init.signal.aborted, true)
+    return new Response(null, { status: 204 })
+  }
+  await assert.rejects(api.updateAccountPhoto(file, controller.signal), { name: 'AbortError' })
+  global.fetch = async (url, init) => {
+    assert.equal(url, 'https://api.example.test/user/me/profile-photo')
+    assert.equal(init.body.get('file'), file)
+    return new Response(null, { status: 204 })
+  }
+  assert.equal(await api.updateAccountPhoto(file), undefined)
+})
+
+test('foto vazia, formato inválido, tamanho excessivo ou sessão ausente não iniciam upload', async () => {
+  global.fetch = async () => assert.fail('Arquivo inválido não deve ser enviado')
+  for (const [file, message] of [
+    [new File([], 'vazia.png', { type: 'image/png' }), /vazia/],
+    [new File(['image'], 'foto.svg', { type: 'image/svg+xml' }), /JPEG, PNG ou WebP/],
+    [new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'grande.jpg', { type: 'image/jpeg' }), /no máximo 5 MB/],
+  ]) await assert.rejects(api.updateAccountPhoto(file), message)
+  auth.currentUser = null
+  await assert.rejects(api.updateAccountPhoto(new File(['image'], 'foto.png', { type: 'image/png' })), /Entre na sua conta/)
+  auth.currentUser = user
+  global.fetch = async () => new Response(null, { status: 204 })
+  for (const type of ['image/jpeg', 'image/png', 'image/webp']) {
+    await api.updateAccountPhoto(new File([new Uint8Array(5 * 1024 * 1024)], 'limite', { type }))
+  }
+})
+
+test('upload traduz erros HTTP, recusa status inesperado e preserva a sessão', async () => {
+  const file = new File(['image'], 'foto.png', { type: 'image/png' })
+  for (const [status, message] of [[400, /imagem foi recusada/], [401, /sessão expirou/], [403, /permissão/], [404, /perfil não foi encontrado/], [413, /excede o limite/], [500, /Não foi possível salvar/], [200, /Não foi possível salvar/]]) {
+    global.fetch = async () => new Response('', { status })
+    await assert.rejects(api.updateAccountPhoto(file), message)
+  }
+  global.fetch = async () => { throw new TypeError('Failed to fetch') }
+  await assert.rejects(api.updateAccountPhoto(file), /Não foi possível enviar/)
+  global.fetch = async () => { auth.currentUser = { ...user, uid: 'another' }; return new Response(null, { status: 204 }) }
+  await assert.rejects(api.updateAccountPhoto(file), /sessão mudou/)
+  auth.currentUser = { uid: user.uid, getIdToken: async () => { auth.currentUser = user; return 'old-token' } }
+  global.fetch = async () => assert.fail('Não deve iniciar upload após trocar a sessão')
+  await assert.rejects(api.updateAccountPhoto(file), /sessão mudou/)
+})
+
 function Modal({ children, title, onClose }) {
   return React.createElement('section', { role: 'dialog', 'aria-label': title }, typeof children === 'function' ? children(onClose) : children)
 }
@@ -182,6 +237,84 @@ test('ambos os gestores carregam o perfil; erro permite tentar novamente, troca 
     assert.equal(signal.aborted, true)
     await act(async () => late.resolve(profile))
     assert.equal(document.getElementById('root').textContent, '')
+  } finally {
+    await act(async () => root.unmount())
+    dom.window.close()
+    Object.assign(global, saved)
+  }
+})
+
+test('troca de foto mantém a atual durante upload, compartilha o resultado e repete somente GET se a atualização falhar', async () => {
+  const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/mainAccountScreen' })
+  const saved = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+  global.window = dom.window; global.document = dom.window.document; global.IS_REACT_ACT_ENVIRONMENT = true
+  const root = createRoot(document.getElementById('root'))
+  const context = { user: { uid: 'manager', accountType: 'GESTOR' } }
+  const profile = { name: 'Rosa Maduda', email: profileResponse.email, position: profileResponse.cargo, units: profileResponse.unidade, modality: 'Presencial', photoUrl: profileResponse.profilePhotoUrl }
+  const uploads = [], reads = []
+  let read = async () => profile
+  let send = deferred()
+  const env = environment({
+    './useAuthentication': { useAuthentication: () => context },
+    '../../hooks/useAuthentication': { useAuthentication: () => context },
+    '../../hooks/useLogout': { useLogout: () => ({ pending: false, error: '', submit() {} }) },
+    '../services/account': {
+      getAccountProfile: signal => { reads.push(signal); return read() },
+      updateAccountPhoto: (file, signal) => { uploads.push({ file, signal }); return send.promise },
+    },
+    '../../components/passwordConfirmationModal': { __esModule: true, default: ({ onContinue }) => React.createElement('button', { onClick: onContinue }, 'Confirmar identidade') },
+    '../appModal': { __esModule: true, default: Modal },
+  })
+  const Page = env.load('src/pages/mainAccountScreen/index.tsx').default
+  const file = new File(['image'], 'nova.png', { type: 'image/png' })
+  const select = input => {
+    Object.defineProperty(input, 'files', { configurable: true, value: [file] })
+    input.dispatchEvent(new dom.window.Event('change', { bubbles: true }))
+  }
+  try {
+    await act(async () => root.render(React.createElement(MemoryRouter, { initialEntries: ['/mainAccountScreen'] }, React.createElement(Page))))
+    await act(async () => document.getElementById('account-view-action').click())
+    await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Confirmar identidade').click())
+    const dialog = document.querySelector('[role=dialog]')
+    let input = dialog.querySelector('input[type=file]')
+    assert.equal(input.accept, 'image/jpeg,image/png,image/webp')
+    await act(async () => { select(input); select(input) })
+    assert.equal(uploads.length, 1)
+    assert.equal(uploads[0].file, file)
+    assert.equal(dialog.querySelector('[aria-label="Alterar foto do perfil"]').disabled, true)
+    assert.equal(dialog.querySelector('img').getAttribute('src'), profile.photoUrl)
+    assert.match(dialog.querySelector('[role=status]').textContent, /Atualizando foto/)
+    await act(async () => send.reject(new Error('Upload indisponível.')))
+    assert.match(dialog.querySelector('[role=alert]').textContent, /Upload indisponível/)
+    assert.equal(dialog.querySelector('img').getAttribute('src'), profile.photoUrl)
+    assert.equal(input.value, '')
+
+    send = deferred()
+    const refresh = deferred()
+    read = () => refresh.promise
+    await act(async () => select(input))
+    await act(async () => send.resolve())
+    assert.equal(uploads.length, 2)
+    assert.equal(dialog.querySelector('img').getAttribute('src'), profile.photoUrl)
+    await act(async () => refresh.reject(new Error('Não foi possível consultar o perfil.')))
+    assert.match(dialog.querySelector('[role=alert]').textContent, /Sua foto foi salva/)
+    read = async () => ({ ...profile, photoUrl: 'https://images.example.test/updated-photo' })
+    await act(async () => [...dialog.querySelectorAll('button')].find(button => button.textContent === 'Atualizar foto').click())
+    assert.equal(uploads.length, 2)
+    assert.equal(document.querySelector('.account-information-card img').getAttribute('src'), 'https://images.example.test/updated-photo')
+    assert.equal(dialog.querySelector('img').getAttribute('src'), 'https://images.example.test/updated-photo')
+    assert.match(dialog.querySelector('[role=status]').textContent, /Foto de perfil atualizada/)
+    assert.equal(dialog.querySelector('[role=alert]'), null)
+
+    send = deferred()
+    input = dialog.querySelector('input[type=file]')
+    await act(async () => select(input))
+    const before = reads.length
+    const signal = uploads.at(-1).signal
+    await act(async () => root.unmount())
+    assert.equal(signal.aborted, true)
+    await act(async () => send.resolve())
+    assert.equal(reads.length, before)
   } finally {
     await act(async () => root.unmount())
     dom.window.close()

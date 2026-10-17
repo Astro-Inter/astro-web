@@ -29,7 +29,7 @@ function AccountScreen() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuthentication()
-  const { data: profile, loading, error: profileError, retry } = useAccountProfile()
+  const { data: profile, loading, error: profileError, retry, photoUpdate, uploadPhoto, refreshPhoto } = useAccountProfile()
   const [popup, setPopup] = useState<AccountPopup>(null)
   const isWorkspaceManager = hasWorkspaceAccess(user?.accountType)
   const [emailPreview, setEmailPreview] = useState(false)
@@ -66,7 +66,7 @@ function AccountScreen() {
           {loading && <p role="status">Carregando informações da conta…</p>}
           {profileError && <div className="account-profile-error"><p role="alert">{profileError}</p><CompactPurpleButton onClick={retry}>Tentar novamente</CompactPurpleButton></div>}
           {profile && <>
-            <AccountProfileHeader profile={profile} />
+            <AccountProfileHeader onPhotoSelected={file => { void uploadPhoto(file) }} onRefreshPhoto={() => { void refreshPhoto() }} photoUpdate={photoUpdate} profile={profile} />
             <div className="account-main-fields">
               <FormField id="account-name" label="Nome" readOnly value={profile.name} />
               <FormField id="account-email" label="Email" readOnly value={profile.email} />
@@ -75,7 +75,7 @@ function AccountScreen() {
               <CompactPurpleButton data-track-action={BUTTONS.comuns.ver_tudo} aria-haspopup="dialog" id="account-view-action" onClick={event => openPopup('view-password', event.currentTarget)}>Ver tudo</CompactPurpleButton>
               <CompactPurpleButton aria-describedby="account-edit-unavailable" disabled id="account-edit-action">Editar</CompactPurpleButton>
             </div>
-            <p className="account-edit-note" id="account-edit-unavailable">A edição dos dados da conta ainda não está disponível.</p>
+            <p className="account-edit-note" id="account-edit-unavailable">A edição dos demais dados da conta ainda não está disponível.</p>
           </>}
         </section>
         <section aria-labelledby="account-transfer-title" className="create-forms-card account-transfer-card">
@@ -94,7 +94,7 @@ function AccountScreen() {
       </main>
       <HelpLink />
       {popup === 'view-password' && <PasswordConfirmationModal className="account-view-password-modal" onCancel={closePopup} onContinue={() => setPopup('view')} />}
-      {popup === 'view' && profile && <AccountDetailsModal onCancel={closePopup} profile={profile} />}
+      {popup === 'view' && profile && <AccountDetailsModal onCancel={closePopup} onPhotoSelected={file => { void uploadPhoto(file) }} onRefreshPhoto={() => { void refreshPhoto() }} photoUpdate={photoUpdate} profile={profile} />}
       {popup === 'replace' && isWorkspaceManager && <ReplaceAccountFlowModal collaborators={replacementCandidates} onCancel={closePopup} onReplaced={closePopup} />}
       {popup === 'logout' && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_logout} backdrop="dimmed" className="position-deactivation-modal logoutManagerAccountModalWeb" confirmLabel="Sair" progressLabel="" icon={warningIcon} onCancel={closePopup} onConfirm={() => null} onConfirmed={() => { closePopup(); void submitLogout() }} preservePageScroll title="Tem certeza que deseja sair da conta?" tone="danger" />}
     </div>
