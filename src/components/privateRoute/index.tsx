@@ -1,7 +1,8 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuthentication } from '../../hooks/useAuthentication'
 import InitialLoadingState from '../initialLoadingState'
 import RouteContent from '../routeContent'
+import { canAccessPage } from '../../utils/accessControl'
 
 interface PrivateRouteProps {
   required?: boolean
@@ -9,6 +10,7 @@ interface PrivateRouteProps {
 
 function PrivateRoute({ required = true }: PrivateRouteProps) {
   const { user, status, error } = useAuthentication()
+  const location = useLocation()
 
   if (!required) return <Outlet />
 
@@ -18,6 +20,10 @@ function PrivateRoute({ required = true }: PrivateRouteProps) {
 
   if (!user) {
     return <Navigate to="/" replace />
+  }
+
+  if (!canAccessPage(user.accountType, location.pathname, location.search)) {
+    return <Navigate to="/mainHomeScreen" replace />
   }
 
   return <RouteContent />

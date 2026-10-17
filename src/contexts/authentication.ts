@@ -1,4 +1,4 @@
 import { createContext } from 'react'
-import type { AuthenticationState } from '../types/authentication'
+import type { AuthenticationContextValue } from '../types/authentication'
 
-export const AuthenticationContext = createContext<AuthenticationState | undefined>(undefined)
+export const AuthenticationContext = createContext<AuthenticationContextValue | undefined>(undefined)

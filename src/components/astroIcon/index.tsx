@@ -1,6 +1,7 @@
 import { iconAsset } from '../../utils/iconAsset'
 type AstroIconName =
   | 'back'
+  | 'account'
   | 'building'
   | 'card'
   | 'calendar'
@@ -50,6 +51,7 @@ type AstroIconName =
 // Todos os desenhos usam uma grade 24 × 24 com área visível centralizada.
 // O CSS aplica o tamanho do contexto; o SVG mantém a espessura proporcional.
 const iconFiles: Record<AstroIconName, { file: string; width: number; height: number }> = {
+  account: { file: 'sidebar/account.svg', width: 26.4, height: 26.4 },
   back: { file: 'backButton.svg', width: 24, height: 24 },
   building: { file: 'building.svg', width: 24, height: 24 },
   card: { file: 'card.svg', width: 24, height: 24 },
