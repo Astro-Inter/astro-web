@@ -14,7 +14,8 @@ export const SHOWCASES = {
           "cargos": "cargos",
           "formularios": "formularios",
           "eventos": "eventos",
-          "configuracoes": "configuracoes"
+          "configuracoes": "configuracoes",
+          "conta": "conta"
         }
       }
     }
@@ -99,5 +100,6 @@ export const SIDEBAR_ITEMS: Record<string, string> = {
   '/mainHomeScreen': 'home', '/mainManagerScreen': 'gestores', '/mainEmployeerScreen': 'colaboradores',
   '/mainConformityScreen': 'conformidade', '/mainUnitScreen': 'unidades', '/mainPositionScreen': 'cargos',
   '/mainFormScreen': 'formularios', '/mainEventScreen': 'eventos', '/mainWorkspaceSettingsScreen': 'configuracoes',
+  '/mainAccountScreen': 'conta',
 }
 export const NOTIFICATION_ITEMS = { training: 'pendencia_de_treinamento', event: 'evento_agendado', compliance: 'conformidade' } as const

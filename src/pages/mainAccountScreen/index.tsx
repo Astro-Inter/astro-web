@@ -1,7 +1,7 @@
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { AstroBrand, AstroIcon, CompactPurpleButton, ConfirmationModal, FormField, HelpLink } from '../../components'
 import AccountDetailsModal from '../../components/accountDetailsModal'
 import AccountProfileHeader from '../../components/accountProfileHeader'
@@ -12,6 +12,8 @@ import { mockEventCollaborators } from '../../data/eventCreation'
 import { mockAccount } from '../../types/account'
 import type { WorkspaceSettingsNavigationState } from '../../types/workspaceSettings'
 import { useLogout } from '../../hooks/useLogout'
+import { useAuthentication } from '../../hooks/useAuthentication'
+import { canAccessPage, hasWorkspaceAccess } from '../../utils/accessControl'
 
 type AccountPopup = 'view-password' | 'view' | 'edit-password' | 'edit' | 'replace' | 'logout' | null
 
@@ -21,15 +23,16 @@ function MainAccountScreenPage() {
   const { pending: logoutPending, error: logoutError, submit: submitLogout } = useLogout()
   const navigate = useNavigate()
   const location = useLocation()
-  const [searchParams] = useSearchParams()
+  const { user } = useAuthentication()
   const [profile, setProfile] = useState(mockAccount)
   const [popup, setPopup] = useState<AccountPopup>(null)
-  const [isWorkspaceManager, setIsWorkspaceManager] = useState(searchParams.get('role') !== 'manager')
+  const isWorkspaceManager = hasWorkspaceAccess(user?.accountType)
   const [savedVersion, setSavedVersion] = useState(0)
   const [emailPreview, setEmailPreview] = useState(false)
   const triggerIdRef = useRef('')
   const from = (location.state as WorkspaceSettingsNavigationState | null)?.from
-  const returnPath = from && ['/mainHomeScreen', '/mainManagerScreen', '/mainPositionScreen', '/mainFormScreen', '/mainEventScreen'].includes(from) ? from : '/mainEventScreen'
+  const returnPath = from && !['/mainAccountScreen', '/mainWorkspaceSettingsScreen'].includes(from)
+    && canAccessPage(user?.accountType, from) ? from : '/mainHomeScreen'
 
   useEffect(() => () => {
     if (profile.photoUrl?.startsWith('blob:')) URL.revokeObjectURL(profile.photoUrl)
@@ -57,7 +60,7 @@ function MainAccountScreenPage() {
       <main data-track-page={true} aria-labelledby="account-settings-title" className="create-forms-main workspace-settings-content">
         <SettingsTabs active="account" from={returnPath} />
         <div className="settings-tab-content">
-        <h1 id="account-settings-title">Configurações de conta</h1>
+        <h1 className={isWorkspaceManager ? undefined : 'sr-only'} id="account-settings-title">Configurações de conta</h1>
         <section aria-labelledby="account-information-title" className={`create-forms-card account-information-card${savedVersion ? ' account-information-card--saved' : ''}`} key={savedVersion}>
           <h2 id="account-information-title">Informações da conta</h2>
           <AccountProfileHeader profile={profile} />
@@ -89,7 +92,7 @@ function MainAccountScreenPage() {
       {popup === 'view' && <AccountDetailsModal mode="view" onCancel={closePopup} onSave={() => closePopup()} profile={profile} />}
       {popup === 'edit-password' && <PasswordConfirmationModal className="textPasswotdAccount1ModalWeb" onCancel={closePopup} onContinue={() => setPopup('edit')} />}
       {popup === 'edit' && <AccountDetailsModal mode="edit" onCancel={closePopup} onSave={nextProfile => { setProfile(nextProfile); setSavedVersion(current => current + 1); closePopup() }} profile={profile} />}
-      {popup === 'replace' && <ReplaceAccountFlowModal collaborators={replacementCandidates} onCancel={closePopup} onReplaced={() => { setIsWorkspaceManager(false); closePopup() }} />}
+      {popup === 'replace' && isWorkspaceManager && <ReplaceAccountFlowModal collaborators={replacementCandidates} onCancel={closePopup} onReplaced={closePopup} />}
       {popup === 'logout' && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_logout} backdrop="dimmed" className="position-deactivation-modal logoutManagerAccountModalWeb" confirmLabel="Sair" progressLabel="" icon={warningIcon} onCancel={closePopup} onConfirm={() => null} onConfirmed={() => { closePopup(); void submitLogout() }} preservePageScroll title="Tem certeza que deseja sair da conta?" tone="danger" />}
     </div>
   )

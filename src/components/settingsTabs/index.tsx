@@ -1,5 +1,7 @@
 import { BUTTONS } from '../../gtm/buttons'
 import { useNavigate } from 'react-router-dom'
+import { useAuthentication } from '../../hooks/useAuthentication'
+import { hasWorkspaceAccess } from '../../utils/accessControl'
 
 interface SettingsTabsProps {
   active: 'workspace' | 'account'
@@ -8,6 +10,8 @@ interface SettingsTabsProps {
 
 function SettingsTabs({ active, from }: SettingsTabsProps) {
   const navigate = useNavigate()
+  const { user } = useAuthentication()
+  if (!hasWorkspaceAccess(user?.accountType)) return null
   return (
     <nav aria-label="Configurações" className="workspace-settings-tabs">
       <button data-track-action={BUTTONS.comuns.workspace} aria-current={active === 'workspace' ? 'page' : undefined} onClick={() => {

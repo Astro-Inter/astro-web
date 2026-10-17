@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import LoadingScreenState from '../loadingScreenState'
+import SessionErrorState from '../sessionErrorState'
 
 interface InitialLoadingStateProps {
   error?: string
@@ -13,7 +14,7 @@ function InitialLoadingState({ error = '' }: InitialLoadingStateProps) {
     return () => window.clearTimeout(timer)
   }, [])
 
-  if (error) return <LoadingScreenState label="Não foi possível iniciar" busy={false} error={error} />
+  if (error) return <SessionErrorState error={error} />
   return visible ? <LoadingScreenState label="Carregando" /> : null
 }
 

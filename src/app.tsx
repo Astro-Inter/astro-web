@@ -3,6 +3,7 @@ import AppRoutes from './routes'
 import { useLocation } from 'react-router-dom'
 import AstroChat from './components/astroChat'
 import { useAuthentication } from './hooks/useAuthentication'
+import { canAccessPage } from './utils/accessControl'
 
 const chatRoutes = new Set([
   '/mainHomeScreen',
@@ -35,7 +36,7 @@ function App() {
     <>
       <Tracking />
       <AppRoutes />
-      {status === 'ready' && user && <div hidden={!chatVisible}>
+      {status === 'ready' && user && <div hidden={!chatVisible || !canAccessPage(user.accountType, location.pathname, location.search)}>
         <AstroChat key={user.uid} />
       </div>}
     </>

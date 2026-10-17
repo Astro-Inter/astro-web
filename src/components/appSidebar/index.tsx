@@ -1,35 +1,20 @@
 import { SHOWCASE_NAMES, SIDEBAR_ITEMS } from '../../gtm/showcases'
 import { BUTTONS } from '../../gtm/buttons'
-import { useEffect, useRef, useState, type ComponentProps } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import AstroBrand from '../astroBrand'
 import AstroIcon from '../astroIcon'
-
-export interface NavigationItem {
-  label: string
-  icon: ComponentProps<typeof AstroIcon>['name']
-  strokeScale?: ComponentProps<typeof AstroIcon>['strokeScale']
-  path?: string
-  alignBottom?: boolean
-}
-
-const navigationItems: NavigationItem[] = [
-  { label: 'Home', icon: 'home', path: '/mainHomeScreen' },
-  { label: 'Gestores', icon: 'managers', path: '/mainManagerScreen' },
-  { label: 'Colaboradores', icon: 'collaborators', path: '/mainEmployeerScreen' },
-  { label: 'Conformidade', icon: 'compliance', path: '/mainConformityScreen' },
-  { label: 'Unidades', icon: 'building', path: '/mainUnitScreen' },
-  { label: 'Cargos', icon: 'position', path: '/mainPositionScreen' },
-  { label: 'Formulários', icon: 'document', path: '/mainFormScreen' },
-  { label: 'Eventos', icon: 'event-calendar', path: '/mainEventScreen' },
-  { label: 'Configurações', icon: 'settings', path: '/mainWorkspaceSettingsScreen', alignBottom: true },
-]
+import { useAuthentication } from '../../hooks/useAuthentication'
+import { getNavigationItems } from '../../utils/accessControl'
+import type { NavigationItem } from '../../types/navigation'
 
 interface AppSidebarProps {
   items?: readonly NavigationItem[]
 }
 
-function AppSidebar({ items = navigationItems }: AppSidebarProps) {
+function AppSidebar({ items }: AppSidebarProps) {
+  const { user } = useAuthentication()
+  const visibleItems = getNavigationItems(user?.accountType, items)
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -103,14 +88,14 @@ function AppSidebar({ items = navigationItems }: AppSidebarProps) {
         <AstroBrand />
         <nav data-track-showcase={SHOWCASE_NAMES.sidebar} aria-label="Menu principal" className="app-navigation">
           <ul>
-            {items.map((item) => (
+            {visibleItems.map((item) => (
               <li className={item.alignBottom ? 'app-navigation-settings' : ''} key={item.label}>
                 {item.path ? (
                   <NavLink data-track-item={SIDEBAR_ITEMS[item.path]}
                     className={({ isActive }) => `app-navigation-link${isActive ? ' app-navigation-link--active' : ''}`}
                     onClick={() => setOpen(false)}
                     to={item.path}
-                    state={item.path === '/mainWorkspaceSettingsScreen' ? { from: location.pathname } : undefined}
+                    state={item.alignBottom ? { from: location.pathname } : undefined}
                   >
                     <span className="app-navigation-icon"><AstroIcon name={item.icon} strokeScale={item.strokeScale} variant="sidebar" /></span>
                     <span className="app-navigation-label">{item.label}</span>
