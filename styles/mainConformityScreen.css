@@ -55,3 +55,23 @@
   .spreadsheet-nr { width: 12%; }
   .spreadsheet-empty { width: 8%; }
 }
+.conformity-form-fields {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.conformity-feedback {
+  color: var(--astro-text);
+  font-size: 0.875rem;
+}
+
+.conformity-feedback:empty { display: none; }
+
+.conformity-import-result {
+  font-size: 0.875rem;
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}

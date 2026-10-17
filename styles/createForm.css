@@ -41,6 +41,7 @@
 .create-forms-calendar-header button:hover, .create-forms-calendar-footer button:hover { background: #362361; }
 .create-forms-calendar-header button:active, .create-forms-calendar-footer button:active {  }
 .create-forms-calendar-weekdays, .create-forms-calendar-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: calc(0.2rem * var(--astro-popup-zoom)); }
+.create-forms-calendar-days { grid-template-rows: repeat(6, calc(2.35rem * var(--astro-popup-zoom))); }
 .create-forms-calendar-weekdays { padding: calc(0.6rem * var(--astro-popup-zoom)) 0 calc(0.3rem * var(--astro-popup-zoom)); color: #c5bdd5; font-size: calc(0.85rem * var(--astro-popup-zoom)); font-weight: 600; text-align: center; }
 .create-forms-calendar-days--next { animation: create-forms-calendar-month-next 190ms ease-out both; }
 .create-forms-calendar-days--previous { animation: create-forms-calendar-month-previous 190ms ease-out both; }

@@ -2,7 +2,7 @@ import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useState, type FormEvent } from 'react'
 import type { ConformityFilters } from '../../types'
-import { emptyConformityFilters, validateConformityFilters, type ConformityFilterErrors } from '../../utils/conformity'
+import { conformityOriginLabels, emptyConformityFilters, isConformityOrigin, validateConformityFilters, type ConformityFilterErrors } from '../../utils/conformity'
 import AppModal from '../appModal'
 import FormDatePicker from '../formDatePicker'
 import PurpleButton from '../purpleButton'
@@ -10,8 +10,7 @@ import ToolbarSelect from '../toolbarSelect'
 
 const originOptions = [
   { value: '', label: 'Selecione a origem', tone: 'muted' as const },
-  { value: 'Evento', label: 'Evento' },
-  { value: 'Manual', label: 'Manual' },
+  ...Object.values(conformityOriginLabels).map(label => ({ value: label, label })),
 ]
 
 interface ConformityFilterModalProps {
@@ -58,7 +57,7 @@ function ConformityFilterModal({ filters, nrs, onApply, onClose }: ConformityFil
           </div>
           <div className="position-dialog-field">
             <label htmlFor="conformity-filter-origin">Origem</label>
-            <ToolbarSelect trackingAction={BUTTONS.comuns.origem} className={selectClassName('origin')} id="conformity-filter-origin" label="Origem" onValueChange={(origin) => update('origin', origin === 'Evento' || origin === 'Manual' ? origin : '')} options={originOptions} searchable={false} value={values.origin} />
+            <ToolbarSelect trackingAction={BUTTONS.comuns.origem} className={selectClassName('origin')} id="conformity-filter-origin" label="Origem" onValueChange={(origin) => update('origin', isConformityOrigin(origin) ? origin : '')} options={originOptions} searchable={false} value={values.origin} />
           </div>
           <div className="position-dialog-field">
             <label htmlFor="conformity-filter-from">Data de validade (início)</label>
