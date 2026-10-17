@@ -148,7 +148,7 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
       }}
       title={person.name}
       type="button"
-    ><EventCollaboratorAvatar /><span>{person.name}</span></button>
+    ><EventCollaboratorAvatar name={person.name} photoUrl={person.profilePhotoUrl} initials={person.avatarInitials} /><span>{person.name}</span></button>
       <div className="event-create-person-destination"><ToolbarSelect trackingAction={BUTTONS.comuns.grupo}
         escapeOverflow
         label={`Mover ${person.name} para o grupo`}
@@ -162,7 +162,7 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
   }
 
   function preview() {
-    return draggedPerson && <div aria-hidden="true" className="event-create-person-chip event-create-person-chip--preview" key="drop-preview"><EventCollaboratorAvatar /><span>{draggedPerson.name}</span></div>
+    return draggedPerson && <div aria-hidden="true" className="event-create-person-chip event-create-person-chip--preview" key="drop-preview"><EventCollaboratorAvatar name={draggedPerson.name} photoUrl={draggedPerson.profilePhotoUrl} initials={draggedPerson.avatarInitials} /><span>{draggedPerson.name}</span></div>
   }
 
   function removeGroup(groupId: string) {
@@ -195,7 +195,7 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
   }
 
   return <div className="event-create-step event-create-groups" ref={groupsRef}>
-    <p className="event-create-description">Arraste os colaboradores para onde devem ser distribuídos.{editing ? ' Turmas são definidas na criação. Participantes de turmas iniciadas não podem ser movimentados.' : ''}</p>
+    <p className="event-create-description">Arraste os colaboradores para onde devem ser distribuídos.{editing ? ' Turmas futuras podem ser adicionadas ou removidas. Participantes de turmas iniciadas não podem ser movimentados.' : ''}</p>
     <div className="event-create-group-tools">
       {!editing && <PurpleButton data-track-action={BUTTONS.comuns.distribuir_aleatoriamente} className="event-create-random-trigger" onClick={onRandom} type="button"><AstroIcon name="distribution" />Distribuir aleatoriamente</PurpleButton>}
       <ToolbarSearch label="Buscar colaboradores para distribuir" onChange={event => setSearch(event.target.value)} onClear={() => setSearch('')} placeholder="Buscar colaboradores..." value={search} />
@@ -237,14 +237,14 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
       >
         <div className="event-create-group-heading">
           <h3>{group.name}{lockedGroupIds.includes(group.id) ? ' · Iniciada' : ''}</h3>
-          {group.id && !editing && <button data-track-action={BUTTONS.comuns.remover_grupo} aria-label={`Excluir ${group.name}`} className="event-create-group-delete" disabled={groupClosing} onClick={() => removeGroup(group.id)} title={`Excluir ${group.name}`} type="button"><AstroIcon name="trash" /></button>}
+          {group.id && !lockedGroupIds.includes(group.id) && <button data-track-action={BUTTONS.comuns.remover_grupo} aria-label={`Excluir ${group.name}`} className="event-create-group-delete" disabled={groupClosing} onClick={() => removeGroup(group.id)} title={`Excluir ${group.name}`} type="button"><AstroIcon name="trash" /></button>}
         </div>
         <div className="event-create-group-members">
           {visible.filter(person => (assignments[person.id] ?? '') === group.id).map(personButton)}
           {dropGroupId === group.id && preview()}
         </div>
       </section>)}
-      {!editing && <button data-track-action={BUTTONS.comuns.adicionar_grupo} className="event-create-add-group" onClick={onAddGroup} type="button"><AstroIcon name="plus" />Adicionar grupo</button>}
+      <button data-track-action={BUTTONS.comuns.adicionar_grupo} className="event-create-add-group" onClick={onAddGroup} type="button"><AstroIcon name="plus" />Adicionar grupo</button>
     </div>
     <div className="event-create-group-footer">
       {!editing && <button data-track-action={BUTTONS.comuns.reiniciar} className="event-create-reset" disabled={groupClosing || resetting} onClick={resetGroups} type="button"><AstroIcon name="reload" />Reiniciar</button>}

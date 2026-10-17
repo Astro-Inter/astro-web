@@ -18,11 +18,12 @@ function EventGroupsSummary({ groups, assignments, schedules, selectedIds = Obje
   return <dl aria-label="Programação dos grupos" tabIndex={0}>{groups.map(group => {
     const schedule = schedules[group.id]
     const date = schedule?.date ? schedule.date.split('-').reverse().join('/') : 'Data não definida'
+    const endDate = schedule?.endDate && schedule.endDate !== schedule.date ? ` a ${schedule.endDate.split('-').reverse().join('/')}` : ''
     const members = participantIds.filter(id => assignments[id] === group.id)
     return <div key={group.id}>
       <dt><TruncatedText>{group.name}</TruncatedText></dt>
       <dd>
-        <TruncatedText>{`${date} · ${schedule?.startTime || '—'} – ${schedule?.endTime || '—'}`}</TruncatedText>
+        <TruncatedText>{`${date}${endDate} · ${schedule?.startTime || '—'} – ${schedule?.endTime || '—'}`}</TruncatedText>
         {onViewCollaborators ? <button data-track-action={BUTTONS.comuns.ver_colaboradores} aria-label={`Ver ${members.length} colaboradores de ${group.name}`} className="event-group-collaborators-link" onClick={() => onViewCollaborators(group, members)} type="button">{members.length} colaboradores</button> : <span>{members.length} participantes</span>}
 
       </dd>
