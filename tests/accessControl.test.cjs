@@ -72,6 +72,7 @@ test('menu de gestor mostra Conta, preserva áreas compartilhadas e oculta Gesto
   const menu = env.render(env.load('src/components/appSidebar/index.tsx').default)
   assert.doesNotMatch(menu, /Gestores|Configurações|mainManagerScreen|mainWorkspaceSettingsScreen/)
   assert.match(menu, /href="\/mainAccountScreen"/)
+  assert.match(menu, /data-track-item="conta"/)
   assert.match(menu, />Conta<\/span>/)
   for (const label of ['Home', 'Colaboradores', 'Conformidade', 'Unidades', 'Cargos', 'Formulários', 'Eventos']) {
     assert.ok(menu.includes(`>${label}</span>`))
@@ -84,6 +85,7 @@ test('menu de gestor do workspace mantém Gestores e Configurações', () => {
   const menu = env.render(env.load('src/components/appSidebar/index.tsx').default)
   assert.match(menu, /href="\/mainManagerScreen"/)
   assert.match(menu, /href="\/mainWorkspaceSettingsScreen"/)
+  assert.match(menu, /data-track-item="configuracoes"/)
   assert.match(menu, />Configurações<\/span>/)
   assert.equal(env.getNavigationItems('GESTOR_WORKSPACE').length, 9)
 })
