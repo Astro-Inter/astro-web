@@ -1,6 +1,9 @@
 .account-profile-header { display: flex; align-items: center; gap: calc(1.5rem * var(--astro-scale)); min-width: 0; }
 .account-profile-photo { position: relative; flex: none; width: calc(6rem * var(--astro-scale)); height: calc(6rem * var(--astro-scale)); }
 .account-profile-photo > img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.account-profile-initials { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; background: #6d6891; color: #fff; font-size: 1.75rem; font-weight: 600; }
+.account-information-card .account-edit-note { margin: var(--astro-modal-content-gap) 0 0; color: #c4bdd4; font-size: var(--astro-label-font-size); line-height: 1.5; text-align: center; }
+.account-main-actions > button:disabled { opacity: .55; cursor: default; }
 .account-profile-photo button { position: absolute; right: 0; bottom: 0; display: grid; place-items: center; width: calc(1.75rem * var(--astro-scale)); height: calc(1.75rem * var(--astro-scale)); padding: calc(.3rem * var(--astro-scale)); border: 0; border-radius: 50%; background: #6d6891; }
 .account-profile-photo button:hover { background: #625d82; }
 .account-profile-photo button:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
@@ -8,6 +11,12 @@
 .account-profile-identity { min-width: 0; }
 .account-profile-identity h3 { margin: 0 0 var(--astro-field-gap); font-size: var(--astro-subtitle-font-size); font-weight: 500; line-height: 1.3; overflow-wrap: anywhere; }
 .account-profile-identity p { margin: 0; color: #c4bdd4; font-size: var(--astro-label-font-size); line-height: 1.3; overflow-wrap: anywhere; }
+.account-profile-identity .account-photo-hint { margin-top: var(--astro-field-gap); font-size: var(--astro-label-font-size); }
+.account-profile-identity p[role] { margin-top: var(--astro-field-gap); line-height: 1.5; }
+.account-profile-identity p[role='alert'] { color: #ffc2c9; }
+.account-profile-photo button:disabled { opacity: .55; cursor: default; }
+.account-photo-refresh { margin-top: var(--astro-field-gap); padding: .4rem .6rem; border: 1px solid #c4bdd4; border-radius: var(--astro-control-radius); background: transparent; color: var(--astro-text); font: inherit; cursor: pointer; }
+.account-photo-refresh:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
 .account-main-fields { display: grid; gap: var(--create-forms-stack-gap); margin-top: var(--create-forms-section-gap); }
 .account-main-actions { display: flex; justify-content: center; gap: calc(.9rem * var(--astro-scale)); margin-top: var(--create-forms-section-gap); }
 .account-main-actions > button { min-width: 0; flex: 0 1 var(--astro-compact-action-width); }

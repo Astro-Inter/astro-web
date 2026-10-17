@@ -1,6 +1,6 @@
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AstroBrand, AstroIcon, CompactPurpleButton, ConfirmationModal, FormField, HelpLink } from '../../components'
 import AccountDetailsModal from '../../components/accountDetailsModal'
@@ -9,38 +9,38 @@ import PasswordConfirmationModal from '../../components/passwordConfirmationModa
 import SettingsTabs from '../../components/settingsTabs'
 import ReplaceAccountFlowModal from '../../components/replaceAccountFlowModal'
 import { mockEventCollaborators } from '../../data/eventCreation'
-import { mockAccount } from '../../types/account'
 import type { WorkspaceSettingsNavigationState } from '../../types/workspaceSettings'
 import { useLogout } from '../../hooks/useLogout'
 import { useAuthentication } from '../../hooks/useAuthentication'
+import { useAccountProfile } from '../../hooks/useAccountProfile'
 import { canAccessPage, hasWorkspaceAccess } from '../../utils/accessControl'
 
-type AccountPopup = 'view-password' | 'view' | 'edit-password' | 'edit' | 'replace' | 'logout' | null
+type AccountPopup = 'view-password' | 'view' | 'replace' | 'logout' | null
 
 const replacementCandidates = mockEventCollaborators.filter(person => person.id !== 'kirk')
 
 function MainAccountScreenPage() {
+  const { user } = useAuthentication()
+  return <AccountScreen key={user?.uid ?? 'signed-out'} />
+}
+
+function AccountScreen() {
   const { pending: logoutPending, error: logoutError, submit: submitLogout } = useLogout()
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuthentication()
-  const [profile, setProfile] = useState(mockAccount)
+  const { data: profile, loading, error: profileError, retry, photoUpdate, uploadPhoto, refreshPhoto } = useAccountProfile()
   const [popup, setPopup] = useState<AccountPopup>(null)
   const isWorkspaceManager = hasWorkspaceAccess(user?.accountType)
-  const [savedVersion, setSavedVersion] = useState(0)
   const [emailPreview, setEmailPreview] = useState(false)
   const triggerIdRef = useRef('')
   const from = (location.state as WorkspaceSettingsNavigationState | null)?.from
   const returnPath = from && !['/mainAccountScreen', '/mainWorkspaceSettingsScreen'].includes(from)
     && canAccessPage(user?.accountType, from) ? from : '/mainHomeScreen'
 
-  useEffect(() => () => {
-    if (profile.photoUrl?.startsWith('blob:')) URL.revokeObjectURL(profile.photoUrl)
-  }, [profile.photoUrl])
-
   useLayoutEffect(() => {
     if (!popup && triggerIdRef.current) document.getElementById(triggerIdRef.current)?.focus({ preventScroll: true })
-  }, [popup, savedVersion])
+  }, [popup])
 
   function openPopup(next: AccountPopup, trigger: HTMLButtonElement) {
     triggerIdRef.current = trigger.id
@@ -61,17 +61,22 @@ function MainAccountScreenPage() {
         <SettingsTabs active="account" from={returnPath} />
         <div className="settings-tab-content">
         <h1 className={isWorkspaceManager ? undefined : 'sr-only'} id="account-settings-title">Configurações de conta</h1>
-        <section aria-labelledby="account-information-title" className={`create-forms-card account-information-card${savedVersion ? ' account-information-card--saved' : ''}`} key={savedVersion}>
+        <section aria-busy={loading} aria-labelledby="account-information-title" className="create-forms-card account-information-card">
           <h2 id="account-information-title">Informações da conta</h2>
-          <AccountProfileHeader profile={profile} />
-          <div className="account-main-fields">
-            <FormField id="account-name" label="Nome" readOnly value={profile.name} />
-            <FormField id="account-email" label="Email" readOnly value={profile.email} />
-          </div>
-          <div className="account-main-actions">
-            <CompactPurpleButton data-track-action={BUTTONS.comuns.ver_tudo} aria-haspopup="dialog" id="account-view-action" onClick={event => openPopup('view-password', event.currentTarget)}>Ver tudo</CompactPurpleButton>
-            <CompactPurpleButton data-track-action={BUTTONS.comuns.editar} aria-haspopup="dialog" id="account-edit-action" onClick={event => openPopup('edit-password', event.currentTarget)}>Editar</CompactPurpleButton>
-          </div>
+          {loading && <p role="status">Carregando informações da conta…</p>}
+          {profileError && <div className="account-profile-error"><p role="alert">{profileError}</p><CompactPurpleButton onClick={retry}>Tentar novamente</CompactPurpleButton></div>}
+          {profile && <>
+            <AccountProfileHeader onPhotoSelected={file => { void uploadPhoto(file) }} onRefreshPhoto={() => { void refreshPhoto() }} photoUpdate={photoUpdate} profile={profile} />
+            <div className="account-main-fields">
+              <FormField id="account-name" label="Nome" readOnly value={profile.name} />
+              <FormField id="account-email" label="Email" readOnly value={profile.email} />
+            </div>
+            <div className="account-main-actions">
+              <CompactPurpleButton data-track-action={BUTTONS.comuns.ver_tudo} aria-haspopup="dialog" id="account-view-action" onClick={event => openPopup('view-password', event.currentTarget)}>Ver tudo</CompactPurpleButton>
+              <CompactPurpleButton aria-describedby="account-edit-unavailable" disabled id="account-edit-action">Editar</CompactPurpleButton>
+            </div>
+            <p className="account-edit-note" id="account-edit-unavailable">A edição dos demais dados da conta ainda não está disponível.</p>
+          </>}
         </section>
         <section aria-labelledby="account-transfer-title" className="create-forms-card account-transfer-card">
           <h2 id="account-transfer-title">Transferência de cargo do gestor do workspace.</h2>
@@ -89,9 +94,7 @@ function MainAccountScreenPage() {
       </main>
       <HelpLink />
       {popup === 'view-password' && <PasswordConfirmationModal className="account-view-password-modal" onCancel={closePopup} onContinue={() => setPopup('view')} />}
-      {popup === 'view' && <AccountDetailsModal mode="view" onCancel={closePopup} onSave={() => closePopup()} profile={profile} />}
-      {popup === 'edit-password' && <PasswordConfirmationModal className="textPasswotdAccount1ModalWeb" onCancel={closePopup} onContinue={() => setPopup('edit')} />}
-      {popup === 'edit' && <AccountDetailsModal mode="edit" onCancel={closePopup} onSave={nextProfile => { setProfile(nextProfile); setSavedVersion(current => current + 1); closePopup() }} profile={profile} />}
+      {popup === 'view' && profile && <AccountDetailsModal onCancel={closePopup} onPhotoSelected={file => { void uploadPhoto(file) }} onRefreshPhoto={() => { void refreshPhoto() }} photoUpdate={photoUpdate} profile={profile} />}
       {popup === 'replace' && isWorkspaceManager && <ReplaceAccountFlowModal collaborators={replacementCandidates} onCancel={closePopup} onReplaced={closePopup} />}
       {popup === 'logout' && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_logout} backdrop="dimmed" className="position-deactivation-modal logoutManagerAccountModalWeb" confirmLabel="Sair" progressLabel="" icon={warningIcon} onCancel={closePopup} onConfirm={() => null} onConfirmed={() => { closePopup(); void submitLogout() }} preservePageScroll title="Tem certeza que deseja sair da conta?" tone="danger" />}
     </div>
