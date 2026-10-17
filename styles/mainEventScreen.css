@@ -80,6 +80,9 @@
 .event-calendar-item--miniature:focus-visible { outline-offset: 1px; }
 .event-deactivation-modal { --astro-modal-width: 50rem; }
 .event-deactivation-modal .astro-modal-title { max-width: none; }
+.event-deactivation-modal .event-create-field { margin-top: 1rem; text-align: left; }
+.event-deactivation-modal textarea { width: 100%; min-height: 6rem; resize: vertical; padding: .75rem; border: 1px solid #686868; border-radius: .5rem; color: inherit; background: transparent; font: inherit; }
+.event-deactivation-modal textarea:focus-visible { outline: 2px solid #7050b8; outline-offset: 2px; }
 
 @media (max-width: 1024px) {
   .main-event-screen .position-main { height: auto; min-height: calc(100dvh - 4.5rem); overflow: visible; padding-block: 2rem 5rem; }
