@@ -108,11 +108,15 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, validate
       const scale = calendarBounds.height / (calendarRef.current?.offsetHeight || calendarBounds.height)
       setCalendarMaxHeight(Math.max(0, openAbove ? availableAbove : availableBelow) / scale)
     }
+  }, [closing, escapeOverflow, open])
+
+  useLayoutEffect(() => {
+    if (!open || closing) return
     if (pendingFocusDate.current) {
       calendarRef.current?.querySelector<HTMLButtonElement>(`[data-date="${pendingFocusDate.current}"]`)?.focus({ preventScroll: true })
       pendingFocusDate.current = null
     }
-  }, [closing, escapeOverflow, open, visibleMonth])
+  }, [closing, open, visibleMonth])
 
   useEffect(() => {
     if (!open) return
