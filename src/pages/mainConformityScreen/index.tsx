@@ -3,14 +3,13 @@ import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, ConformityFilterModal, ConformityFormModal, DataTable, ImportConformityModal, ManagerIdentity, OptionsPopup, ToolbarSearch, TruncatedText } from '../../components'
+import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, ConformityFilterModal, ConformityFormModal, DataTable, ImportConformityModal, OptionsPopup, ToolbarSearch, TruncatedText } from '../../components'
+import CollaboratorIdentity from '../../components/collaboratorIdentity'
 import type { DataTableColumn } from '../../components/dataTable'
-import { mockConformities } from '../../data/conformities'
-import { mockEmployees } from '../../data/employees'
-import { defaultNrsRows } from '../../data/regulatoryStandards'
 import { useActionsMenu } from '../../hooks'
-import type { Conformity, ConformityFilters, ConformityFormValues } from '../../types'
-import { conformityStatusLabels, emptyConformityFilters, formatConformityDate, getConformityStatus, matchesConformityFilters } from '../../utils/conformity'
+import { useConformities } from '../../hooks/useConformities'
+import type { ConformityDetails as Conformity, ConformityFilters, ConformityFormValues } from '../../types/conformity'
+import { conformityStatusLabels, emptyConformityFilters, formatConformityDate, matchesConformityFilters } from '../../utils/conformity'
 import { iconAsset } from '../../utils/iconAsset'
 
 const statusClassNames = {
@@ -18,7 +17,6 @@ const statusClassNames = {
   expired: ' position-status--expired',
   'no-expiry': ' position-status--no-expiry',
 }
-const nrOptions = defaultNrsRows.map((row) => row.code.replace(/^NR/, 'NR '))
 const closedAddFlow = { importOpen: false, manualOpen: false, importClosing: false }
 
 type ConformityDialogState =
@@ -30,11 +28,17 @@ function MainConformityScreenPage() {
   const filterTriggerRef = useRef<HTMLButtonElement>(null)
   const focusAfterRemoveRef = useRef<string | null>(null)
   const savedTimerRef = useRef<number | null>(null)
-  const [conformities, setConformities] = useState<Conformity[]>(mockConformities)
   const [filters, setFilters] = useState<ConformityFilters & { search: string }>({ ...emptyConformityFilters, search: '' })
   const [addFlow, setAddFlow] = useState(closedAddFlow)
   const [filterOpen, setFilterOpen] = useState(false)
   const [dialog, setDialog] = useState<ConformityDialogState | null>(null)
+  const detailId = dialog && (dialog.kind === 'edit' || dialog.kind === 'confirm-edit') ? dialog.conformity.id : undefined
+  const api = useConformities(detailId, addFlow.manualOpen || Boolean(detailId), addFlow.manualOpen)
+  const { conformities } = api
+  const nrOptions = api.options.data.nrs.map(row => `NR ${row.code}`)
+  const filterNrOptions = [...new Set([...nrOptions, ...conformities.map(row => row.nr)])].sort((a, b) => Number(a.slice(3)) - Number(b.slice(3)))
+  const editingConformity = api.details.data ?? (detailId ? dialog?.conformity : undefined)
+  const editNrOptions = editingConformity ? [...new Set([...nrOptions, editingConformity.nr])] : nrOptions
   const [editForm, setEditForm] = useState({ dimmed: false, closing: false })
   const actions = useActionsMenu()
   const [savedConformityId, setSavedConformityId] = useState<string | null>(null)
@@ -59,15 +63,13 @@ function MainConformityScreenPage() {
     }, 900)
   }
 
-  function addConformity(values: ConformityFormValues): string | null {
-    const employee = mockEmployees.find((item) => item.id === values.employeeId)
-    if (!employee) return 'Selecione o colaborador.'
+  async function addConformity(values: ConformityFormValues): Promise<string | null> {
     const duplicateError = checkDuplicate(values)
     if (duplicateError) return duplicateError
 
-    const newConformityId = crypto.randomUUID()
-    setConformities((current) => [{ id: newConformityId, employeeId: employee.id, employeeName: employee.name, nr: values.nr, expiresAt: values.expiresAt || null, origin: 'Manual' }, ...current])
-    showSavedConformity(newConformityId, `Conformidade da ${values.nr} adicionada para ${employee.name}.`)
+    const result = await api.save(values)
+    if (result.error !== null) return result.error
+    showSavedConformity(result.data.id, `Conformidade da ${result.data.nr} adicionada para ${result.data.employeeName}.`)
     setAddFlow((current) => ({ ...current, importClosing: true }))
     return null
   }
@@ -78,21 +80,24 @@ function MainConformityScreenPage() {
       : null
   }
 
-  function saveConformity(conformity: Conformity, values: ConformityFormValues): string | null {
+  async function saveConformity(conformity: Conformity, values: ConformityFormValues): Promise<string | null> {
     const duplicateError = checkDuplicate(values, conformity.id)
     if (duplicateError) return duplicateError
 
-    setConformities((current) => current.map((item) => item.id === conformity.id ? { ...item, nr: values.nr, expiresAt: values.expiresAt || null } : item))
+    const result = await api.save(values, conformity.id)
+    if (result.error !== null) return result.error
     showSavedConformity(conformity.id, `Conformidade de ${conformity.employeeName} atualizada.`)
     return null
   }
 
-  function removeConformity(conformity: Conformity) {
+  async function removeConformity(conformity: Conformity): Promise<string | null> {
+    const result = await api.changeApplicability(conformity.id, false)
+    if (result.error !== null) return result.error
     const index = visibleConformities.findIndex((item) => item.id === conformity.id)
     const neighbor = visibleConformities[index + 1] ?? visibleConformities[index - 1]
     focusAfterRemoveRef.current = neighbor?.id ?? null
-    setConformities((current) => current.filter((item) => item.id !== conformity.id))
     showSavedConformity(null, `Conformidade da ${conformity.nr} de ${conformity.employeeName} marcada como não aplicável.`)
+    return null
   }
 
   function closeDialog() {
@@ -112,14 +117,14 @@ function MainConformityScreenPage() {
   }
 
   const columns: DataTableColumn<Conformity>[] = [
-    { id: 'employee', label: 'Colaborador', width: '23%', rowHeader: true, render: (conformity) => <ManagerIdentity name={conformity.employeeName} /> },
+    { id: 'employee', label: 'Colaborador', width: '23%', rowHeader: true, render: (conformity) => <CollaboratorIdentity name={conformity.employeeName} photoUrl={conformity.profilePhotoUrl} initials={conformity.avatarInitials} /> },
     { id: 'nr', label: 'NR', width: '11%', render: (conformity) => <TruncatedText>{conformity.nr}</TruncatedText> },
     { id: 'expiresAt', label: 'Data de validade', width: '20.5%', render: (conformity) => <TruncatedText>{formatConformityDate(conformity.expiresAt)}</TruncatedText> },
     { id: 'origin', label: 'Origem', width: '13%', render: (conformity) => <TruncatedText>{conformity.origin}</TruncatedText> },
     {
       id: 'status', label: 'Status', width: '19%',
       render: (conformity) => {
-        const status = getConformityStatus(conformity.expiresAt)
+        const status = conformity.status
         return <span className={`position-status${statusClassNames[status]}`}><TruncatedText truncate={false}>{conformityStatusLabels[status]}</TruncatedText></span>
       },
     },
@@ -177,8 +182,8 @@ function MainConformityScreenPage() {
             </div>
           </div>
 
-          <DataTable trackingName={SHOWCASE_NAMES.lista_conformidades} ariaLabel="Conformidades" columns={columns} emptyMessage="Nenhuma conformidade encontrada para esses filtros." getRowClassName={(conformity) => conformity.id === savedConformityId ? 'astro-data-table-row--saved' : undefined} getRowKey={(conformity) => conformity.id} rows={visibleConformities} />
-          <p className="sr-only" role="status">{feedback}</p>
+          {api.error ? <div className="position-dialog-form-error" role="alert"><p>{api.error}</p><button className="astro-modal-cancel" onClick={api.retry} type="button">Tentar novamente</button></div> : <DataTable trackingName={SHOWCASE_NAMES.lista_conformidades} ariaLabel="Conformidades" columns={columns} emptyMessage="Nenhuma conformidade encontrada para esses filtros." getRowClassName={(conformity) => conformity.id === savedConformityId ? 'astro-data-table-row--saved' : undefined} getRowKey={(conformity) => conformity.id} rows={visibleConformities} loadingContent={api.loading ? <tr><td colSpan={columns.length}>Carregando conformidades...</td></tr> : undefined} />}
+          <p className="conformity-feedback" role="status">{feedback}</p>
         </section>
         {openConformity && createPortal(
           <OptionsPopup trackingName={DIALOG_NAMES.acoes_conformidade}
@@ -203,14 +208,21 @@ function MainConformityScreenPage() {
         <ImportConformityModal
           dimmed={addFlow.manualOpen}
           onClose={closeAddFlow}
-          onImport={(file) => showSavedConformity(null, `Planilha ${file.name} enviada para importação.`)}
+          onImport={async file => {
+            const result = await api.importFile(file)
+            if (result.error === null) showSavedConformity(null, `Importação concluída: ${result.data.inserted} adicionadas, ${result.data.updated} atualizadas e ${result.data.rejected} rejeitadas.`)
+            return result
+          }}
           onManualAdd={() => setAddFlow((current) => ({ ...current, manualOpen: true }))}
           open={!addFlow.importClosing}
         />
       )}
       {addFlow.manualOpen && (
         <ConformityFormModal
-          employees={mockEmployees}
+          employees={api.options.data.employees}
+          loading={api.options.loading}
+          loadError={api.options.error}
+          onRetry={api.retryOptions}
           nrs={nrOptions}
           onClose={() => setAddFlow((current) => ({ ...current, manualOpen: false }))}
           onSubmit={addConformity}
@@ -219,7 +231,7 @@ function MainConformityScreenPage() {
       {filterOpen && (
         <ConformityFilterModal
           filters={filters}
-          nrs={nrOptions}
+          nrs={filterNrOptions}
           onApply={(nextFilters) => setFilters((current) => ({ ...current, ...nextFilters }))}
           onClose={() => {
             setFilterOpen(false)
@@ -227,14 +239,17 @@ function MainConformityScreenPage() {
           }}
         />
       )}
-      {dialog && (dialog.kind === 'edit' || dialog.kind === 'confirm-edit') && (
+      {dialog && (dialog.kind === 'edit' || dialog.kind === 'confirm-edit') && editingConformity && (
         <ConformityFormModal
           dimmed={editForm.dimmed}
-          employee={mockEmployees.find((employee) => employee.id === dialog.conformity.employeeId) ?? { name: dialog.conformity.employeeName, email: '' }}
-          employees={mockEmployees}
-          initialValues={{ employeeId: dialog.conformity.employeeId, nr: dialog.conformity.nr, expiresAt: dialog.conformity.expiresAt ?? '' }}
-          key={dialog.conformity.id}
-          nrs={nrOptions}
+          employee={{ name: editingConformity.employeeName, email: editingConformity.employeeEmail }}
+          employees={[]}
+          initialValues={{ employeeId: editingConformity.employeeId, nr: editingConformity.nr, expiresAt: editingConformity.expiresAt ?? '' }}
+          key={`${dialog.conformity.id}/${api.details.loading}`}
+          loading={api.details.loading || api.options.loading}
+          loadError={api.details.error || api.options.error}
+          onRetry={() => { if (api.details.error) api.retryDetails(); if (api.options.error) api.retryOptions() }}
+          nrs={editNrOptions}
           onClose={() => {
             if (dialog.kind !== 'confirm-edit') closeDialog()
           }}
@@ -242,7 +257,7 @@ function MainConformityScreenPage() {
             const error = checkDuplicate(values, dialog.conformity.id)
             if (error) return error
             setEditForm((current) => ({ ...current, dimmed: true }))
-            setDialog({ kind: 'confirm-edit', conformity: dialog.conformity, values })
+            setDialog({ kind: 'confirm-edit', conformity: editingConformity, values })
             return null
           }}
           open={!editForm.closing}
@@ -257,8 +272,8 @@ function MainConformityScreenPage() {
             setDialog({ kind: 'edit', conformity: dialog.conformity })
           }}
           onCancelRequest={() => setEditForm((current) => ({ ...current, dimmed: false }))}
-          onConfirm={() => {
-            const error = saveConformity(dialog.conformity, dialog.values)
+          onConfirm={async () => {
+            const error = await saveConformity(dialog.conformity, dialog.values)
             if (!error) setEditForm((current) => ({ ...current, closing: true }))
             return error
           }}
@@ -273,7 +288,8 @@ function MainConformityScreenPage() {
           confirmLabel="Tornar não aplicável"
           icon={<span aria-hidden="true" className="position-deactivation-icon"><img alt="" src={iconAsset('warning.svg')} /></span>}
           onCancel={closeDialog}
-          onConfirm={() => { removeConformity(dialog.conformity); return null }}
+          onConfirm={() => removeConformity(dialog.conformity)}
+          progressLabel="Atualizando aplicabilidade..."
           onConfirmed={closeDialog}
           title="Tem certeza de que deseja tornar esta conformidade não aplicável?"
           tone="danger"

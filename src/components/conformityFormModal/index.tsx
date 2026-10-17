@@ -1,6 +1,6 @@
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import type { ConformityFormValues } from '../../types'
 import { getInitials } from '../../utils/manager'
 import { validateConformity, type ConformityValidationErrors } from '../../utils/conformity'
@@ -17,16 +17,22 @@ interface ConformityFormModalProps {
   nrs: readonly string[]
   onClose: () => void
   onDismissRequest?: () => void
-  onSubmit: (values: ConformityFormValues) => string | null
+  onSubmit: (values: ConformityFormValues) => string | null | Promise<string | null>
+  loading?: boolean
+  loadError?: string
+  onRetry?: () => void
   open?: boolean
 }
 
-function ConformityFormModal({ dimmed = false, employee, employees, initialValues, nrs, onClose, onDismissRequest, onSubmit, open = true }: ConformityFormModalProps) {
+function ConformityFormModal({ dimmed = false, employee, employees, initialValues, nrs, onClose, onDismissRequest, onSubmit, loading = false, loadError = '', onRetry, open = true }: ConformityFormModalProps) {
   const editing = Boolean(employee)
   const [values, setValues] = useState<ConformityFormValues>(initialValues ?? { employeeId: '', nr: '', expiresAt: '' })
   const [errors, setErrors] = useState<ConformityValidationErrors>({})
   const [formError, setFormError] = useState('')
   const [dateValid, setDateValid] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const submittingRef = useRef(false)
+  const unavailable = loading || Boolean(loadError) || submitting
   const employeeOptions = [
     { value: '', label: 'Selecione o colaborador', tone: 'muted' as const },
     ...employees.map((item) => ({ value: item.id, label: item.name })),
@@ -42,13 +48,21 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
     setFormError('')
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>, dismiss: () => void) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>, dismiss: () => void) {
     event.preventDefault()
-    const nextErrors = validateConformity(values, employees.map((item) => item.id), nrs, dateValid)
+    if (unavailable || submittingRef.current) return
+    const nextErrors = validateConformity(values, editing ? [initialValues?.employeeId ?? ''] : employees.map((item) => item.id), nrs, dateValid)
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
-    const submitError = onSubmit(values)
+    submittingRef.current = true
+    setSubmitting(true)
+    setFormError('')
+    let submitError: string | null
+    try { submitError = await onSubmit(values) }
+    catch (error: unknown) { submitError = error instanceof Error ? error.message : 'Não foi possível salvar a conformidade.' }
+    submittingRef.current = false
+    setSubmitting(false)
     if (submitError) {
       setFormError(submitError)
       return
@@ -62,37 +76,43 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
   }
 
   return (
-    <AppModal trackingName={editing ? DIALOG_NAMES.editar_conformidade : DIALOG_NAMES.adicionar_conformidade} className="position-dialog invite-manager-dialog conformity-form-modal" dimmed={dimmed} onClose={onClose} onDismissRequest={onDismissRequest} open={open} title={editing ? 'Editar conformidade' : 'Adicionar conformidade'}>
-      {(dismiss) => <form data-track-submit={editing ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.adicionar} autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
+    <AppModal trackingName={editing ? DIALOG_NAMES.editar_conformidade : DIALOG_NAMES.adicionar_conformidade} dismissible={!submitting} className="position-dialog invite-manager-dialog conformity-form-modal" dimmed={dimmed} onClose={onClose} onDismissRequest={onDismissRequest} open={open} title={editing ? 'Editar conformidade' : 'Adicionar conformidade'}>
+      {(dismiss) => <form data-track-submit={editing ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.adicionar} aria-busy={loading || submitting} autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
         {employee && (
           <div className="account-profile-header conformity-form-employee">
             <div className="account-profile-photo"><span aria-hidden="true" className="manager-avatar manager-avatar--large">{getInitials(employee.name)}</span></div>
             <div className="account-profile-identity"><h3>{employee.name}</h3><p>{employee.email}</p></div>
           </div>
         )}
-        <div className="position-dialog-row conformity-form-row">
-          {!employee && (
+        {loading && <p role="status">Carregando dados da conformidade...</p>}
+        {loadError && <div role="alert"><p>{loadError}</p><button className="astro-modal-cancel" onClick={onRetry} type="button">Tentar novamente</button></div>}
+        <fieldset className="conformity-form-fields" disabled={unavailable}>
+          <div className="position-dialog-row conformity-form-row">
+            {!employee && (
+              <div className="position-dialog-field">
+                <label htmlFor="conformity-form-employee">Colaborador</label>
+                <ToolbarSelect trackingAction={BUTTONS.comuns.selecionar_opcao} className={selectClassName('employeeId')} id="conformity-form-employee" label="Colaborador" onValueChange={(employeeId) => update('employeeId', employeeId)} options={employeeOptions} value={values.employeeId} />
+                {errors.employeeId && <span role="alert">{errors.employeeId}</span>}
+              </div>
+            )}
             <div className="position-dialog-field">
-              <label htmlFor="conformity-form-employee">Colaborador</label>
-              <ToolbarSelect trackingAction={BUTTONS.comuns.selecionar_opcao} className={selectClassName('employeeId')} id="conformity-form-employee" label="Colaborador" onValueChange={(employeeId) => update('employeeId', employeeId)} options={employeeOptions} value={values.employeeId} />
-              {errors.employeeId && <span role="alert">{errors.employeeId}</span>}
+              <label htmlFor="conformity-form-nr">NR</label>
+              <ToolbarSelect trackingAction={BUTTONS.comuns.nr} className={selectClassName('nr')} id="conformity-form-nr" label="NR" onValueChange={(nr) => update('nr', nr)} options={nrOptions} value={values.nr} />
+              {errors.nr && <span role="alert">{errors.nr}</span>}
             </div>
-          )}
-          <div className="position-dialog-field">
-            <label htmlFor="conformity-form-nr">NR</label>
-            <ToolbarSelect trackingAction={BUTTONS.comuns.nr} className={selectClassName('nr')} id="conformity-form-nr" label="NR" onValueChange={(nr) => update('nr', nr)} options={nrOptions} value={values.nr} />
-            {errors.nr && <span role="alert">{errors.nr}</span>}
+            <div className="position-dialog-field">
+              <label htmlFor="conformity-form-date">Data de validade</label>
+              <FormDatePicker id="conformity-form-date" label="Data de validade" onChange={(expiresAt) => update('expiresAt', expiresAt)} onValidityChange={setDateValid} value={values.expiresAt} />
+              {errors.expiresAt && <span role="alert">{errors.expiresAt}</span>}
+            </div>
           </div>
-          <div className="position-dialog-field">
-            <label htmlFor="conformity-form-date">Data de validade</label>
-            <FormDatePicker id="conformity-form-date" label="Data de validade" onChange={(expiresAt) => update('expiresAt', expiresAt)} onValidityChange={setDateValid} value={values.expiresAt} />
-          </div>
-        </div>
+        </fieldset>
         {formError && <p className="position-dialog-form-error" role="alert">{formError}</p>}
+        {submitting && <p role="status">Salvando conformidade...</p>}
 
         <div className="astro-modal-actions">
-          <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
-          <PurpleButton data-track-action={editing ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.adicionar} type="submit">{editing ? 'Salvar alterações' : 'Adicionar'}</PurpleButton>
+          <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" disabled={submitting} onClick={dismiss} type="button">Cancelar</button>
+          <PurpleButton data-track-action={editing ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.adicionar} disabled={unavailable} type="submit">{editing ? 'Salvar alterações' : 'Adicionar'}</PurpleButton>
         </div>
       </form>}
     </AppModal>

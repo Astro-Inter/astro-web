@@ -1,14 +1,36 @@
-import type { Conformity, ConformityFilters, ConformityFormValues, ConformityStatus } from '../types/conformity'
+import type { Conformity, ConformityFilters, ConformityFormValues, ConformityOrigin, ConformityResponse, ConformityStatus } from '../types/conformity'
 
 export type ConformityValidationErrors = Partial<Record<keyof ConformityFormValues, string>>
 export type ConformityFilterErrors = Partial<Record<'from' | 'to', string>>
 
 export const emptyConformityFilters: ConformityFilters = { nr: '', origin: '', from: '', to: '' }
 
+export const conformityOriginLabels: Record<ConformityResponse['origin'], ConformityOrigin> = {
+  EVENTO: 'Evento',
+  MANUAL: 'Manual',
+}
+
+export function isConformityOrigin(value: string): value is ConformityOrigin {
+  return Object.values(conformityOriginLabels).some(label => label === value)
+}
+
 export const conformityStatusLabels: Record<ConformityStatus, string> = {
   valid: 'Válida',
   expired: 'Vencida',
   'no-expiry': 'Sem validade',
+}
+
+export function isConformityDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith('0000')) return false
+  const date = new Date(`${value}T12:00:00Z`)
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
+}
+
+export function validateConformityRequest(values: ConformityFormValues, editing = false): string | null {
+  if (!editing && (!/^[1-9]\d*$/.test(values.employeeId) || !Number.isSafeInteger(Number(values.employeeId)))) return 'Selecione o colaborador.'
+  if (!/^NR [1-9]\d*$/.test(values.nr) || !Number.isSafeInteger(Number(values.nr.slice(3)))) return 'Selecione a NR.'
+  if (values.expiresAt && !isConformityDate(values.expiresAt)) return 'Informe uma data válida no formato dd/mm/aaaa.'
+  return null
 }
 
 function toDateKey(date: Date): string {
@@ -32,7 +54,7 @@ export function validateConformity(values: ConformityFormValues, employeeIds: re
   const errors: ConformityValidationErrors = {}
   if (!employeeIds.includes(values.employeeId)) errors.employeeId = 'Selecione o colaborador.'
   if (!nrs.includes(values.nr)) errors.nr = 'Selecione a NR.'
-  if (!dateValid || (values.expiresAt && !/^\d{4}-\d{2}-\d{2}$/.test(values.expiresAt))) errors.expiresAt = 'Informe uma data válida no formato dd/mm/aaaa.'
+  if (!dateValid || (values.expiresAt && !isConformityDate(values.expiresAt))) errors.expiresAt = 'Informe uma data válida no formato dd/mm/aaaa.'
   return errors
 }
 
