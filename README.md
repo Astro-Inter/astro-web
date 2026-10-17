@@ -76,6 +76,8 @@ Para usar o login, habilite **Authentication → Sign-in method → Email/Passwo
 
 O perfil retornado por `/verify-email` fica no contexto de autenticação, associado ao usuário Firebase. `GESTOR_WORKSPACE` acessa Gestores, configurações do workspace e a opção de substituição do responsável. `GESTOR` vê Conta no menu, sem as opções exclusivas do workspace. As áreas compartilhadas continuam disponíveis para ambos. Ao restaurar a sessão, a aplicação consulta o perfil novamente antes de abrir as telas privadas; parâmetros de URL não alteram permissões. Consulte a [matriz de acessos — SCRUM-565](docs/niveis-de-acesso.md) para as referências do Figma, regras de rotas e limites do escopo.
 
+A tela de Conta usa `GET /user/me` para mostrar nome, e-mail, foto e dados profissionais do usuário conectado. “Ver tudo” mantém a confirmação de identidade, apresenta o CPF vazio enquanto ele não é retornado pela API e não exibe senha. E-mail ausente também fica vazio. A edição permanece indisponível nesta etapa. Consulte [Perfil da conta — SCRUM-567](docs/conta.md) para os contratos, limites e testes.
+
 ## Rotas e comportamento
 
 Fluxo de workspace:

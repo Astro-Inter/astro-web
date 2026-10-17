@@ -1,19 +1,19 @@
-import { BUTTONS } from '../../gtm/buttons'
+import { useState } from 'react'
 import type { AccountProfile } from '../../types/account'
-import AstroIcon from '../astroIcon'
+import { getInitials } from '../../utils/manager'
 
 interface AccountProfileHeaderProps {
   profile: AccountProfile
-  editable?: boolean
-  onEditPhoto?: () => void
 }
 
-function AccountProfileHeader({ profile, editable = false, onEditPhoto }: AccountProfileHeaderProps) {
+function AccountProfileHeader({ profile }: AccountProfileHeaderProps) {
+  const [failedUrl, setFailedUrl] = useState<string | null>(null)
   return (
     <div className="account-profile-header">
       <div className="account-profile-photo">
-        <img alt={`Foto de ${profile.name}`} height={96} src={profile.photoUrl ?? `${import.meta.env.BASE_URL}kirkProfileImage.png`} width={96} />
-        {editable && <button data-track-action={BUTTONS.comuns.alterar_foto} aria-label="Alterar foto do perfil" onClick={onEditPhoto} type="button"><AstroIcon name="pencil" /></button>}
+        {profile.photoUrl && profile.photoUrl !== failedUrl
+          ? <img alt={`Foto de ${profile.name}`} height={96} onError={() => setFailedUrl(profile.photoUrl ?? null)} src={profile.photoUrl} width={96} />
+          : <span aria-hidden="true" className="account-profile-initials">{getInitials(profile.name)}</span>}
       </div>
       <div className="account-profile-identity"><h3>{profile.name}</h3><p>{profile.email}</p></div>
     </div>

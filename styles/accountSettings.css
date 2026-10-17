@@ -1,6 +1,9 @@
 .account-profile-header { display: flex; align-items: center; gap: calc(1.5rem * var(--astro-scale)); min-width: 0; }
 .account-profile-photo { position: relative; flex: none; width: calc(6rem * var(--astro-scale)); height: calc(6rem * var(--astro-scale)); }
 .account-profile-photo > img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.account-profile-initials { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; background: #6d6891; color: #fff; font-size: 1.75rem; font-weight: 600; }
+.account-information-card .account-edit-note { margin: var(--astro-modal-content-gap) 0 0; color: #c4bdd4; font-size: var(--astro-label-font-size); line-height: 1.5; text-align: center; }
+.account-main-actions > button:disabled { opacity: .55; cursor: default; }
 .account-profile-photo button { position: absolute; right: 0; bottom: 0; display: grid; place-items: center; width: calc(1.75rem * var(--astro-scale)); height: calc(1.75rem * var(--astro-scale)); padding: calc(.3rem * var(--astro-scale)); border: 0; border-radius: 50%; background: #6d6891; }
 .account-profile-photo button:hover { background: #625d82; }
 .account-profile-photo button:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
