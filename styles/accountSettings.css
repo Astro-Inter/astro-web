@@ -29,6 +29,10 @@
 .account-transfer-card .account-email-preview { margin-top: var(--create-forms-stack-gap); }
 .account-details-modal { --astro-modal-width: var(--astro-modal-two-column-width); }
 .account-details-form { margin-top: var(--astro-modal-content-gap); }
+.account-details-content { margin-top: var(--astro-modal-content-gap); }
+.account-details-content > .account-details-form { margin-top: 0; }
+.account-details-content > p[role] { margin-block: var(--astro-modal-content-gap); color: var(--astro-text); line-height: 1.5; }
+.account-details-content > p[role='alert'] { color: #ffc2c9; }
 .account-manager-selection-form { margin-top: var(--astro-modal-content-gap); }
 .account-replace-flow-modal { view-transition-name: event-create-popup; }
 .account-manager-selection-form .astro-action:disabled { opacity: .55; cursor: default; }

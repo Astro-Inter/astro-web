@@ -11,6 +11,7 @@ interface AccountProfileState {
 }
 
 interface AccountProfileResult extends Omit<AccountProfileState, 'key'> {
+  applyProfile: (profile: AccountProfile) => void
   retry: () => void
   photoUpdate: AccountPhotoUpdate
   uploadPhoto: (file: File) => Promise<void>
@@ -72,6 +73,7 @@ export function useAccountProfile(): AccountProfileResult {
   }
 
   return {
+    applyProfile: data => setState({ key, data: { name: data.name, email: data.email, photoUrl: data.photoUrl, position: '', units: '', modality: '' }, loading: false, error: '' }),
     data: state.key === key ? state.data : null,
     loading: state.key !== key || state.loading,
     error: state.key === key ? state.error : '',

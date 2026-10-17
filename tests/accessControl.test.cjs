@@ -22,6 +22,7 @@ function environment(accountType) {
     new Function('require', 'module', 'exports', code)(specifier => {
       if (specifier.endsWith('/useAuthentication')) return { useAuthentication: () => context }
       if (specifier.endsWith('/useAccountProfile')) return { useAccountProfile: () => ({ data: null, loading: true, error: '', retry() {} }) }
+      if (specifier.endsWith('/useAccountDetails')) return { useAccountDetails: () => ({ data: null, loading: true, error: '', submission: { pending: false } }) }
       if (specifier.endsWith('/useLogout')) return { useLogout: () => ({ pending: false, error: '', submit: async () => true }) }
       if (specifier === './firebase') return { firebaseAuth: { currentUser: null } }
       if (specifier === '../routeContent') return { __esModule: true, default: () => React.createElement('p', null, 'Conteúdo autorizado') }

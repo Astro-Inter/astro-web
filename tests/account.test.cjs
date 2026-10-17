@@ -28,6 +28,7 @@ function environment(overrides = {}) {
     new Function('require', 'module', 'exports', code)(specifier => {
       if (Object.hasOwn(overrides, specifier)) return overrides[specifier]
       if (specifier === './firebase') return { firebaseAuth: auth }
+      if (specifier === 'firebase/auth') return { reload: async () => {}, sendEmailVerification: async () => {} }
       if (specifier === '../../components') return Object.fromEntries(['AstroBrand', 'AstroIcon', 'CompactPurpleButton', 'ConfirmationModal', 'FormField', 'HelpLink'].map(name => [name, load(`src/components/${name[0].toLowerCase()}${name.slice(1)}/index.tsx`).default]))
       if (!specifier.startsWith('.')) return require(specifier)
       const resolved = path.resolve(path.dirname(filename), specifier)
@@ -48,13 +49,13 @@ function deferred() {
 test('consulta o próprio perfil com Bearer e mapeia os dados reais sem senha ou CPF fictícios', async () => {
   const controller = new AbortController()
   global.fetch = async (url, init) => {
-    assert.equal(url, 'https://api.example.test/user/me')
+    assert.equal(url, 'https://api.example.test/user/me/account-summary')
     assert.equal(init.headers.Authorization, 'Bearer firebase-token')
-    assert.equal(init.signal, controller.signal)
+    assert.equal(init.signal.aborted, false)
     assert.equal(init.body, undefined)
     return respond({ ...profileResponse, password: 'nao-exibir', cpf: 'nao-exibir' })
   }
-  assert.deepEqual(await api.getAccountProfile(controller.signal), { name: 'Rosa Maduda', email: profileResponse.email, position: 'Gestor de Segurança', units: 'Matriz São Paulo', modality: 'Presencial', photoUrl: profileResponse.profilePhotoUrl })
+  assert.deepEqual(await api.getAccountProfile(controller.signal), { name: 'Rosa Maduda', email: profileResponse.email, position: '', units: '', modality: '', photoUrl: profileResponse.profilePhotoUrl })
 })
 
 test('aceita e-mail e dados profissionais ausentes e descarta URL de foto insegura', async () => {
@@ -66,7 +67,7 @@ test('aceita e-mail e dados profissionais ausentes e descarta URL de foto insegu
   assert.equal(profile.units, '')
   assert.equal(profile.modality, '')
   global.fetch = async () => respond({ ...profileResponse, modalidade: 'HIBRIDO', profilePhotoUrl: null })
-  assert.equal((await api.getAccountProfile()).modality, 'Híbrido')
+  assert.equal((await api.getAccountDetails()).modality, 'Híbrido')
   for (const email of [undefined, '', '   ']) {
     global.fetch = async () => respond({ ...profileResponse, email })
     assert.equal((await api.getAccountProfile()).email, '')
@@ -78,11 +79,11 @@ test('trata sessão ausente, HTTP, resposta inválida e rede sem recorrer ao per
   global.fetch = async () => assert.fail('Não deve consultar sem autenticação')
   await assert.rejects(api.getAccountProfile(), /Entre na sua conta/)
   auth.currentUser = user
-  for (const [status, message] of [[401, /sessão expirou/], [403, /permissão/], [404, /não foi encontrado/], [500, /Não foi possível carregar/]]) {
+  for (const [status, message] of [[401, /sessão expirou/], [403, /permissão/], [404, /não foi encontrado/], [500, /Não foi possível concluir/]]) {
     global.fetch = async () => new Response('', { status })
     await assert.rejects(api.getAccountProfile(), message)
   }
-  for (const body of [null, {}, { success: false }, { success: true, data: null }, { success: true, data: { ...profileResponse, nome: '' } }, { success: true, data: { ...profileResponse, unidade: [] } }]) {
+  for (const body of [null, {}, { success: true, data: null }, { success: true, data: { ...profileResponse, nome: '' } }, { success: true, data: { ...profileResponse, unidade: [] } }]) {
     global.fetch = async () => new Response(JSON.stringify(body))
     await assert.rejects(api.getAccountProfile(), /inválid/)
   }
@@ -97,6 +98,51 @@ test('descarta o perfil se a sessão mudar durante a leitura e preserva cancelam
   const controller = new AbortController()
   global.fetch = async () => { controller.abort(); throw new DOMException('Abortado', 'AbortError') }
   await assert.rejects(api.getAccountProfile(controller.signal), { name: 'AbortError' })
+})
+
+test('detalhes usam a nova rota, formatam CPF e preservam IDs; PUT envia somente os seis campos em inglês', async () => {
+  const values = { name: ' Rosa Maduda ', cpf: '529.982.247-25', email: ' ROSA@example.test ', roleId: '7', unitId: '8', workModel: 'HIBRIDO' }
+  const response = { ...profileResponse, cpf: '52998224725', roleId: 7, unitId: 8, modalidade: 'HIBRIDO' }
+  global.fetch = async (url, init) => {
+    assert.equal(url, 'https://api.example.test/user/me/account-details')
+    assert.equal(init.headers.Authorization, 'Bearer firebase-token')
+    assert.equal(init.method, 'GET')
+    return respond(response)
+  }
+  const profile = await api.getAccountDetails()
+  assert.equal(profile.cpf, '529.982.247-25')
+  assert.equal(profile.roleId, '7')
+  assert.equal(profile.unitId, '8')
+  assert.equal(profile.workModel, 'HIBRIDO')
+  global.fetch = async (url, init) => {
+    assert.equal(url, 'https://api.example.test/user/me/account-details')
+    assert.equal(init.method, 'PUT')
+    assert.equal(init.headers['Content-Type'], 'application/json')
+    assert.deepEqual(JSON.parse(init.body), { name: 'Rosa Maduda', cpf: '52998224725', email: 'rosa@example.test', roleId: 7, unitId: 8, workModel: 'HIBRIDO' })
+    return respond(response)
+  }
+  assert.deepEqual(await api.updateAccountDetails({ ...values, password: 'nao-enviar', status: 'ATIVO' }), profile)
+  global.fetch = async () => assert.fail('Dados inválidos não devem ser enviados')
+  for (const invalid of [{ cpf: '' }, { cpf: '11111111111' }, { roleId: '0' }, { unitId: 'abc' }, { name: 'A' }, { email: 'inválido' }, { workModel: '' }]) {
+    await assert.rejects(api.updateAccountDetails({ ...values, ...invalid }), api.AccountApiError)
+  }
+  global.fetch = async () => new Response(JSON.stringify({ success: false, errors: ['CPF já cadastrado.'] }), { status: 409 })
+  await assert.rejects(api.updateAccountDetails(values), /CPF já cadastrado/)
+  global.fetch = async () => respond({ ...response, roleId: '7' })
+  await assert.rejects(api.getAccountDetails(), /detalhes inválidos/)
+})
+
+test('sincronização de identidade e confirmação usam Firebase e relatam falha após salvamento sem repetir PUT', async () => {
+  const calls = []
+  const env = environment({ 'firebase/auth': { reload: async current => calls.push(['reload', current]), sendEmailVerification: async current => calls.push(['verify', current]) } })
+  const service = env.load('src/services/account.ts')
+  await service.refreshAccountIdentity()
+  await service.sendAccountEmailVerification()
+  assert.deepEqual(calls.map(call => call[0]), ['reload', 'reload', 'verify'])
+  assert.ok(calls.every(call => call[1] === user))
+  auth.currentUser = null
+  await assert.rejects(service.refreshAccountIdentity(), /dados foram salvos/)
+  await assert.rejects(service.sendAccountEmailVerification(), /Não foi possível enviar/)
 })
 
 test('atualiza a foto existente com PUT multipart, arquivo original e Bearer, aceitando 204 sem JSON', async () => {
@@ -158,8 +204,11 @@ function Modal({ children, title, onClose }) {
   return React.createElement('section', { role: 'dialog', 'aria-label': title }, typeof children === 'function' ? children(onClose) : children)
 }
 
+const completeProfile = { name: 'Rosa Maduda', email: profileResponse.email, position: profileResponse.cargo, units: profileResponse.unidade, modality: 'Presencial', photoUrl: profileResponse.profilePhotoUrl, cpf: '', roleId: '1', unitId: '1', workModel: 'PRESENCIAL' }
+
 test('Ver tudo apresenta os campos da API, foto e CPF vazio, sem campo de senha', () => {
-  const env = environment({ '../appModal': { __esModule: true, default: Modal } })
+  let details = completeProfile
+  const env = environment({ '../appModal': { __esModule: true, default: Modal }, '../../hooks/useAccountDetails': { useAccountDetails: () => ({ data: details, roles: [], units: [], submission: { pending: false } }) } })
   const Details = env.load('src/components/accountDetailsModal/index.tsx').default
   const profile = { name: 'Rosa Maduda', email: profileResponse.email, position: profileResponse.cargo, units: profileResponse.unidade, modality: 'Presencial', photoUrl: profileResponse.profilePhotoUrl }
   const markup = renderToStaticMarkup(React.createElement(Details, { profile, onCancel() {} }))
@@ -171,6 +220,7 @@ test('Ver tudo apresenta os campos da API, foto e CPF vazio, sem campo de senha'
   assert.equal(dom.window.document.querySelector('#account-detail-units').value, 'Matriz São Paulo')
   assert.equal(dom.window.document.querySelector('img').getAttribute('src'), profileResponse.profilePhotoUrl)
   dom.window.close()
+  details = { ...details, email: '' }
   const empty = new JSDOM(renderToStaticMarkup(React.createElement(Details, { profile: { ...profile, email: '' }, onCancel() {} })))
   assert.equal(empty.window.document.querySelector('#account-detail-email').value, '')
   assert.equal(empty.window.document.querySelector('#account-detail-cpf').value, '')
@@ -184,12 +234,13 @@ test('ambos os gestores carregam o perfil; erro permite tentar novamente, troca 
   const root = createRoot(dom.window.document.getElementById('root'))
   const context = { user: { uid: 'workspace', accountType: 'GESTOR_WORKSPACE' } }
   const first = deferred(), calls = []
+  let detailsReads = 0
   let read = () => first.promise
   const env = environment({
     './useAuthentication': { useAuthentication: () => context },
     '../../hooks/useAuthentication': { useAuthentication: () => context },
     '../../hooks/useLogout': { useLogout: () => ({ pending: false, error: '', submit() {} }) },
-    '../services/account': { getAccountProfile: signal => { calls.push(signal); return read() } },
+    '../services/account': { getAccountProfile: signal => { calls.push(signal); return read() }, getAccountDetails: async () => { detailsReads++; return completeProfile } },
     '../../components/passwordConfirmationModal': { __esModule: true, default: ({ onContinue }) => React.createElement('button', { onClick: onContinue }, 'Confirmar identidade') },
     '../appModal': { __esModule: true, default: Modal },
   })
@@ -202,14 +253,17 @@ test('ambos os gestores carregam o perfil; erro permite tentar novamente, troca 
     assert.doesNotMatch(document.body.textContent, /Kirk/)
     await act(async () => first.resolve(profile))
     assert.equal(document.getElementById('account-name').value, profile.name)
-    assert.equal(document.getElementById('account-edit-action').disabled, true)
+    assert.equal(document.getElementById('account-edit-action').disabled, false)
+    assert.equal(detailsReads, 0)
     await act(async () => document.querySelector('.account-profile-photo img').dispatchEvent(new dom.window.Event('error')))
     assert.equal(document.querySelector('.account-profile-initials').textContent, 'RM')
     await act(async () => document.getElementById('account-view-action').click())
     assert.equal(document.querySelector('[role=dialog]'), null)
+    assert.equal(detailsReads, 0)
     await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Confirmar identidade').click())
     assert.equal(document.querySelector('[role=dialog] input[type=password]'), null)
     assert.equal(document.getElementById('account-detail-position').value, profile.position)
+    assert.equal(detailsReads, 1)
 
     const next = deferred()
     read = () => next.promise
@@ -260,6 +314,7 @@ test('troca de foto mantém a atual durante upload, compartilha o resultado e re
     '../../hooks/useLogout': { useLogout: () => ({ pending: false, error: '', submit() {} }) },
     '../services/account': {
       getAccountProfile: signal => { reads.push(signal); return read() },
+      getAccountDetails: async () => completeProfile,
       updateAccountPhoto: (file, signal) => { uploads.push({ file, signal }); return send.promise },
     },
     '../../components/passwordConfirmationModal': { __esModule: true, default: ({ onContinue }) => React.createElement('button', { onClick: onContinue }, 'Confirmar identidade') },
@@ -315,6 +370,132 @@ test('troca de foto mantém a atual durante upload, compartilha o resultado e re
     assert.equal(signal.aborted, true)
     await act(async () => send.resolve())
     assert.equal(reads.length, before)
+  } finally {
+    await act(async () => root.unmount())
+    dom.window.close()
+    Object.assign(global, saved)
+  }
+})
+
+test('edição respeita o perfil, oferece vínculos ativos e mantém o formulário após conflito; sucesso atualiza o cartão', async () => {
+  const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/mainAccountScreen' })
+  const saved = Object.fromEntries(['window', 'document', 'getComputedStyle', 'Node', 'IS_REACT_ACT_ENVIRONMENT'].map(key => [key, global[key]]))
+  Object.assign(global, { window: dom.window, document: dom.window.document, getComputedStyle: dom.window.getComputedStyle, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true })
+  dom.window.matchMedia = () => ({ matches: true })
+  // React was loaded before jsdom; these legacy hooks are only used by its input-event fallback.
+  dom.window.HTMLElement.prototype.attachEvent = () => {}
+  dom.window.HTMLElement.prototype.detachEvent = () => {}
+  const root = createRoot(document.getElementById('root'))
+  const context = { user: { uid: 'manager', accountType: 'GESTOR' } }
+  const profile = { ...completeProfile, cpf: '529.982.247-25' }
+  const writes = [], lists = []
+  let pending = deferred()
+  const env = environment({
+    './useAuthentication': { useAuthentication: () => context },
+    '../../hooks/useAuthentication': { useAuthentication: () => context },
+    '../../hooks/useLogout': { useLogout: () => ({ pending: false, error: '', submit() {} }) },
+    '../services/account': {
+      getAccountProfile: async () => profile, getAccountDetails: async () => profile,
+      updateAccountDetails: (values, signal) => { writes.push({ values, signal }); return pending.promise },
+    },
+    '../services/roles': { listRoles: async () => { lists.push('roles'); return [{ id: '1', name: profile.position, active: false }, { id: '2', name: 'Engenheira', active: true }, { id: '3', name: 'Cargo inativo', active: false }] } },
+    '../services/units': { listUnits: async () => { lists.push('units'); return [{ id: '1', name: profile.units, active: false }, { id: '2', name: 'Campinas', active: true }, { id: '3', name: 'Unidade inativa', active: false }] } },
+    '../../components/passwordConfirmationModal': { __esModule: true, default: ({ onContinue }) => React.createElement('button', { onClick: onContinue }, 'Confirmar identidade') },
+    '../appModal': { __esModule: true, default: Modal },
+  })
+  const Page = env.load('src/pages/mainAccountScreen/index.tsx').default
+  const render = () => root.render(React.createElement(MemoryRouter, null, React.createElement(Page)))
+  const submit = () => document.querySelector('[role=dialog] form').dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }))
+  const open = async () => {
+    await act(async () => document.getElementById('account-edit-action').click())
+    await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Confirmar identidade').click())
+  }
+  try {
+    await act(async () => render())
+    await open()
+    assert.equal(document.getElementById('account-detail-roleId').disabled, true)
+    assert.equal(document.getElementById('account-detail-unitId').disabled, true)
+    assert.deepEqual(lists, [])
+    await act(async () => { submit(); submit() })
+    assert.equal(writes.length, 1)
+    assert.equal(writes[0].values.roleId, '1')
+    assert.equal(writes[0].values.unitId, '1')
+    assert.equal(document.querySelector('[role=dialog] fieldset').disabled, true)
+    await act(async () => pending.reject(new Error('CPF já cadastrado.')))
+    assert.match(document.querySelector('[role=alert]').textContent, /CPF já cadastrado/)
+    assert.equal(document.getElementById('account-detail-cpf').value, profile.cpf)
+    assert.equal(document.getElementById('account-name').value, profile.name)
+
+    context.user = { uid: 'workspace', accountType: 'GESTOR_WORKSPACE' }
+    await act(async () => render())
+    await open()
+    assert.deepEqual(lists.sort(), ['roles', 'units'])
+    assert.equal(document.getElementById('account-detail-roleId').disabled, false)
+    assert.equal(document.getElementById('account-detail-unitId').disabled, false)
+    for (const [field, label, excluded] of [['roleId', 'Engenheira', 'Cargo inativo'], ['unitId', 'Campinas', 'Unidade inativa'], ['workModel', 'Remoto', '']]) {
+      await act(async () => document.getElementById(`account-detail-${field}`).click())
+      const options = [...document.querySelectorAll('[role=option]')]
+      if (excluded) assert.ok(!options.some(option => option.textContent === excluded))
+      await act(async () => options.find(option => option.textContent === label).click())
+    }
+    pending = deferred()
+    await act(async () => submit())
+    assert.deepEqual({ roleId: writes[1].values.roleId, unitId: writes[1].values.unitId, workModel: writes[1].values.workModel }, { roleId: '2', unitId: '2', workModel: 'REMOTO' })
+    await act(async () => pending.resolve({ ...profile, name: 'Rosa Atualizada', roleId: '2', unitId: '2', workModel: 'REMOTO' }))
+    assert.equal(document.getElementById('account-name').value, 'Rosa Atualizada')
+    assert.match(document.querySelector('[role=status]').textContent, /Informações da conta atualizadas/)
+    assert.equal(document.querySelector('[role=dialog] input[type=password]'), null)
+  } finally {
+    await act(async () => root.unmount())
+    dom.window.close()
+    Object.assign(global, saved)
+  }
+})
+
+test('detalhes permitem nova tentativa; e-mail alterado separa PUT e confirmação, e desmontagem cancela escrita', async () => {
+  const dom = new JSDOM('<div id="root"></div>')
+  const saved = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+  global.window = dom.window; global.document = dom.window.document; global.IS_REACT_ACT_ENVIRONMENT = true
+  const root = createRoot(document.getElementById('root'))
+  let result, request = deferred(), read = async () => { throw new Error('Falha na consulta.') }
+  let writes = 0, emails = 0, signal
+  const env = environment({
+    '../services/account': {
+      getAccountDetails: () => read(),
+      updateAccountDetails: (values, currentSignal) => { writes++; signal = currentSignal; return request.promise },
+      refreshAccountIdentity: async () => { throw new Error('Dados salvos; entre novamente.') },
+      sendAccountEmailVerification: async () => { emails++ },
+    },
+    '../services/roles': { listRoles: async () => assert.fail('Visualização não deve buscar cargos') },
+    '../services/units': { listUnits: async () => assert.fail('Visualização não deve buscar unidades') },
+  })
+  const { useAccountDetails } = env.load('src/hooks/useAccountDetails.ts')
+  function Probe() { const current = useAccountDetails(false, false); React.useEffect(() => { result = current }); return null }
+  try {
+    await act(async () => root.render(React.createElement(Probe)))
+    assert.equal(result.error, 'Falha na consulta.')
+    read = async () => completeProfile
+    await act(async () => result.retry())
+    assert.equal(result.data.name, completeProfile.name)
+    let saving
+    await act(async () => { saving = result.save({}) })
+    assert.equal(result.submission.pending, true)
+    assert.equal(await result.save({}), null)
+    assert.equal(writes, 1)
+    await act(async () => { request.resolve({ ...completeProfile, email: 'novo@example.test' }); await saving })
+    assert.equal(result.data.email, 'novo@example.test')
+    assert.match(result.submission.message, /Dados salvos/)
+    assert.equal(result.submission.error, '')
+    assert.equal(emails, 0)
+    await act(async () => result.verifyEmail())
+    assert.equal(emails, 1)
+    assert.match(result.submission.message, /Confirmação enviada/)
+    request = deferred()
+    await act(async () => { saving = result.save({}) })
+    await act(async () => root.unmount())
+    assert.equal(signal.aborted, true)
+    request.resolve(completeProfile)
+    assert.equal(await saving, null)
   } finally {
     await act(async () => root.unmount())
     dom.window.close()
