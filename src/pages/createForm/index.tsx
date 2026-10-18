@@ -6,28 +6,22 @@ import { useNavigate } from 'react-router-dom'
 import AddFormQuestionModal from '../../components/addFormQuestionModal'
 import { AstroBrand, AstroIcon } from '../../components'
 import ConfirmationModal from '../../components/confirmationModal'
-import FormDatePicker from '../../components/formDatePicker'
+import FormInformationFields from '../../components/formInformationFields'
 import FormQuestionCard from '../../components/formQuestionCard'
 import HelpLink from '../../components/helpLink'
 import OptionsPopup from '../../components/optionsPopup'
 import PurpleButton from '../../components/purpleButton'
-import ToolbarSelect from '../../components/toolbarSelect'
-import { managerOptions, nrOptions, unitOptions } from '../../data/formOptions'
-import { makeQuestion, validateAndSanitizeForm } from '../../utils/forms'
-import { loadFormDraft, removeFormDraft, saveFormDraft } from '../../utils/formDraft'
+import { makeQuestion } from '../../utils/forms'
+import { useFormEditor } from '../../hooks/useFormEditor'
 import { animateRemoval } from '../../utils/animateRemoval'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { useQuestionReorder } from '../../hooks/useQuestionReorder'
-import type { CreateFormValues, FormQuestion, FormQuestionKind } from '../../types/forms'
+import type { FormQuestion, FormQuestionKind } from '../../types/forms'
 
-
-const initialValues: CreateFormValues = { name: '', description: '', manager: '', nr: '', unit: '', deadline: '', questions: [] }
 
 function CreateFormPage() {
   const navigate = useNavigate()
-  const [values, setValues] = useState<CreateFormValues>(() => {
-    try { return loadFormDraft(window.localStorage) ?? initialValues } catch { return initialValues }
-  })
+  const { values, setValues, options, loading, error: loadError, saving, retry, retryManagers, save } = useFormEditor()
   const [showAddQuestion, setShowAddQuestion] = useState(false)
   const [showBackConfirmation, setShowBackConfirmation] = useState(false)
   const [leaving, setLeaving] = useState(false)
@@ -118,28 +112,24 @@ function CreateFormPage() {
     })
   }
 
-  function saveDraft() {
+  async function persist(draft: boolean) {
+    if (saving || leaving) return
+    if (removingQuestionIdsRef.current.size) { setError('Aguarde a remoção da pergunta antes de salvar.'); return }
+    if (!deadlineValid) { setError('Informe uma data limite válida ou deixe o campo vazio.'); return }
     try {
-      saveFormDraft(window.localStorage, values)
+      await save(draft)
       setError('')
       setLeaving(true)
-      finishPageExit(() => navigate('/mainFormScreen'))
+      finishPageExit(() => navigate('/mainFormScreen', { state: { message: draft ? 'Rascunho salvo.' : 'Formulário criado.' } }))
     } catch (cause: unknown) {
-      setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o rascunho neste navegador.')
+      if (cause instanceof DOMException && cause.name === 'AbortError') return
+      setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o formulário.')
     }
   }
 
   function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!deadlineValid) { setError('Informe uma data limite válida ou deixe o campo vazio.'); return }
-    const validation = validateAndSanitizeForm(values)
-    const message = Object.values(validation.errors)[0]
-    if (message) { setError(message); return }
-    setValues(validation.values)
-    setError('')
-    try { removeFormDraft(window.localStorage) } catch { /* O formulário não depende do armazenamento local. */ }
-    setLeaving(true)
-    finishPageExit(() => navigate('/mainFormScreen'))
+    void persist(false)
   }
 
   return (
@@ -150,6 +140,7 @@ function CreateFormPage() {
         aria-haspopup="menu"
         aria-label="Voltar e abrir opções do formulário"
         className="payment-back-button"
+        disabled={saving}
         onClick={openMenu}
         ref={menuTriggerRef}
         type="button"
@@ -162,15 +153,14 @@ function CreateFormPage() {
 
       <main data-track-page={true} className="create-forms-main">
         <h1>Crie seu formulário</h1>
+        {loading && <p role="status">Carregando opções do formulário...</p>}
+        {loadError && <div role="alert"><p>{loadError}</p><button type="button" onClick={retry}>Tentar novamente</button><button type="button" onClick={() => navigate('/mainFormScreen')}>Voltar aos formulários</button></div>}
+        {saving && <p role="status">Salvando formulário...</p>}
         <form data-track-submit={BUTTONS.comuns.criar_forms} noValidate onSubmit={submitForm}>
+          <fieldset aria-label="Definição do formulário" className="forms-editor-fields" disabled={loading || !!loadError || saving || leaving} aria-busy={loading || saving}>
           <section aria-labelledby="create-forms-initial-title" className="create-forms-card">
             <h2 id="create-forms-initial-title">Informações iniciais</h2>
-            <div className="create-forms-field"><label htmlFor="create-forms-name">Nome do formulário</label><input id="create-forms-name" maxLength={100} onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))} placeholder="Digite o nome do formulário" value={values.name} /></div>
-            <div className="create-forms-field"><label htmlFor="create-forms-description">Descrição do formulário</label><input id="create-forms-description" maxLength={240} onChange={(event) => setValues((current) => ({ ...current, description: event.target.value }))} placeholder="Digite a descrição do formulário" value={values.description} /></div>
-            <div className="create-forms-field"><span className="create-forms-label">Gestor</span><ToolbarSelect trackingAction={BUTTONS.comuns.gestor} className="create-forms-select" label="Gestor" onValueChange={(manager) => setValues((current) => ({ ...current, manager }))} options={managerOptions} value={values.manager} /></div>
-            <div className="create-forms-field"><span className="create-forms-label">NR (opcional)</span><ToolbarSelect trackingAction={BUTTONS.comuns.nr} className="create-forms-select" label="NR (opcional)" onValueChange={(nr) => setValues((current) => ({ ...current, nr }))} options={nrOptions} value={values.nr} /></div>
-            <div className="create-forms-field"><span className="create-forms-label">Unidade (opcional)</span><ToolbarSelect trackingAction={BUTTONS.comuns.unidade} className="create-forms-select" label="Unidade (opcional)" onValueChange={(unit) => setValues((current) => ({ ...current, unit }))} options={unitOptions} value={values.unit} /></div>
-            <div className="create-forms-field"><label htmlFor="create-forms-deadline">Data limite (opcional)</label><FormDatePicker id="create-forms-deadline" label="Data limite" onValidityChange={setDeadlineValid} onChange={(deadline) => setValues((current) => ({ ...current, deadline }))} value={values.deadline} /></div>
+            <FormInformationFields prefix="create-forms" values={values} setValues={setValues} options={options} onDeadlineValidityChange={setDeadlineValid} onRetryManagers={retryManagers} />
           </section>
 
           <div aria-label="Perguntas do formulário" className="create-forms-questions" role="list">
@@ -212,6 +202,7 @@ function CreateFormPage() {
             <button data-track-action={BUTTONS.comuns.adicionar_pergunta} className="create-forms-add-question" onClick={() => setShowAddQuestion(true)} type="button"><AstroIcon className="create-forms-add-question-icon" name="plus-square" />Adicionar pergunta</button>
             <PurpleButton data-track-action={BUTTONS.comuns.criar_forms} type="submit"><AstroIcon name="file-plus" />Criar formulário</PurpleButton>
           </div>
+          </fieldset>
         </form>
       </main>
 
@@ -221,7 +212,7 @@ function CreateFormPage() {
         id="create-forms-options"
         items={[
           { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => closeMenu() },
-          { trackingAction: BUTTONS.comuns.salvar_rascunho, id: 'draft', label: 'Salvar rascunho', separatorAfter: true, onSelect: () => closeMenu(saveDraft) },
+          { trackingAction: BUTTONS.comuns.salvar_rascunho, id: 'draft', label: 'Salvar rascunho', disabled: loading || !!loadError || saving || leaving, separatorAfter: true, onSelect: () => closeMenu(() => { void persist(true) }) },
           { trackingAction: BUTTONS.comuns.sair, id: 'exit', label: 'Sair', tone: 'danger', onSelect: () => closeMenu(() => setShowBackConfirmation(true)) },
         ]}
         onClose={() => closeMenu()}

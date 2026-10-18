@@ -274,3 +274,11 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
   font-size: var(--astro-label-font-size);
   margin-block: 1rem;
 }
+.forms-editor-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
+.forms-editor-fields:disabled { opacity: 0.7; }
+.forms-editor-navigation { display: flex; flex-wrap: wrap; align-items: center; gap: calc(0.75rem * var(--astro-scale)); margin-bottom: var(--create-forms-section-gap); }
+.forms-recipients-feedback p { color: var(--astro-primary-error); }
+@media (max-width: 600px) {
+  .forms-editor-navigation { flex-direction: column; align-items: stretch; }
+  .forms-editor-navigation .astro-action { width: 100%; }
+}

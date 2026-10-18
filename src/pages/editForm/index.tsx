@@ -2,95 +2,35 @@ import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import AddFormQuestionModal from '../../components/addFormQuestionModal'
 import { AstroBrand, AstroIcon } from '../../components'
 import ConfirmationModal from '../../components/confirmationModal'
-import FormDatePicker from '../../components/formDatePicker'
+import FormInformationFields from '../../components/formInformationFields'
 import FormQuestionCard from '../../components/formQuestionCard'
 import HelpLink from '../../components/helpLink'
 import OptionsPopup from '../../components/optionsPopup'
 import PurpleButton from '../../components/purpleButton'
-import ToolbarSelect from '../../components/toolbarSelect'
-import { managerOptions, nrOptions, unitOptions } from '../../data/formOptions'
+import CompactPurpleButton from '../../components/compactPurpleButton'
+import { useFormEditor } from '../../hooks/useFormEditor'
 import { makeQuestion, validateAndSanitizeForm } from '../../utils/forms'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { useQuestionReorder } from '../../hooks/useQuestionReorder'
 import { animateRemoval } from '../../utils/animateRemoval'
-import type { CreateFormValues, FormQuestion, FormQuestionKind } from '../../types/forms'
-
-function createMockEditForm(): CreateFormValues {
-  return {
-    name: 'Inspeção de segurança do trabalho',
-    description: 'Identificação de riscos e ações preventivas no local de trabalho.',
-    manager: 'Gerente',
-    nr: 'NR1',
-    unit: 'Sede 2',
-    deadline: '2026-10-30',
-    questions: [
-      {
-        id: 'edit-form-risk-question',
-        kind: 'option',
-        title: 'Você identificou algum risco na área inspecionada?',
-        answer: '',
-        options: [
-          { id: 'edit-form-risk-yes', value: 'Sim' },
-          { id: 'edit-form-risk-no', value: 'Não' },
-          { id: 'edit-form-risk-other', value: '', isOther: true },
-        ],
-        multiple: false,
-        required: true,
-      },
-      {
-        id: 'edit-form-risk-description',
-        kind: 'text',
-        title: 'Descreva o risco ou a condição encontrada.',
-        answer: '',
-        options: [],
-        multiple: false,
-        required: false,
-      },
-      {
-        id: 'edit-form-risk-photo',
-        kind: 'photo',
-        title: 'Envie uma foto do local inspecionado.',
-        answer: '',
-        options: [],
-        multiple: false,
-        required: false,
-        maxFiles: 3,
-        maxFileSizeMb: 10,
-      },
-      {
-        id: 'edit-form-inspection-date',
-        kind: 'date',
-        title: 'Qual foi a data da última inspeção?',
-        answer: '',
-        options: [],
-        multiple: false,
-        required: true,
-      },
-    ],
-  }
-}
-
+import type { FormQuestion, FormQuestionKind } from '../../types/forms'
 
 function EditFormPage() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const [values, setValues] = useState<CreateFormValues>(() => {
-    const initial = createMockEditForm()
-    const state: unknown = location.state
-    if (state && typeof state === 'object' && 'form' in state && state.form && typeof state.form === 'object' && 'name' in state.form && 'description' in state.form && typeof state.form.name === 'string' && typeof state.form.description === 'string') {
-      return { ...initial, name: state.form.name, description: state.form.description }
-    }
-    return initial
-  })
+  const [searchParams] = useSearchParams()
+  const formId = searchParams.get('id') ?? ''
+  const { values, setValues, options, detail, loading, error: loadError, saving, locked, retry, retryManagers, save } = useFormEditor(formId)
   const [showAddQuestion, setShowAddQuestion] = useState(false)
   const [showBackConfirmation, setShowBackConfirmation] = useState(false)
   const [leaving, setLeaving] = useState(false)
   const { requestClose: finishPageExit } = useAnimatedClose(180)
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
+  const [showReloadConfirmation, setShowReloadConfirmation] = useState(false)
+  const [publish, setPublish] = useState(false)
   const [validationError, setValidationError] = useState('')
   const [deadlineValid, setDeadlineValid] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -191,6 +131,19 @@ function EditFormPage() {
     })
   }
 
+  function confirmSave(publishing = false) {
+    if (loading || loadError || saving || locked || leaving) return
+    if (removingQuestionIdsRef.current.size) { setValidationError('Aguarde a remoção da pergunta antes de salvar.'); return }
+    if (!deadlineValid) { setValidationError('Informe uma data limite válida ou deixe o campo vazio.'); return }
+    const validation = validateAndSanitizeForm(values, detail?.status === 'RASCUNHO' && !publishing)
+    const message = Object.values(validation.errors)[0]
+    setValidationError(message ?? '')
+    if (message) return
+    setValues(validation.values)
+    setPublish(publishing)
+    setShowSaveConfirmation(true)
+  }
+
   return (
     <div className={`create-forms-page edit-forms-page astro-scale-90${leaving ? ' create-forms-page--leaving' : ''}`}>
       <button data-track-action={BUTTONS.comuns.acoes}
@@ -199,6 +152,7 @@ function EditFormPage() {
         aria-haspopup="menu"
         aria-label="Voltar e abrir opções do formulário"
         className="payment-back-button"
+        disabled={saving}
         onClick={openMenu}
         ref={menuTriggerRef}
         type="button"
@@ -211,25 +165,26 @@ function EditFormPage() {
 
       <main data-track-page={true} className="create-forms-main edit-forms-main">
         <h1>Editar formulário</h1>
+        {loading && <p role="status">Carregando formulário...</p>}
+        {loadError && <div role="alert"><p>{loadError}</p><button type="button" onClick={retry}>Tentar novamente</button></div>}
+        <div className="forms-editor-navigation">
+        <CompactPurpleButton auto variant="outline" disabled={saving || leaving} onClick={() => {
+          if (loading || loadError || locked) navigate('/mainFormScreen')
+          else setShowBackConfirmation(true)
+        }}><AstroIcon name="back" />Voltar aos formulários</CompactPurpleButton>
+        {!loading && !loadError && <CompactPurpleButton auto variant="outline" disabled={saving || leaving} onClick={() => setShowReloadConfirmation(true)}><AstroIcon name="reload" />Recarregar formulário</CompactPurpleButton>}
+        </div>
+        {locked && <p role="status">Este formulário está concluído ou já recebeu respostas e está disponível somente para consulta.</p>}
+        {saving && <p role="status">{publish ? 'Salvando e publicando formulário...' : 'Salvando formulário...'}</p>}
         <form data-track-submit={BUTTONS.comuns.salvar_alteracoes} noValidate onSubmit={(event) => {
           event.preventDefault()
-          if (!deadlineValid) { setValidationError('Informe uma data limite válida ou deixe o campo vazio.'); return }
-          const validation = validateAndSanitizeForm(values)
-          const message = Object.values(validation.errors)[0]
-          setValidationError(message ?? '')
-          if (message) return
-          setValues(validation.values)
-          setShowSaveConfirmation(true)
+          confirmSave()
         }}>
           {validationError && <p className="form-validation-error" role="alert">{validationError}</p>}
+          <fieldset aria-label="Definição do formulário" className="forms-editor-fields" disabled={loading || !!loadError || saving || locked || leaving} aria-busy={loading || saving}>
           <section aria-labelledby="edit-forms-initial-title" className="create-forms-card">
             <h2 id="edit-forms-initial-title">Informações do formulário</h2>
-            <div className="create-forms-field"><label htmlFor="edit-forms-name">Nome do formulário</label><input id="edit-forms-name" maxLength={100} onChange={(event) => { setValues((current) => ({ ...current, name: event.target.value })) }} value={values.name} /></div>
-            <div className="create-forms-field"><label htmlFor="edit-forms-description">Descrição do formulário</label><input id="edit-forms-description" maxLength={240} onChange={(event) => { setValues((current) => ({ ...current, description: event.target.value })) }} value={values.description} /></div>
-            <div className="create-forms-field"><span className="create-forms-label">Gestor</span><ToolbarSelect trackingAction={BUTTONS.comuns.gestor} className="create-forms-select" label="Gestor" onValueChange={(manager) => { setValues((current) => ({ ...current, manager })) }} options={managerOptions} value={values.manager} /></div>
-            <div className="create-forms-field"><span className="create-forms-label">NR (opcional)</span><ToolbarSelect trackingAction={BUTTONS.comuns.nr} className="create-forms-select" label="NR (opcional)" onValueChange={(nr) => { setValues((current) => ({ ...current, nr })) }} options={nrOptions} value={values.nr} /></div>
-            <div className="create-forms-field"><span className="create-forms-label">Unidade (opcional)</span><ToolbarSelect trackingAction={BUTTONS.comuns.unidade} className="create-forms-select" label="Unidade (opcional)" onValueChange={(unit) => { setValues((current) => ({ ...current, unit })) }} options={unitOptions} value={values.unit} /></div>
-            <div className="create-forms-field"><label htmlFor="edit-forms-deadline">Data limite (opcional)</label><FormDatePicker id="edit-forms-deadline" label="Data limite" onValidityChange={setDeadlineValid} onChange={(deadline) => { setValues((current) => ({ ...current, deadline })) }} value={values.deadline} /></div>
+            <FormInformationFields prefix="edit-forms" values={values} setValues={setValues} options={options} onDeadlineValidityChange={setDeadlineValid} onRetryManagers={retryManagers} />
           </section>
 
           <div aria-label="Perguntas do formulário" className="create-forms-questions" role="list">
@@ -263,7 +218,9 @@ function EditFormPage() {
               Adicionar pergunta
             </button>
             <PurpleButton data-track-action={BUTTONS.comuns.salvar_alteracoes} type="submit"><AstroIcon name="file-plus" />Salvar alterações</PurpleButton>
+            {detail?.status === 'RASCUNHO' && <PurpleButton type="button" onClick={() => confirmSave(true)}>Publicar formulário</PurpleButton>}
           </div>
+          </fieldset>
         </form>
       </main>
 
@@ -281,6 +238,13 @@ function EditFormPage() {
       />, document.body)}
 
       {showAddQuestion && <AddFormQuestionModal onCancel={() => setShowAddQuestion(false)} onChoose={addQuestion} />}
+      {showReloadConfirmation && <ConfirmationModal
+        backdrop="dimmed" preservePageScroll confirmLabel="Recarregar"
+        title="Recarregar este formulário?"
+        description="As alterações não salvas serão descartadas e os dados salvos serão carregados novamente."
+        onCancel={() => setShowReloadConfirmation(false)} onConfirm={() => null}
+        onConfirmed={() => { setShowReloadConfirmation(false); setValidationError(''); retry() }}
+      />}
       {showBackConfirmation && <ConfirmationModal trackingName={DIALOG_NAMES.descartar_alteracoes_formulario}
         backdrop="dimmed"
         preservePageScroll
@@ -301,15 +265,16 @@ function EditFormPage() {
         backdrop="dimmed"
         preservePageScroll
         className="edit-forms-save-modal"
-        confirmLabel="Salvar"
+        confirmLabel={publish ? 'Publicar' : 'Salvar'}
+        progressLabel={publish ? 'Salvando e publicando formulário...' : 'Salvando formulário...'}
         onCancel={() => setShowSaveConfirmation(false)}
-        onConfirm={() => null}
+        onConfirm={async () => { await save(false, publish); return null }}
         onConfirmed={() => {
           setShowSaveConfirmation(false)
           setLeaving(true)
-          finishPageExit(() => navigate('/mainFormScreen'))
+          finishPageExit(() => navigate('/mainFormScreen', { state: { message: publish ? 'Formulário publicado.' : 'Formulário salvo.' } }))
         }}
-        title="Deseja salvar as alterações deste formulário?"
+        title={publish ? 'Deseja salvar e publicar este formulário?' : 'Deseja salvar as alterações deste formulário?'}
       />}
       <HelpLink />
     </div>
