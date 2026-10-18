@@ -11,10 +11,11 @@ interface CollaboratorIdentityProps {
 
 function CollaboratorIdentity({ name, photoUrl, initials, large = false }: CollaboratorIdentityProps) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null)
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null)
   return <span className={`manager-identity collaborator-identity${large ? ' collaborator-identity--large' : ''}`}>
     <span aria-hidden="true" className={`manager-avatar${large ? ' manager-avatar--large' : ''}`}>
       {photoUrl && photoUrl !== failedUrl
-        ? <img alt="" onError={() => setFailedUrl(photoUrl)} src={photoUrl} />
+        ? <><img alt="" data-loading={loadedUrl !== photoUrl} onLoad={() => setLoadedUrl(photoUrl)} onError={() => setFailedUrl(photoUrl)} src={photoUrl} />{loadedUrl !== photoUrl && <span className="api-skeleton api-loading-photo" />}</>
         : initials || getInitials(name)}
     </span>
     {!large && <TruncatedText>{name}</TruncatedText>}

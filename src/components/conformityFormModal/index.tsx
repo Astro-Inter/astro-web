@@ -1,3 +1,6 @@
+import { useActionFeedback } from '../../hooks/useActionFeedback'
+import ActionLoading from '../actionLoading'
+import ApiContentSkeleton from '../apiContentSkeleton'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState, type FormEvent } from 'react'
@@ -28,7 +31,7 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
   const editing = Boolean(employee)
   const [values, setValues] = useState<ConformityFormValues>(initialValues ?? { employeeId: '', nr: '', expiresAt: '' })
   const [errors, setErrors] = useState<ConformityValidationErrors>({})
-  const [formError, setFormError] = useState('')
+  const notify = useActionFeedback()
   const [dateValid, setDateValid] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const submittingRef = useRef(false)
@@ -45,7 +48,6 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
   function update<Field extends keyof ConformityFormValues>(field: Field, value: ConformityFormValues[Field]) {
     setValues((current) => ({ ...current, [field]: value }))
     setErrors((current) => ({ ...current, [field]: undefined }))
-    setFormError('')
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>, dismiss: () => void) {
@@ -57,14 +59,13 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
 
     submittingRef.current = true
     setSubmitting(true)
-    setFormError('')
     let submitError: string | null
     try { submitError = await onSubmit(values) }
     catch (error: unknown) { submitError = error instanceof Error ? error.message : 'Não foi possível salvar a conformidade.' }
     submittingRef.current = false
     setSubmitting(false)
     if (submitError) {
-      setFormError(submitError)
+      notify(submitError, 'error')
       return
     }
 
@@ -84,9 +85,9 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
             <div className="account-profile-identity"><h3>{employee.name}</h3><p>{employee.email}</p></div>
           </div>
         )}
-        {loading && <p role="status">Carregando dados da conformidade...</p>}
+        {loading && <ApiContentSkeleton className="conformity-form-skeleton" label="Carregando dados da conformidade" fields={employee ? 2 : 3} columns={2} actions={0} />}
         {loadError && <div role="alert"><p>{loadError}</p><button className="astro-modal-cancel" onClick={onRetry} type="button">Tentar novamente</button></div>}
-        <fieldset className="conformity-form-fields" disabled={unavailable}>
+        <fieldset hidden={loading} className="conformity-form-fields" disabled={unavailable}>
           <div className="position-dialog-row conformity-form-row">
             {!employee && (
               <div className="position-dialog-field">
@@ -107,8 +108,7 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
             </div>
           </div>
         </fieldset>
-        {formError && <p className="position-dialog-form-error" role="alert">{formError}</p>}
-        {submitting && <p role="status">Salvando conformidade...</p>}
+        <ActionLoading active={submitting} />
 
         <div className="astro-modal-actions">
           <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" disabled={submitting} onClick={dismiss} type="button">Cancelar</button>

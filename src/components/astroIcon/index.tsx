@@ -35,6 +35,7 @@ type AstroIconName =
   | 'chevron-left'
   | 'chevron-right'
   | 'close'
+  | 'check'
   | 'dots'
   | 'pencil'
   | 'person-outline'
@@ -86,6 +87,7 @@ const iconFiles: Record<AstroIconName, { file: string; width: number; height: nu
   'chevron-left': { file: 'chevronLeft.svg', width: 24, height: 24 },
   'chevron-right': { file: 'chevronRight.svg', width: 24, height: 24 },
   close: { file: 'close.svg', width: 24, height: 24 },
+  check: { file: 'check.svg', width: 24, height: 24 },
   dots: { file: 'dots.svg', width: 24, height: 24 },
   pencil: { file: 'pencil.svg', width: 24, height: 24 },
   'person-outline': { file: 'personOutline.svg', width: 24, height: 24 },

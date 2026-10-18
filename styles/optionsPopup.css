@@ -6,7 +6,7 @@
   border: 0;
   border-radius: calc(0.625rem * var(--astro-popup-zoom));
   color: #f6f6f6;
-  background: #332754;
+  background: var(--astro-popup-background);
   box-shadow: 0 16px 44px rgb(0 0 0 / 22%);
   font-family: "Montserrat", sans-serif;
   animation: astro-popup-in var(--astro-popover-duration) ease both;
@@ -33,6 +33,8 @@
 }
 
 .astro-options-popup-item--danger { color: #eb6264; }
+.astro-options-popup-item { min-width: 0; }
+.astro-options-popup-item .astro-truncated-text { width: 100%; cursor: inherit; }
 .astro-options-popup-item--muted { color: #bcbacc; }
 .astro-options-popup-item--disabled { color: #aaa4b8; cursor: not-allowed; }
 .astro-options-popup-item--disabled:hover { color: #aaa4b8; }

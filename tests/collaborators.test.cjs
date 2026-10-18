@@ -133,7 +133,7 @@ test('visualização e edição renderizam registros sem CPF/modalidade com camp
   assert.match(view, /id="collaborator-modality"[^>]*placeholder="Não informado"[^>]*value=""/)
   assert.doesNotMatch(view, /type="password"/)
   const edit = render('edit')
-  assert.match(edit, /Selecione modalidade/)
+  assert.match(edit, /Selecione a modalidade/)
   assert.match(edit, /Salvar alterações/)
   assert.doesNotMatch(edit, /type="password"/)
 })

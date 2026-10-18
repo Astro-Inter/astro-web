@@ -1,3 +1,5 @@
+import { notifyAction } from '../../utils/actionFeedback'
+import ActionLoading from '../actionLoading'
 import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState, type FormEvent } from 'react'
 import type { CollaboratorDetails, CollaboratorFormValues, CollaboratorOptions, CollaboratorStatus } from '../../types/collaborator'
@@ -48,9 +50,12 @@ function CollaboratorForm({ subject = 'colaborador', collaborator, mode, options
     try {
       const error = await onSubmit(prepared)
       setSubmission({ saving: false, error: error ?? '' })
+      if (error) notifyAction(error, 'error')
       if (!error && mode === 'create') onCancel()
     } catch (error: unknown) {
-      setSubmission({ saving: false, error: error instanceof Error ? error.message : `Não foi possível salvar o ${subject}.` })
+      const message = error instanceof Error ? error.message : `Não foi possível salvar o ${subject}.`
+      setSubmission({ saving: false, error: message })
+      notifyAction(message, 'error')
     } finally { busy.current = false }
   }
 
@@ -73,7 +78,7 @@ function CollaboratorForm({ subject = 'colaborador', collaborator, mode, options
           if (field === 'modality') update(field, value as CollaboratorFormValues['modality'])
           else if (field === 'status') update(field, value as CollaboratorStatus)
           else update(field, value)
-        }} options={[{ label: `Selecione ${label.toLowerCase()}`, value: '' }, ...choices]} value={values[field]} />
+        }} options={[{ label: `Selecione ${field === 'roleId' || field === 'status' ? 'o' : 'a'} ${label.toLowerCase()}`, value: '', tone: 'muted' }, ...choices]} value={values[field]} />
       {errors[field] && <span id={`${id}-error`} role="alert">{errors[field]}</span>}
     </div>
   }
@@ -83,21 +88,19 @@ function CollaboratorForm({ subject = 'colaborador', collaborator, mode, options
       <div className="account-profile-photo"><CollaboratorIdentity large name={collaborator.name} photoUrl={collaborator.profilePhotoUrl} initials={collaborator.avatarInitials} /></div>
       <div className="account-profile-identity"><h3>{collaborator.name}</h3><p>{collaborator.email}</p></div>
     </div>}
-    {mode === 'create' && <p className="astro-modal-description">O colaborador será pré-cadastrado. A conclusão do cadastro segue o fluxo por e-mail.</p>}
     <fieldset className="position-dialog-fields" disabled={locked}>
       <legend className="sr-only">Dados do {subject}</legend>
       <div className="account-details-grid">
-        <FormField error={errors.name} id="collaborator-name" label="Nome" maxLength={255} onChange={(event) => update('name', event.target.value)} readOnly={!editable} value={values.name} />
-        <FormField error={errors.cpf} id="collaborator-cpf" inputMode="numeric" label="CPF" maxLength={14} onChange={(event) => update('cpf', formatCpfCnpj(event.target.value.replace(/\D/g, '').slice(0, 11)))} placeholder="Não informado" readOnly={!editable} value={values.cpf} />
-        <FormField error={errors.email} id="collaborator-email" label="E-mail" maxLength={255} onChange={(event) => update('email', event.target.value)} readOnly={!editable} type="email" value={values.email} />
+        <FormField error={errors.name} id="collaborator-name" label="Nome" placeholder={editable ? "Digite o nome completo" : undefined} maxLength={255} onChange={(event) => update('name', event.target.value)} readOnly={!editable} value={values.name} />
+        <FormField error={errors.cpf} id="collaborator-cpf" inputMode="numeric" label="CPF" maxLength={14} onChange={(event) => update('cpf', formatCpfCnpj(event.target.value.replace(/\D/g, '').slice(0, 11)))} placeholder={editable ? "000.000.000-00" : "Não informado"} readOnly={!editable} value={values.cpf} />
+        <FormField error={errors.email} id="collaborator-email" label="E-mail" placeholder={editable ? "example@email.com" : "Não informado"} maxLength={255} onChange={(event) => update('email', event.target.value)} readOnly={!editable} type="email" value={values.email} />
         {editable ? select('unitId', 'Unidade', unitOptions) : <FormField id="collaborator-unitId" label="Unidade" readOnly value={collaborator?.unit ?? ''} />}
         {editable ? select('roleId', 'Cargo', positionOptions) : <FormField id="collaborator-roleId" label="Cargo" readOnly value={collaborator?.position ?? ''} />}
         {editable ? select('modality', 'Modalidade', Object.entries(collaboratorModalityLabels).map(([value, label]) => ({ value, label }))) : <FormField id="collaborator-modality" label="Modalidade" placeholder="Não informado" readOnly value={values.modality ? collaboratorModalityLabels[values.modality] : ''} />}
         {mode === 'edit' ? select('status', 'Status', statusOptions) : <FormField id="collaborator-status" label="Status" readOnly value={collaboratorStatusLabels[values.status]} />}
       </div>
     </fieldset>
-    {submission.saving && <p role="status">Salvando {subject}...</p>}
-    {submission.error && <p className="manager-details-form-error" role="alert">{submission.error}</p>}
+    <ActionLoading active={submission.saving} />
     <div className="astro-modal-actions">
       <button data-track-action={editable ? BUTTONS.comuns.cancelar : BUTTONS.comuns.voltar} className="astro-modal-cancel" disabled={saving || submission.saving} onClick={onCancel} type="button">{editable ? 'Cancelar' : 'Voltar'}</button>
       {editable && <PurpleButton data-track-action={mode === 'create' ? BUTTONS.comuns.adicionar : BUTTONS.comuns.salvar_alteracoes} disabled={locked} type="submit">{mode === 'create' ? 'Adicionar' : 'Salvar alterações'}</PurpleButton>}

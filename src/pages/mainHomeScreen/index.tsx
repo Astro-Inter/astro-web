@@ -30,7 +30,6 @@ function MainHomeScreenPage() {
             {loading && <HomeDashboardSkeleton />}
             {error && <div className="home-card home-api-feedback"><p role="alert">{error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} className="astro-action" onClick={retry} type="button">Tentar novamente</button></div>}
             {data && <>
-              <p className="home-reference-date">Dados de <time dateTime={data.referenceDate}>{data.referenceDate.split('-').reverse().join('/')}</time></p>
               <div className="home-dashboards home-dashboards--ready">
                 <ComplianceOverviewCard overview={data.complianceOverview} onViewDashboards={() => navigate('/mainDashboardsScreen')} />
                 <div className="home-summary">

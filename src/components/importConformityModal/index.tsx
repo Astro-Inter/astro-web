@@ -1,3 +1,5 @@
+import { notifyAction } from '../../utils/actionFeedback'
+import ActionLoading from '../actionLoading'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState, type FormEvent } from 'react'
@@ -62,17 +64,26 @@ function ImportConformityModal({ dimmed = false, onClose, onImport, onManualAdd,
     setSelection(current => ({ ...current, error: '' }))
     try {
       const result = await onImport(selection.file)
-      setSelection(current => ({ ...current, error: result.error ?? '' }))
-      setImportState({ submitting: false, result: result.data })
+      if (result.error) notifyAction(result.error, 'error')
+      else if (result.data) {
+        const { processed, inserted, updated, rejected, rejectedRows } = result.data
+        notifyAction(`Importação concluída: ${processed} processadas, ${inserted} adicionadas, ${updated} atualizadas e ${rejected} rejeitadas.`, rejected > 0 && inserted + updated === 0 ? 'error' : 'success')
+        if (rejectedRows.length > 0) {
+          const reasons = new Map<string, number[]>()
+          for (const row of rejectedRows) reasons.set(row.reason, [...(reasons.get(row.reason) ?? []), row.row])
+          notifyAction([...reasons].map(([reason, rows]) => `${rows.length === 1 ? 'Linha' : 'Linhas'} ${rows.join(', ')}: ${reason}`).join(' '), 'error')
+        }
+      }
+      setImportState({ submitting: false, result: result.error ? null : result.data })
     } catch (error: unknown) {
-      setSelection(current => ({ ...current, error: error instanceof Error ? error.message : 'Não foi possível importar a planilha.' }))
+      notifyAction(error instanceof Error ? error.message : 'Não foi possível importar a planilha.', 'error')
       setImportState({ submitting: false, result: null })
     } finally { submittingRef.current = false }
   }
 
   return (
     <>
-      <AppModal trackingName={DIALOG_NAMES.adicionar_conformidades} dismissible={!importState.submitting} className="import-conformity-modal" dimmed={dimmed || explanationOpen} onClose={onClose} open={open} title="Adicionar conformidades">
+      <AppModal trackingName={DIALOG_NAMES.adicionar_conformidades} dismissible={!importState.submitting} className="import-conformity-modal" dimmed={dimmed || explanationOpen} onClose={onClose} open={open && !importState.result} title="Adicionar conformidades">
         {(dismiss) => <form data-track-submit={BUTTONS.comuns.adicionar} aria-busy={importState.submitting} noValidate onSubmit={handleSubmit}>
           <p className="import-conformity-subtitle">Adicione manualmente ou importe conformidades anteriores para o Astro.</p>
           <CompactPurpleButton data-track-action={BUTTONS.comuns.adicionar_manualmente} disabled={importState.submitting} aria-haspopup="dialog" className="import-conformity-manual" onClick={onManualAdd} type="button">
@@ -82,11 +93,7 @@ function ImportConformityModal({ dimmed = false, onClose, onImport, onManualAdd,
 
           <SpreadsheetDropzone disabled={importState.submitting} className="import-conformity-dropzone" file={selection.file} id="import-conformity-file" onFileSelect={selectFile} onFileRemove={() => { setSelection({ file: null, error: '' }); setImportState({ submitting: false, result: null }) }} />
           {selection.error && <p className="attach-excel-feedback" role="alert">{selection.error}</p>}
-          {importState.submitting && <p role="status">Importando conformidades...</p>}
-          {importState.result && <section aria-label="Resultado da importação" className="conformity-import-result" tabIndex={0}>
-            <p role="status">Importação concluída: {importState.result.processed} processadas, {importState.result.inserted} adicionadas, {importState.result.updated} atualizadas e {importState.result.rejected} rejeitadas.</p>
-            {importState.result.rejectedRows.length > 0 && <div role="alert"><p>Confira as linhas rejeitadas antes de reenviar a planilha:</p><ul>{importState.result.rejectedRows.map(row => <li key={row.row}>Linha {row.row} · CPF {row.cpf} · NR {row.nr}: {row.reason}</li>)}</ul></div>}
-          </section>}
+          <ActionLoading active={importState.submitting} />
 
           <button data-track-action={BUTTONS.comuns.como_importar_planilha} disabled={importState.submitting} aria-haspopup="dialog" className="attach-excel-model-link import-conformity-model-link" onClick={() => setExplanationOpen(true)} ref={explanationTriggerRef} type="button">
             Veja o modelo de planilha necessário

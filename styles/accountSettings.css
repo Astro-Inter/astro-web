@@ -85,3 +85,5 @@
   .account-logout-action > .astro-action { width: 100%; max-width: none; min-height: 3rem; font-size: 0.9375rem; }
   .account-transfer-card h2 { line-height: 1.4; }
 }
+
+.manager-details-modal .account-details-form > .position-dialog-fields:first-child .account-details-grid { margin-top: 0; }

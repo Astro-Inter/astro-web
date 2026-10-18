@@ -1,4 +1,4 @@
-import LoadingPlanet from '../loadingPlanet'
+import LoadingIndicator from '../loadingIndicator'
 
 interface LoadingScreenStateProps {
   label: string
@@ -10,7 +10,7 @@ function LoadingScreenState({ label, busy = true, error = '' }: LoadingScreenSta
   return (
     <main className="loading-screen-page" aria-busy={busy}>
       <section className="loading-screen-content astro-scale-90" aria-label={label}>
-        {busy ? <LoadingPlanet label={label} /> : <p role="alert">{error || 'Não foi possível verificar sua sessão.'}</p>}
+        {busy ? <LoadingIndicator /> : <p role="alert">{error || 'Não foi possível verificar sua sessão.'}</p>}
       </section>
     </main>
   )

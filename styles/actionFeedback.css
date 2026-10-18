@@ -1,0 +1,30 @@
+.astro-action-notices { position: fixed; inset: 1.5rem 1.5rem auto auto; display: grid; gap: .75rem; margin: 0; padding: 0; border: 0; width: min(26rem, calc(100vw - 3rem)); overflow: visible; background: transparent; pointer-events: none; }
+.astro-action-notices:not(:popover-open) { display: none; }
+.astro-action-notice {
+  margin: 0; box-sizing: border-box; width: 100%; pointer-events: auto;
+  display: flex; align-items: center; gap: calc(1rem * var(--astro-scale)); padding: calc(1.2rem * var(--astro-scale)) calc(1.5rem * var(--astro-scale));
+  border: 1px solid rgb(169 149 236 / 40%); border-radius: .625rem;
+  background: var(--astro-popup-background); color: var(--astro-text, #f8f7fc);
+  box-shadow: none; font-family: "Montserrat", sans-serif;
+  animation: action-notice-enter 180ms ease-out both;
+}
+.astro-action-notice p { flex: 1; min-width: 0; margin: 0; font-size: var(--astro-label-font-size); font-weight: 400; line-height: 1.35; overflow-wrap: anywhere; }
+.astro-action-notice[data-leaving="true"] { animation: action-notice-leave 180ms ease-in both; pointer-events: none; }
+@keyframes action-notice-enter { from { opacity: 0;  } to { opacity: 1;  } }
+@keyframes action-notice-leave { to { opacity: 0;  } }
+@media (prefers-reduced-motion: reduce) { .astro-action-notice, .astro-action-notice[data-leaving="true"] { animation: none; } }
+
+
+.astro-action-notice .notification-item-icon { position: relative; display: grid; place-items: center; flex: none; padding: 0; width: calc(1.75rem * var(--astro-scale)); height: calc(1.75rem * var(--astro-scale)); }
+.astro-action-notice button { display: grid; place-items: center; flex: 0 0 var(--astro-control-icon-hit-size); width: var(--astro-control-icon-hit-size); height: var(--astro-control-icon-hit-size); margin-right: calc(-.35rem * var(--astro-scale)); padding: 0; border: 0; border-radius: var(--astro-control-radius); background: transparent; cursor: pointer; transition: filter 220ms ease; }
+/* O X ocupa mais área visível que o check na mesma grade de 24px. */
+.astro-action-notice button .astro-icon { width: calc(var(--astro-icon-sm) * .85); height: calc(var(--astro-icon-sm) * .85); }
+.astro-action-notice button:hover { filter: var(--astro-input-icon-hover-filter); }
+.astro-action-notice button:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
+
+.astro-action-notice .notification-item-icon .astro-icon { position: absolute; inset: 0; margin: auto; padding: 0; transform: none; width: var(--astro-icon-sm); height: var(--astro-icon-sm); }
+
+/* O popover permanece acessível dentro do modal sem herdar sua redução de escala. */
+.astro-modal > .astro-action-notices[data-in-dialog="true"] { zoom: calc(1 / var(--astro-popup-zoom)); }
+
+.astro-action-notice[data-tone="error"] .notification-item-icon .astro-icon { width: var(--astro-icon-md); height: var(--astro-icon-md); }

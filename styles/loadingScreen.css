@@ -23,55 +23,8 @@
   justify-content: center;
 }
 
-.session-error-content {
-  display: grid;
-  justify-items: center;
-  gap: clamp(2rem, 5svh, 3rem);
-  width: min(100%, 36rem);
-}
-
-.session-error-brand .astro-brand { margin: 0; }
-.session-error-brand img { width: 11rem; height: auto; }
-
-.session-error-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  padding: clamp(1.5rem, 4vw, 3rem);
-  border: 1px solid rgb(248 247 252 / 10%);
-  border-radius: 1.25rem;
-  background: var(--astro-orb-base);
-  text-align: center;
-}
-
-.session-error-symbol {
-  display: grid;
-  place-items: center;
-  width: 4rem;
-  height: 4rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid rgb(235 98 100 / 24%);
-  border-radius: 50%;
-  background: rgb(235 98 100 / 10%);
-}
-
-.session-error-symbol .astro-icon { width: 2rem; height: 2rem; }
-.session-error-card h1 { margin: 0; color: var(--astro-text); font-size: var(--astro-heading-font-size); font-weight: 600; line-height: 1.3; letter-spacing: -.025em; }
-.session-error-card h1:focus { outline: none; }
-.session-error-description { max-width: 29rem; margin: 1rem 0 0; color: #c4bdd4; font-size: 1rem; line-height: 1.65; overflow-wrap: anywhere; }
-.session-error-actions { display: grid; gap: .75rem; width: 100%; margin-top: 2rem; }
-.session-error-actions .astro-action { width: 100%; max-width: none; min-height: 3rem; }
-.session-error-actions .astro-icon { filter: brightness(0) invert(1); }
-.session-error-actions .session-error-login { border: 1px solid rgb(248 247 252 / 24%); background: transparent; }
-.session-error-actions .session-error-login:hover { background: var(--astro-focus-surface); }
-.session-error-actions .astro-action:disabled { opacity: .6; cursor: wait; }
-.session-error-feedback { margin: 1rem 0 0; color: var(--astro-text); font-size: .9375rem; line-height: 1.5; }
-
-@media (max-width: 480px) {
-  .session-error-page { padding: 2rem 1rem; }
-  .session-error-card h1 { font-size: 1.5rem; }
-}
+.session-error-page .login-heading h1:focus { outline: none; }
+.session-error-page .login-heading p { overflow-wrap: anywhere; }
 
 .registration-loading-content {
   display: flex;

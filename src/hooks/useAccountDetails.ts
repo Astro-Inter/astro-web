@@ -1,3 +1,4 @@
+import { notifyAction } from '../utils/actionFeedback'
 import { useEffect, useRef, useState } from 'react'
 import { getAccountDetails, refreshAccountIdentity, sendAccountEmailVerification, updateAccountDetails } from '../services/account'
 import { listRoles } from '../services/roles'
@@ -60,10 +61,14 @@ export function useAccountDetails(editable: boolean, canChangeLinks: boolean) {
       if (!mounted.current || controller.signal.aborted) return null
       setState(current => ({ ...current, data }))
       setSubmission({ pending: false, error: '', message, emailChanged })
+      notifyAction(message)
       return data
     } catch (error: unknown) {
-      if (mounted.current && !controller.signal.aborted) setSubmission({ pending: false, message: '', emailChanged: false,
-        error: error instanceof Error ? error.message : 'Não foi possível salvar sua conta.' })
+      if (mounted.current && !controller.signal.aborted) {
+        const message = error instanceof Error ? error.message : 'Não foi possível salvar sua conta.'
+        setSubmission({ pending: false, message: '', emailChanged: false, error: message })
+        notifyAction(message, 'error')
+      }
       return null
     } finally { if (requestRef.current === controller) requestRef.current = null }
   }
@@ -75,9 +80,16 @@ export function useAccountDetails(editable: boolean, canChangeLinks: boolean) {
     setSubmission(current => ({ ...current, pending: true, error: '' }))
     try {
       await sendAccountEmailVerification()
-      if (mounted.current && !controller.signal.aborted) setSubmission(current => ({ ...current, pending: false, message: 'Confirmação enviada. Confira a caixa de entrada do novo e-mail.' }))
+      if (mounted.current && !controller.signal.aborted) {
+        setSubmission(current => ({ ...current, pending: false, message: 'Confirmação enviada. Confira a caixa de entrada do novo e-mail.' }))
+        notifyAction('Confirmação enviada. Confira a caixa de entrada do novo e-mail.')
+      }
     } catch (error: unknown) {
-      if (mounted.current && !controller.signal.aborted) setSubmission(current => ({ ...current, pending: false, error: error instanceof Error ? error.message : 'Não foi possível enviar a confirmação.' }))
+      if (mounted.current && !controller.signal.aborted) {
+        const message = error instanceof Error ? error.message : 'Não foi possível enviar a confirmação.'
+        setSubmission(current => ({ ...current, pending: false, error: message }))
+        notifyAction(message, 'error')
+      }
     } finally { if (requestRef.current === controller) requestRef.current = null }
   }
 

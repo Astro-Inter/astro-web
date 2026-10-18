@@ -1,3 +1,4 @@
+import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { SHOWCASE_NAMES } from '../../gtm/showcases'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
@@ -42,7 +43,7 @@ function MainConformityScreenPage() {
   const [editForm, setEditForm] = useState({ dimmed: false, closing: false })
   const actions = useActionsMenu()
   const [savedConformityId, setSavedConformityId] = useState<string | null>(null)
-  const [feedback, setFeedback] = useState('')
+  const setFeedback = useActionFeedback()
 
   useEffect(() => () => {
     if (savedTimerRef.current !== null) window.clearTimeout(savedTimerRef.current)
@@ -182,8 +183,7 @@ function MainConformityScreenPage() {
             </div>
           </div>
 
-          {api.error ? <div className="position-dialog-form-error" role="alert"><p>{api.error}</p><button className="astro-modal-cancel" onClick={api.retry} type="button">Tentar novamente</button></div> : <DataTable trackingName={SHOWCASE_NAMES.lista_conformidades} ariaLabel="Conformidades" columns={columns} emptyMessage="Nenhuma conformidade encontrada para esses filtros." getRowClassName={(conformity) => conformity.id === savedConformityId ? 'astro-data-table-row--saved' : undefined} getRowKey={(conformity) => conformity.id} rows={visibleConformities} loadingContent={api.loading ? <tr><td colSpan={columns.length}>Carregando conformidades...</td></tr> : undefined} />}
-          <p className="conformity-feedback" role="status">{feedback}</p>
+          {api.error ? <div className="position-dialog-form-error" role="alert"><p>{api.error}</p><button className="astro-modal-cancel" onClick={api.retry} type="button">Tentar novamente</button></div> : <DataTable trackingName={SHOWCASE_NAMES.lista_conformidades} ariaLabel="Conformidades" columns={columns} emptyMessage="Nenhuma conformidade encontrada para esses filtros." getRowClassName={(conformity) => conformity.id === savedConformityId ? 'astro-data-table-row--saved' : undefined} getRowKey={(conformity) => conformity.id} rows={visibleConformities} loading={api.loading} />}
         </section>
         {openConformity && createPortal(
           <OptionsPopup trackingName={DIALOG_NAMES.acoes_conformidade}
@@ -208,11 +208,7 @@ function MainConformityScreenPage() {
         <ImportConformityModal
           dimmed={addFlow.manualOpen}
           onClose={closeAddFlow}
-          onImport={async file => {
-            const result = await api.importFile(file)
-            if (result.error === null) showSavedConformity(null, `Importação concluída: ${result.data.inserted} adicionadas, ${result.data.updated} atualizadas e ${result.data.rejected} rejeitadas.`)
-            return result
-          }}
+          onImport={api.importFile}
           onManualAdd={() => setAddFlow((current) => ({ ...current, manualOpen: true }))}
           open={!addFlow.importClosing}
         />

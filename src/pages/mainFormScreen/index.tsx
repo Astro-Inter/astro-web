@@ -1,3 +1,5 @@
+import { useActionFeedback } from '../../hooks/useActionFeedback'
+import ApiContentSkeleton from '../../components/apiContentSkeleton'
 import { SHOWCASE_NAMES } from '../../gtm/showcases'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
@@ -24,7 +26,7 @@ function MainFormScreenPage() {
   const [openId, setOpenId] = useState<string | null>(null)
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [pendingDeletion, setPendingDeletion] = useState<FormSummary | null>(null)
-  const [feedback, setFeedback] = useState(() => {
+  const setFeedback = useActionFeedback(() => {
     const state: unknown = location.state
     return state && typeof state === 'object' && 'message' in state && typeof state.message === 'string' ? state.message : ''
   })
@@ -122,7 +124,7 @@ function MainFormScreenPage() {
             <ToolbarSearch label="Buscar formulários" placeholder="Buscar formulários..." value={filters.search} onChange={event => setFilters(current => ({ ...current, search: event.target.value.slice(0, 240), page: 1 }))} onClear={() => setFilters(current => ({ ...current, search: '', page: 1 }))} />
             <div className="position-toolbar-selects"><ToolbarSelect trackingAction={BUTTONS.comuns.status} label="Filtrar por status" options={statusOptions} value={filters.status} onValueChange={status => setFilters(current => ({ ...current, status: status as FormStatus | '', page: 1 }))} /></div>
           </div>
-          {loading && <p role="status">Carregando formulários...</p>}
+          {loading && <ApiContentSkeleton label="Carregando formulários" variant="cards" />}
           {error && <div role="alert"><p>{error}</p><button onClick={retry} type="button">Tentar novamente</button></div>}
           <div hidden={loading || !!error} data-track-showcase={SHOWCASE_NAMES.lista_formularios} aria-busy={loading || results.exiting} className={`forms-grid${results.changed ? ' forms-grid--animated' : ''}${results.direction ? ` forms-grid--${results.direction}` : ''}${results.exiting ? ' forms-grid--exiting' : ''}`} key={results.signature}>
             {results.items.map(form => <FormCard key={form.id} form={form} menuOpen={openId === form.id} onOpenMenu={event => {
@@ -142,7 +144,6 @@ function MainFormScreenPage() {
               <button data-track-action={BUTTONS.comuns.proxima_pagina} aria-label="Próxima página" disabled={loading || !!error || page >= pageCount} onClick={() => setFilters(current => ({ ...current, page: page + 1 }))} type="button"><AstroIcon className="forms-pagination-next" name="chevron-down" /></button>
             </nav>
           </footer>
-          {feedback && <p className="forms-feedback" role="status">{feedback}</p>}
         </section>
       </main>
       {selected && createPortal(<OptionsPopup trackingName={DIALOG_NAMES.acoes_formulario} ariaLabel={`Opções para ${selected.name}`} closing={closing} id={`form-options-${selected.id}`} panelRef={panelRef} onClose={() => closeMenu()} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} items={[

@@ -174,13 +174,14 @@ test('formulário de gestores usa vínculos por ID, preserva vínculos inativos 
   assert.match(markup, /Dados do gestor/)
   assert.match(markup, /value="Analista"/)
   assert.match(markup, /value="Matriz"/)
-  assert.match(markup, /Selecione modalidade/)
+  assert.match(markup, /Selecione a modalidade/)
   assert.doesNotMatch(markup, /type="password"|astro-demo/)
   assert.deepEqual(validation.validateCollaborator(values), {})
 })
 
 function inviteEnvironment(operation) {
   const slots = []
+  const notices = []
   let cursor = 0, closed = 0
   const react = {
     useRef(value) { const i = cursor++; slots[i] ??= { current: value }; return slots[i] },
@@ -194,6 +195,7 @@ function inviteEnvironment(operation) {
   const code = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
   new Function('require', 'module', 'exports', code)(name => {
     if (name === 'react') return react
+    if (name === '../../hooks/useActionFeedback') return { useActionFeedback: () => (message, tone) => notices.push({ message, tone }) }
     if (name.startsWith('../../utils/') || name.startsWith('../../gtm/')) return loadTs(path.resolve(path.dirname(filename), `${name}.ts`))
     if (name.startsWith('../')) return { default: name }
     return require(name)
@@ -205,6 +207,7 @@ function inviteEnvironment(operation) {
   }
   return {
     get closed() { return closed },
+    notices,
     render() {
       cursor = 0
       const modal = module.exports.default({ candidates: [{ id: '42', email: 'ana@example.test' }], loading: false, error: '', saving: false,
@@ -244,6 +247,7 @@ test('modal de promoção mantém valores e exibe erro acessível para tentar no
   assert.equal(env.closed, 0)
   assert.equal(result.select('invite-manager-email').props.value, '42')
   assert.equal(result.select('invite-manager-status').props.value, 'inactive')
-  assert.deepEqual(result.alerts, ['Colaborador não está mais ativo.'])
+  assert.deepEqual(result.alerts, [])
+  assert.deepEqual(env.notices, [{ message: 'Colaborador não está mais ativo.', tone: 'error' }])
   assert.equal(result.modal.props.dismissible, true)
 })

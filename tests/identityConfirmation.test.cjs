@@ -310,12 +310,12 @@ test('formulário apresenta carregamento, erro acessível e sucesso, com botões
   }))
   const loading = render('loading')
   assert.match(loading, /aria-busy="true"/)
-  assert.match(loading, /role="status">Confirmando sua identidade/)
+  assert.doesNotMatch(loading, /Confirmando sua identidade|Confirmando…/)
   assert.match(loading, /<input[^>]*disabled=""/)
   assert.match(loading, /<button[^>]*type="submit"[^>]*disabled=""/)
   assert.doesNotMatch(loading, /class="astro-modal-cancel" disabled/)
   assert.match(render('error', 'Senha incorreta.'), /role="alert">Senha incorreta/)
-  assert.match(render('success'), /role="status">Identidade confirmada/)
+  assert.doesNotMatch(render('success'), /Identidade confirmada/)
 })
 
 test('transferência do gestor usa a mesma validação e só confirma depois do Firebase', async () => {

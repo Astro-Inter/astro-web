@@ -68,7 +68,7 @@
 .position-dialog-label { color: #d3cfdd; font-size: var(--astro-label-font-size); font-weight: 400; line-height: 1.2; }
 .position-dialog-field input { width: 100%; min-height: var(--astro-control-height); padding: 0 var(--astro-control-padding-inline); border: 1px solid transparent; border-radius: var(--astro-control-radius); color: var(--astro-text); background: var(--astro-field); font-family: inherit; font-size: var(--astro-control-font-size); }
 .position-dialog-field input::placeholder { color: var(--astro-placeholder); }
-.position-dialog-field input:focus { border-color: var(--astro-input-focus-border); box-shadow: 0 0 0 1px rgb(47 46 50 / 22%); outline: none; }
+.position-dialog-field input:focus { --astro-autofill-focus-shadow: 0 0 0 1px rgb(47 46 50 / 22%); border-color: var(--astro-input-focus-border); box-shadow: 0 0 0 1px rgb(47 46 50 / 22%); outline: none; }
 .position-dialog-field input[aria-invalid="true"] { border-color: #eb6264; }
 .position-dialog-field [role="alert"], .position-dialog-form-error { color: #eb6264; font-size: var(--astro-label-font-size); line-height: 1.2; }
 .position-dialog-form-error { margin: 1rem 0 0; }

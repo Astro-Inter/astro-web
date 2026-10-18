@@ -1,3 +1,4 @@
+import { notifyAction } from '../utils/actionFeedback'
 import { useEffect, useRef, useState } from 'react'
 import { loginWithEmailAndPassword } from '../services/authentication'
 import { useWorkspaceRegistration } from './useWorkspaceRegistration'
@@ -34,7 +35,11 @@ export function useCreatedWorkspaceLogin(): CreatedWorkspaceLoginResult {
       if (mounted.current) setState({ pending: false, error: '' })
       return true
     } catch (error: unknown) {
-      if (mounted.current) setState({ pending: false, error: error instanceof Error ? error.message : 'Não foi possível entrar. Tente novamente.' })
+      if (mounted.current) {
+        const message = error instanceof Error ? error.message : 'Não foi possível entrar. Tente novamente.'
+        setState({ pending: false, error: message })
+        notifyAction(message, 'error')
+      }
       return false
     } finally {
       busy.current = false

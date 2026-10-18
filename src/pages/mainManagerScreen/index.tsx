@@ -1,3 +1,5 @@
+import ActionLoading from '../../components/actionLoading'
+import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { SHOWCASE_NAMES } from '../../gtm/showcases'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
@@ -36,8 +38,7 @@ function MainManagerScreenPage() {
   const { managers } = api
   const [details, setDetails] = useState({ dimmed: false, closing: false })
   const [savedManagerId, setSavedManagerId] = useState<string | null>(null)
-  const [feedback, setFeedback] = useState('')
-  const [actionError, setActionError] = useState('')
+  const setFeedback = useActionFeedback()
   const actions = useActionsMenu()
 
   useEffect(() => () => {
@@ -89,7 +90,6 @@ function MainManagerScreenPage() {
   }
 
   async function toggleStatus(manager: ManagerSummary): Promise<string | null> {
-    setActionError('')
     const result = await api.changeStatus(manager.id, manager.status === 'DESATIVADO' ? 'ATIVO' : 'DESATIVADO')
     if (result.error !== null) return result.error
     showSavedManager(result.manager.id, `Gestor ${result.manager.name} ${collaboratorStatusLabels[result.manager.status].toLowerCase()}.`)
@@ -168,12 +168,9 @@ function MainManagerScreenPage() {
             </div>
           </div>
 
-          {api.loading && <p className="position-api-feedback" role="status">Carregando gestores...</p>}
           {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} disabled={api.saving} onClick={api.retry} type="button">Tentar novamente</button></div>}
-          {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
-          {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
-          <DataTable trackingName={SHOWCASE_NAMES.lista_gestores} ariaLabel="Gestores" columns={columns} emptyMessage={api.loading ? 'Carregando gestores...' : api.error ? 'Lista de gestores indisponível.' : 'Nenhum gestor encontrado para esses filtros.'} getRowClassName={(manager) => manager.id === savedManagerId ? 'astro-data-table-row--saved' : undefined} getRowKey={(manager) => manager.id} rows={visibleManagers} />
-          <p className="position-api-feedback" role="status">{feedback}</p>
+          <ActionLoading active={api.saving} />
+          <DataTable trackingName={SHOWCASE_NAMES.lista_gestores} ariaLabel="Gestores" columns={columns} loading={api.loading} emptyMessage={api.error ? 'Lista de gestores indisponível.' : 'Nenhum gestor encontrado para esses filtros.'} getRowClassName={(manager) => manager.id === savedManagerId ? 'astro-data-table-row--saved' : undefined} getRowKey={(manager) => manager.id} rows={visibleManagers} />
         </section>
 
         {openManager && createPortal(
@@ -187,7 +184,7 @@ function MainManagerScreenPage() {
               { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit-password', manager: openManager })) },
               { trackingAction: openManager.status === 'DESATIVADO'  ? BUTTONS.comuns.ativar : BUTTONS.comuns.inativar, id: 'toggle-status', label: openManager.status === 'DESATIVADO' ? 'Ativar' : 'Desativar', tone: openManager.status === 'DESATIVADO' ? 'default' : 'danger', onSelect: () => actions.close(() => {
                 if (openManager.status !== 'DESATIVADO') setDialog({ kind: 'deactivate', manager: openManager })
-                else void toggleStatus(openManager).then((error) => { if (error) setActionError(error) })
+                else void toggleStatus(openManager).then((error) => { if (error) setFeedback(error, 'error') })
               }) },
             ]}
             onClose={() => actions.close()}
@@ -262,7 +259,6 @@ function MainManagerScreenPage() {
           backdrop="dimmed"
           className="position-deactivation-modal"
           confirmLabel="Desativar"
-          description="A desativação afeta toda a conta deste gestor."
           icon={<span aria-hidden="true" className="position-deactivation-icon"><img alt="" src={iconAsset('warning.svg')} /></span>}
           onCancel={() => {
             setDialog(null)

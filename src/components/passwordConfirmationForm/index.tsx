@@ -1,3 +1,4 @@
+import ActionLoading from '../actionLoading'
 import { BUTTONS, confirmationAction } from '../../gtm/buttons'
 import { useId } from 'react'
 import type { PasswordConfirmationController } from '../../types/identityConfirmation'
@@ -20,11 +21,10 @@ function PasswordConfirmationForm({ confirmation, confirmLabel = 'Continuar', da
       if (!confirmation.blocked) void onContinue()
     }}>
       <PasswordField autoComplete="off" disabled={confirmation.blocked} error={confirmation.error} id={passwordId} label="Senha" onChange={confirmation.updatePassword} onToggleVisibility={confirmation.toggleVisibility} placeholder="Insira a senha" required value={confirmation.password} visible={confirmation.visible} />
-      {confirmation.status === 'loading' && <p className="password-confirmation-status" role="status">Confirmando sua identidade…</p>}
-      {confirmation.status === 'success' && <p className="password-confirmation-status" role="status">Identidade confirmada.</p>}
+      <ActionLoading active={confirmation.status === 'loading'} />
       <div className="astro-modal-actions">
         <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" disabled={confirmation.status === 'success'} onClick={onCancel} type="button">Cancelar</button>
-        <PurpleButton data-track-action={confirmationAction(confirmLabel)} disabled={confirmation.blocked} type="submit" variant={danger ? 'danger' : 'solid'}>{confirmation.status === 'loading' ? 'Confirmando…' : confirmLabel}</PurpleButton>
+        <PurpleButton data-track-action={confirmationAction(confirmLabel)} disabled={confirmation.blocked} type="submit" variant={danger ? 'danger' : 'solid'}>{confirmLabel}</PurpleButton>
       </div>
     </form>
   )

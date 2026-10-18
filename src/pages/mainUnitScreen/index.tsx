@@ -1,3 +1,5 @@
+import ActionLoading from '../../components/actionLoading'
+import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { SHOWCASE_NAMES } from '../../gtm/showcases'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
@@ -38,11 +40,10 @@ function MainUnitScreenPage() {
   const { units } = api
   const nrOptionRows = api.nrs.options.map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.descricao }))
   const enabledNrIds = api.nrs.options.filter((row) => row.ativo).map((row) => String(row.nr))
-  const [actionError, setActionError] = useState('')
   const [savedNrIds, setSavedNrIds] = useState<string[]>([])
   const [pendingDeactivation, setPendingDeactivation] = useState<Unit | null>(null)
   const [savedUnitId, setSavedUnitId] = useState<string | null>(null)
-  const [feedback, setFeedback] = useState('')
+  const setFeedback = useActionFeedback()
   const actions = useActionsMenu()
 
   useEffect(() => () => {
@@ -56,7 +57,6 @@ function MainUnitScreenPage() {
   const openUnit = visibleUnits.find((unit) => unit.id === actions.openId)
 
   async function toggleStatus(unit: Unit): Promise<string | null> {
-    setActionError('')
     const error = await api.toggle(unit.id)
     if (error) return error
     if (savedTimerRef.current !== null) window.clearTimeout(savedTimerRef.current)
@@ -123,10 +123,8 @@ function MainUnitScreenPage() {
           </div>
 
           {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} onClick={api.retry} type="button">Tentar novamente</button></div>}
-          {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
-          {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
+          <ActionLoading active={api.saving} />
           <DataTable trackingName={SHOWCASE_NAMES.lista_unidades} ariaLabel="Unidades" columns={columns} loadingContent={api.loading ? <WorkspaceTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de unidades indisponível.' : 'Nenhuma unidade encontrada para esses filtros.'} getRowClassName={(unit) => unit.id === savedUnitId ? 'astro-data-table-row--saved' : undefined} getRowKey={(unit) => unit.id} rows={visibleUnits} />
-          <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 
         {openUnit && createPortal(
@@ -139,7 +137,7 @@ function MainUnitScreenPage() {
               { trackingAction: BUTTONS.comuns.gerenciar_nrs, id: 'manage-nrs', label: 'Gerenciar NRs', separatorAfter: true, onSelect: () => actions.close(() => { api.retryNrs(); setSavedNrIds([]); setNrs({ ...closedNrs, unit: openUnit }) }) },
               { trackingAction: openUnit.active  ? BUTTONS.comuns.inativar : BUTTONS.comuns.ativar, id: 'toggle-status', label: openUnit.active ? 'Inativar' : 'Ativar', tone: openUnit.active ? 'danger' : 'default', onSelect: () => actions.close(() => {
                 if (openUnit.active) setPendingDeactivation(openUnit)
-                else void toggleStatus(openUnit).then((error) => { if (error) setActionError(error) })
+                else void toggleStatus(openUnit).then((error) => { if (error) setFeedback(error, 'error') })
               }) },
             ]}
             onClose={() => actions.close()}

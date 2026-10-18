@@ -1,3 +1,6 @@
+import ActionLoading from '../../components/actionLoading'
+import { useActionFeedback } from '../../hooks/useActionFeedback'
+import ApiContentSkeleton from '../../components/apiContentSkeleton'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react'
@@ -29,7 +32,7 @@ function CreateFormPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
   const [highlightedQuestionId, setHighlightedQuestionId] = useState<string | null>(null)
-  const [feedback, setFeedback] = useState('')
+  const setFeedback = useActionFeedback()
   const [error, setError] = useState('')
   const [deadlineValid, setDeadlineValid] = useState(true)
   const menuTriggerRef = useRef<HTMLButtonElement>(null)
@@ -123,7 +126,7 @@ function CreateFormPage() {
       finishPageExit(() => navigate('/mainFormScreen', { state: { message: draft ? 'Rascunho salvo.' : 'Formulário criado.' } }))
     } catch (cause: unknown) {
       if (cause instanceof DOMException && cause.name === 'AbortError') return
-      setError(cause instanceof Error ? cause.message : 'Não foi possível salvar o formulário.')
+      setFeedback(cause instanceof Error ? cause.message : 'Não foi possível salvar o formulário.', 'error')
     }
   }
 
@@ -153,10 +156,10 @@ function CreateFormPage() {
 
       <main data-track-page={true} className="create-forms-main">
         <h1>Crie seu formulário</h1>
-        {loading && <p role="status">Carregando opções do formulário...</p>}
+        {loading && <section className="create-forms-card"><ApiContentSkeleton label="Carregando opções do formulário" fields={6} columns={1} /></section>}
         {loadError && <div role="alert"><p>{loadError}</p><button type="button" onClick={retry}>Tentar novamente</button><button type="button" onClick={() => navigate('/mainFormScreen')}>Voltar aos formulários</button></div>}
-        {saving && <p role="status">Salvando formulário...</p>}
-        <form data-track-submit={BUTTONS.comuns.criar_forms} noValidate onSubmit={submitForm}>
+        <ActionLoading active={saving} />
+        <form hidden={loading} data-track-submit={BUTTONS.comuns.criar_forms} noValidate onSubmit={submitForm}>
           <fieldset aria-label="Definição do formulário" className="forms-editor-fields" disabled={loading || !!loadError || saving || leaving} aria-busy={loading || saving}>
           <section aria-labelledby="create-forms-initial-title" className="create-forms-card">
             <h2 id="create-forms-initial-title">Informações iniciais</h2>
@@ -196,7 +199,6 @@ function CreateFormPage() {
           </div>
 
           {error && <p className="form-validation-error" role="alert">{error}</p>}
-          {feedback && <p className="sr-only" role="status">{feedback}</p>}
 
           <div className="create-forms-footer">
             <button data-track-action={BUTTONS.comuns.adicionar_pergunta} className="create-forms-add-question" onClick={() => setShowAddQuestion(true)} type="button"><AstroIcon className="create-forms-add-question-icon" name="plus-square" />Adicionar pergunta</button>

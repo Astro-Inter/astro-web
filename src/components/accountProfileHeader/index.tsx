@@ -1,3 +1,4 @@
+import ActionLoading from '../actionLoading'
 import { useId, useRef, useState } from 'react'
 import type { AccountPhotoUpdate, AccountProfile } from '../../types/account'
 import { getInitials } from '../../utils/manager'
@@ -14,13 +15,14 @@ interface AccountProfileHeaderProps {
 
 function AccountProfileHeader({ profile, onPhotoSelected, photoUpdate, onRefreshPhoto, disabled = false }: AccountProfileHeaderProps) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null)
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const photoInputId = useId()
   return (
     <div className="account-profile-header">
       <div className="account-profile-photo">
         {profile.photoUrl && profile.photoUrl !== failedUrl
-          ? <img alt={`Foto de ${profile.name}`} height={96} onError={() => setFailedUrl(profile.photoUrl ?? null)} src={profile.photoUrl} width={96} />
+          ? <><img alt={`Foto de ${profile.name}`} data-loading={loadedUrl !== profile.photoUrl} height={96} onLoad={() => setLoadedUrl(profile.photoUrl ?? null)} onError={() => setFailedUrl(profile.photoUrl ?? null)} src={profile.photoUrl} width={96} />{loadedUrl !== profile.photoUrl && <span aria-hidden="true" className="api-skeleton api-loading-photo" />}</>
           : <span aria-hidden="true" className="account-profile-initials">{getInitials(profile.name)}</span>}
         {onPhotoSelected && <>
           <button aria-label="Alterar foto do perfil" data-track-action={BUTTONS.comuns.alterar_foto} disabled={disabled || photoUpdate?.pending} onClick={() => photoInputRef.current?.click()} type="button"><AstroIcon name="pencil" /></button>
@@ -34,9 +36,8 @@ function AccountProfileHeader({ profile, onPhotoSelected, photoUpdate, onRefresh
       </div>
       <div aria-busy={photoUpdate?.pending} className="account-profile-identity">
         <h3>{profile.name}</h3><p>{profile.email}</p>
-        {photoUpdate?.pending && <p role="status">Atualizando foto…</p>}
-        {photoUpdate?.error && <p role="alert">{photoUpdate.error}</p>}
-        {photoUpdate?.message && <p role="status">{photoUpdate.message}</p>}
+        <ActionLoading active={photoUpdate?.pending} />
+
         {photoUpdate?.needsRefresh && onRefreshPhoto && <button className="account-photo-refresh" disabled={disabled || photoUpdate.pending} onClick={onRefreshPhoto} type="button">Atualizar foto</button>}
       </div>
     </div>

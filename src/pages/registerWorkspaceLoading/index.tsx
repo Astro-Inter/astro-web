@@ -1,7 +1,8 @@
 import { BUTTONS } from '../../gtm/buttons'
 import { useEffect } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { LoadingPlanet, PurpleButton } from '../../components'
+import { PurpleButton } from '../../components'
+import LoadingIndicator from '../../components/loadingIndicator'
 import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
 
 function RegisterWorkspaceLoadingPage() {
@@ -19,7 +20,7 @@ function RegisterWorkspaceLoadingPage() {
 
   return <main data-track-page={status === 'error' ? true : undefined} className="loading-screen-page" aria-busy={status === 'loading'}>
     <section className="registration-loading-content astro-scale-90" aria-label="Cadastro do workspace">
-      {status !== 'error' ? <LoadingPlanet label="Criando seu workspace" /> : <>
+      {status !== 'error' ? <LoadingIndicator /> : <>
         <h1>Não foi possível concluir o cadastro</h1>
         <p role="alert">{error}</p>
         {importErrors.length > 0 && <ul aria-label="Problemas na planilha">

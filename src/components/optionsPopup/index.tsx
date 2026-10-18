@@ -1,4 +1,5 @@
 import { useEffect, useRef, type CSSProperties, type KeyboardEvent, type RefObject } from 'react'
+import TruncatedText from '../truncatedText'
 
 export interface OptionsPopupItem {
   trackingAction?: string
@@ -54,6 +55,7 @@ function OptionsPopup({ trackingName, ariaLabel, closing = false, id, items, onC
     <div data-track-dialog={trackingName} aria-label={ariaLabel} className={`astro-options-popup${closing ? ' astro-options-popup--closing' : ''}`} id={id} onKeyDown={handleKeyDown} ref={panelRef} role="menu" style={style}>
       {items.map((item, index) => (
         <button data-track-action={item.trackingAction}
+          aria-label={item.label}
           aria-disabled={item.disabled || undefined}
           className={`astro-options-popup-item${item.separatorAfter ? ' astro-options-popup-item--separated' : ''}${item.tone === 'danger' ? ' astro-options-popup-item--danger' : ''}${item.tone === 'muted' ? ' astro-options-popup-item--muted' : ''}${item.disabled ? ' astro-options-popup-item--disabled' : ''}`}
           key={item.id}
@@ -61,7 +63,7 @@ function OptionsPopup({ trackingName, ariaLabel, closing = false, id, items, onC
           ref={(element) => { itemRefs.current[index] = element }}
           role="menuitem"
           type="button"
-        >{item.label}</button>
+        ><TruncatedText focusParent nativeEllipsis>{item.label}</TruncatedText></button>
       ))}
     </div>
   )

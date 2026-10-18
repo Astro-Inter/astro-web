@@ -64,13 +64,13 @@ function RegulatoryStandardsDialog({ loading = false, error = '', onRetry, conte
           />
         </div>
 
-        {loading && <p role="status">Carregando NRs...</p>}
         {error && <div><p role="alert">{error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} onClick={onRetry} type="button">Tentar novamente</button></div>}
         <div className="nrs-dialog-table">
           <DataTable trackingName={contextLabel ? SHOWCASE_NAMES.lista_dialog_unidade : SHOWCASE_NAMES.lista_dialog_cargo}
             ariaLabel="Normas Regulamentadoras"
             columns={columns}
-            emptyMessage={loading ? 'Carregando NRs...' : error ? 'NRs indisponíveis.' : 'Nenhuma NR vinculada encontrada.'}
+            loading={loading}
+            emptyMessage={error ? 'NRs indisponíveis.' : 'Nenhuma NR vinculada encontrada.'}
             getRowClassName={(row) => savedRowIds.includes(row.id) ? 'astro-data-table-row--saved' : undefined}
             getRowKey={(row) => row.id}
             rows={visibleRows}

@@ -1,3 +1,4 @@
+import { notifyAction } from '../utils/actionFeedback'
 import { useEffect, useRef, useState } from 'react'
 import { useAuthentication } from './useAuthentication'
 import { getAccountProfile, updateAccountPhoto } from '../services/account'
@@ -62,11 +63,15 @@ export function useAccountProfile(): AccountProfileResult {
       if (!controller.signal.aborted) {
         setState({ key, data, loading: false, error: '' })
         setPhotoState({ uid, ...idlePhotoUpdate, message: 'Foto de perfil atualizada.' })
+        notifyAction('Foto de perfil atualizada.')
       }
     } catch (error: unknown) {
-      if (!controller.signal.aborted) setPhotoState({ uid, ...idlePhotoUpdate, needsRefresh: uploaded,
-        error: uploaded ? 'Sua foto foi salva, mas não conseguimos atualizar a visualização. Use “Atualizar foto” para tentar novamente.'
-          : error instanceof Error ? error.message : 'Não foi possível salvar sua foto. Tente novamente.' })
+      if (!controller.signal.aborted) {
+        const message = uploaded ? 'Sua foto foi salva, mas não conseguimos atualizar a visualização. Use “Atualizar foto” para tentar novamente.'
+          : error instanceof Error ? error.message : 'Não foi possível salvar sua foto. Tente novamente.'
+        setPhotoState({ uid, ...idlePhotoUpdate, needsRefresh: uploaded, error: message })
+        notifyAction(message, 'error')
+      }
     } finally {
       if (photoRequestRef.current === controller) photoRequestRef.current = null
     }

@@ -22,12 +22,12 @@ export default function FormInformationFields({ prefix, values, setValues, optio
     <div className="create-forms-field"><label htmlFor={`${prefix}-description`}>Descrição do formulário</label><input id={`${prefix}-description`} maxLength={240} onChange={e => change('description', e.target.value)} value={values.description} /></div>
     <div className="create-forms-field">
       <span className="create-forms-label">Gestor destinatário</span>
-      <ToolbarSelect trackingAction={BUTTONS.comuns.gestor} className="create-forms-select" label="Gestor destinatário"
+      {options.managersLoading ? <div aria-busy="true"><span className="sr-only" role="status">Carregando gestores</span><span aria-hidden="true" className="api-skeleton api-skeleton-control" /></div> : <ToolbarSelect trackingAction={BUTTONS.comuns.gestor} className="create-forms-select" label="Gestor destinatário"
         disabled={!!options.managersError || options.managersLoading}
         onValueChange={value => change('manager', value)}
-        options={[{ value: '', label: options.managersLoading ? 'Carregando gestores...' : 'Selecione o gestor', tone: 'muted' },
+        options={[{ value: '', label: 'Selecione o gestor', tone: 'muted' },
           ...options.managers.filter(manager => manager.value !== options.currentManagerId)]}
-        value={options.managers.some(manager => manager.value === values.manager && manager.value !== options.currentManagerId) ? values.manager : ''} />
+        value={options.managers.some(manager => manager.value === values.manager && manager.value !== options.currentManagerId) ? values.manager : ''} />}
       {options.managersError ? <div className="forms-recipients-feedback" role="alert">
         <p>{options.managersError}</p>
         <CompactPurpleButton auto variant="outline" disabled={options.managersLoading} onClick={onRetryManagers}><AstroIcon name="reload" />Tentar novamente</CompactPurpleButton>
