@@ -34,7 +34,10 @@
 .nrs-edit-footer { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; margin-top: var(--astro-modal-actions-gap); }
 .nrs-edit-recommendation { display: inline-flex; align-items: center; gap: 0.55rem; color: var(--astro-text); font-size: var(--astro-subtitle-font-size); font-weight: 500; line-height: 1.2; white-space: nowrap; }
 .nrs-edit-recommendation img { display: block; width: 2.75rem; height: 2.75rem; object-fit: contain; }
-.nrs-edit-footer-actions { display: flex; gap: var(--astro-modal-inline-gap); }
+.nrs-edit-footer-actions { display: flex; gap: var(--astro-modal-inline-gap); margin-left: auto; }
+.nrs-edit-ai-feedback { margin: 0 0 var(--astro-modal-content-gap); color: var(--astro-text); font-size: var(--astro-subtitle-font-size); line-height: 1.4; }
+.nrs-edit-ai-feedback p { margin: 0 0 0.6rem; }
+.nrs-edit-ai-feedback button { padding: 0.6rem 1rem; }
 .nrs-edit-footer-actions > button { width: var(--astro-compact-action-width); max-width: var(--astro-compact-action-width); }
 
 .nrs-recommendation-modal {

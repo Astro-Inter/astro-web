@@ -9,6 +9,7 @@ import { createPortal } from 'react-dom'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, RegulatoryStandardsDialog, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import { usePositions } from '../../hooks/usePositions'
+import { useRoleNrRecommendations } from '../../hooks/useRoleNrRecommendations'
 import WorkspaceTableSkeleton from '../../components/workspaceTableSkeleton'
 import type { DataTableColumn } from '../../components/dataTable'
 import type { Position, PositionFormValues } from '../../types'
@@ -39,6 +40,7 @@ function MainPositionScreenPage() {
   const [savedNrIds, setSavedNrIds] = useState<string[]>([])
   const [pendingDeactivation, setPendingDeactivation] = useState<Position | null>(null)
   const api = usePositions(nrsPosition?.id)
+  const recommendations = useRoleNrRecommendations(nrsEditing ? nrsPosition?.id : undefined)
   const { positions } = api
   const nrOptionRows = api.nrs.options.map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.descricao }))
   const enabledNrIds = api.nrs.options.filter((row) => row.ativo).map((row) => String(row.nr))
@@ -301,8 +303,14 @@ function MainPositionScreenPage() {
         )}
         {nrsPosition && nrsEditing && !api.nrs.loading && !api.nrs.error && (
           <EditRegulatoryStandardsDialog
+            key={nrsPosition.id}
             enabledIds={enabledNrIds}
             rows={nrOptionRows}
+            recommendedIds={recommendations.rows.map(row => String(row.numero))}
+            recommendationDescriptions={Object.fromEntries(recommendations.rows.map(row => [String(row.numero), row.justificativa]))}
+            recommendationsLoading={recommendations.loading}
+            recommendationsError={recommendations.error}
+            onRetryRecommendations={recommendations.retry}
             dimmed={nrsEditDimmed}
             onCancel={() => {
               if (pendingNrsIds !== null) return
