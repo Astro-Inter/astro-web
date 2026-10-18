@@ -1,3 +1,5 @@
+import { useActionFeedback } from '../../hooks/useActionFeedback'
+import ActionLoading from '../actionLoading'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState, type FormEvent } from 'react'
@@ -28,7 +30,7 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
     active: position?.active ?? true,
   }))
   const [errors, setErrors] = useState<PositionValidationErrors>({})
-  const [formError, setFormError] = useState('')
+  const notify = useActionFeedback()
   const [status, setStatus] = useState(position ? (position.active ? 'active' : 'inactive') : '')
 
   const submittingRef = useRef(false)
@@ -39,7 +41,6 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
     if (submittingRef.current) return
     const nextErrors = validatePosition(values, status)
     setErrors(nextErrors)
-    setFormError('')
     if (Object.keys(nextErrors).length > 0) return
 
     const preparedValues = { ...values, name: values.name.trim() }
@@ -49,10 +50,10 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
       const saveError = position
         ? onRequestConfirmation(preparedValues, position.id)
         : await onSave(preparedValues)
-      if (saveError) setFormError(saveError)
+      if (saveError) notify(saveError, 'error')
       else if (!position) dismiss()
     } catch (error: unknown) {
-      setFormError(error instanceof Error ? error.message : 'Não foi possível salvar o cargo.')
+      notify(error instanceof Error ? error.message : 'Não foi possível salvar o cargo.', 'error')
     } finally {
       submittingRef.current = false
       setSubmitting(false)
@@ -75,7 +76,6 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
                 onChange={(event) => {
                   setValues((current) => ({ ...current, name: event.target.value }))
                   setErrors((current) => ({ ...current, name: undefined }))
-                  setFormError('')
                 }}
                 placeholder="Digite o nome do cargo"
                 value={values.name}
@@ -92,7 +92,6 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
                   setStatus(nextStatus)
                   setValues((current) => ({ ...current, active: nextStatus === 'active' }))
                   setErrors((current) => ({ ...current, status: undefined }))
-                  setFormError('')
                 }}
                 options={statusOptions}
                 value={status}
@@ -101,8 +100,7 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
             </div>
           </div>
         </fieldset>
-        {submitting && <p role="status">Salvando cargo...</p>}
-        {formError && <p className="position-dialog-form-error" role="alert">{formError}</p>}
+        <ActionLoading active={submitting} />
 
         <div className="astro-modal-actions">
           <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" disabled={submitting} onClick={dismiss} type="button">Cancelar</button>

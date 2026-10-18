@@ -1,0 +1,62 @@
+.api-skeleton { display: block; border-radius: var(--astro-control-radius, .45rem); background: linear-gradient(100deg, rgb(182 178 195 / 8%) 20%, rgb(182 178 195 / 18%) 45%, rgb(182 178 195 / 8%) 70%); background-size: 240% 100%; animation: api-skeleton-shimmer 1.6s ease-in-out infinite; }
+.api-loading, .api-loading-row { animation: page-enter 180ms ease both; }
+.api-loading { width: 100%; min-width: 0; }
+.api-loading-fields { display: grid; grid-template-columns: repeat(var(--api-loading-columns, 2), minmax(0, 1fr)); gap: var(--create-forms-stack-gap, 1.35rem) var(--astro-modal-inline-gap, 1rem); }
+.api-loading-field { display: grid; gap: var(--astro-field-gap, .4rem); min-width: 0; }
+.api-skeleton-label { width: 35%; height: var(--astro-label-font-size, 1rem); }
+.api-skeleton-control { width: 100%; height: var(--astro-control-height, 3.5rem); }
+.api-skeleton-heading { width: 65%; height: var(--astro-subtitle-font-size, 1.25rem); }
+.api-skeleton-text { width: 85%; height: var(--astro-label-font-size, 1rem); }
+.api-skeleton-short { width: 45%; }
+.api-loading-identity { margin-bottom: var(--create-forms-section-gap, 1.75rem); }
+.api-skeleton-avatar { flex: none; width: calc(6rem * var(--astro-scale, 1)); height: calc(6rem * var(--astro-scale, 1)); border-radius: 50%; }
+.api-loading-identity-lines { display: grid; gap: .65rem; flex: 1; min-width: 0; }
+.api-loading-actions { display: flex; justify-content: center; gap: var(--astro-modal-inline-gap, .9rem); margin-top: var(--create-forms-section-gap, 1.75rem); }
+.api-skeleton-action { width: min(45%, var(--astro-compact-action-width, 15rem)); height: var(--astro-action-height, 3.5rem); }
+.api-loading-card-badges { display: flex; gap: calc(.7rem * var(--astro-scale, 1)); margin-top: calc(1.4rem * var(--astro-scale, 1)); }
+.api-loading-card-badges > span { width: 30%; height: 2.4rem; border-radius: .2rem; }
+.api-loading-card .api-skeleton-table-action { margin-inline: 0; }
+.api-skeleton-table-avatar { flex: none; width: calc(2.5rem * var(--astro-scale, 1)); height: calc(2.5rem * var(--astro-scale, 1)); border-radius: 50%; }
+.api-skeleton-table-text { height: 1em; width: 75%; }
+.api-skeleton-table-status { height: calc(2rem * var(--astro-scale, 1)); width: 75%; border-radius: 999px; }
+.api-skeleton-table-action { height: calc(2rem * var(--astro-scale, 1)); width: calc(2rem * var(--astro-scale, 1)); margin-inline: auto; }
+.astro-data-table tbody[data-loading='false'] { animation: page-enter 240ms ease both; }
+.api-content-ready { animation: page-enter 240ms ease both; }
+.forms-grid:not(.forms-grid--animated):not([hidden]), .account-details-form { animation: page-enter 240ms ease both; }
+.api-loading-photo { position: absolute; inset: 0; border-radius: 50%; }
+.account-profile-photo > img[data-loading='true'] { opacity: 0; }
+.account-profile-photo > img { transition: opacity 200ms ease; }
+.collaborator-identity .manager-avatar { position: relative; }
+.collaborator-identity .manager-avatar > img[data-loading='true'] { opacity: 0; }
+.collaborator-identity .manager-avatar > img { transition: opacity 200ms ease; }
+.create-forms-main > form[hidden], .position-dialog-row[hidden], .conformity-form-fields[hidden] { display: none !important; }
+@keyframes api-skeleton-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (max-width: 600px) { .api-loading-fields { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .api-skeleton, .api-loading, .api-loading-row, .api-content-ready, .astro-data-table tbody[data-loading='false'], .forms-grid:not(.forms-grid--animated):not([hidden]), .account-details-form { animation: none; } .account-profile-photo > img, .collaborator-identity .manager-avatar > img { transition: none; } }
+html[data-astro-reduced-motion='true'] :is(.api-skeleton, .api-loading, .api-loading-row, .api-content-ready, .astro-data-table tbody[data-loading='false']) { animation: none; }
+
+/* Mantém os placeholders na mesma posição dos dados de gestor/colaborador. */
+.api-loading--account-details .api-loading-identity { margin-bottom: 0; }
+.api-loading--account-details .api-loading-fields { margin-top: var(--astro-modal-content-gap); gap: var(--astro-modal-content-gap) var(--astro-modal-inline-gap); }
+.api-loading--account-details .api-skeleton-label { height: calc(var(--astro-label-font-size) * 1.2); }
+.api-loading--account-details .api-loading-actions { margin-top: var(--astro-modal-actions-gap); }
+
+/* Usa os mesmos contêineres do perfil pronto, inclusive no popup e no celular. */
+.account-skeleton-photo { width: 100%; height: 100%; border-radius: 50%; }
+.account-skeleton-identity { flex: 1; }
+.account-skeleton-identity h3 > span { width: 55%; height: 1.3em; }
+.account-skeleton-identity p > span { width: 80%; height: 1.3em; }
+.account-skeleton-label { width: 35%; height: 1.2em; font-size: var(--astro-label-font-size); }
+.account-skeleton-control { width: 100%; height: var(--astro-control-height); }
+.account-profile-skeleton .api-skeleton-action { margin: 0; flex: 0 1 var(--astro-compact-action-width); width: min(100%, var(--astro-compact-action-width)); max-width: var(--astro-compact-action-width); min-width: 0; height: var(--astro-action-height); padding: 0; border: 0; }
+@media (max-width: 1024px) {
+  .account-information-card .account-skeleton-label { font-size: .9375rem; }
+  .account-information-card .account-skeleton-control { min-height: 3rem; }
+  .account-information-card .account-skeleton-identity p > span { height: 1.5em; }
+}
+@media (max-width: 600px) {
+  .account-profile-skeleton .account-main-actions > .api-skeleton-action { width: 100%; max-width: none; min-height: 3rem; }
+}
+@media (max-width: 480px) {
+  .account-profile-skeleton .astro-modal-actions > .api-skeleton-action { flex: none; width: 100%; max-width: none; }
+}

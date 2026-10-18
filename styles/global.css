@@ -31,6 +31,7 @@
   --astro-popup-duration: 260ms;
   --astro-popover-duration: 200ms;
   --astro-background: #1c1839;
+  --astro-popup-background: #332754;
   --astro-registration-padding-block: clamp(4.5rem, 8svh, 6rem);
   --astro-orb-base: #272149;
   --astro-orb-mid: #4f1479;
@@ -348,25 +349,28 @@ main.payment-page {
 
 .field-group input:focus,
 .payment-field input:focus {
+  --astro-autofill-focus-shadow: 0 0 0 1px rgba(47, 46, 50, 0.22);
   border-color: var(--astro-input-focus-border);
   box-shadow: 0 0 0 1px rgba(47, 46, 50, 0.22);
 }
 
-.field-group input:-webkit-autofill,
-.field-group input:-webkit-autofill:hover,
-.field-group input:-webkit-autofill:focus,
-.payment-field input:-webkit-autofill,
-.payment-field input:-webkit-autofill:hover,
-.payment-field input:-webkit-autofill:focus {
-  -webkit-text-fill-color: var(--astro-text);
-  caret-color: var(--astro-text);
-  box-shadow: 0 0 0 1000px var(--astro-field) inset;
+/* O preenchimento automático mantém a paleta em todos os formulários,
+   inclusive ao passar o mouse ou focar uma sugestão já preenchida. */
+:is(input, textarea, select):is(:autofill, :-webkit-autofill) {
+  -webkit-text-fill-color: var(--astro-autofill-text, var(--astro-text)) !important;
+  caret-color: var(--astro-autofill-text, var(--astro-text));
+  background-clip: padding-box !important;
+  box-shadow: inset 0 0 0 1000px var(--astro-autofill-background, var(--astro-field)), var(--astro-autofill-focus-shadow, 0 0 transparent) !important;
 }
 
-.field-group input:-webkit-autofill:focus,
-.payment-field input:-webkit-autofill:focus {
-  border-color: var(--astro-input-focus-border);
-  box-shadow: 0 0 0 1000px var(--astro-field) inset, 0 0 0 1px rgba(47, 46, 50, 0.22);
+/* A borda transparente normalmente mostra o fundo do próprio campo.
+   Impede que o fundo azul do navegador apareça nesse único pixel. */
+:is(input, textarea, select):is(:autofill, :-webkit-autofill):not(:focus):not([aria-invalid="true"]) {
+  border-color: var(--astro-autofill-background, var(--astro-field));
+}
+
+:is(input, textarea, select):disabled {
+  --astro-autofill-text: var(--astro-placeholder);
 }
 
 /* A seleção permanece dentro da paleta sem alterar a cor normal do texto. */
@@ -595,3 +599,10 @@ html.logout-transition::view-transition-new(root) { animation: astro-route-enter
   outline: 2px solid var(--astro-focus-border);
   outline-offset: 2px;
 }
+
+/* Affordance compartilhada para controles nativos sem cursor próprio. */
+:where(button, a[href], select, summary, input[type="checkbox"], input[type="radio"], input[type="range"], input[type="file"], input[type="button"], input[type="submit"], input[type="reset"]) { cursor: pointer; }
+:is(button, select, input):disabled { cursor: not-allowed; }
+
+:where(label:has(input[type="checkbox"], input[type="radio"])) { cursor: pointer; }
+label:has(input:is([type="checkbox"], [type="radio"]):disabled) { cursor: not-allowed; }

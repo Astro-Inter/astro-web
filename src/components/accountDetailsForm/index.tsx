@@ -52,16 +52,16 @@ function AccountDetailsForm({ profile, roles, units, editable, canChangeLinks, p
     const id = `account-detail-${field}`
     return <div className="field-group"><label htmlFor={id}>{label}</label>
       <ToolbarSelect trackingAction={({ roleId: BUTTONS.comuns.cargo, unitId: BUTTONS.comuns.unidade, workModel: BUTTONS.comuns.modalidade })[field]} className="account-field-select" disabled={pending || disabled} error={errors[field]} id={id} label={label}
-        onValueChange={value => update(field, value)} options={[{ label: `Selecione ${label.toLowerCase()}`, value: '' }, ...choices]} value={values[field]} />
+        onValueChange={value => update(field, value)} options={[{ label: `Selecione ${field === 'roleId' ? 'o' : 'a'} ${label.toLowerCase()}`, value: '', tone: 'muted' }, ...choices]} value={values[field]} />
       {errors[field] && <span id={`${id}-error`} role="alert">{errors[field]}</span>}
     </div>
   }
   return <form aria-busy={pending} className="account-details-form" data-track-submit={editable ? BUTTONS.comuns.salvar_alteracoes : undefined} noValidate onSubmit={event => { void submit(event) }}>
     <fieldset className="position-dialog-fields" disabled={pending}><legend className="sr-only">Dados da conta</legend>
       <div className="account-details-grid">
-        <FormField error={errors.name} id="account-detail-name" label="Nome" maxLength={255} onChange={event => update('name', event.target.value)} readOnly={!editable} value={values.name} />
-        <FormField error={errors.cpf} id="account-detail-cpf" inputMode="numeric" label="CPF" maxLength={14} onChange={event => update('cpf', formatCpfCnpj(event.target.value.replace(/\D/g, '').slice(0, 11)))} readOnly={!editable} value={values.cpf} />
-        <FormField error={errors.email} id="account-detail-email" label="E-mail" maxLength={255} onChange={event => update('email', event.target.value)} readOnly={!editable} type="email" value={values.email} />
+        <FormField error={errors.name} id="account-detail-name" label="Nome" placeholder={editable ? "Digite o nome completo" : undefined} maxLength={255} onChange={event => update('name', event.target.value)} readOnly={!editable} value={values.name} />
+        <FormField error={errors.cpf} id="account-detail-cpf" inputMode="numeric" label="CPF" placeholder={editable ? "000.000.000-00" : "Não informado"} maxLength={14} onChange={event => update('cpf', formatCpfCnpj(event.target.value.replace(/\D/g, '').slice(0, 11)))} readOnly={!editable} value={values.cpf} />
+        <FormField error={errors.email} id="account-detail-email" label="E-mail" placeholder={editable ? "example@email.com" : "Não informado"} maxLength={255} onChange={event => update('email', event.target.value)} readOnly={!editable} type="email" value={values.email} />
         {editable ? select('unitId', 'Unidade', unitOptions, !canChangeLinks) : <FormField id="account-detail-units" label="Unidade" readOnly value={profile.units} />}
         {editable ? select('roleId', 'Cargo', roleOptions, !canChangeLinks) : <FormField id="account-detail-position" label="Cargo" readOnly value={profile.position} />}
         {editable ? select('workModel', 'Modalidade', Object.entries(collaboratorModalityLabels).map(([value, label]) => ({ value, label }))) : <FormField id="account-detail-modality" label="Modalidade" readOnly value={profile.modality} />}
@@ -70,7 +70,7 @@ function AccountDetailsForm({ profile, roles, units, editable, canChangeLinks, p
     {editable && !canChangeLinks && <p className="astro-modal-description">Seu cargo e sua unidade são definidos pelo gestor do workspace.</p>}
     <div className="astro-modal-actions">
       <button data-track-action={editable ? BUTTONS.comuns.cancelar : BUTTONS.comuns.voltar} className="astro-modal-cancel" disabled={pending} onClick={onCancel} type="button">{editable ? 'Cancelar' : 'Voltar'}</button>
-      {editable && <PurpleButton data-track-action={BUTTONS.comuns.salvar_alteracoes} disabled={pending} type="submit">{pending ? 'Salvando…' : 'Salvar alterações'}</PurpleButton>}
+      {editable && <PurpleButton data-track-action={BUTTONS.comuns.salvar_alteracoes} disabled={pending} type="submit">Salvar alterações</PurpleButton>}
     </div>
   </form>
 }

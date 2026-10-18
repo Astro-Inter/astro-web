@@ -34,6 +34,11 @@ function environment(overrides = {}) {
       const resolved = path.resolve(path.dirname(filename), specifier)
       return load([`${resolved}.ts`, `${resolved}.tsx`, path.join(resolved, 'index.tsx')].find(file => fs.existsSync(file)))
     }, module, module.exports)
+    if (filename.includes(`${path.sep}src${path.sep}pages${path.sep}`)) {
+      const Page = module.exports.default
+      const Host = load('src/components/actionFeedbackHost/index.tsx').default
+      module.exports.default = props => React.createElement(React.Fragment, null, React.createElement(Host), React.createElement(Page, props))
+    }
     return module.exports
   }
   return { load }
@@ -338,9 +343,9 @@ test('troca de foto mantém a atual durante upload, compartilha o resultado e re
     assert.equal(uploads[0].file, file)
     assert.equal(dialog.querySelector('[aria-label="Alterar foto do perfil"]').disabled, true)
     assert.equal(dialog.querySelector('img').getAttribute('src'), profile.photoUrl)
-    assert.match(dialog.querySelector('[role=status]').textContent, /Atualizando foto/)
+    assert.match(document.querySelector('.login-loading-overlay').textContent, /Carregando/)
     await act(async () => send.reject(new Error('Upload indisponível.')))
-    assert.match(dialog.querySelector('[role=alert]').textContent, /Upload indisponível/)
+    assert.match([...document.querySelectorAll('.astro-action-notice [role=alert]')].at(-1).textContent, /Upload indisponível/)
     assert.equal(dialog.querySelector('img').getAttribute('src'), profile.photoUrl)
     assert.equal(input.value, '')
 
@@ -352,13 +357,13 @@ test('troca de foto mantém a atual durante upload, compartilha o resultado e re
     assert.equal(uploads.length, 2)
     assert.equal(dialog.querySelector('img').getAttribute('src'), profile.photoUrl)
     await act(async () => refresh.reject(new Error('Não foi possível consultar o perfil.')))
-    assert.match(dialog.querySelector('[role=alert]').textContent, /Sua foto foi salva/)
+    assert.match([...document.querySelectorAll('.astro-action-notice [role=alert]')].at(-1).textContent, /Sua foto foi salva/)
     read = async () => ({ ...profile, photoUrl: 'https://images.example.test/updated-photo' })
     await act(async () => [...dialog.querySelectorAll('button')].find(button => button.textContent === 'Atualizar foto').click())
     assert.equal(uploads.length, 2)
     assert.equal(document.querySelector('.account-information-card img').getAttribute('src'), 'https://images.example.test/updated-photo')
     assert.equal(dialog.querySelector('img').getAttribute('src'), 'https://images.example.test/updated-photo')
-    assert.match(dialog.querySelector('[role=status]').textContent, /Foto de perfil atualizada/)
+    assert.match(document.querySelector('.astro-action-notice[data-tone=success]').textContent, /Foto de perfil atualizada/)
     assert.equal(dialog.querySelector('[role=alert]'), null)
 
     send = deferred()
@@ -444,7 +449,7 @@ test('edição respeita o perfil, oferece vínculos ativos e mantém o formulár
     await act(async () => pending.resolve({ ...profile, name: 'Rosa Atualizada', roleId: '2', unitId: '2', workModel: 'REMOTO' }))
     assert.equal(document.getElementById('account-name').value, 'Rosa Atualizada')
     assert.match(document.querySelector('[role=status]').textContent, /Informações da conta atualizadas/)
-    assert.equal(document.querySelector('[role=dialog] input[type=password]'), null)
+    assert.equal(document.querySelector('[role=dialog]'), null)
   } finally {
     await act(async () => root.unmount())
     dom.window.close()

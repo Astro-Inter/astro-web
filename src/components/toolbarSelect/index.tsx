@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import AstroIcon from '../astroIcon'
+import TruncatedText from '../truncatedText'
 
 interface ToolbarSelectOption {
   label: string
@@ -58,7 +59,7 @@ function ToolbarSelect({ trackingAction, id, label, options, className = '', dis
       setOpen(false)
       setSearchTerm('')
       onFinished?.()
-      if (restoreFocus) triggerRef.current?.focus()
+      if (restoreFocus) triggerRef.current?.focus({ preventScroll: true })
     })
   }, [requestClose])
 
@@ -91,6 +92,10 @@ function ToolbarSelect({ trackingAction, id, label, options, className = '', dis
 
     function closeOnScroll(event: Event) {
       if (event.target instanceof Node && containerRef.current?.contains(event.target)) return
+      // O menu absoluto acompanha o dialog; rolar esse ancestral ao focar
+      // uma opção não deve encerrar a navegação do próprio seletor.
+      const dialog = containerRef.current?.closest('dialog')
+      if (dialog && (event.target === dialog || event.target === document)) return
       closeSelect()
     }
     document.addEventListener('pointerdown', closeOnOutsideClick)
@@ -137,7 +142,16 @@ function ToolbarSelect({ trackingAction, id, label, options, className = '', dis
     }
 
     event.preventDefault()
-    optionRefs.current[nextIndex]?.focus()
+    const option = optionRefs.current[nextIndex]
+    option?.focus({ preventScroll: true })
+    const list = option?.parentElement
+    if (option && list) {
+      const bounds = list.getBoundingClientRect()
+      const row = option.getBoundingClientRect()
+      const zoom = list.offsetHeight ? bounds.height / list.offsetHeight : 1
+      if (row.bottom > bounds.bottom) list.scrollTop += (row.bottom - bounds.bottom) / zoom
+      else if (row.top < bounds.top) list.scrollTop += (row.top - bounds.top) / zoom
+    }
   }
 
   function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -210,6 +224,7 @@ function ToolbarSelect({ trackingAction, id, label, options, className = '', dis
           ref={triggerRef}
           role="combobox"
           type="text"
+          title={!open || closing ? valueWhileClosing : undefined}
           value={searchable && open && !closing ? searchTerm : closing ? valueWhileClosing : selectedLabel}
         />
         <button data-track-action={trackingAction}
@@ -227,6 +242,7 @@ function ToolbarSelect({ trackingAction, id, label, options, className = '', dis
           <div className={`astro-toolbar-select-options${filteredOptions.length <= 1 ? ' astro-toolbar-select-options--compact' : ''}`}>
             {filteredOptions.length > 0 ? filteredOptions.map((option, index) => (
               <button
+                aria-label={option.label}
                 aria-selected={option.value === value}
                 className={`astro-toolbar-select-option${option.tone === 'muted' ? ' astro-toolbar-select-option--muted' : ''}`}
                 key={option.value}
@@ -237,7 +253,7 @@ function ToolbarSelect({ trackingAction, id, label, options, className = '', dis
                 data-track-action={trackingAction}
                 tabIndex={-1}
                 type="button"
-              >{option.label}</button>
+              ><TruncatedText focusParent nativeEllipsis>{option.label}</TruncatedText></button>
             )) : <div aria-disabled="true" className="astro-toolbar-select-empty" role="option">Nenhuma opção encontrada</div>}
           </div>
         </div>

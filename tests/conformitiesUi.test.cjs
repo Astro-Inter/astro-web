@@ -17,7 +17,10 @@ async function setup(component, props) {
   let closed = 0
   const cache = new Map()
   const stubs = {
-    '../appModal': { default: ({ children, dismissible = true }) => React.createElement('section', { 'data-dismissible': dismissible }, children(() => { closed++ })) },
+    '../appModal': { default: function Modal({ children, dismissible = true, open = true }) {
+      React.useEffect(() => { if (!open) closed++ }, [open])
+      return open ? React.createElement('section', { 'data-dismissible': dismissible }, children(() => { closed++ })) : null
+    } },
     '../toolbarSelect': { default: ({ id, options, onValueChange, value }) => React.createElement('select', { id, value, onChange: event => onValueChange(event.target.value) }, options.map(option => React.createElement('option', { key: option.value, value: option.value }, option.label))) },
     '../formDatePicker': { default: ({ id, value, onChange }) => React.createElement('input', { id, value, onChange: event => onChange(event.target.value) }) },
     '../spreadsheetDropzone': { default: ({ id, disabled, onFileSelect }) => React.createElement('input', { id, type: 'file', disabled, onChange: event => onFileSelect(event.target.files[0]) }) },
@@ -39,9 +42,10 @@ async function setup(component, props) {
     return module.exports
   }
   const Component = load(`src/components/${component}/index.tsx`).default
+  const Host = load('src/components/actionFeedbackHost/index.tsx').default
   const root = createRoot(dom.window.document.getElementById('root'))
   let currentProps = props
-  async function render(nextProps = {}) { currentProps = { ...currentProps, ...nextProps }; await act(async () => root.render(React.createElement(Component, currentProps))) }
+  async function render(nextProps = {}) { currentProps = { ...currentProps, ...nextProps }; await act(async () => root.render(React.createElement(React.Fragment, null, React.createElement(Host), React.createElement(Component, currentProps)))) }
   await render()
   return {
     document: dom.window.document, get closed() { return closed }, render,
@@ -77,7 +81,7 @@ test('formulário aguarda a API, bloqueia envio duplo e mantém os campos após 
     assert.equal(env.closed, 0)
     assert.equal(env.document.querySelector('[data-dismissible]').dataset.dismissible, 'false')
     assert.equal(env.document.querySelector('button[type=submit]').disabled, true)
-    assert.match(env.document.querySelector('[role=status]').textContent, /Salvando/)
+    assert.match(env.document.querySelector('[role=status]').textContent, /Carregando/)
     await act(async () => pending.resolve('Conformidade já cadastrada.'))
     assert.equal(env.closed, 0)
     assert.equal(env.document.getElementById('conformity-form-employee').value, '7')
@@ -118,7 +122,7 @@ test('edição de colaborador histórico mantém ID e email sem depender da sele
   } finally { await env.close() }
 })
 
-test('importação aguarda o servidor, mostra totais e rejeições e bloqueia reenvio do lote confirmado', async () => {
+test('importação aguarda o servidor, fecha o popup e mostra totais e rejeições somente nas notificações', async () => {
   const pending = deferred()
   let calls = 0
   const env = await setup('importConformityModal', { onClose() {}, onManualAdd() {}, onImport() { calls++; return pending.promise } })
@@ -128,14 +132,31 @@ test('importação aguarda o servidor, mostra totais e rejeições e bloqueia re
     assert.equal(calls, 1)
     assert.equal(env.closed, 0)
     assert.equal(env.document.querySelector('input[type=file]').disabled, true)
-    assert.match(env.document.querySelector('[role=status]').textContent, /Importando/)
+    assert.match(env.document.querySelector('[role=status]').textContent, /Carregando/)
     await act(async () => pending.resolve({ error: null, data: { processed: 3, inserted: 1, updated: 1, rejected: 1, rejectedRows: [{ row: 4, cpf: '00123456789', nr: '10', reason: 'Data inválida.' }] } }))
     assert.match(env.document.querySelector('[role=status]').textContent, /3 processadas, 1 adicionadas, 1 atualizadas e 1 rejeitadas/)
     assert.match(env.document.querySelector('[role=alert]').textContent, /Linha 4.*Data inválida/)
-    assert.equal(env.closed, 0)
-    await env.submit()
+    assert.equal(env.closed, 1)
+    assert.equal(env.document.querySelector('form'), null)
+    assert.equal(env.document.querySelector('.conformity-import-result'), null)
     assert.equal(calls, 1)
     assert.equal(env.document.querySelector('button[type=submit]'), null)
+  } finally { await env.close() }
+})
+
+test('lote inteiramente rejeitado também fecha o popup e informa os motivos na notificação', async () => {
+  const env = await setup('importConformityModal', { onClose() {}, onManualAdd() {}, onImport: async () => ({ error: null, data: { processed: 2, inserted: 0, updated: 0, rejected: 2, rejectedRows: [
+    { row: 2, cpf: '00000000000', nr: '10', reason: 'Colaborador não encontrado.' },
+    { row: 3, cpf: '11111111111', nr: '14', reason: 'Colaborador não encontrado.' },
+  ] } }) })
+  try {
+    await env.file(new File(['data'], 'conformidades.xlsx')); await env.submit()
+    assert.equal(env.closed, 1)
+    assert.equal(env.document.querySelector('form'), null)
+    const notices = [...env.document.querySelectorAll('.astro-action-notice[data-tone="error"]')]
+    assert.equal(notices.length, 2)
+    assert.match(notices[0].textContent, /0 adicionadas, 0 atualizadas e 2 rejeitadas/)
+    assert.match(notices[1].textContent, /Linhas 2, 3: Colaborador não encontrado/)
   } finally { await env.close() }
 })
 

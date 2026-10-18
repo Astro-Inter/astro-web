@@ -1,3 +1,4 @@
+import ActionLoading from '../actionLoading'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useRef } from 'react'
@@ -26,7 +27,7 @@ function WorkspaceCodeSentModal({ kind, pending, resendWait, error, onResend, on
           ? 'Já foi enviado um código para seu e-mail. Confira sua caixa de entrada e a pasta de spam. Se não encontrar, você pode reenviar.'
           : 'Sua solicitação foi recebida. Aguarde o código no e-mail e confira também a pasta de spam. Quando recebê-lo, clique em continuar para digitar o código.'}
       </p>
-      {pending && <p className="astro-confirmation-description" role="status">Reenviando código...</p>}
+      <ActionLoading active={pending} />
       {error && <p className="astro-confirmation-error" role="alert">{error}</p>}
       <div className="astro-modal-actions">
         <button data-track-action={BUTTONS.comuns.reenviar_codigo} className="astro-modal-cancel" disabled={pending || resendWait > 0} onClick={onResend} type="button">{resendWait > 0 ? `Reenviar em ${resendWait}s` : 'Reenviar'}</button>

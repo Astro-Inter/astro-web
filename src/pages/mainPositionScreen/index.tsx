@@ -1,3 +1,5 @@
+import ActionLoading from '../../components/actionLoading'
+import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { SHOWCASE_NAMES } from '../../gtm/showcases'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
@@ -48,8 +50,7 @@ function MainPositionScreenPage() {
   const changedNrsRef = useRef<string[]>([])
   const [openActionsId, setOpenActionsId] = useState<string | null>(null)
   const [actionsMenuPosition, setActionsMenuPosition] = useState<{ top: number; left: number } | null>(null)
-  const [feedback, setFeedback] = useState('')
-  const [actionError, setActionError] = useState('')
+  const setFeedback = useActionFeedback()
   const { closing: actionsClosing, requestClose: requestActionsClose } = useAnimatedClose()
 
   useEffect(() => () => {
@@ -148,7 +149,6 @@ function MainPositionScreenPage() {
   }
 
   async function toggleStatus(position: Position): Promise<string | null> {
-    setActionError('')
     const error = await api.toggle(position.id)
     if (!error) showSavedPosition(position.id, `Cargo ${position.name} ${position.active ? 'inativado' : 'ativado'}.`)
     return error
@@ -247,10 +247,8 @@ function MainPositionScreenPage() {
           </div>
 
           {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} onClick={api.retry} type="button">Tentar novamente</button></div>}
-          {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
-          {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
+          <ActionLoading active={api.saving} />
           <DataTable trackingName={SHOWCASE_NAMES.lista_cargos} ariaLabel="Cargos" columns={columns} loadingContent={api.loading ? <WorkspaceTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de cargos indisponível.' : 'Nenhum cargo encontrado para esses filtros.'} getRowClassName={(position) => position.id === savedPositionId ? 'astro-data-table-row--saved' : undefined} getRowKey={(position) => position.id} rows={visiblePositions} />
-          <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 
         {openPosition && createPortal(
@@ -272,7 +270,7 @@ function MainPositionScreenPage() {
               }) },
               { trackingAction: openPosition.active  ? BUTTONS.comuns.inativar : BUTTONS.comuns.ativar, id: 'toggle-status', label: openPosition.active ? 'Inativar' : 'Ativar', tone: openPosition.active ? 'danger' : 'default', onSelect: () => closeActions(() => {
                 if (openPosition.active) setPendingDeactivation(openPosition)
-                else void toggleStatus(openPosition).then((error) => { if (error) setActionError(error) })
+                else void toggleStatus(openPosition).then((error) => { if (error) setFeedback(error, 'error') })
               }) },
             ]}
             onClose={() => closeActions()}

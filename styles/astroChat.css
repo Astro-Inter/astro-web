@@ -48,7 +48,7 @@
 .astro-chat-message p { max-width: 75%; margin: 0; padding: 2.5cqw 3cqw; border-radius: calc(var(--astro-control-radius-base) * 0.9); color: #f7f6ff; background: #5b4a82; font-size: var(--chat-body-size); font-weight: 500; line-height: 1.35; overflow-wrap: anywhere; }
 .astro-chat-message--user p { background: #322257; }
 .astro-chat-form { display: flex; flex: none; align-items: center; gap: 2cqw; min-height: 18.75cqw; padding: 2cqw 6cqw; border-top: 1px solid #9284af; }
-.astro-chat-form input { flex: 1; min-width: 0; height: var(--chat-control-height); padding: 0 var(--chat-control-padding); border: 0; border-radius: var(--chat-control-radius); outline: none; color: #f7f6ff; background: #5b4a82; font: inherit; font-size: var(--chat-control-size); font-weight: 500; }
+.astro-chat-form input { --astro-autofill-background: #5b4a82; flex: 1; min-width: 0; height: var(--chat-control-height); padding: 0 var(--chat-control-padding); border: 0; border-radius: var(--chat-control-radius); outline: none; color: #f7f6ff; background: #5b4a82; font: inherit; font-size: var(--chat-control-size); font-weight: 500; }
 .astro-chat-form input::placeholder { color: #ddd7e7; opacity: 1; }
 .astro-chat-form button { display: grid; flex: none; width: var(--chat-control-height); height: var(--chat-control-height); place-items: center; padding: 0; border: 0; background: transparent; cursor: pointer; }
 .astro-chat-form button:disabled { opacity: 0.65; cursor: default; }
@@ -138,7 +138,7 @@
 .astro-chat-login-button { min-height: var(--chat-control-height); padding: calc(0.5rem * var(--astro-popup-zoom)) var(--chat-control-padding); border: 0; border-radius: var(--chat-control-radius); color: #fff; background: #5b4a82; font: inherit; font-size: var(--chat-action-size); font-weight: 600; line-height: 1.2; cursor: pointer; }
 .astro-chat-loading, .astro-chat-error { margin: 0.5rem 0; padding: 0.5rem; color: #514b60; font-size: var(--chat-body-size); }
 .astro-chat-error { color: #9b1c31; }
-.astro-chat-form input:disabled { cursor: not-allowed; opacity: 0.7; }
+.astro-chat-form input:disabled { cursor: not-allowed; opacity: 1; }
 
 
 

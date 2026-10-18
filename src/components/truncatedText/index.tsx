@@ -5,9 +5,11 @@ import { createPortal } from 'react-dom'
 interface TruncatedTextProps {
   children: string
   truncate?: boolean
+  focusParent?: boolean
+  nativeEllipsis?: boolean
 }
 
-function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
+function TruncatedText({ children, truncate = true, focusParent = false, nativeEllipsis = false }: TruncatedTextProps) {
   const tooltipId = useId()
   const elementRef = useRef<HTMLSpanElement>(null)
   const [displayText, setDisplayText] = useState(children)
@@ -22,6 +24,7 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
   useEffect(() => {
     const element = elementRef.current
     if (!element) return
+    let active = true
 
     const resetTooltip = () => {
       if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
@@ -31,6 +34,7 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
     }
 
     const update = () => {
+      if (!active) return
       if (!truncate) {
         setDisplayText(children)
         setTruncated(false)
@@ -38,6 +42,12 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
         return
       }
       const width = element.clientWidth
+      if (nativeEllipsis) {
+        const overflow = width > 0 && element.scrollWidth > width + 1
+        setTruncated(overflow)
+        if (!overflow) resetTooltip()
+        return
+      }
       const context = document.createElement('canvas').getContext('2d')
       if (!context || width <= 0) return
 
@@ -68,10 +78,13 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
     }
 
     update()
-    const observer = new ResizeObserver(update)
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [children, truncate])
+    void document.fonts?.ready.then(update)
+    document.fonts?.addEventListener('loadingdone', update)
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
+    observer?.observe(element)
+    window.addEventListener('resize', update)
+    return () => { active = false; observer?.disconnect(); window.removeEventListener('resize', update); document.fonts?.removeEventListener('loadingdone', update) }
+  }, [children, nativeEllipsis, truncate])
 
   const updateTooltipPosition = useCallback(() => {
     const element = elementRef.current
@@ -90,7 +103,7 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
     setTooltipPosition({ left, top, zoom: dialog ? 1 / (Number(getComputedStyle(dialog).zoom) || 1) : 1 })
   }, [])
 
-  function showTooltip() {
+  const showTooltip = useCallback(() => {
     if (!truncated) return
     if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
     updateTooltipPosition()
@@ -99,7 +112,7 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
     showTooltipFrameRef.current = requestAnimationFrame(() => {
       showTooltipFrameRef.current = requestAnimationFrame(() => setTooltipVisible(true))
     })
-  }
+  }, [truncated, updateTooltipPosition])
 
   const hideTooltip = useCallback(() => {
     if (!tooltipMounted) return
@@ -110,6 +123,14 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
       hideTooltipTimeoutRef.current = setTimeout(() => setTooltipMounted(false), getPopupDuration('popover'))
     }, 140)
   }, [tooltipMounted])
+
+  useEffect(() => {
+    if (!focusParent) return
+    const parent = elementRef.current?.closest('button')
+    parent?.addEventListener('focus', showTooltip)
+    parent?.addEventListener('blur', hideTooltip)
+    return () => { parent?.removeEventListener('focus', showTooltip); parent?.removeEventListener('blur', hideTooltip) }
+  }, [focusParent, hideTooltip, showTooltip])
 
   useEffect(() => {
     if (!tooltipVisible) return
@@ -144,22 +165,25 @@ function TruncatedText({ children, truncate = true }: TruncatedTextProps) {
   }, [])
 
   const tooltip = truncated && tooltipMounted && typeof document !== 'undefined'
-    ? createPortal(<span className={`astro-truncated-tooltip${tooltipVisible ? ' astro-truncated-tooltip--visible' : ''}`} id={tooltipId} onMouseEnter={showTooltip} onMouseLeave={hideTooltip} popover="manual" ref={element => { if (element && !element.matches(':popover-open')) element.showPopover() }} role="tooltip" style={{ right: 'auto', bottom: 'auto', margin: 0, left: tooltipPosition.left, top: tooltipPosition.top, zoom: tooltipPosition.zoom }}>{children}</span>, tooltipHost ?? document.body)
+    ? createPortal(<span className={`astro-truncated-tooltip${tooltipVisible ? ' astro-truncated-tooltip--visible' : ''}`} id={tooltipId} onMouseEnter={showTooltip} onMouseLeave={hideTooltip} popover="manual" ref={element => { if (element?.showPopover && !element.matches(':popover-open')) element.showPopover() }} role="tooltip" style={{ right: 'auto', bottom: 'auto', margin: 0, left: tooltipPosition.left, top: tooltipPosition.top, zoom: tooltipPosition.zoom }}>{children}</span>, tooltipHost ?? document.body)
     : null
 
   return <>
     <span
       aria-label={children}
       aria-describedby={truncated && tooltipMounted ? tooltipId : undefined}
-      tabIndex={truncated ? 0 : undefined}
+      tabIndex={truncated && !focusParent ? 0 : undefined}
       className="astro-truncated-text"
       data-truncated={truncated}
       ref={elementRef}
       onBlur={hideTooltip}
       onFocus={showTooltip}
       onMouseEnter={showTooltip}
-      onMouseLeave={() => { if (document.activeElement !== elementRef.current) hideTooltip() }}
-    >{displayText}{truncated ? '...' : ''}</span>
+      onMouseLeave={() => {
+        const focusTarget = focusParent ? elementRef.current?.closest('button') : elementRef.current
+        if (document.activeElement !== focusTarget) hideTooltip()
+      }}
+    >{nativeEllipsis ? children : <>{displayText}{truncated ? '...' : ''}</>}</span>
     {tooltip}
   </>
 }

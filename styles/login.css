@@ -193,14 +193,10 @@
 .field-group input[aria-invalid="true"]:focus,
 .payment-field input[aria-invalid="true"]:focus,
 .workspace-code-fields input[aria-invalid="true"]:focus {
+  --astro-autofill-focus-shadow: 0 0 transparent;
   outline: none;
   border-color: #cf3e3e;
   box-shadow: none;
-}
-
-.field-group input[aria-invalid="true"]:-webkit-autofill:focus,
-.payment-field input[aria-invalid="true"]:-webkit-autofill:focus {
-  box-shadow: 0 0 0 1000px var(--astro-field) inset;
 }
 
 .login-email-field input {
@@ -274,7 +270,10 @@
   animation: login-loading-enter 180ms ease-out both;
 }
 @keyframes login-loading-enter { from { opacity: 0; } to { opacity: 1; } }
-.login-loading-overlay .loading-planet {
+.login-loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: calc(clamp(1.4rem, 2.5vw, 2rem) / 1.5);
 }
 .login-loading-spinner {
@@ -286,7 +285,7 @@
   animation: login-loading-spin 800ms linear infinite;
 }
 @keyframes login-loading-spin { to { transform: rotate(360deg); } }
-.login-loading-label {
+.login-loading-indicator .login-loading-label {
   margin: 0;
   color: var(--astro-text);
   font-size: calc(var(--astro-heading-font-size) * .85);
@@ -301,10 +300,10 @@
   width: .9em;
 }
 @media (max-width: 980.99px) {
-  .login-loading-label { font-size: clamp(1.15rem, 2.5vw, 1.35rem); }
+  .login-loading-indicator .login-loading-label { font-size: clamp(1.15rem, 2.5vw, 1.35rem); }
 }
 @media (max-width: 480px) {
-  .login-loading-label { font-size: 1.25rem; }
+  .login-loading-indicator .login-loading-label { font-size: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .login-loading-overlay, .login-loading-spinner { animation: none; }
@@ -373,3 +372,10 @@
 @media (prefers-reduced-motion: reduce) {
   .login-email-error-icon { transition: none; }
 }
+
+/* A camada de ações usa exatamente os estilos e tokens do overlay de login.
+   O dialog fica no body para não herdar o zoom e a tipografia de outros popups. */
+dialog.login-loading-overlay { margin: 0; width: 100%; height: 100%; max-width: none; max-height: none; border: 0; border-radius: 0; outline: none; box-shadow: none; box-sizing: border-box; }
+dialog.login-loading-overlay:not([open]) { display: none; }
+dialog.login-loading-overlay:focus-visible { outline: none; }
+dialog.login-loading-overlay::backdrop { background: transparent; }

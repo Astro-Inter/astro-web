@@ -1,3 +1,4 @@
+import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -35,7 +36,7 @@ function MainEventScreenPage() {
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [pendingInactivation, setPendingInactivation] = useState<CalendarEvent | null>(null)
   const [informationEvent, setInformationEvent] = useState<CalendarEvent | null>(null)
-  const [feedback, setFeedback] = useState('')
+  const setFeedback = useActionFeedback()
   const [editor, setEditor] = useState<{ mode: 'create' } | { mode: 'edit'; event: CalendarEvent; value: EventConfiguration } | null>(() => location.state?.openCreate === true ? { mode: 'create' } : null)
   const [savedEventId, setSavedEventId] = useState<string | null>(null)
   const [animateCalendar, setAnimateCalendar] = useState(true)
@@ -121,7 +122,7 @@ function MainEventScreenPage() {
     const eventId = existing?.eventId ?? existing?.id ?? crypto.randomUUID()
     const original = existing ? configurationForEvent(existing) : null
     const error = validateEventConfiguration(value) ?? (original ? validateEventEdit(original, value, mockEventManager.id) : null)
-    if (error) { setFeedback(error); return }
+    if (error) { setFeedback(error, 'error'); return }
     const entries = calendarEntriesForEvent(value, eventId, 'event', undefined, existing?.inactive)
     setAnimateCalendar(false)
     setEvents(current => {
@@ -177,7 +178,7 @@ function MainEventScreenPage() {
               <EventCalendar events={displayedCalendar.events} month={displayedCalendar.month} view={displayedCalendar.view} onMonthChange={amount => changeCalendar(() => { setOpenId(null); setMonth(current => shiftCalendarPeriod(current, view, amount)) })} onOpenOptions={openOptions} selectedEventId={openId} savedEventId={savedEventId} />
             </div>
           </div>
-          <p className="sr-only" role="status">{visiblePeriodCount} eventos visíveis neste período. {feedback}</p>
+          <p className="sr-only" role="status">{visiblePeriodCount} eventos visíveis neste período.</p>
         </section>
       </main>
       {selected && createPortal(<EventOptionsModal closing={closing} event={selected} canEdit={!selected.inactive && canEditEvent(configurationForEvent(selected), mockEventManager.id)} onClose={() => closeMenu()} onViewInformation={() => closeMenu(() => setInformationEvent(selected))} onEdit={() => closeMenu(() => setEditor({ mode: 'edit', event: selected, value: configurationForEvent(selected) }))} onInactivate={() => closeMenu(() => setPendingInactivation(selected))} panelRef={panelRef} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} />, document.body)}

@@ -1,3 +1,5 @@
+import ActionLoading from '../../components/actionLoading'
+import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { SHOWCASE_NAMES } from '../../gtm/showcases'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
@@ -38,8 +40,7 @@ function MainEmployeerScreenPage() {
   const { employees } = api
   const [details, setDetails] = useState({ dimmed: false, closing: false })
   const [savedEmployeeId, setSavedEmployeeId] = useState<string | null>(null)
-  const [feedback, setFeedback] = useState('')
-  const [actionError, setActionError] = useState('')
+  const setFeedback = useActionFeedback()
   const actions = useActionsMenu()
 
   useEffect(() => () => {
@@ -91,7 +92,6 @@ function MainEmployeerScreenPage() {
   }
 
   async function toggleStatus(employee: Collaborator): Promise<string | null> {
-    setActionError('')
     const result = await api.changeStatus(employee.id, employee.status === 'DESATIVADO' ? 'ATIVO' : 'DESATIVADO')
     if (result.error !== null) return result.error
     showSavedEmployee(result.collaborator.id, `Colaborador ${result.collaborator.name} ${collaboratorStatusLabels[result.collaborator.status].toLowerCase()}.`)
@@ -171,10 +171,8 @@ function MainEmployeerScreenPage() {
           </div>
 
           {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} disabled={api.saving} onClick={api.retry} type="button">Tentar novamente</button></div>}
-          {api.saving && <p className="position-api-feedback" role="status">Salvando alterações...</p>}
-          {actionError && <p className="position-api-feedback" role="alert">{actionError}</p>}
+          <ActionLoading active={api.saving} />
           <DataTable trackingName={SHOWCASE_NAMES.lista_colaboradores} ariaLabel="Colaboradores" columns={columns} loadingContent={api.loading ? <CollaboratorTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de colaboradores indisponível.' : 'Nenhum colaborador encontrado para esses filtros.'} getRowClassName={(employee) => employee.id === savedEmployeeId ? 'astro-data-table-row--saved' : undefined} getRowKey={(employee) => employee.id} rows={visibleEmployees} />
-          <p className="position-api-feedback" role="status">{feedback}</p>
         </section>
 
         {openEmployee && createPortal(
@@ -188,7 +186,7 @@ function MainEmployeerScreenPage() {
               { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit-password', employee: openEmployee })) },
               { trackingAction: openEmployee.status === 'DESATIVADO'  ? BUTTONS.comuns.ativar : BUTTONS.comuns.inativar, id: 'toggle-status', label: openEmployee.status === 'DESATIVADO' ? 'Ativar' : 'Desativar', tone: openEmployee.status === 'DESATIVADO' ? 'default' : 'danger', onSelect: () => actions.close(() => {
                 if (openEmployee.status !== 'DESATIVADO') setDialog({ kind: 'deactivate', employee: openEmployee })
-                else void toggleStatus(openEmployee).then((error) => { if (error) setActionError(error) })
+                else void toggleStatus(openEmployee).then((error) => { if (error) setFeedback(error, 'error') })
               }) },
             ]}
             onClose={() => actions.close()}

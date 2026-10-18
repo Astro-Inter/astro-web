@@ -1,3 +1,4 @@
+import AccountProfileSkeleton from '../../components/accountProfileSkeleton'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useLayoutEffect, useRef, useState } from 'react'
@@ -25,7 +26,7 @@ function MainAccountScreenPage() {
 }
 
 function AccountScreen() {
-  const { pending: logoutPending, error: logoutError, submit: submitLogout } = useLogout()
+  const { pending: logoutPending, submit: submitLogout } = useLogout()
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuthentication()
@@ -63,9 +64,9 @@ function AccountScreen() {
         <h1 className={isWorkspaceManager ? undefined : 'sr-only'} id="account-settings-title">Configurações de conta</h1>
         <section aria-busy={loading} aria-labelledby="account-information-title" className="create-forms-card account-information-card">
           <h2 id="account-information-title">Informações da conta</h2>
-          {loading && <p role="status">Carregando informações da conta…</p>}
+          {loading && !profile && <AccountProfileSkeleton />}
           {profileError && <div className="account-profile-error"><p role="alert">{profileError}</p><CompactPurpleButton onClick={retry}>Tentar novamente</CompactPurpleButton></div>}
-          {profile && <>
+          {profile && <div className="api-content-ready">
             <AccountProfileHeader onPhotoSelected={file => { void uploadPhoto(file) }} onRefreshPhoto={() => { void refreshPhoto() }} photoUpdate={photoUpdate} profile={profile} />
             <div className="account-main-fields">
               <FormField id="account-name" label="Nome" readOnly value={profile.name} />
@@ -75,7 +76,7 @@ function AccountScreen() {
               <CompactPurpleButton data-track-action={BUTTONS.comuns.ver_tudo} aria-haspopup="dialog" id="account-view-action" onClick={event => openPopup('view-password', event.currentTarget)}>Ver tudo</CompactPurpleButton>
               <CompactPurpleButton aria-haspopup="dialog" data-track-action={BUTTONS.comuns.editar} disabled={photoUpdate?.pending} id="account-edit-action" onClick={event => openPopup('edit-password', event.currentTarget)}>Editar</CompactPurpleButton>
             </div>
-          </>}
+          </div>}
         </section>
         <section aria-labelledby="account-transfer-title" className="create-forms-card account-transfer-card">
           <h2 id="account-transfer-title">Transferência de cargo do gestor do workspace.</h2>
@@ -88,7 +89,6 @@ function AccountScreen() {
           {emailPreview && <p className="account-email-preview" role="status">Informe o CPF ou o e-mail do novo gestor e as evidências da solicitação.</p>}
         </section>
         <div className="account-logout-action"><CompactPurpleButton data-track-action={BUTTONS.comuns.sair} aria-haspopup="dialog" aria-busy={logoutPending} disabled={logoutPending} id="account-logout-action" onClick={event => openPopup('logout', event.currentTarget)} variant="danger">Sair da conta</CompactPurpleButton></div>
-        {logoutError && <p role="alert">{logoutError}</p>}
         </div>
       </main>
       <HelpLink />

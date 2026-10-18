@@ -1,3 +1,4 @@
+import ActionFeedbackHost from './components/actionFeedbackHost'
 import Tracking from './gtm/Tracking'
 import AppRoutes from './routes'
 import { useLocation } from 'react-router-dom'
@@ -35,6 +36,7 @@ function App() {
   return (
     <>
       <Tracking />
+      <ActionFeedbackHost />
       <AppRoutes />
       {status === 'ready' && user && <div hidden={!chatVisible || !canAccessPage(user.accountType, location.pathname, location.search)}>
         <AstroChat key={user.uid} />

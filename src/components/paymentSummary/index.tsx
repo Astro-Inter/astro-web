@@ -1,3 +1,4 @@
+import ActionNotice from '../actionNotice'
 import { BUTTONS } from '../../gtm/buttons'
 import { Link } from 'react-router-dom'
 import AstroIcon from '../astroIcon'
@@ -47,7 +48,7 @@ function PaymentSummary({ onCompletePurchase, settingsMode = false, status = 'id
           {settingsMode ? 'Salvar alterações' : 'Finalizar compra'}
         </PurpleButton>
         {status === 'error' && message && <p className="login-field-error" role="alert">{message}</p>}
-        {status === 'success' && message && <p className="login-feedback" role="status">{message}</p>}
+        <ActionNotice message={status === 'success' ? message : undefined} />
 
         {!settingsMode && <p className="workspace-key-link">
           Já tem uma chave do workspace? {pending ? 'Verificar' : <Link data-track-action={BUTTONS.comuns.chave} to="/createWorkspace">Verificar</Link>}

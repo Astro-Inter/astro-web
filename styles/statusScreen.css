@@ -35,3 +35,9 @@
 @media (prefers-reduced-motion: reduce) {
   .status-screen-page, .status-screen-page :is(.access-verified-content, .access-verified-illustration) { animation: none; }
 }
+
+.status-screen-page .login-heading { width: 100%; }
+.status-screen-page .login-heading p { max-width: calc(30rem * var(--astro-scale)); margin-inline: auto; color: #c4bdd4; line-height: 1.4; overflow-wrap: anywhere; }
+.status-screen-actions { display: flex; flex-direction: column; align-items: center; gap: calc(1rem * var(--astro-scale)); width: 100%; margin-top: calc(clamp(2.5rem, 3.33vw, 3rem) * var(--astro-scale)); }
+.status-screen-actions .astro-action { width: min(100%, var(--astro-action-width)); }
+.status-screen-actions .astro-action:disabled { cursor: wait; }

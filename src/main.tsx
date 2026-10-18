@@ -1,3 +1,4 @@
+import '../styles/actionFeedback.css'
 import '@fontsource/montserrat/400.css'
 import '@fontsource/montserrat/500.css'
 import '@fontsource/montserrat/600.css'
@@ -47,6 +48,7 @@ import '../styles/editForm.css'
 import '../styles/toggleSwitch.css'
 import '../styles/workspaceSettings.css'
 import '../styles/accountSettings.css'
+import '../styles/apiLoading.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

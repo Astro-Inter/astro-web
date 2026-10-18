@@ -1,3 +1,4 @@
+import { notifyAction } from '../utils/actionFeedback'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { flushSync } from 'react-dom'
@@ -47,7 +48,11 @@ export function useLogout(): UseLogoutResult {
         await leave()
       }
     } catch (error: unknown) {
-      if (mounted.current) setState({ pending: false, error: error instanceof Error ? error.message : 'Não foi possível sair da conta. Tente novamente.' })
+      if (mounted.current) {
+        const message = error instanceof Error ? error.message : 'Não foi possível sair da conta. Tente novamente.'
+        setState({ pending: false, error: message })
+        notifyAction(message, 'error')
+      }
     } finally {
       pending.current = false
       if (mounted.current) setState((current) => ({ ...current, pending: false }))

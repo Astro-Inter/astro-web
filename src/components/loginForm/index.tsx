@@ -1,3 +1,4 @@
+import ActionNotice from '../actionNotice'
 import { BUTTONS } from '../../gtm/buttons'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -56,7 +57,7 @@ function LoginForm({ credentials, errors, status, message, invalidCredentials, o
         <PurpleButton data-track-action={BUTTONS.comuns.enviar} className="astro-form-action" disabled={pending} type="submit">
           {status === 'success' ? 'Login realizado' : 'Entrar'}
         </PurpleButton>
-        {status === 'success' && message && <p className="login-feedback" role="status">{message}</p>}
+        <ActionNotice message={status === 'success' ? message : undefined} />
       </form>
 
       <p className="workspace-link">

@@ -1,3 +1,5 @@
+import ActionLoading from '../../components/actionLoading'
+import ApiContentSkeleton from '../../components/apiContentSkeleton'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -165,7 +167,7 @@ function EditFormPage() {
 
       <main data-track-page={true} className="create-forms-main edit-forms-main">
         <h1>Editar formulário</h1>
-        {loading && <p role="status">Carregando formulário...</p>}
+        {loading && <section className="create-forms-card"><ApiContentSkeleton label="Carregando formulário" fields={6} columns={1} /></section>}
         {loadError && <div role="alert"><p>{loadError}</p><button type="button" onClick={retry}>Tentar novamente</button></div>}
         <div className="forms-editor-navigation">
         <CompactPurpleButton auto variant="outline" disabled={saving || leaving} onClick={() => {
@@ -175,8 +177,8 @@ function EditFormPage() {
         {!loading && !loadError && <CompactPurpleButton auto variant="outline" disabled={saving || leaving} onClick={() => setShowReloadConfirmation(true)}><AstroIcon name="reload" />Recarregar formulário</CompactPurpleButton>}
         </div>
         {locked && <p role="status">Este formulário está concluído ou já recebeu respostas e está disponível somente para consulta.</p>}
-        {saving && <p role="status">{publish ? 'Salvando e publicando formulário...' : 'Salvando formulário...'}</p>}
-        <form data-track-submit={BUTTONS.comuns.salvar_alteracoes} noValidate onSubmit={(event) => {
+        <ActionLoading active={saving} />
+        <form hidden={loading} data-track-submit={BUTTONS.comuns.salvar_alteracoes} noValidate onSubmit={(event) => {
           event.preventDefault()
           confirmSave()
         }}>

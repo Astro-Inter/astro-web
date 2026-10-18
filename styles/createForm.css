@@ -282,3 +282,6 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
   .forms-editor-navigation { flex-direction: column; align-items: stretch; }
   .forms-editor-navigation .astro-action { width: 100%; }
 }
+
+/* A espera bloqueia a edição sem esmaecer o fundo dos campos. */
+.forms-editor-fields:disabled[aria-busy="true"] { opacity: 1; }

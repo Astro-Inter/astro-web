@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import DataTableSkeleton from '../dataTableSkeleton'
 
 export interface DataTableColumn<Row> {
   id: string
@@ -18,9 +19,11 @@ interface DataTableProps<Row> {
   getRowKey: (row: Row) => string
   rows: readonly Row[]
   loadingContent?: ReactNode
+  loading?: boolean
 }
 
-function DataTable<Row>({ trackingName, ariaLabel, columns, emptyMessage, getRowClassName, getRowKey, rows, loadingContent }: DataTableProps<Row>) {
+function DataTable<Row>({ trackingName, ariaLabel, columns, emptyMessage, getRowClassName, getRowKey, rows, loading = false, loadingContent: customLoadingContent }: DataTableProps<Row>) {
+  const loadingContent = customLoadingContent ?? (loading ? <DataTableSkeleton columns={columns} /> : undefined)
   return (
     <div data-track-showcase={loadingContent ? undefined : trackingName} className="astro-data-table-shell">
       {loadingContent && <span className="sr-only" role="status">Carregando {ariaLabel.toLocaleLowerCase('pt-BR')}.</span>}
@@ -32,7 +35,7 @@ function DataTable<Row>({ trackingName, ariaLabel, columns, emptyMessage, getRow
           <thead>
             <tr>{columns.map((column) => <th key={column.id} scope="col" title={column.label}>{column.label}</th>)}</tr>
           </thead>
-          <tbody aria-hidden={loadingContent ? true : undefined}>
+          <tbody data-loading={Boolean(loadingContent)} aria-hidden={loadingContent ? true : undefined}>
             {loadingContent ?? <>
             {rows.map((row) => (
               <tr className={getRowClassName?.(row)} key={getRowKey(row)}>

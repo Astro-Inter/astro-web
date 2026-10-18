@@ -1,7 +1,6 @@
 function HomeDashboardSkeleton() {
   return <>
     <p className="sr-only" role="status">Carregando os indicadores do workspace.</p>
-    <div aria-hidden="true" className="home-skeleton home-skeleton-reference" />
     <div aria-hidden="true" className="home-dashboards home-dashboards--loading">
       <div className="home-card compliance-overview">
         <div className="compliance-overview-header">

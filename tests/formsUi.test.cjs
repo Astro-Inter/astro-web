@@ -40,6 +40,11 @@ function environment() {
       const resolved = path.resolve(path.dirname(filename), name)
       return load([`${resolved}.ts`, `${resolved}.tsx`, path.join(resolved, 'index.tsx')].find(file => fs.existsSync(file)))
     }, module, module.exports)
+    if (filename.includes(`${path.sep}src${path.sep}pages${path.sep}`)) {
+      const Page = module.exports.default
+      const Host = load('src/components/actionFeedbackHost/index.tsx').default
+      module.exports.default = props => React.createElement(React.Fragment, null, React.createElement(Host), React.createElement(Page, props))
+    }
     return module.exports
   }
   return { load, services, calls, context }
@@ -77,7 +82,7 @@ test('edição consulta o UUID da URL, mostra dados reais e só navega após PUT
   await click('Salvar alterações'); await click('Salvar')
   assert.match(document.getElementById('location').textContent, /editForms/)
   assert.equal(document.querySelector('fieldset').disabled, true)
-  assert.match(document.body.textContent, /Salvando formulário/)
+  assert.match(document.body.textContent, /Carregando/)
   await act(async () => pending.resolve(detail))
   assert.equal(document.getElementById('location').textContent, '/mainFormScreen')
 }))
@@ -128,7 +133,7 @@ test('lista usa paginação da API e exclusão aguarda confirmação; erro mant�
   assert.match(document.body.textContent, /Inspeção API/)
   env.services.deleteForm = () => pending.promise
   await click('Opções para Inspeção API'); await click('Excluir'); await click('Excluir', document.querySelector('[role="dialog"]'))
-  assert.match(document.body.textContent, /Excluindo formulário/)
+  assert.match(document.body.textContent, /Carregando/)
   assert.ok(document.querySelector('.form-card'))
   await act(async () => pending.reject(Error('Formulário recebeu respostas')))
   assert.match(document.querySelector('[role="alert"]').textContent, /recebeu respostas/)
@@ -239,7 +244,8 @@ test('falha de destinatários permite nova tentativa sem apagar os campos preenc
   const pending = deferred()
   env.services.getFormRecipients = () => pending.promise
   await click('Tentar novamente')
-  assert.equal(document.querySelector('[aria-label="Gestor destinatário"]').disabled, true)
+  assert.equal(document.querySelector('[aria-label="Gestor destinatário"]'), null)
+  assert.match(document.querySelector('[aria-busy="true"]').textContent, /Carregando gestores/)
   await act(async () => pending.resolve(options))
   assert.equal(document.getElementById('create-forms-name').value, 'Rascunho preservado')
   assert.equal(document.querySelector('[aria-label="Gestor destinatário"]').disabled, false)
