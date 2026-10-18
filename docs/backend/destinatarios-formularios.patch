@@ -1,0 +1,270 @@
+diff --git a/src/main/java/com/astro/api/form/controller/FormRecipientsController.java b/src/main/java/com/astro/api/form/controller/FormRecipientsController.java
+new file mode 100644
+--- /dev/null
++++ b/src/main/java/com/astro/api/form/controller/FormRecipientsController.java
+@@ -0,0 +1,29 @@
++package com.astro.api.form.controller;
++
++import com.astro.api.auth.security.AuthenticatedUser;
++import com.astro.api.common.response.ApiResult;
++import com.astro.api.form.dto.response.FormRecipientsResponse;
++import com.astro.api.form.service.FormRecipientsService;
++import io.swagger.v3.oas.annotations.Operation;
++import jakarta.servlet.http.HttpServletRequest;
++import org.springframework.http.ResponseEntity;
++import org.springframework.security.access.prepost.PreAuthorize;
++import org.springframework.security.core.annotation.AuthenticationPrincipal;
++import org.springframework.web.bind.annotation.GetMapping;
++import org.springframework.web.bind.annotation.RestController;
++
++@RestController
++@PreAuthorize("hasAnyRole('GESTOR', 'GESTOR_WORKSPACE')")
++public class FormRecipientsController {
++    private final FormRecipientsService service;
++
++    public FormRecipientsController(FormRecipientsService service) { this.service = service; }
++
++    @GetMapping("/forms/recipients")
++    @Operation(summary = "Lista gestores destinatários ativos do workspace, exceto o próprio gestor")
++    public ResponseEntity<ApiResult<FormRecipientsResponse>> findAll(
++            @AuthenticationPrincipal AuthenticatedUser principal, HttpServletRequest request) {
++        return ResponseEntity.ok(ApiResult.success("Destinatários retornados com sucesso",
++                service.findAll(principal), request.getRequestURI()));
++    }
++}
+diff --git a/src/main/java/com/astro/api/form/dto/response/FormRecipientsResponse.java b/src/main/java/com/astro/api/form/dto/response/FormRecipientsResponse.java
+new file mode 100644
+--- /dev/null
++++ b/src/main/java/com/astro/api/form/dto/response/FormRecipientsResponse.java
+@@ -0,0 +1,7 @@
++package com.astro.api.form.dto.response;
++
++import java.util.List;
++
++public record FormRecipientsResponse(Long currentManagerId, List<Recipient> items) {
++    public record Recipient(Long id, String name, String unitName) {}
++}
+diff --git a/src/main/java/com/astro/api/form/service/FormRecipientsService.java b/src/main/java/com/astro/api/form/service/FormRecipientsService.java
+new file mode 100644
+--- /dev/null
++++ b/src/main/java/com/astro/api/form/service/FormRecipientsService.java
+@@ -0,0 +1,50 @@
++package com.astro.api.form.service;
++
++import com.astro.api.auth.security.AuthenticatedUser;
++import com.astro.api.form.dto.response.FormRecipientsResponse;
++import com.astro.api.form.dto.response.FormRecipientsResponse.Recipient;
++import com.astro.api.form.model.FormScope;
++import com.astro.api.user.model.User;
++import com.astro.api.user.model.UserStatus;
++import com.astro.api.user.model.UserType;
++import com.astro.api.user.repository.UserRepository;
++import com.astro.api.workspace.model.Workspace;
++import org.springframework.stereotype.Service;
++import org.springframework.transaction.annotation.Transactional;
++
++import java.util.Comparator;
++import java.util.List;
++
++@Service
++public class FormRecipientsService {
++    private final FormAccessService access;
++    private final UserRepository users;
++
++    public FormRecipientsService(FormAccessService access, UserRepository users) {
++        this.access = access;
++        this.users = users;
++    }
++
++    @Transactional(readOnly = true)
++    public FormRecipientsResponse findAll(AuthenticatedUser principal) {
++        FormScope scope = access.requireManager(principal);
++        Workspace workspace = new Workspace();
++        workspace.id = scope.workspaceId();
++        List<Recipient> recipients = users.findByUnit_WorkspaceAndStatus(workspace, UserStatus.ATIVO).stream()
++                .filter(user -> eligible(user, scope))
++                .map(user -> new Recipient(user.getId(), user.getName(), user.getUnit().name))
++                .sorted(Comparator.comparing(Recipient::name, String.CASE_INSENSITIVE_ORDER).thenComparing(Recipient::id))
++                .toList();
++        return new FormRecipientsResponse(scope.managerId(), recipients);
++    }
++
++    private boolean eligible(User user, FormScope scope) {
++        return user.getId() != null && !scope.managerId().equals(user.getId())
++                && user.getName() != null && !user.getName().isBlank()
++                && user.getStatus() == UserStatus.ATIVO
++                && (user.getType() == UserType.GESTOR || user.getType() == UserType.GESTOR_WORKSPACE)
++                && user.getUnit() != null && user.getUnit().isActive
++                && user.getUnit().workspace != null
++                && scope.workspaceId().equals(user.getUnit().workspace.id);
++    }
++}
+diff --git a/src/test/java/com/astro/api/form/FormRecipientsServiceTest.java b/src/test/java/com/astro/api/form/FormRecipientsServiceTest.java
+new file mode 100644
+--- /dev/null
++++ b/src/test/java/com/astro/api/form/FormRecipientsServiceTest.java
+@@ -0,0 +1,71 @@
++package com.astro.api.form;
++
++import com.astro.api.auth.security.AuthenticatedUser;
++import com.astro.api.auth.security.Role;
++import com.astro.api.form.model.FormScope;
++import com.astro.api.form.service.FormAccessService;
++import com.astro.api.form.service.FormRecipientsService;
++import com.astro.api.user.model.*;
++import com.astro.api.user.repository.UserRepository;
++import com.astro.api.workspace.model.Workspace;
++import org.junit.jupiter.api.Test;
++import org.mockito.ArgumentCaptor;
++import org.springframework.security.access.AccessDeniedException;
++
++import java.util.List;
++
++import static org.junit.jupiter.api.Assertions.*;
++import static org.mockito.ArgumentMatchers.*;
++import static org.mockito.Mockito.*;
++
++class FormRecipientsServiceTest {
++    @Test void includesOnlyOtherActiveManagersInActiveUnitsOfSameWorkspaceForBothProfiles() {
++        for (Role role : List.of(Role.GESTOR, Role.GESTOR_WORKSPACE)) {
++            FormAccessService access = mock(FormAccessService.class);
++            UserRepository users = mock(UserRepository.class);
++            AuthenticatedUser principal = new AuthenticatedUser("firebase-manager", "manager@example.test", role);
++            when(access.requireManager(principal)).thenReturn(new FormScope(7L, 1L, role == Role.GESTOR_WORKSPACE));
++            User self = manager(7, 1, "Eu", UserType.valueOf(role.name()));
++            User anna = manager(8, 1, "Ana", UserType.GESTOR);
++            User workspaceManager = manager(9, 1, "Bruno", UserType.GESTOR_WORKSPACE);
++            User otherWorkspace = manager(10, 2, "Outro workspace", UserType.GESTOR);
++            User inactive = manager(11, 1, "Inativo", UserType.GESTOR); inactive.setStatus(UserStatus.DESATIVADO);
++            User pending = manager(12, 1, "Pendente", UserType.GESTOR); pending.setStatus(UserStatus.PRE_CADASTRADO);
++            User inactiveUnit = manager(13, 1, "Unidade inativa", UserType.GESTOR); inactiveUnit.getUnit().isActive = false;
++            User collaborator = manager(14, 1, "Colaborador", UserType.COLABORADOR);
++            when(users.findByUnit_WorkspaceAndStatus(any(), eq(UserStatus.ATIVO))).thenReturn(
++                    List.of(workspaceManager, self, otherWorkspace, inactive, pending, inactiveUnit, collaborator, anna));
++            var response = new FormRecipientsService(access, users).findAll(principal);
++            assertEquals(7L, response.currentManagerId());
++            assertEquals(List.of(8L, 9L), response.items().stream().map(item -> item.id()).toList());
++            assertEquals("Sede", response.items().getFirst().unitName());
++            ArgumentCaptor<Workspace> workspace = ArgumentCaptor.forClass(Workspace.class);
++            verify(users).findByUnit_WorkspaceAndStatus(workspace.capture(), eq(UserStatus.ATIVO));
++            assertEquals(1L, workspace.getValue().id);
++        }
++    }
++
++    @Test void validatesCallerBeforeQueryingRecipients() {
++        FormAccessService access = mock(FormAccessService.class);
++        UserRepository users = mock(UserRepository.class);
++        when(access.requireManager(null)).thenThrow(new AccessDeniedException("Gestor ativo necessário"));
++        assertThrows(AccessDeniedException.class, () -> new FormRecipientsService(access, users).findAll(null));
++        verifyNoInteractions(users);
++    }
++
++    @Test void returnsEmptyListWhenCallerIsTheOnlyManager() {
++        FormAccessService access = mock(FormAccessService.class);
++        UserRepository users = mock(UserRepository.class);
++        AuthenticatedUser principal = new AuthenticatedUser("firebase-manager", "manager@example.test", Role.GESTOR);
++        when(access.requireManager(principal)).thenReturn(new FormScope(7L, 1L, false));
++        when(users.findByUnit_WorkspaceAndStatus(any(), eq(UserStatus.ATIVO)))
++                .thenReturn(List.of(manager(7, 1, "Eu", UserType.GESTOR)));
++        assertTrue(new FormRecipientsService(access, users).findAll(principal).items().isEmpty());
++    }
++
++    private User manager(long id, long workspaceId, String name, UserType type) {
++        User user = FormTestFixtures.manager(id, workspaceId, type);
++        user.setName(name); user.getUnit().name = "Sede";
++        return user;
++    }
++}
+diff --git a/src/test/java/com/astro/api/form/FormRecipientsSecurityTest.java b/src/test/java/com/astro/api/form/FormRecipientsSecurityTest.java
+new file mode 100644
+--- /dev/null
++++ b/src/test/java/com/astro/api/form/FormRecipientsSecurityTest.java
+@@ -0,0 +1,88 @@
++package com.astro.api.form;
++
++import com.astro.api.auth.security.*;
++import com.astro.api.auth.service.AuthorizationService;
++import com.astro.api.auth.service.FirebaseTokenService;
++import com.astro.api.common.handler.GlobalExceptionHandler;
++import com.astro.api.config.CorsConfig;
++import com.astro.api.form.controller.FormController;
++import com.astro.api.form.controller.FormRecipientsController;
++import com.astro.api.form.dto.response.FormRecipientsResponse;
++import com.astro.api.form.dto.response.FormRecipientsResponse.Recipient;
++import com.astro.api.form.service.FormService;
++import com.astro.api.form.service.FormRecipientsService;
++import com.google.firebase.auth.FirebaseToken;
++import jakarta.servlet.Filter;
++import org.junit.jupiter.api.Test;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.context.annotation.Import;
++import org.springframework.mock.web.MockServletContext;
++import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
++import org.springframework.test.web.servlet.MockMvc;
++import org.springframework.test.web.servlet.setup.MockMvcBuilders;
++import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
++
++import java.util.List;
++import java.util.Optional;
++
++import static org.junit.jupiter.api.Assertions.assertTrue;
++import static org.mockito.ArgumentMatchers.any;
++import static org.mockito.Mockito.*;
++import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
++
++class FormRecipientsSecurityTest {
++    @Test void requiresFirebaseAndManagerRoleAndReturnsOnlyRecipientFields() throws Exception {
++        try (AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext()) {
++            context.setServletContext(new MockServletContext()); context.register(Config.class); context.refresh();
++            MockMvc mvc = MockMvcBuilders.webAppContextSetup(context)
++                    .addFilters(context.getBean("springSecurityFilterChain", Filter.class)).build();
++            FirebaseTokenService tokens = context.getBean(FirebaseTokenService.class);
++            AuthorizationService authorization = context.getBean(AuthorizationService.class);
++            FormRecipientsService recipients = context.getBean(FormRecipientsService.class);
++            mvc.perform(get("/forms/recipients")).andExpect(result -> assertTrue(result.getResponse().getStatus() >= 400));
++            when(tokens.verify("invalid")).thenThrow(mock(com.google.firebase.auth.FirebaseAuthException.class));
++            mvc.perform(get("/forms/recipients").header("Authorization", "Bearer invalid"))
++                    .andExpect(result -> assertTrue(result.getResponse().getStatus() >= 400));
++            FirebaseToken token = mock(FirebaseToken.class); when(token.getUid()).thenReturn("manager");
++            when(tokens.verify("valid")).thenReturn(token);
++            for (Role role : List.of(Role.COLABORADOR, Role.ADMIN)) {
++                when(authorization.getRole("manager")).thenReturn(Optional.of(role));
++                mvc.perform(get("/forms/recipients").header("Authorization", "Bearer valid")).andExpect(status().isForbidden());
++            }
++            verifyNoInteractions(recipients);
++            when(recipients.findAll(any())).thenReturn(new FormRecipientsResponse(7L, List.of(new Recipient(8L, "Ana", "Sede"))));
++            for (Role role : List.of(Role.GESTOR, Role.GESTOR_WORKSPACE)) {
++                when(authorization.getRole("manager")).thenReturn(Optional.of(role));
++                mvc.perform(get("/forms/recipients").param("workspaceId", "999").param("managerId", "999")
++                                .header("Authorization", "Bearer valid"))
++                        .andExpect(status().isOk())
++                        .andExpect(jsonPath("$.success").value(true))
++                        .andExpect(jsonPath("$.data.currentManagerId").value(7))
++                        .andExpect(jsonPath("$.data.items[0].id").value(8))
++                        .andExpect(jsonPath("$.data.items[0].name").value("Ana"))
++                        .andExpect(jsonPath("$.data.items[0].unitName").value("Sede"))
++                        .andExpect(jsonPath("$.data.items[0].email").doesNotExist())
++                        .andExpect(jsonPath("$.data.items[0].cpf").doesNotExist());
++                verify(recipients).findAll(argThat(principal -> principal.firebaseUid().equals("manager") && principal.role() == role));
++            }
++            // A rota fixa não é interpretada como UUID pelo controller existente.
++            verifyNoInteractions(context.getBean(FormService.class));
++        }
++    }
++
++    @Configuration
++    @EnableWebSecurity
++    @org.springframework.web.servlet.config.annotation.EnableWebMvc
++    @Import({SecurityConfig.class, CorsConfig.class, FormController.class, FormRecipientsController.class, GlobalExceptionHandler.class})
++    static class Config {
++        @Bean FirebaseTokenService firebaseTokenService() { return mock(FirebaseTokenService.class); }
++        @Bean AuthorizationService authorizationService() { return mock(AuthorizationService.class); }
++        @Bean FormService formService() { return mock(FormService.class); }
++        @Bean FormRecipientsService formRecipientsService() { return mock(FormRecipientsService.class); }
++        @Bean FirebaseAuthenticationFilter firebaseAuthenticationFilter(FirebaseTokenService tokens, AuthorizationService authorization) {
++            return new FirebaseAuthenticationFilter(tokens, authorization);
++        }
++    }
++}
