@@ -38,7 +38,7 @@ export function useQuestionReorder(values: CreateFormValues, setValues: Dispatch
     const previousPositions = questionPositionsBeforeAnimationRef.current
     if (!previousPositions) return
     questionPositionsBeforeAnimationRef.current = null
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.astroReducedMotion === 'true') return
 
     document.querySelectorAll<HTMLElement>('.create-forms-question-item[data-question-id]').forEach((item) => {
       if (item.dataset.removing === 'true') return

@@ -126,6 +126,10 @@ AppModal/ConfirmationModal usam opções explícitas backdrop e preservePageScro
 - Texto truncado: Tab para receber foco quando há corte, tooltip associado por aria-describedby e Escape para fechar. Recomendações de NRs também têm associação ARIA e fechamento por Escape.
 - Placeholder ativo: #b6b2c3 sobre #444252, contraste superior a 4,5:1. Prévias desabilitadas conservam a opacidade definida para o protótipo.
 
+## Preferências de acessibilidade
+
+O bloco **Acessibilidade** em **Configurações do workspace** oferece tamanho de texto, OpenDyslexic, temas, alto contraste, sete paletas de cores, guia de leitura, redução de movimento, VLibras e navegação facial opcional. As buscas compartilhadas incluem pesquisa por voz quando disponível. Antes do login, o painel tem um link próprio; o atalho Alt + A também o abre. Preferências individuais são mantidas neste navegador. Consulte [recursos, permissões e limites de verificação](docs/acessibilidade.md).
+
 ## Persistência
 
 createForms grava astro-created-form e astro-create-forms-draft com _versao: 1 e trata falhas de escrita. Ainda não existe coleção de formulários nem carga/migração desses registros. A recuperação de rascunho será definida posteriormente. EditForms usa estado local. Cargos e seus vínculos de NRs são persistidos na API; NRs das outras telas ainda usam dados demonstrativos. O cadastro inicial do workspace é persistido na API na etapa final; o rascunho é descartado após autenticar o gestor na confirmação de sucesso.

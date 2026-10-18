@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { AstroBrand, AstroIcon, CompactPurpleButton, HelpLink } from '../../components'
 import WorkspaceSettingsPasswordModal from '../../components/workspaceSettingsPasswordModal'
 import SettingsTabs from '../../components/settingsTabs'
+import AccessibilitySettings from '../../components/accessibilitySettings'
 import type { WorkspaceSettingsNavigationState, WorkspaceSettingsSection } from '../../types/workspaceSettings'
 
 interface WorkspaceSettingsAction {
@@ -65,6 +66,10 @@ function MainWorkspaceSettingsScreenPage() {
               </div>
             ))}
           </div>
+        </section>
+        <section className="create-forms-card a11y-workspace-card" aria-labelledby="workspace-accessibility-title">
+          <h2 id="workspace-accessibility-title" tabIndex={-1}>Acessibilidade</h2>
+          <AccessibilitySettings />
         </section>
         </div>
       </main>

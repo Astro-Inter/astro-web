@@ -8,6 +8,12 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './app'
 import AuthenticationProvider from './providers/authentication'
 import WorkspaceRegistrationProvider from './providers/workspaceRegistration'
+import AccessibilityProvider from './providers/accessibility'
+import AccessibilityTools from './components/accessibilityTools'
+import AccessibilitySkipLink from './components/accessibilitySkipLink'
+import AccessibilityRuntimeProvider from './providers/accessibilityRuntime'
+import '@fontsource/opendyslexic/400.css'
+import '@fontsource/opendyslexic/700.css'
 import './services/firebase'
 import '../styles/global.css'
 import '../styles/mainHomeScreen.css'
@@ -47,15 +53,22 @@ import '../styles/editForm.css'
 import '../styles/toggleSwitch.css'
 import '../styles/workspaceSettings.css'
 import '../styles/accountSettings.css'
+import '../styles/accessibility.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <AuthenticationProvider>
-        <WorkspaceRegistrationProvider>
-          <App />
-        </WorkspaceRegistrationProvider>
-      </AuthenticationProvider>
+      <AccessibilityProvider>
+        <AccessibilitySkipLink />
+        <AuthenticationProvider>
+          <AccessibilityRuntimeProvider>
+            <WorkspaceRegistrationProvider>
+              <App />
+            </WorkspaceRegistrationProvider>
+            <AccessibilityTools />
+          </AccessibilityRuntimeProvider>
+        </AuthenticationProvider>
+      </AccessibilityProvider>
     </BrowserRouter>
   </StrictMode>,
 )

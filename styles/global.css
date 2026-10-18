@@ -26,6 +26,9 @@
    ========================================================================= */
 
 :root {
+  --astro-root-font-size: 16px;
+  --astro-text-scale: 1;
+  font-size: calc(var(--astro-root-font-size) * var(--astro-text-scale));
   /* O tema do produto é fixo, inclusive nos controles nativos do navegador. */
   color-scheme: only dark;
   --astro-popup-duration: 260ms;
@@ -122,7 +125,7 @@
    limita a escala em telas ultralargas para não cortar os formulários. */
 @media (min-width: 1600px) {
   :root {
-    font-size: clamp(16px, min(1.05vw, 1.8vh), 40px);
+    --astro-root-font-size: clamp(16px, min(1.05vw, 1.8vh), 40px);
   }
 }
 

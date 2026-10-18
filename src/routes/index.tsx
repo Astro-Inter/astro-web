@@ -107,7 +107,7 @@ function AppRoutes() {
       && ['/mainWorkspaceSettingsScreen', '/mainAccountScreen'].includes(displayedLocation.pathname)
     if (isTabChange) {
       const scrollTop = window.scrollY
-      const useSnapshots = Boolean(document.startViewTransition) && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const useSnapshots = Boolean(document.startViewTransition) && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && document.documentElement.dataset.astroReducedMotion !== 'true'
       void (settingsRouteLoaders[location.pathname]?.() ?? Promise.resolve()).then(() => {
         if (cancelled) return
         const update = () => new Promise<void>(resolve => {

@@ -8,7 +8,7 @@ export function useAnimatedResults<T>(items: readonly T[], signature: string, pa
 
   useEffect(() => {
     if (displayed.signature === signature) return
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.astroReducedMotion === 'true'
     const timer = window.setTimeout(() => setDisplayed({ items, signature, page, group, direction: animate ? direction : '', changed: animate }), !animate || reducedMotion ? 0 : 180)
     return () => window.clearTimeout(timer)
   }, [items, signature, displayed.signature, page, group, direction, animate])

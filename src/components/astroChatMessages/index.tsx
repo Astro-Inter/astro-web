@@ -19,7 +19,7 @@ function AstroChatMessages({ messages, thinkingId }: AstroChatMessagesProps) {
   useEffect(() => {
     if (present.removed.length === 0) return
     const timeout = window.setTimeout(() => setPresent(current => ({ ...current, removed: [] })),
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 240)
+      (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.astroReducedMotion === 'true') ? 0 : 240)
     return () => window.clearTimeout(timeout)
   }, [present.removed])
 

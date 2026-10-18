@@ -26,7 +26,7 @@ function AstroChatTransition({ contentKey, children, className = '', inline = fa
     const outgoing = outgoingRef.current
     const incoming = incomingRef.current
     if (!root || !outgoing || !incoming) return
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.astroReducedMotion === 'true'
     const animation = root.animate([
       { height: `${outgoing.offsetHeight}px` },
       { height: `${incoming.offsetHeight}px` },

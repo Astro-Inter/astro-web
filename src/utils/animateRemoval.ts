@@ -1,5 +1,5 @@
 export function animateRemoval(element: HTMLElement | null, onFinish: () => void, collapseGridGap = false) {
-  if (!element || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (!element || window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.astroReducedMotion === 'true') {
     onFinish()
     return
   }

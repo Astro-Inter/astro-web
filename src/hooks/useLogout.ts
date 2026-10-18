@@ -28,7 +28,7 @@ export function useLogout(): UseLogoutResult {
     setState({ pending: true, error: '' })
     try {
       await import('../pages/login')
-      const animated = Boolean(document.startViewTransition) && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const animated = Boolean(document.startViewTransition) && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && document.documentElement.dataset.astroReducedMotion !== 'true'
       const leave = async () => {
         await logout()
         flushSync(() => navigate('/', { replace: true, state: animated ? { logoutTransition: true } : null }))
