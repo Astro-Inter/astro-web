@@ -23,6 +23,10 @@ interface EditRegulatoryStandardsDialogProps {
   open?: boolean
   positionName: string
   recommendationText?: string
+  recommendationDescriptions?: Readonly<Record<string, string>>
+  recommendationsLoading?: boolean
+  recommendationsError?: string
+  onRetryRecommendations?: () => void
   recommendedIds?: readonly string[]
   rows?: readonly NrsRow[]
 }
@@ -46,7 +50,7 @@ function recommendationCopy(row: NrsRow, description: string) {
   }
 }
 
-function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onDismissRequest, onRequestConfirmation, open = true, positionName, recommendationText = 'Recomendado para este cargo.', recommendedIds = [], rows = defaultNrsRows }: EditRegulatoryStandardsDialogProps) {
+function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onDismissRequest, onRequestConfirmation, open = true, positionName, recommendationText = 'Recomendado para este cargo.', recommendationDescriptions = {}, recommendationsLoading = false, recommendationsError = '', onRetryRecommendations, recommendedIds = [], rows = defaultNrsRows }: EditRegulatoryStandardsDialogProps) {
   const tooltipId = useId()
   const [form, setForm] = useState(() => ({ search: '', enabledIds: new Set(enabledIds) }))
   const [recommendationTooltip, setRecommendationTooltip] = useState<RecommendationTooltipState | null>(null)
@@ -208,7 +212,8 @@ function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = fals
     },
   ]
 
-  const recommendation = recommendationTooltip ? recommendationCopy(recommendationTooltip.row, recommendationText) : null
+  const recommendation = recommendationTooltip ? recommendationCopy(recommendationTooltip.row, recommendationDescriptions[recommendationTooltip.row.id] ?? recommendationText) : null
+  const hasRecommendations = rows.some(row => recommendedIds.includes(row.id))
   const recommendationPopover = recommendationTooltip && recommendation ? createPortal(
     <div
       className={`nrs-edit-recommendation-tooltip${recommendationTooltip.closing ? ' nrs-edit-recommendation-tooltip--closing' : ''}`}
@@ -251,6 +256,12 @@ function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = fals
           />
         </div>
 
+        {recommendationsLoading && <p className="nrs-edit-ai-feedback" role="status">Consultando sugestões de IA para este cargo…</p>}
+        {recommendationsError && <div className="nrs-edit-ai-feedback">
+          <p role="alert">{recommendationsError} A edição manual continua disponível.</p>
+          {onRetryRecommendations && <button className="astro-modal-cancel" data-track-action={BUTTONS.comuns.tentar_novamente} onClick={onRetryRecommendations} type="button">Tentar novamente</button>}
+        </div>}
+
         <div className="nrs-dialog-table nrs-edit-table">
           <DataTable trackingName={contextLabel ? SHOWCASE_NAMES.lista_dialog_unidade : SHOWCASE_NAMES.lista_dialog_cargo}
             ariaLabel="Editar Normas Regulamentadoras"
@@ -262,7 +273,7 @@ function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = fals
         </div>
 
         <div className="nrs-edit-footer">
-          {recommendedIds.length > 0 && <span className="nrs-edit-recommendation"><img alt="" aria-hidden="true" draggable={false} src={import.meta.env.BASE_URL + "aiRecommendationRobot.png"} />Recomendação de IA</span>}
+          {hasRecommendations && <span className="nrs-edit-recommendation"><img alt="" aria-hidden="true" draggable={false} src={import.meta.env.BASE_URL + "aiRecommendationRobot.png"} />Recomendação de IA</span>}
           <div className="nrs-edit-footer-actions">
             <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
             <PurpleButton data-track-action={BUTTONS.comuns.salvar} onClick={() => {
