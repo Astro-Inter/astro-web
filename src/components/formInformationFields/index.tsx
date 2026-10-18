@@ -33,7 +33,9 @@ export default function FormInformationFields({ prefix, values, setValues, optio
         <CompactPurpleButton auto variant="outline" disabled={options.managersLoading} onClick={onRetryManagers}><AstroIcon name="reload" />Tentar novamente</CompactPurpleButton>
       </div> : !options.managersLoading && options.managers.length === 0 && <p role="status">Nenhum outro gestor ativo disponível para receber o formulário.</p>}
     </div>
-    <div className="create-forms-field"><span className="create-forms-label">NR (opcional)</span><ToolbarSelect trackingAction={BUTTONS.comuns.nr} className="create-forms-select" label="NR (opcional)" onValueChange={value => change('nr', value)} options={selectable(options.nrs, values.nr, 'Selecionar a NR')} value={values.nr} /></div>
+    <div className="create-forms-field"><span className="create-forms-label">NR (opcional)</span><ToolbarSelect trackingAction={BUTTONS.comuns.nr} className="create-forms-select" label="NR (opcional)" onValueChange={value => change('nr', value)} options={[{ value: '', label: 'Selecionar a NR', tone: 'muted' }, ...options.nrs]} value={options.nrs.some(nr => nr.value === values.nr) ? values.nr : ''} />
+      {values.nr && !options.nrs.some(nr => nr.value === values.nr) && <p role="alert">A NR salva não está disponível no catálogo de empresa. Selecione uma NR de empresa ou remova o vínculo.</p>}
+    </div>
     <div className="create-forms-field"><span className="create-forms-label">Unidade (opcional)</span><ToolbarSelect trackingAction={BUTTONS.comuns.unidade} className="create-forms-select" label="Unidade (opcional)" onValueChange={value => change('unit', value)} options={selectable(options.units, values.unit, 'Selecionar a unidade')} value={values.unit} /></div>
     <div className="create-forms-field"><label htmlFor={`${prefix}-deadline`}>Data limite (opcional)</label><FormDatePicker id={`${prefix}-deadline`} label="Data limite" onValidityChange={onDeadlineValidityChange} onChange={value => change('deadline', value)} value={values.deadline} /></div>
   </>

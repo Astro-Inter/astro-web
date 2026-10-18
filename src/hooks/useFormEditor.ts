@@ -57,6 +57,9 @@ export function useFormEditor(id?: string): FormEditorResult {
     save: async (draft = false, publish = false) => {
       if (loading || state.error || locked) throw new Error('Carregue um formulário editável antes de salvar.')
       if (mutation.current) throw new Error('Aguarde a gravação em andamento.')
+      if (values.nr && !state.options.nrs.some(nr => nr.value === values.nr)) {
+        throw new Error('Selecione uma NR de empresa ou remova o vínculo antes de salvar.')
+      }
       if (values.manager && (values.manager === state.options.currentManagerId || state.options.managersError || !state.options.managers.some(manager => manager.value === values.manager))) {
         throw new Error('Selecione outro gestor ativo para receber o formulário.')
       }

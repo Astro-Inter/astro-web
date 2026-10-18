@@ -259,3 +259,29 @@ test('botões de navegação usam o padrão Astro; recarregar exige confirmaçã
   await click('Recarregar formulário'); await click('Recarregar')
   assert.equal(env.calls.filter(c => c.name === 'getForm').length, 2)
 }))
+
+test('NR antiga fora do catálogo Empresa não reaparece no dropdown e precisa ser substituída ou removida', async () => withDom(async root => {
+  const env = environment(), Page = env.load('src/pages/editForm/index.tsx').default
+  env.services.getForm = async () => ({ ...structuredClone(detail), nrCode: 99 })
+  await mount(root, Page, `/editForms?id=${id}`)
+  assert.equal(document.querySelector('[aria-label="NR (opcional)"]').value, 'Selecionar a NR')
+  assert.match(document.querySelector('[role="alert"]').textContent, /catálogo de empresa/)
+  await click('Abrir opções de NR (opcional)')
+  assert.doesNotMatch(document.querySelector('[role="listbox"]').textContent, /99|seleção salva/)
+  await click('NR 6')
+  await click('Salvar alterações'); await click('Salvar')
+  assert.equal(env.calls.find(call => call.name === 'updateForm').args[1].nr, '6')
+}))
+
+test('salvamento recusa NR fora do catálogo e aceita remover o vínculo opcional', async () => withDom(async root => {
+  const env = environment(), hook = env.load('src/hooks/useFormEditor.ts').useFormEditor
+  let current
+  function Probe() { current = hook(id); return null }
+  env.services.getForm = async () => ({ ...structuredClone(detail), nrCode: 99 })
+  await act(async () => root.render(React.createElement(Probe)))
+  await assert.rejects(current.save(), /Selecione uma NR de empresa/)
+  assert.equal(env.calls.filter(call => call.name === 'updateForm').length, 0)
+  await act(async () => current.setValues(values => ({ ...values, nr: '' })))
+  await act(async () => { await current.save() })
+  assert.equal(env.calls.find(call => call.name === 'updateForm').args[1].nr, '')
+}))

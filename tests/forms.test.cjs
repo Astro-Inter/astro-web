@@ -119,16 +119,52 @@ test('destinatários usam endpoint próprio, filtram o próprio gestor e preserv
   const calls = []
   global.fetch = async url => {
     const pathname = new URL(url).pathname; calls.push(pathname)
-    return response(pathname === '/nrs' ? [{ code: 6, title: 'EPI' }] : pathname === '/units' ? [
+    return response(pathname === '/units/3/nrs' ? [{ nr: 1, descricao: 'Disposições gerais', ativo: false }] : pathname === '/units' ? [
       { id_unidade: 3, nome: 'Ativa', quantidade_colaboradores: 0, status: 'ativo' }, { id_unidade: 4, nome: 'Inativa', quantidade_colaboradores: 0, status: 'inativo' },
     ] : { currentManagerId: 7, items: [
       { id: 7, name: 'Eu mesmo', unitName: 'Sede' }, { id: 8, name: 'Ana', unitName: 'Ativa' },
     ] })
   }
   const options = await api.getFormOptions()
-  assert.deepEqual(options.managers.map(o => o.value), ['8']); assert.deepEqual(options.units.map(o => o.value), ['3']); assert.equal(options.nrs[0].value, '6')
+  assert.deepEqual(options.managers.map(o => o.value), ['8']); assert.deepEqual(options.units.map(o => o.value), ['3']); assert.equal(options.nrs[0].value, '1')
   assert.equal(options.currentManagerId, '7'); assert.equal(options.managersError, '')
-  assert.deepEqual(calls.sort(), ['/forms/recipients', '/nrs', '/units'])
+  assert.deepEqual(calls.sort(), ['/forms/recipients', '/units', '/units/3/nrs'])
+})
+
+test('formulários usam somente o catálogo Empresa de uma unidade ativa e mantêm NRs ainda não associadas', async () => {
+  const calls = [], controller = new AbortController()
+  global.fetch = async (url, init) => {
+    const pathname = new URL(url).pathname; calls.push(pathname)
+    assert.equal(init.signal, controller.signal); assert.equal(init.headers.Authorization, 'Bearer firebase-token')
+    if (pathname === '/forms/recipients') return response({ currentManagerId: 7, items: [] })
+    if (pathname === '/units') return response([
+      { id_unidade: 2, nome: 'Inativa', quantidade_colaboradores: 0, status: 'inativo' },
+      { id_unidade: 3, nome: 'Sede', quantidade_colaboradores: 0, status: 'ativo' },
+      { id_unidade: 4, nome: 'Filial', quantidade_colaboradores: 0, status: 'ativo' },
+    ])
+    assert.equal(pathname, '/units/3/nrs')
+    return response([{ nr: 1, descricao: 'Disposições gerais', ativo: false }, { nr: 5, descricao: 'CIPA', ativo: true }])
+  }
+  assert.deepEqual((await api.getFormOptions(controller.signal)).nrs, [
+    { value: '1', label: 'NR 1 — Disposições gerais' }, { value: '5', label: 'NR 5 — CIPA' },
+  ])
+  assert.deepEqual(calls.sort(), ['/forms/recipients', '/units', '/units/3/nrs'])
+})
+
+test('catálogo Empresa vazio, sem unidade ativa ou indisponível não libera o catálogo geral de NRs', async () => {
+  let active = false, fail = false
+  const calls = []
+  global.fetch = async url => {
+    const pathname = new URL(url).pathname; calls.push(pathname)
+    if (pathname === '/forms/recipients') return response({ currentManagerId: 7, items: [] })
+    if (pathname === '/units') return response([{ id_unidade: 3, nome: 'Sede', quantidade_colaboradores: 0, status: active ? 'ativo' : 'inativo' }])
+    if (fail) throw new TypeError('Offline')
+    return response([])
+  }
+  assert.deepEqual((await api.getFormOptions()).nrs, []); assert.equal(calls.includes('/units/3/nrs'), false)
+  active = true; assert.deepEqual((await api.getFormOptions()).nrs, [])
+  fail = true; await assert.rejects(api.getFormOptions(), /conectar à API de unidades/)
+  assert.equal(calls.includes('/nrs'), false)
 })
 
 test('falha do catálogo não inventa gestores e não impede abrir os demais campos', async () => {

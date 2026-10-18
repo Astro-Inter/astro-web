@@ -1,6 +1,6 @@
 import { firebaseAuth } from './firebase'
 import { getSystemApiBaseUrl } from './systemApi'
-import { listUnits } from './units'
+import { listUnitNrOptions, listUnits } from './units'
 import { formApiStatuses, formRequest, isFormId, isFormReferenceId } from '../utils/formApi'
 import type { CreateFormValues, FormDetailsResponse, FormEditorOptions, FormManagerOptions, FormRecipientsResponse, FormsPageResponse, FormStatus, FormSummaryResponse } from '../types/forms'
 
@@ -116,19 +116,24 @@ export async function getFormRecipients(signal?: AbortSignal): Promise<FormManag
 
 export async function getFormOptions(signal?: AbortSignal): Promise<FormEditorOptions> {
   const user = firebaseAuth.currentUser
-  const [recipients, units, nrs] = await Promise.all([
+  const [recipients, units] = await Promise.all([
     getFormRecipients(signal).catch((error: unknown): FormManagerOptions => {
       if (signal?.aborted) throw error
       return { managers: [], currentManagerId: null, managersError: 'Não foi possível carregar os gestores destinatários. Tente novamente.' }
     }),
-    listUnits(signal), requestForms<{ code: number; title: string }[]>('/nrs', 'GET', undefined, signal),
+    listUnits(signal),
   ])
   signal?.throwIfAborted()
   if (firebaseAuth.currentUser !== user) throw new FormsApiError('Sua sessão mudou. Entre novamente.')
-  if (!Array.isArray(nrs) || nrs.some(nr => !nr || !positiveId(nr.code) || typeof nr.title !== 'string')) throw new FormsApiError('A API retornou NRs inválidas.')
+  const activeUnits = units.filter(unit => unit.active)
+  // O catálogo de opções de uma unidade contém todas as NRs de usabilidade Empresa.
+  // "ativo" indica apenas a associação à unidade, não a classificação da NR.
+  const nrs = activeUnits[0] ? await listUnitNrOptions(activeUnits[0].id, signal) : []
+  signal?.throwIfAborted()
+  if (firebaseAuth.currentUser !== user) throw new FormsApiError('Sua sessão mudou. Entre novamente.')
   return {
     ...recipients,
-    units: units.filter(unit => unit.active).map(unit => ({ value: unit.id, label: unit.name })),
-    nrs: nrs.map(nr => ({ value: String(nr.code), label: `NR ${nr.code} — ${nr.title}` })),
+    units: activeUnits.map(unit => ({ value: unit.id, label: unit.name })),
+    nrs: nrs.map(nr => ({ value: String(nr.nr), label: `NR ${nr.nr} — ${nr.descricao}` })),
   }
 }
