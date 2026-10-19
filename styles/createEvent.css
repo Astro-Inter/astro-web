@@ -94,7 +94,7 @@
 .event-create-field > input { min-height: var(--astro-control-height); padding: 0 var(--astro-control-padding-inline); border: 1px solid transparent; border-radius: var(--astro-control-radius); outline: none; color: var(--astro-text); background: var(--astro-field); font-family: inherit; font-size: var(--astro-control-font-size); font-weight: 400; transition: border-color 180ms ease, background 180ms ease; }
 .event-create-field > input::placeholder { color: var(--astro-placeholder); opacity: 1; }
 .event-create-field > input:focus,
-.event-create-field .astro-toolbar-select-trigger:focus { border-color: var(--astro-input-focus-border); box-shadow: 0 0 0 1px rgb(47 46 50 / 22%); outline: none; }
+.event-create-field .astro-toolbar-select-trigger:focus { --astro-autofill-focus-shadow: 0 0 0 1px rgb(47 46 50 / 22%); border-color: var(--astro-input-focus-border); box-shadow: 0 0 0 1px rgb(47 46 50 / 22%); outline: none; }
 .event-create-field > input[readonly] { color: var(--astro-placeholder); }
 .event-create-field .event-create-select,
 .event-create-field .event-create-select .astro-toolbar-select-trigger { height: var(--astro-control-height); }

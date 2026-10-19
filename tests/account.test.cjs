@@ -37,7 +37,14 @@ function environment(overrides = {}) {
     if (filename.includes(`${path.sep}src${path.sep}pages${path.sep}`)) {
       const Page = module.exports.default
       const Host = load('src/components/actionFeedbackHost/index.tsx').default
-      module.exports.default = props => React.createElement(React.Fragment, null, React.createElement(Host), React.createElement(Page, props))
+      const { AccessibilityContext } = load('src/contexts/accessibility.ts')
+      const { AccessibilityRuntimeContext } = load('src/contexts/accessibilityRuntime.ts')
+      const { DEFAULT_ACCESSIBILITY } = load('src/utils/accessibility.ts')
+      const accessibility = { preferences: DEFAULT_ACCESSIBILITY, update() {}, reset() {} }
+      const runtime = { face: { status: 'idle', stop() {}, start() {} }, libras: { loading: false, error: '' } }
+      module.exports.default = props => React.createElement(AccessibilityContext.Provider, { value: accessibility },
+        React.createElement(AccessibilityRuntimeContext.Provider, { value: runtime },
+          React.createElement(React.Fragment, null, React.createElement(Host), React.createElement(Page, props))))
     }
     return module.exports
   }
@@ -285,7 +292,7 @@ test('ambos os gestores carregam o perfil; erro permite tentar novamente, troca 
     assert.equal(document.getElementById('account-name').value, 'Ana Silva')
     assert.equal(document.querySelector('.account-profile-initials').textContent, 'AS')
     assert.doesNotMatch(document.body.textContent, /Rosa Maduda/)
-    assert.equal(document.querySelector('[aria-label=Configurações]'), null)
+    assert.ok(document.querySelector('[aria-label=Configurações]'))
 
     const late = deferred()
     read = () => late.promise

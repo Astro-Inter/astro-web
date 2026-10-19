@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, useTransi
 import PrivateRoute from '../components/privateRoute'
 import GuestRoute from '../components/guestRoute'
 import { useAuthentication } from '../hooks/useAuthentication'
+import LoadingScreenPage from '../pages/loadingScreen'
 
 const MainHomeScreenPage = lazy(() => import('../pages/mainHomeScreen'))
 const MainDashboardsScreenPage = lazy(() => import('../pages/mainDashboardsScreen'))
@@ -15,7 +16,6 @@ const CreateWorkspacePage = lazy(() => import('../pages/createWorkspace'))
 const EditFormPage = lazy(() => import('../pages/editForm'))
 const loadCompanyInformation = () => import('../pages/includeCompanyInformation')
 const IncludeCompanyInformationPage = lazy(loadCompanyInformation)
-const LoadingScreenPage = lazy(() => import('../pages/loadingScreen'))
 const RegisterWorkspaceLoadingPage = lazy(() => import('../pages/registerWorkspaceLoading'))
 const LoginPage = lazy(() => import('../pages/login'))
 const loadManagers = () => import('../pages/mainManagerScreen')
@@ -73,7 +73,8 @@ function AppRoutes() {
   const { user, status } = useAuthentication()
   const [displayedLocation, setDisplayedLocation] = useState(location)
   // O snapshot do logout precisa capturar o login já montado, sem esperar outro efeito.
-  const renderedLocation = location.pathname === '/' && status === 'ready' && !user ? location : displayedLocation
+  const enteringPlanet = location.pathname === '/loadingScreen' && new URLSearchParams(location.search).get('context') !== 'registration'
+  const renderedLocation = enteringPlanet || (location.pathname === '/' && status === 'ready' && !user) ? location : displayedLocation
   const [leavingKey, setLeavingKey] = useState<string | null>(null)
   const exiting = location.key !== displayedLocation.key
   const [, startTransition] = useTransition()
@@ -190,8 +191,8 @@ function AppRoutes() {
           <Route path="/createPassword" element={<CreatePasswordPage />} />
           <Route path="/workspaceCreated" element={<WorkspaceCreatedPage />} />
         </Route>
-        <Route element={<PrivateRoute required={new URLSearchParams(displayedLocation.search).get('context') === 'settings'} />}>
-          <Route element={<GuestRoute enabled={new URLSearchParams(displayedLocation.search).get('context') !== 'settings'} />}>
+        <Route element={<PrivateRoute required={new URLSearchParams(renderedLocation.search).get('context') === 'settings'} />}>
+          <Route element={<GuestRoute enabled={new URLSearchParams(renderedLocation.search).get('context') !== 'settings'} />}>
             <Route path="/includeCompanyInformation" element={<IncludeCompanyInformationPage />} />
             <Route path="/attachExcelFile" element={<AttachExcelFilePage />} />
             <Route path="/setAddress" element={<SetAddressPage />} />
@@ -213,9 +214,9 @@ function AppRoutes() {
           <Route path="/createForms" element={<CreateFormPage />} />
           <Route path="/editForms" element={<EditFormPage />} />
         </Route>
-        <Route element={<PrivateRoute required={new URLSearchParams(displayedLocation.search).get('context') !== 'registration'} />}>
-          <Route element={<GuestRoute enabled={new URLSearchParams(displayedLocation.search).get('context') === 'registration'} />}>
-            <Route path="/loadingScreen" element={new URLSearchParams(displayedLocation.search).get('context') === 'registration' ? <RegisterWorkspaceLoadingPage /> : <LoadingScreenPage />} />
+        <Route element={<PrivateRoute required={new URLSearchParams(renderedLocation.search).get('context') !== 'registration'} />}>
+          <Route element={<GuestRoute enabled={new URLSearchParams(renderedLocation.search).get('context') === 'registration'} />}>
+            <Route path="/loadingScreen" element={new URLSearchParams(renderedLocation.search).get('context') === 'registration' ? <RegisterWorkspaceLoadingPage /> : <LoadingScreenPage />} />
           </Route>
         </Route>
         <Route path="/erroScreenLayout" element={<ErrorScreenLayoutPage />} />

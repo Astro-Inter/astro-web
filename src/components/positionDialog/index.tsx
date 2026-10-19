@@ -80,11 +80,13 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
                 placeholder="Digite o nome do cargo"
                 value={values.name}
               />
-              {errors.name && <span id="position-name-error" role="alert">{errors.name}</span>}
+              {errors.name && <p className="login-field-error" id="position-name-error" role="alert">{errors.name}</p>}
             </div>
             <div className="position-dialog-field">
               <span className="position-dialog-label">Status</span>
               <ToolbarSelect trackingAction={BUTTONS.comuns.cargo}
+                id="position-status"
+                error={errors.status}
                 className={`position-dialog-select${status ? '' : ' position-dialog-select--placeholder'}${errors.status ? ' position-dialog-select--invalid' : ''}`}
                 label="Status do cargo"
                 disabled={submitting}
@@ -96,7 +98,7 @@ function PositionDialog({ dimmed = false, onClose, onRequestConfirmation, onSave
                 options={statusOptions}
                 value={status}
               />
-              {errors.status && <span role="alert">{errors.status}</span>}
+              {errors.status && <p className="login-field-error" id="position-status-error" role="alert">{errors.status}</p>}
             </div>
           </div>
         </fieldset>

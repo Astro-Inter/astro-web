@@ -2,17 +2,20 @@ interface AccountProfileSkeletonProps {
   details?: boolean
   editable?: boolean
   canChangeLinks?: boolean
+  onCancel?: () => void
 }
 
-function AccountProfileSkeleton({ details = false, editable = false, canChangeLinks = false }: AccountProfileSkeletonProps) {
+function AccountProfileSkeleton({ details = false, editable = false, canChangeLinks = false, onCancel }: AccountProfileSkeletonProps) {
   const fields = <>{Array.from({ length: details ? 6 : 2 }, (_, index) =>
     <div className="field-group" key={index}>
       <span className="api-skeleton account-skeleton-label" />
       <span className="api-skeleton account-skeleton-control" />
     </div>)}</>
   const actions = <div className={details ? 'astro-modal-actions' : 'account-main-actions'}>
-    {Array.from({ length: details && !editable ? 1 : 2 }, (_, index) =>
-      <span className="api-skeleton api-skeleton-action astro-action astro-action--compact" key={index} />)}
+    {details ? <>
+      <button className="astro-modal-cancel" disabled={!onCancel} onClick={onCancel} type="button">{editable ? 'Cancelar' : 'Voltar'}</button>
+      {editable && <button className="astro-action" disabled type="button">Salvar alterações</button>}
+    </> : <><span aria-hidden="true" className="api-skeleton api-skeleton-action" /><span aria-hidden="true" className="api-skeleton api-skeleton-action" /></>}
   </div>
   return <div className="api-loading account-profile-skeleton" aria-busy="true">
     <span className="sr-only" role="status">{details ? 'Carregando detalhes da conta' : 'Carregando informações da conta'}</span>
@@ -24,12 +27,12 @@ function AccountProfileSkeleton({ details = false, editable = false, canChangeLi
           <p><span className="api-skeleton" /></p>
         </div>
       </div>
+    </div>
       {details ? <div className="account-details-form">
-        <fieldset className="position-dialog-fields"><div className="account-details-grid">{fields}</div></fieldset>
+        <fieldset aria-hidden="true" className="position-dialog-fields"><div className="account-details-grid">{fields}</div></fieldset>
         {editable && !canChangeLinks && <p className="astro-modal-description">Seu cargo e sua unidade são definidos pelo gestor do workspace.</p>}
         {actions}
-      </div> : <><div className="account-main-fields">{fields}</div>{actions}</>}
-    </div>
+      </div> : <><div aria-hidden="true" className="account-main-fields">{fields}</div>{actions}</>}
   </div>
 }
 

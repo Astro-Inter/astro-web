@@ -61,13 +61,11 @@ function ConformityFilterModal({ filters, nrs, onApply, onClose }: ConformityFil
           </div>
           <div className="position-dialog-field">
             <label htmlFor="conformity-filter-from">Data de validade (início)</label>
-            <FormDatePicker id="conformity-filter-from" label="Data de validade inicial" onChange={(from) => update('from', from)} onValidityChange={(from) => setValidDates((current) => ({ ...current, from }))} value={values.from} />
-            {errors.from && validDates.from && <span role="alert">{errors.from}</span>}
+            <FormDatePicker error={errors.from} id="conformity-filter-from" label="Data de validade inicial" onChange={(from) => update('from', from)} onValidityChange={(from) => setValidDates((current) => ({ ...current, from }))} value={values.from} />
           </div>
           <div className="position-dialog-field">
             <label htmlFor="conformity-filter-to">Data de validade (fim)</label>
-            <FormDatePicker id="conformity-filter-to" label="Data de validade final" onChange={(to) => update('to', to)} onValidityChange={(to) => setValidDates((current) => ({ ...current, to }))} value={values.to} />
-            {errors.to && validDates.to && <span role="alert">{errors.to}</span>}
+            <FormDatePicker error={errors.to} id="conformity-filter-to" label="Data de validade final" onChange={(to) => update('to', to)} onValidityChange={(to) => setValidDates((current) => ({ ...current, to }))} value={values.to} />
           </div>
         </div>
 

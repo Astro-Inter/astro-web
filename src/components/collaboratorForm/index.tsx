@@ -79,7 +79,7 @@ function CollaboratorForm({ subject = 'colaborador', collaborator, mode, options
           else if (field === 'status') update(field, value as CollaboratorStatus)
           else update(field, value)
         }} options={[{ label: `Selecione ${field === 'roleId' || field === 'status' ? 'o' : 'a'} ${label.toLowerCase()}`, value: '', tone: 'muted' }, ...choices]} value={values[field]} />
-      {errors[field] && <span id={`${id}-error`} role="alert">{errors[field]}</span>}
+      {errors[field] && <p className="login-field-error" id={`${id}-error`} role="alert">{errors[field]}</p>}
     </div>
   }
 

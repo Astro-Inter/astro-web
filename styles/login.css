@@ -379,3 +379,15 @@ dialog.login-loading-overlay { margin: 0; width: 100%; height: 100%; max-width: 
 dialog.login-loading-overlay:not([open]) { display: none; }
 dialog.login-loading-overlay:focus-visible { outline: none; }
 dialog.login-loading-overlay::backdrop { background: transparent; }
+
+/* O mesmo estado de erro para selects, calendários e campos do editor. */
+:root :is(.astro-toolbar-select, .create-forms-date-control, .create-forms-field, .create-forms-option) input[aria-invalid="true"] {
+  border-color: var(--astro-primary-error);
+  box-shadow: none;
+}
+:root :is(.astro-toolbar-select, .create-forms-date-control, .create-forms-field, .create-forms-option) input[aria-invalid="true"]:focus {
+  --astro-autofill-focus-shadow: 0 0 transparent;
+  border-color: #cf3e3e;
+  box-shadow: none;
+  outline: none;
+}

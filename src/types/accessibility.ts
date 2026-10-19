@@ -1,0 +1,24 @@
+export type AccessibilityTheme = 'dark'
+export type ColorVision = 'default' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'protanomalia' | 'deuteranomalia' | 'tritanomalia' | 'acromatopsia'
+export type LibrasPosition = 'L' | 'R'
+
+export interface AccessibilityPreferences {
+  textSize: number
+  dyslexicFont: boolean
+  theme: AccessibilityTheme
+  highContrast: boolean
+  colorVision: ColorVision
+  readingGuide: boolean
+  reduceMotion: boolean
+  libras: boolean
+  librasPosition: LibrasPosition
+}
+
+export interface AccessibilityContextValue {
+  preferences: AccessibilityPreferences
+  update: (changes: Partial<AccessibilityPreferences>) => void
+  reset: () => void
+  panelOpen: boolean
+  openPanel: () => void
+  closePanel: () => void
+}

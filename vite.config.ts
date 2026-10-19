@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
   const apiBaseUrl = env.VITE_API_URL?.trim().replace(/\/+$/, '')
   return {
     plugins: [react()],
+    worker: { format: 'es' },
     // O leitor é importado ao continuar com a planilha. Prepará-lo ao iniciar
     // evita que a descoberta tardia de dependências recarregue o cadastro.
     optimizeDeps: {

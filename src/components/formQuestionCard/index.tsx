@@ -10,6 +10,7 @@ import { animateRemoval } from '../../utils/animateRemoval'
 import { otherOptionsLast } from '../../utils/forms'
 
 interface FormQuestionCardProps {
+  error?: string
   index: number
   question: FormQuestion
   onChange: (question: FormQuestion) => void
@@ -38,7 +39,7 @@ function questionHeading(kind: FormQuestionKind, index: number) {
 }
 
 
-function FormQuestionCard({ index, question, onChange, onCopy, onDelete, onPointerDown, onMove }: FormQuestionCardProps) {
+function FormQuestionCard({ error, index, question, onChange, onCopy, onDelete, onPointerDown, onMove }: FormQuestionCardProps) {
   const isAttachment = question.kind === 'nr' || question.kind === 'unit'
   const hasOtherOption = question.options.some((option) => option.isOther)
   const fieldId = `create-forms-question-${question.id}`
@@ -126,7 +127,7 @@ function FormQuestionCard({ index, question, onChange, onCopy, onDelete, onPoint
         <>
           <div className="create-forms-field">
             <label htmlFor={fieldId}>Pergunta</label>
-            <input id={fieldId} maxLength={140} onChange={(event) => onChange({ ...question, title: event.target.value })} placeholder="Digite a sua pergunta" value={question.title} />
+            <input aria-invalid={Boolean(error && (!question.title.trim() || question.title.length > 140))} aria-describedby={error ? `${fieldId}-error` : undefined} id={fieldId} maxLength={140} onChange={(event) => onChange({ ...question, title: event.target.value })} placeholder="Digite a sua pergunta" value={question.title} />
           </div>
 
           {question.kind === 'option' && <div className="create-forms-options">
@@ -138,7 +139,7 @@ function FormQuestionCard({ index, question, onChange, onCopy, onDelete, onPoint
                   <input className="create-forms-option-other-input" disabled id={`${fieldId}-option-${option.id}`} placeholder="Digite outra opção" />
                 </> : <>
                   <label className="sr-only" htmlFor={`${fieldId}-option-${option.id}`}>Opção {optionIndex + 1}</label>
-                  <input id={`${fieldId}-option-${option.id}`} maxLength={80} onChange={(event) => updateOption(option.id, event.target.value)} placeholder={`Opção ${optionIndex + 1}`} value={option.value} />
+                  <input aria-invalid={Boolean(error && (!option.value.trim() || option.value.length > 80))} aria-describedby={error ? `${fieldId}-error` : undefined} id={`${fieldId}-option-${option.id}`} maxLength={80} onChange={(event) => updateOption(option.id, event.target.value)} placeholder={`Opção ${optionIndex + 1}`} value={option.value} />
                 </>}
                 <button data-track-action={BUTTONS.comuns.excluir_opcao} aria-label={`Excluir opção ${option.isOther ? 'de resposta livre' : optionIndex + 1}`} disabled={question.options.length <= 2 || removingOptionId !== null} onClick={() => deleteOption(option.id)} type="button"><img alt="" src={iconAsset('trash.svg')} /></button>
               </div>
@@ -200,6 +201,7 @@ function FormQuestionCard({ index, question, onChange, onCopy, onDelete, onPoint
           </div>
         </>
       )}
+      {error && <p className="login-field-error" id={`${fieldId}-error`} role="alert">{error}</p>}
     </section>
   )
 }

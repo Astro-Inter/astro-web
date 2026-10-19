@@ -61,7 +61,7 @@ function AccountScreen() {
       <main data-track-page={true} aria-labelledby="account-settings-title" className="create-forms-main workspace-settings-content">
         <SettingsTabs active="account" from={returnPath} />
         <div className="settings-tab-content">
-        <h1 className={isWorkspaceManager ? undefined : 'sr-only'} id="account-settings-title">Configurações de conta</h1>
+        <h1 id="account-settings-title">Configurações de conta</h1>
         <section aria-busy={loading} aria-labelledby="account-information-title" className="create-forms-card account-information-card">
           <h2 id="account-information-title">Informações da conta</h2>
           {loading && !profile && <AccountProfileSkeleton />}

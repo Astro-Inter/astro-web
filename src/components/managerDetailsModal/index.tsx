@@ -24,7 +24,7 @@ function ManagerDetailsModal({ mode, manager, options, loading, error, saving, d
   return <AppModal trackingName={mode === 'edit' ? DIALOG_NAMES.editar_gestor : DIALOG_NAMES.informacoes_gestor} className="account-details-modal manager-details-modal" dimmed={dimmed} dismissible={!saving} onClose={onClose} open={open}
     title={mode === 'edit' ? 'Editar gestor' : 'Informações do gestor'}>
     {(dismiss) => <>
-      {loading && <ApiContentSkeleton label="Carregando informações do gestor" variant="profile" fields={7} actions={mode === 'view' ? 1 : 2} className="account-details-form api-loading--account-details" />}
+      {loading && <ApiContentSkeleton label="Carregando informações do gestor" variant="profile" fields={7} actions={mode === 'view' ? 1 : 2} actionLabels={mode === 'view' ? ['Voltar'] : ['Cancelar', 'Salvar alterações']} onCancel={dismiss} className="account-details-form api-loading--collaborator api-loading--account-details" />}
       {error && <div className="position-api-feedback"><p role="alert">{error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} disabled={saving} onClick={onRetry} type="button">Tentar novamente</button></div>}
       {!loading && manager && <CollaboratorForm subject="gestor" collaborator={manager} disabled={loading || Boolean(error) || saving} saving={saving} mode={mode}
         onCancel={dismiss} onSubmit={onSubmit} options={options} />}

@@ -9,11 +9,11 @@ Referência: página **✅ - Web V2** do [Figma Astro](https://www.figma.com/des
 | Home e dashboards | Disponível | Disponível |
 | Colaboradores, conformidade, unidades, cargos, formulários e eventos | Disponível | Disponível |
 | Gestão de gestores | Disponível | Oculta e rota bloqueada |
-| Item inferior do menu | Configurações | Conta |
-| Configurações do workspace | Disponível | Oculta e rota bloqueada |
+| Item inferior do menu | Configurações | Configurações |
+| Aba Workspace nas Configurações | Gestão e acessibilidade | Somente acessibilidade |
 | Empresa, planilha, endereços e pagamentos em `?context=settings` | Disponível | Rotas bloqueadas |
 | Informações e edição da própria conta | Disponível | Disponível |
-| Abas Workspace e Conta | Visíveis | Ocultas |
+| Abas Workspace e Conta | Visíveis | Visíveis |
 | Transferência do responsável | Substituir | Enviar email |
 
 As homes `2585:8996` e `2585:11514` confirmam que ações rápidas e indicadores são compartilhados. As contas `2585:7124` e `2585:9365` mostram a diferença nas abas e na transferência; a configuração do workspace é o frame `2585:9431`, exclusivo de `workspaceManager`. Diferenças pontuais de redação nos formulários não foram tratadas como restrições de acesso.
@@ -30,7 +30,9 @@ Se a confirmação da sessão falhar, o aviso apresenta a marca Astro, título, 
 
 `src/utils/accessControl.ts` centraliza as permissões usadas pelo menu e pelo `PrivateRoute`. Tentativas de abrir diretamente uma rota exclusiva redirecionam o GESTOR para a Home, sem montar a página restrita. O cadastro público do workspace continua separado do contexto de configurações. A opção de substituir o responsável exige o perfil do contexto, inclusive para montar o modal.
 
-O controle implementado corresponde às telas e rotas do frontend. A autorização de endpoints e o escopo dos dados continuam sendo responsabilidade da API, que recebe o token Firebase nas chamadas internas existentes. O retorno `userStatus` não introduz uma nova regra de bloqueio nesta alteração. A transferência, o envio de email de suporte e a edição dos dados da conta preservam os fluxos demonstrativos existentes; esta tarefa controla sua apresentação por perfil, sem acrescentar endpoints para essas operações.
+O controle implementado corresponde às telas e rotas do frontend. A autorização de endpoints e o escopo dos dados continuam sendo responsabilidade da API, que recebe o token Firebase nas chamadas internas existentes. O retorno `userStatus` precisa indicar `ATIVO` para liberar o painel. Contas `DESATIVADO`, `INATIVO` ou `INATIVADO` são encaminhadas à tela **Usuário inativado**, tanto no login quanto na restauração da sessão, sem montar páginas privadas. O erro `auth/user-disabled` do Firebase usa a mesma tela. **Ir para o login** encerra a sessão antes de abrir o formulário, evitando redirecionar novamente para a conta bloqueada.
+
+Durante o envio e a verificação das credenciais, o login mantém o formulário com o overlay de carregamento normal. A confirmação interativa da sessão preserva essa tela com o estado `authenticating`, sem liberar conteúdo privado. Após o sucesso, `/loadingScreen` mostra somente o planeta animado antes da Home, inclusive se a guarda da rota ainda estiver verificando a sessão. O carregamento de operações dentro das páginas mantém o spinner padronizado, e o reload não introduz a animação do planeta nas rotas privadas já abertas.
 
 ## Verificação
 

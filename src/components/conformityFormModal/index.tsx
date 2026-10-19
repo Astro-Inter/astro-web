@@ -81,30 +81,29 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
       {(dismiss) => <form data-track-submit={editing ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.adicionar} aria-busy={loading || submitting} autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
         {employee && (
           <div className="account-profile-header conformity-form-employee">
-            <div className="account-profile-photo"><span aria-hidden="true" className="manager-avatar manager-avatar--large">{getInitials(employee.name)}</span></div>
-            <div className="account-profile-identity"><h3>{employee.name}</h3><p>{employee.email}</p></div>
+            <div className="account-profile-photo"><span aria-hidden="true" className={loading ? 'api-skeleton account-skeleton-photo' : 'manager-avatar manager-avatar--large'}>{!loading && getInitials(employee.name)}</span></div>
+            <div className="account-profile-identity"><h3><span className={loading ? 'api-skeleton skeleton-copy' : undefined}>{employee.name}</span></h3><p><span className={loading ? 'api-skeleton skeleton-copy' : undefined}>{employee.email}</span></p></div>
           </div>
         )}
-        {loading && <ApiContentSkeleton className="conformity-form-skeleton" label="Carregando dados da conformidade" fields={employee ? 2 : 3} columns={2} actions={0} />}
+        {loading && <ApiContentSkeleton className="dialog-row-skeleton" label="Carregando dados da conformidade" fields={employee ? 2 : 3} columns={2} actions={0} />}
         {loadError && <div role="alert"><p>{loadError}</p><button className="astro-modal-cancel" onClick={onRetry} type="button">Tentar novamente</button></div>}
         <fieldset hidden={loading} className="conformity-form-fields" disabled={unavailable}>
           <div className="position-dialog-row conformity-form-row">
             {!employee && (
               <div className="position-dialog-field">
                 <label htmlFor="conformity-form-employee">Colaborador</label>
-                <ToolbarSelect trackingAction={BUTTONS.comuns.selecionar_opcao} className={selectClassName('employeeId')} id="conformity-form-employee" label="Colaborador" onValueChange={(employeeId) => update('employeeId', employeeId)} options={employeeOptions} value={values.employeeId} />
-                {errors.employeeId && <span role="alert">{errors.employeeId}</span>}
+                <ToolbarSelect trackingAction={BUTTONS.comuns.selecionar_opcao} className={selectClassName('employeeId')} id="conformity-form-employee" error={errors.employeeId} label="Colaborador" onValueChange={(employeeId) => update('employeeId', employeeId)} options={employeeOptions} value={values.employeeId} />
+                {errors.employeeId && <p className="login-field-error" id="conformity-form-employee-error" role="alert">{errors.employeeId}</p>}
               </div>
             )}
             <div className="position-dialog-field">
               <label htmlFor="conformity-form-nr">NR</label>
-              <ToolbarSelect trackingAction={BUTTONS.comuns.nr} className={selectClassName('nr')} id="conformity-form-nr" label="NR" onValueChange={(nr) => update('nr', nr)} options={nrOptions} value={values.nr} />
-              {errors.nr && <span role="alert">{errors.nr}</span>}
+              <ToolbarSelect trackingAction={BUTTONS.comuns.nr} className={selectClassName('nr')} id="conformity-form-nr" error={errors.nr} label="NR" onValueChange={(nr) => update('nr', nr)} options={nrOptions} value={values.nr} />
+              {errors.nr && <p className="login-field-error" id="conformity-form-nr-error" role="alert">{errors.nr}</p>}
             </div>
             <div className="position-dialog-field">
               <label htmlFor="conformity-form-date">Data de validade</label>
-              <FormDatePicker id="conformity-form-date" label="Data de validade" onChange={(expiresAt) => update('expiresAt', expiresAt)} onValidityChange={setDateValid} value={values.expiresAt} />
-              {errors.expiresAt && <span role="alert">{errors.expiresAt}</span>}
+              <FormDatePicker error={errors.expiresAt} id="conformity-form-date" label="Data de validade" onChange={(expiresAt) => update('expiresAt', expiresAt)} onValidityChange={setDateValid} value={values.expiresAt} />
             </div>
           </div>
         </fieldset>

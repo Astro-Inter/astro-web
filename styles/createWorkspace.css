@@ -29,6 +29,8 @@
 }
 
 .workspace-code-fields input {
+  --astro-autofill-background: var(--astro-background);
+  --astro-autofill-border: #77718c;
   width: 100%;
   aspect-ratio: 1;
   min-width: 0;
@@ -45,6 +47,7 @@
 }
 
 .workspace-code-fields input:focus {
+  --astro-autofill-focus-shadow: 0 0 0 1px rgb(109 104 145 / 30%);
   border-color: var(--astro-input-focus-border);
   box-shadow: 0 0 0 1px rgb(109 104 145 / 30%);
 }

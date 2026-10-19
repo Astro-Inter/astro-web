@@ -41,7 +41,7 @@ function StatusScreenLayout({ titleId, title, description, illustration, illustr
           <p id={`${titleId}-description`} role={descriptionRole}>{description}</p>
         </header>
         {(actionLabel || actions) && <div className="status-screen-actions">
-          {actionLabel && <PurpleButton data-track-action={BUTTONS.comuns.voltar_inicio} onClick={onAction}>{actionLabel}</PurpleButton>}
+          {actionLabel && <PurpleButton data-track-action={BUTTONS.comuns.voltar_inicio} disabled={busy} onClick={onAction}>{actionLabel}</PurpleButton>}
           {actions}
         </div>}
         {feedback}

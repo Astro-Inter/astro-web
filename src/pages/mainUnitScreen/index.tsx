@@ -8,7 +8,6 @@ import { createPortal } from 'react-dom'
 import { AppSidebar, AstroChat, AstroIcon, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, OptionsPopup, RegulatoryStandardsDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import type { DataTableColumn } from '../../components/dataTable'
 import { useUnits } from '../../hooks/useUnits'
-import WorkspaceTableSkeleton from '../../components/workspaceTableSkeleton'
 import { useActionsMenu } from '../../hooks'
 import type { Unit } from '../../types'
 import { iconAsset } from '../../utils/iconAsset'
@@ -124,7 +123,7 @@ function MainUnitScreenPage() {
 
           {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} onClick={api.retry} type="button">Tentar novamente</button></div>}
           <ActionLoading active={api.saving} />
-          <DataTable trackingName={SHOWCASE_NAMES.lista_unidades} ariaLabel="Unidades" columns={columns} loadingContent={api.loading ? <WorkspaceTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de unidades indisponível.' : 'Nenhuma unidade encontrada para esses filtros.'} getRowClassName={(unit) => unit.id === savedUnitId ? 'astro-data-table-row--saved' : undefined} getRowKey={(unit) => unit.id} rows={visibleUnits} />
+          <DataTable trackingName={SHOWCASE_NAMES.lista_unidades} ariaLabel="Unidades" columns={columns} loading={api.loading} emptyMessage={api.error ? 'Lista de unidades indisponível.' : 'Nenhuma unidade encontrada para esses filtros.'} getRowClassName={(unit) => unit.id === savedUnitId ? 'astro-data-table-row--saved' : undefined} getRowKey={(unit) => unit.id} rows={visibleUnits} />
         </section>
 
         {openUnit && createPortal(

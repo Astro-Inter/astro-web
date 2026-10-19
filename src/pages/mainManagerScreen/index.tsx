@@ -109,7 +109,7 @@ function MainManagerScreenPage() {
   }
 
   const columns: DataTableColumn<ManagerSummary>[] = [
-    { id: 'name', label: 'Gestor', width: '23%', rowHeader: true, render: (manager) => <CollaboratorIdentity name={manager.name} photoUrl={manager.profilePhotoUrl} initials={manager.avatarInitials} /> },
+    { id: 'name', label: 'Gestor', width: '23%', rowHeader: true, skeleton: 'identity', render: (manager) => <CollaboratorIdentity name={manager.name} photoUrl={manager.profilePhotoUrl} initials={manager.avatarInitials} /> },
     { id: 'email', label: 'E-mail', width: '29%', render: (manager) => <TruncatedText>{manager.email}</TruncatedText> },
     { id: 'unit', label: 'Unidades', width: '18%', render: (manager) => <TruncatedText>{manager.unit}</TruncatedText> },
     {

@@ -1,5 +1,6 @@
 import ActionLoading from '../../components/actionLoading'
-import ApiContentSkeleton from '../../components/apiContentSkeleton'
+import { useActionFeedback } from '../../hooks/useActionFeedback'
+import FormEditorSkeleton from '../../components/formEditorSkeleton'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -22,6 +23,7 @@ import { animateRemoval } from '../../utils/animateRemoval'
 import type { FormQuestion, FormQuestionKind } from '../../types/forms'
 
 function EditFormPage() {
+  const notify = useActionFeedback()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const formId = searchParams.get('id') ?? ''
@@ -35,6 +37,8 @@ function EditFormPage() {
   const [publish, setPublish] = useState(false)
   const [validationError, setValidationError] = useState('')
   const [deadlineValid, setDeadlineValid] = useState(true)
+  const [validationDraft, setValidationDraft] = useState<boolean | null>(null)
+  const fieldErrors = validationDraft === null ? {} : validateAndSanitizeForm(values, validationDraft).errors
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
 
@@ -136,10 +140,12 @@ function EditFormPage() {
   function confirmSave(publishing = false) {
     if (loading || loadError || saving || locked || leaving) return
     if (removingQuestionIdsRef.current.size) { setValidationError('Aguarde a remoção da pergunta antes de salvar.'); return }
-    if (!deadlineValid) { setValidationError('Informe uma data limite válida ou deixe o campo vazio.'); return }
+    setValidationDraft(detail?.status === 'RASCUNHO' && !publishing)
+    if (!deadlineValid) return
     const validation = validateAndSanitizeForm(values, detail?.status === 'RASCUNHO' && !publishing)
+    if (validation.errors.questions) notify(validation.errors.questions, 'error')
     const message = Object.values(validation.errors)[0]
-    setValidationError(message ?? '')
+    setValidationError('')
     if (message) return
     setValues(validation.values)
     setPublish(publishing)
@@ -167,15 +173,15 @@ function EditFormPage() {
 
       <main data-track-page={true} className="create-forms-main edit-forms-main">
         <h1>Editar formulário</h1>
-        {loading && <section className="create-forms-card"><ApiContentSkeleton label="Carregando formulário" fields={6} columns={1} /></section>}
         {loadError && <div role="alert"><p>{loadError}</p><button type="button" onClick={retry}>Tentar novamente</button></div>}
         <div className="forms-editor-navigation">
         <CompactPurpleButton auto variant="outline" disabled={saving || leaving} onClick={() => {
           if (loading || loadError || locked) navigate('/mainFormScreen')
           else setShowBackConfirmation(true)
         }}><AstroIcon name="back" />Voltar aos formulários</CompactPurpleButton>
-        {!loading && !loadError && <CompactPurpleButton auto variant="outline" disabled={saving || leaving} onClick={() => setShowReloadConfirmation(true)}><AstroIcon name="reload" />Recarregar formulário</CompactPurpleButton>}
+        {!loadError && <CompactPurpleButton auto variant="outline" disabled={loading || saving || leaving} onClick={() => setShowReloadConfirmation(true)}><AstroIcon name="reload" />Recarregar formulário</CompactPurpleButton>}
         </div>
+        {loading && <FormEditorSkeleton editing />}
         {locked && <p role="status">Este formulário está concluído ou já recebeu respostas e está disponível somente para consulta.</p>}
         <ActionLoading active={saving} />
         <form hidden={loading} data-track-submit={BUTTONS.comuns.salvar_alteracoes} noValidate onSubmit={(event) => {
@@ -186,7 +192,7 @@ function EditFormPage() {
           <fieldset aria-label="Definição do formulário" className="forms-editor-fields" disabled={loading || !!loadError || saving || locked || leaving} aria-busy={loading || saving}>
           <section aria-labelledby="edit-forms-initial-title" className="create-forms-card">
             <h2 id="edit-forms-initial-title">Informações do formulário</h2>
-            <FormInformationFields prefix="edit-forms" values={values} setValues={setValues} options={options} onDeadlineValidityChange={setDeadlineValid} onRetryManagers={retryManagers} />
+            <FormInformationFields errors={fieldErrors} prefix="edit-forms" values={values} setValues={setValues} options={options} onDeadlineValidityChange={setDeadlineValid} onRetryManagers={retryManagers} />
           </section>
 
           <div aria-label="Perguntas do formulário" className="create-forms-questions" role="list">
@@ -200,6 +206,7 @@ function EditFormPage() {
                 tabIndex={-1}
               >
                 <FormQuestionCard
+                  error={fieldErrors[`questions.${index}`]}
                   index={renderedQuestions.slice(0, index).filter((item) => !['nr', 'unit'].includes(item.kind)).length}
                   onChange={updateQuestion}
                   onCopy={() => copyQuestion(question, index)}
@@ -211,6 +218,7 @@ function EditFormPage() {
               </div>
             ))}
           </div>
+
 
 
 

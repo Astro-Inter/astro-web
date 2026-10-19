@@ -124,7 +124,7 @@ function MainFormScreenPage() {
             <ToolbarSearch label="Buscar formulários" placeholder="Buscar formulários..." value={filters.search} onChange={event => setFilters(current => ({ ...current, search: event.target.value.slice(0, 240), page: 1 }))} onClear={() => setFilters(current => ({ ...current, search: '', page: 1 }))} />
             <div className="position-toolbar-selects"><ToolbarSelect trackingAction={BUTTONS.comuns.status} label="Filtrar por status" options={statusOptions} value={filters.status} onValueChange={status => setFilters(current => ({ ...current, status: status as FormStatus | '', page: 1 }))} /></div>
           </div>
-          {loading && <ApiContentSkeleton label="Carregando formulários" variant="cards" />}
+          {loading && <ApiContentSkeleton label="Carregando formulários" variant="cards" cardCount={pageSize} />}
           {error && <div role="alert"><p>{error}</p><button onClick={retry} type="button">Tentar novamente</button></div>}
           <div hidden={loading || !!error} data-track-showcase={SHOWCASE_NAMES.lista_formularios} aria-busy={loading || results.exiting} className={`forms-grid${results.changed ? ' forms-grid--animated' : ''}${results.direction ? ` forms-grid--${results.direction}` : ''}${results.exiting ? ' forms-grid--exiting' : ''}`} key={results.signature}>
             {results.items.map(form => <FormCard key={form.id} form={form} menuOpen={openId === form.id} onOpenMenu={event => {

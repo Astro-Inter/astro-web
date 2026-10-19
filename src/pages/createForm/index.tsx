@@ -1,6 +1,6 @@
 import ActionLoading from '../../components/actionLoading'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
-import ApiContentSkeleton from '../../components/apiContentSkeleton'
+import FormEditorSkeleton from '../../components/formEditorSkeleton'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react'
@@ -14,7 +14,7 @@ import FormQuestionCard from '../../components/formQuestionCard'
 import HelpLink from '../../components/helpLink'
 import OptionsPopup from '../../components/optionsPopup'
 import PurpleButton from '../../components/purpleButton'
-import { makeQuestion } from '../../utils/forms'
+import { makeQuestion, validateAndSanitizeForm } from '../../utils/forms'
 import { useFormEditor } from '../../hooks/useFormEditor'
 import { animateRemoval } from '../../utils/animateRemoval'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
@@ -35,6 +35,8 @@ function CreateFormPage() {
   const setFeedback = useActionFeedback()
   const [error, setError] = useState('')
   const [deadlineValid, setDeadlineValid] = useState(true)
+  const [validationDraft, setValidationDraft] = useState<boolean | null>(null)
+  const fieldErrors = validationDraft === null ? {} : validateAndSanitizeForm(values, validationDraft).errors
   const menuTriggerRef = useRef<HTMLButtonElement>(null)
   const menuPanelRef = useRef<HTMLDivElement>(null)
   const highlightTimerRef = useRef<number | null>(null)
@@ -118,7 +120,10 @@ function CreateFormPage() {
   async function persist(draft: boolean) {
     if (saving || leaving) return
     if (removingQuestionIdsRef.current.size) { setError('Aguarde a remoção da pergunta antes de salvar.'); return }
-    if (!deadlineValid) { setError('Informe uma data limite válida ou deixe o campo vazio.'); return }
+    setValidationDraft(draft)
+    const validation = validateAndSanitizeForm(values, draft)
+    if (validation.errors.questions) setFeedback(validation.errors.questions, 'error')
+    if (!deadlineValid || Object.keys(validation.errors).length) return
     try {
       await save(draft)
       setError('')
@@ -156,14 +161,14 @@ function CreateFormPage() {
 
       <main data-track-page={true} className="create-forms-main">
         <h1>Crie seu formulário</h1>
-        {loading && <section className="create-forms-card"><ApiContentSkeleton label="Carregando opções do formulário" fields={6} columns={1} /></section>}
+        {loading && <FormEditorSkeleton />}
         {loadError && <div role="alert"><p>{loadError}</p><button type="button" onClick={retry}>Tentar novamente</button><button type="button" onClick={() => navigate('/mainFormScreen')}>Voltar aos formulários</button></div>}
         <ActionLoading active={saving} />
         <form hidden={loading} data-track-submit={BUTTONS.comuns.criar_forms} noValidate onSubmit={submitForm}>
           <fieldset aria-label="Definição do formulário" className="forms-editor-fields" disabled={loading || !!loadError || saving || leaving} aria-busy={loading || saving}>
           <section aria-labelledby="create-forms-initial-title" className="create-forms-card">
             <h2 id="create-forms-initial-title">Informações iniciais</h2>
-            <FormInformationFields prefix="create-forms" values={values} setValues={setValues} options={options} onDeadlineValidityChange={setDeadlineValid} onRetryManagers={retryManagers} />
+            <FormInformationFields errors={fieldErrors} prefix="create-forms" values={values} setValues={setValues} options={options} onDeadlineValidityChange={setDeadlineValid} onRetryManagers={retryManagers} />
           </section>
 
           <div aria-label="Perguntas do formulário" className="create-forms-questions" role="list">
@@ -186,6 +191,7 @@ function CreateFormPage() {
                   {dropTarget.position === 'before' ? 'Inserir antes' : 'Inserir depois'}
                 </span>}
                 <FormQuestionCard
+                  error={fieldErrors[`questions.${index}`]}
                   index={renderedQuestions.slice(0, index).filter((item) => !['nr', 'unit'].includes(item.kind)).length}
                   onChange={updateQuestion}
                   onCopy={() => addQuestionCopy(question, index)}

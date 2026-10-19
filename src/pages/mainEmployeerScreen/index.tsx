@@ -9,7 +9,6 @@ import { useLocation } from 'react-router-dom'
 import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import CollaboratorDialog from '../../components/collaboratorDialog'
 import CollaboratorIdentity from '../../components/collaboratorIdentity'
-import CollaboratorTableSkeleton from '../../components/collaboratorTableSkeleton'
 import type { DataTableColumn } from '../../components/dataTable'
 import PasswordConfirmationModal from '../../components/passwordConfirmationModal'
 import { useActionsMenu } from '../../hooks'
@@ -111,7 +110,7 @@ function MainEmployeerScreenPage() {
   }
 
   const columns: DataTableColumn<Collaborator>[] = [
-    { id: 'name', label: 'Colaborador', width: '21%', rowHeader: true, render: (employee) => <CollaboratorIdentity name={employee.name} photoUrl={employee.profilePhotoUrl} initials={employee.avatarInitials} /> },
+    { id: 'name', label: 'Colaborador', width: '21%', rowHeader: true, skeleton: 'identity', render: (employee) => <CollaboratorIdentity name={employee.name} photoUrl={employee.profilePhotoUrl} initials={employee.avatarInitials} /> },
     { id: 'email', label: 'E-mail', width: '25%', render: (employee) => <TruncatedText>{employee.email}</TruncatedText> },
     { id: 'position', label: 'Cargo', width: '22%', render: (employee) => <TruncatedText>{employee.position}</TruncatedText> },
     {
@@ -172,7 +171,7 @@ function MainEmployeerScreenPage() {
 
           {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} disabled={api.saving} onClick={api.retry} type="button">Tentar novamente</button></div>}
           <ActionLoading active={api.saving} />
-          <DataTable trackingName={SHOWCASE_NAMES.lista_colaboradores} ariaLabel="Colaboradores" columns={columns} loadingContent={api.loading ? <CollaboratorTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de colaboradores indisponível.' : 'Nenhum colaborador encontrado para esses filtros.'} getRowClassName={(employee) => employee.id === savedEmployeeId ? 'astro-data-table-row--saved' : undefined} getRowKey={(employee) => employee.id} rows={visibleEmployees} />
+          <DataTable trackingName={SHOWCASE_NAMES.lista_colaboradores} ariaLabel="Colaboradores" columns={columns} loading={api.loading} emptyMessage={api.error ? 'Lista de colaboradores indisponível.' : 'Nenhum colaborador encontrado para esses filtros.'} getRowClassName={(employee) => employee.id === savedEmployeeId ? 'astro-data-table-row--saved' : undefined} getRowKey={(employee) => employee.id} rows={visibleEmployees} />
         </section>
 
         {openEmployee && createPortal(
