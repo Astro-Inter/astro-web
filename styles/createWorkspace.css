@@ -3,7 +3,8 @@
   max-width: none;
 }
 
-.create-workspace-page .login-panel { padding-block: var(--astro-registration-padding-block); }
+.create-workspace-page .login-panel { padding-block: calc(var(--astro-registration-padding-block) + 4.5rem); }
+.create-workspace-page .login-heading { margin-top: 0; }
 
 .workspace-code-control {
   display: flex;

@@ -40,7 +40,7 @@ test('rota desconhecida mostra 404, ajuda por email e retorno conforme a sessão
           React.createElement(Route, { path: '/', element: React.createElement('h1', null, 'Login') }),
           React.createElement(Route, { path: '/mainHomeScreen', element: React.createElement('h1', null, 'Home') })))))
       assert.equal(document.querySelector('h1').textContent, 'Ops! Página não encontrada')
-      assert.equal(document.querySelector('.help-link').getAttribute('href'), 'mailto:astro.instituto@gmail.com')
+      assert.equal(document.querySelector('.help-link').getAttribute('href'), 'mailto:app.4str0@gmail.com')
       const button = document.querySelector('.status-screen-actions button')
       assert.equal(button.disabled, status === 'loading')
       if (status === 'ready') {

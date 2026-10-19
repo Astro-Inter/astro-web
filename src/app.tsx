@@ -5,6 +5,7 @@ import { useLocation } from 'react-router-dom'
 import AstroChat from './components/astroChat'
 import { useAuthentication } from './hooks/useAuthentication'
 import { canAccessPage } from './utils/accessControl'
+import { usePageTitle } from './hooks/usePageTitle'
 
 const chatRoutes = new Set([
   '/mainHomeScreen',
@@ -28,6 +29,7 @@ const settingsFormRoutes = new Set([
 ])
 
 function App() {
+  usePageTitle()
   const { user, status } = useAuthentication()
   const location = useLocation()
   const chatVisible = chatRoutes.has(location.pathname)
