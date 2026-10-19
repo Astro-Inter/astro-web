@@ -28,7 +28,7 @@ function HelpLink() {
   }
 
   return (
-    <a data-track-action={BUTTONS.comuns.ajuda} aria-busy={opening} aria-disabled={opening || undefined} onClick={openEmail} className="help-link" href="mailto:astro.instituto@gmail.com">
+    <a data-track-action={BUTTONS.comuns.ajuda} aria-busy={opening} aria-disabled={opening || undefined} onClick={openEmail} className="help-link" href="mailto:app.4str0@gmail.com">
       <span aria-hidden="true" className="help-icon" />
       <span>Precisa de ajuda</span>
     </a>

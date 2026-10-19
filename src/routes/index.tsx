@@ -18,6 +18,10 @@ const loadCompanyInformation = () => import('../pages/includeCompanyInformation'
 const IncludeCompanyInformationPage = lazy(loadCompanyInformation)
 const RegisterWorkspaceLoadingPage = lazy(() => import('../pages/registerWorkspaceLoading'))
 const LoginPage = lazy(() => import('../pages/login'))
+const ForgotPasswordPage = lazy(() => import('../pages/forgotPassword'))
+const PasswordRecoverySentPage = lazy(() => import('../pages/passwordRecoverySent'))
+const ReplacePasswordPage = lazy(() => import('../pages/replacePassword'))
+const PasswordChangedPage = lazy(() => import('../pages/passwordChanged'))
 const loadManagers = () => import('../pages/mainManagerScreen')
 const loadEmployees = () => import('../pages/mainEmployeerScreen')
 const loadUnits = () => import('../pages/mainUnitScreen')
@@ -184,6 +188,12 @@ function AppRoutes() {
     <Suspense fallback={null}>
     <div data-track-route={renderedLocation.pathname} data-track-search={renderedLocation.search} data-track-visit={renderedLocation.key} className={`astro-route-transition${tabChange ? ' astro-route-transition--tab-change' : ''}${tabChange && tabFallback ? ' astro-route-transition--tab-fallback' : ''}${isSettingsLocation(renderedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={renderedLocation.key} ref={routeRef}>
       <Routes location={renderedLocation}>
+        <Route element={<RouteContent />}>
+          <Route path="/forgotPassword" element={<ForgotPasswordPage />} />
+          <Route path="/passwordRecoverySent" element={<PasswordRecoverySentPage />} />
+          <Route path="/replacePassword" element={<ReplacePasswordPage />} />
+          <Route path="/passwordChanged" element={<PasswordChangedPage />} />
+        </Route>
         <Route element={<GuestRoute />}>
           <Route path="/" element={<LoginPage />} />
           <Route path="/createWorkspace" element={<CreateWorkspacePage />} />
@@ -229,3 +239,4 @@ function AppRoutes() {
 }
 
 export default AppRoutes
+import RouteContent from '../components/routeContent'

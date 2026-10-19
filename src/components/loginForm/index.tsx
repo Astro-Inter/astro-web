@@ -50,9 +50,9 @@ function LoginForm({ credentials, errors, status, message, invalidCredentials, o
 
         {status === 'error' && message && !invalidCredentials && <p className="login-authentication-error" id="login-authentication-error" role="alert">{message}</p>}
 
-        <a data-track-action={BUTTONS.comuns.esqueceu_senha} className="forgot-link" href="#forgot-password">
+        <Link data-track-action={BUTTONS.comuns.esqueceu_senha} className="forgot-link" to="/forgotPassword">
           Esqueceu a senha?
-        </a>
+        </Link>
 
         <PurpleButton data-track-action={BUTTONS.comuns.enviar} className="astro-form-action" disabled={pending} type="submit">
           {status === 'success' ? 'Login realizado' : 'Entrar'}

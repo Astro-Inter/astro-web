@@ -28,8 +28,8 @@ function CreateWorkspacePage() {
       />
 
       <section className="login-panel" aria-labelledby="create-workspace-title">
+        <header className="create-password-header"><AstroBrand /></header>
         <div className="login-card astro-scale-90">
-          <AstroBrand />
           <WorkspaceCodeForm status={status} message={message} onVerify={handleVerify} />
         </div>
 
