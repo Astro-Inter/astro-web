@@ -1,9 +1,12 @@
-.api-skeleton { display: block; border-radius: var(--astro-control-radius, .45rem); background: linear-gradient(100deg, rgb(182 178 195 / 8%) 20%, rgb(182 178 195 / 18%) 45%, rgb(182 178 195 / 8%) 70%); background-size: 240% 100%; animation: api-skeleton-shimmer 1.6s ease-in-out infinite; }
+.api-skeleton { --api-skeleton-background: linear-gradient(100deg, rgb(182 178 195 / 8%) 20%, rgb(182 178 195 / 18%) 45%, rgb(182 178 195 / 8%) 70%); display: block; border-radius: var(--astro-control-radius, .45rem); background: var(--api-skeleton-background); background-size: 240% 100%; animation: api-skeleton-shimmer 1.6s ease-in-out infinite; }
 .api-loading, .api-loading-row { animation: page-enter 180ms ease both; }
+/* Oculta a cópia visual, mantendo sua quebra de linha e altura exatas. */
+:is(.api-skeleton, .home-skeleton).skeleton-copy { color: transparent !important; -webkit-text-fill-color: transparent; user-select: none; }
+.astro-modal-actions > .api-skeleton { background: var(--api-skeleton-background); background-size: 240% 100%; }
 .api-loading { width: 100%; min-width: 0; }
 .api-loading-fields { display: grid; grid-template-columns: repeat(var(--api-loading-columns, 2), minmax(0, 1fr)); gap: var(--create-forms-stack-gap, 1.35rem) var(--astro-modal-inline-gap, 1rem); }
 .api-loading-field { display: grid; gap: var(--astro-field-gap, .4rem); min-width: 0; }
-.api-skeleton-label { width: 35%; height: var(--astro-label-font-size, 1rem); }
+.api-skeleton-label { width: 35%; height: calc(var(--astro-label-font-size, 1rem) * 1.2); }
 .api-skeleton-control { width: 100%; height: var(--astro-control-height, 3.5rem); }
 .api-skeleton-heading { width: 65%; height: var(--astro-subtitle-font-size, 1.25rem); }
 .api-skeleton-text { width: 85%; height: var(--astro-label-font-size, 1rem); }
@@ -13,13 +16,15 @@
 .api-loading-identity-lines { display: grid; gap: .65rem; flex: 1; min-width: 0; }
 .api-loading-actions { display: flex; justify-content: center; gap: var(--astro-modal-inline-gap, .9rem); margin-top: var(--create-forms-section-gap, 1.75rem); }
 .api-skeleton-action { width: min(45%, var(--astro-compact-action-width, 15rem)); height: var(--astro-action-height, 3.5rem); }
-.api-loading-card-badges { display: flex; gap: calc(.7rem * var(--astro-scale, 1)); margin-top: calc(1.4rem * var(--astro-scale, 1)); }
-.api-loading-card-badges > span { width: 30%; height: 2.4rem; border-radius: .2rem; }
-.api-loading-card .api-skeleton-table-action { margin-inline: 0; }
+.api-loading-card .api-skeleton { background-image: var(--api-skeleton-background); background-color: transparent; }
+.api-card-title { width: 65%; height: 1.3em; }
+.api-card-description { width: 85%; height: 2.7em; }
+.api-loading-card .api-card-badge { width: min(45%, calc(7rem * var(--astro-scale))); min-height: calc(1.2 * var(--astro-control-font-size) + 1.3rem * var(--astro-scale)); }
+.main-form-screen .position-content > .api-loading { flex: none; }
 .api-skeleton-table-avatar { flex: none; width: calc(2.5rem * var(--astro-scale, 1)); height: calc(2.5rem * var(--astro-scale, 1)); border-radius: 50%; }
 .api-skeleton-table-text { height: 1em; width: 75%; }
-.api-skeleton-table-status { height: calc(2rem * var(--astro-scale, 1)); width: 75%; border-radius: 999px; }
-.api-skeleton-table-action { height: calc(2rem * var(--astro-scale, 1)); width: calc(2rem * var(--astro-scale, 1)); margin-inline: auto; }
+.api-skeleton-table-status { height: calc(2.3rem * var(--astro-scale, 1)); width: min(calc(8rem * var(--astro-scale, 1)), 100%); border-radius: 999px; }
+.api-skeleton-table-action { height: calc(2.05rem * var(--astro-scale, 1)); width: calc(2.05rem * var(--astro-scale, 1)); margin-inline: auto; }
 .astro-data-table tbody[data-loading='false'] { animation: page-enter 240ms ease both; }
 .api-content-ready { animation: page-enter 240ms ease both; }
 .forms-grid:not(.forms-grid--animated):not([hidden]), .account-details-form { animation: page-enter 240ms ease both; }
@@ -40,6 +45,15 @@ html[data-astro-reduced-motion='true'] :is(.api-skeleton, .api-loading, .api-loa
 .api-loading--account-details .api-loading-fields { margin-top: var(--astro-modal-content-gap); gap: var(--astro-modal-content-gap) var(--astro-modal-inline-gap); }
 .api-loading--account-details .api-skeleton-label { height: calc(var(--astro-label-font-size) * 1.2); }
 .api-loading--account-details .api-loading-actions { margin-top: var(--astro-modal-actions-gap); }
+.api-loading--collaborator .api-loading-fields { gap: var(--astro-modal-content-gap) var(--astro-modal-inline-gap); }
+.api-loading--collaborator .api-loading-actions { margin-top: var(--astro-modal-actions-gap); }
+.api-loading--collaborator .api-skeleton-action { width: min(100%, var(--astro-compact-action-width)); max-width: var(--astro-compact-action-width); min-width: 0; flex: 0 1 var(--astro-compact-action-width); }
+.api-loading-identity .account-skeleton-photo { width: 100%; height: 100%; }
+.dialog-row-skeleton .api-loading-fields { margin-top: var(--astro-modal-content-gap); gap: var(--astro-modal-inline-gap); }
+@media (max-width: 480px) {
+  .api-loading--collaborator .api-loading-actions { flex-direction: column-reverse; align-items: stretch; }
+  .api-loading--collaborator .api-skeleton-action { flex: none; width: 100%; max-width: none; }
+}
 
 /* Usa os mesmos contêineres do perfil pronto, inclusive no popup e no celular. */
 .account-skeleton-photo { width: 100%; height: 100%; border-radius: 50%; }
@@ -52,7 +66,7 @@ html[data-astro-reduced-motion='true'] :is(.api-skeleton, .api-loading, .api-loa
 @media (max-width: 1024px) {
   .account-information-card .account-skeleton-label { font-size: .9375rem; }
   .account-information-card .account-skeleton-control { min-height: 3rem; }
-  .account-information-card .account-skeleton-identity p > span { height: 1.5em; }
+  .account-skeleton-identity p > span { height: 1.5em; }
 }
 @media (max-width: 600px) {
   .account-profile-skeleton .account-main-actions > .api-skeleton-action { width: 100%; max-width: none; min-height: 3rem; }

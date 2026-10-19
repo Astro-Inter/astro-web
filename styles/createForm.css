@@ -217,7 +217,7 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
   .create-forms-calendar-header button, .create-forms-calendar-footer button, .create-forms-calendar-day { transition: none; }
 }
 
-.create-forms-date-error { margin: 0.4rem 0 0; color: #ffc4c8; font-size: var(--astro-label-font-size); }
+.create-forms-date-error { margin-top: var(--astro-field-gap); }
 
 /* Logo e editor participam do mesmo fluxo; formulários longos rolam pela página. */
 .create-forms-page {

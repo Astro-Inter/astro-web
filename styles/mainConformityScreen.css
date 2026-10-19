@@ -37,8 +37,6 @@
 .astro-options-popup[id^="conformity-actions-"] { width: calc(16.75rem * var(--astro-popup-zoom)); }
 .conformity-form-employee { margin-top: var(--astro-modal-content-gap); }
 .conformity-form-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.conformity-form-skeleton .api-loading-fields { margin-top: var(--astro-modal-content-gap); gap: var(--astro-modal-inline-gap); }
-.conformity-form-skeleton .api-skeleton-label { height: calc(var(--astro-label-font-size) * 1.2); }
 :is(.conformity-form-modal, .conformity-filter-modal) .create-forms-date-control input { min-height: var(--astro-control-height); font-size: var(--astro-control-font-size); }
 
 .spreadsheet-conformity-cpf { width: 20.5%; }

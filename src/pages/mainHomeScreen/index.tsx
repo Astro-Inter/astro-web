@@ -27,7 +27,7 @@ function MainHomeScreenPage() {
 
           <section aria-labelledby="home-dashboards-title" aria-busy={loading} className="home-section">
             <h2 id="home-dashboards-title">Dashboards</h2>
-            {loading && <HomeDashboardSkeleton />}
+            {loading && <HomeDashboardSkeleton onViewDashboards={() => navigate('/mainDashboardsScreen')} />}
             {error && <div className="home-card home-api-feedback"><p role="alert">{error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} className="astro-action" onClick={retry} type="button">Tentar novamente</button></div>}
             {data && <>
               <div className="home-dashboards home-dashboards--ready">

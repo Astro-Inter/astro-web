@@ -45,7 +45,7 @@
 .astro-modal-title { margin: 0; font-size: var(--astro-heading-font-size); font-weight: 600; letter-spacing: -0.035em; line-height: 1.2; }
 .astro-modal-title:focus { outline: none; }
 /* Tipografia compartilhada pelos formulários de cargos e eventos. */
-.astro-modal :is(.position-dialog-field, .event-create-field) > :is(label, span),
+.astro-modal :is(.position-dialog-field, .event-create-field) > :is(label, span:not([role="alert"])),
 .astro-modal .position-dialog-label { color: #d3cfdd; font-size: var(--astro-label-font-size); font-weight: 400; line-height: 1.2; }
 .astro-modal :is(.position-dialog-field, .event-create-field) > input { font-family: inherit; font-size: var(--astro-control-font-size); font-weight: 400; }
 :is(.astro-modal-description, .nrs-dialog-subtitle, .event-create-description) { color: #c4bdd4; font-size: var(--astro-subtitle-font-size); font-weight: 400; line-height: 1.3; }

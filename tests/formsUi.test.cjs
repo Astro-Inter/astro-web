@@ -71,6 +71,34 @@ async function click(label, within = document) {
 }
 const waitForList = async () => act(async () => { await new Promise(resolve => setTimeout(resolve, 280)) })
 
+test('criação associa validação ao nome e gestor sem enviar formulário inválido', async () => withDom(async root => {
+  const env = environment(), Page = env.load('src/pages/createForm/index.tsx').default
+  await mount(root, Page, '/createForms')
+  await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
+  for (const field of ['name', 'manager']) {
+    const input = document.getElementById(`create-forms-${field}`)
+    assert.equal(input.getAttribute('aria-invalid'), 'true')
+    const message = document.getElementById(input.getAttribute('aria-describedby'))
+    assert.equal(message.getAttribute('role'), 'alert')
+    assert.ok(message.classList.contains('login-field-error'))
+  }
+  assert.equal(env.calls.filter(call => call.name === 'createForm').length, 0)
+}))
+
+test('calendário associa erro externo e remove o estado inválido ao corrigir', async () => withDom(async root => {
+  const env = environment(), Picker = env.load('src/components/formDatePicker/index.tsx').default
+  const props = { id: 'test-date', label: 'Validade', value: '2026-10-18', onChange() {} }
+  await act(async () => root.render(React.createElement(Picker, { ...props, error: 'Deve ser após a data inicial.' })))
+  assert.equal(document.getElementById('test-date').getAttribute('aria-invalid'), 'true')
+  assert.equal(document.getElementById('test-date').getAttribute('aria-describedby'), 'test-date-error')
+  assert.equal(document.querySelectorAll('[role="alert"]').length, 1)
+  assert.ok(document.getElementById('test-date-error').classList.contains('login-field-error'))
+  await act(async () => root.render(React.createElement(Picker, props)))
+  assert.equal(document.getElementById('test-date').getAttribute('aria-invalid'), 'false')
+  assert.equal(document.getElementById('test-date').hasAttribute('aria-describedby'), false)
+  assert.equal(document.querySelector('[role="alert"]'), null)
+}))
+
 test('edição consulta o UUID da URL, mostra dados reais e só navega após PUT confirmado', async () => withDom(async root => {
   const env = environment(), pending = deferred(), Page = env.load('src/pages/editForm/index.tsx').default
   await mount(root, Page, `/editForms?id=${id}`)
@@ -221,7 +249,7 @@ test('gestor comum escolhe outro gestor pelo nome; o próprio usuário não apar
   env.context.user.accountType = 'GESTOR'
   env.services.getFormOptions = async () => ({ ...options, managers: [{ value: '7', label: 'Eu mesmo' }, ...options.managers] })
   await mount(root, Page, '/createForms')
-  assert.equal(document.getElementById('create-forms-manager'), null)
+  assert.equal(document.getElementById('create-forms-manager').getAttribute('aria-invalid'), 'false')
   await click('Abrir opções de Gestor destinatário')
   assert.equal(document.querySelector('[role="option"]')?.textContent, 'Selecione o gestor')
   assert.doesNotMatch(document.querySelector('[role="listbox"]').textContent, /Eu mesmo/)

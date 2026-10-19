@@ -53,7 +53,7 @@ function AccountDetailsForm({ profile, roles, units, editable, canChangeLinks, p
     return <div className="field-group"><label htmlFor={id}>{label}</label>
       <ToolbarSelect trackingAction={({ roleId: BUTTONS.comuns.cargo, unitId: BUTTONS.comuns.unidade, workModel: BUTTONS.comuns.modalidade })[field]} className="account-field-select" disabled={pending || disabled} error={errors[field]} id={id} label={label}
         onValueChange={value => update(field, value)} options={[{ label: `Selecione ${field === 'roleId' ? 'o' : 'a'} ${label.toLowerCase()}`, value: '', tone: 'muted' }, ...choices]} value={values[field]} />
-      {errors[field] && <span id={`${id}-error`} role="alert">{errors[field]}</span>}
+      {errors[field] && <p className="login-field-error" id={`${id}-error`} role="alert">{errors[field]}</p>}
     </div>
   }
   return <form aria-busy={pending} className="account-details-form" data-track-submit={editable ? BUTTONS.comuns.salvar_alteracoes : undefined} noValidate onSubmit={event => { void submit(event) }}>

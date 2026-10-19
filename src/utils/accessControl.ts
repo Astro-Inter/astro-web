@@ -5,10 +5,10 @@ import type { NavigationItem } from '../types/navigation'
 const sharedPaths = new Set([
   '/mainHomeScreen', '/mainDashboardsScreen', '/mainEmployeerScreen', '/mainConformityScreen',
   '/mainUnitScreen', '/mainPositionScreen', '/mainFormScreen', '/mainEventScreen',
-  '/mainAccountScreen', '/createForms', '/editForms', '/loadingScreen',
+  '/mainAccountScreen', '/mainWorkspaceSettingsScreen', '/createForms', '/editForms', '/loadingScreen',
 ].map(path => path.toLowerCase()))
 
-const workspacePaths = new Set(['/mainManagerScreen', '/mainWorkspaceSettingsScreen'].map(path => path.toLowerCase()))
+const workspacePaths = new Set(['/mainManagerScreen'].map(path => path.toLowerCase()))
 const workspaceFormPaths = new Set(['/includeCompanyInformation', '/attachExcelFile', '/setAddress', '/paymentMethod'].map(path => path.toLowerCase()))
 
 export function hasWorkspaceAccess(accountType: WebAccountType | null | undefined): boolean {
@@ -27,7 +27,5 @@ export function canAccessPage(accountType: WebAccountType | null | undefined, pa
 
 export function getNavigationItems(accountType: WebAccountType | null | undefined, items = navigationItems): NavigationItem[] {
   if (accountType !== 'GESTOR' && accountType !== 'GESTOR_WORKSPACE') return []
-  return items.map(item => accountType === 'GESTOR' && item.path === '/mainWorkspaceSettingsScreen'
-    ? { ...item, label: 'Conta', icon: 'account' as const, path: '/mainAccountScreen' }
-    : item).filter(item => !item.path || canAccessPage(accountType, item.path))
+  return items.filter(item => !item.path || canAccessPage(accountType, item.path))
 }

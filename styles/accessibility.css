@@ -1,0 +1,177 @@
+/* Preferências opcionais. O padrão preserva o tema original do Astro. */
+.a11y-skip-link { position: fixed; z-index: 2147483647; top: .75rem; left: .75rem; padding: .85rem 1.1rem; border-radius: .5rem; color: #211b40; background: #fff; transform: translateY(-200%); }
+.a11y-skip-link:focus { transform: none; outline: 3px solid #a26bea; outline-offset: 3px; }
+.a11y-panel.astro-modal { --astro-modal-width: 38rem; max-height: min(90dvh, 55rem); overflow-y: auto; }
+.a11y-settings { --a11y-label-color: #d3cfdd; --a11y-description-color: #c4bdd4; --a11y-range-active: var(--a11y-accent, #a794ed); }
+.a11y-settings .a11y-intro { margin: 0; font-size: var(--astro-label-font-size); line-height: 1.5; color: var(--a11y-description-color); }
+.a11y-fieldset { min-width: 0; margin: var(--create-forms-section-gap, 1.5rem) 0 0; padding: 0; border: 0; }
+.a11y-section-title { margin: 0 0 var(--create-forms-stack-gap, 1rem); color: #f6f6f6; font-weight: 500; font-size: var(--astro-subtitle-font-size); line-height: 1.3; }
+.a11y-fields { display: flex; flex-direction: column; gap: var(--create-forms-stack-gap, 1rem); }
+.a11y-fields > :is(.create-forms-field, .a11y-select-field, p, button) { margin: 0; }
+.a11y-option { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; color: var(--a11y-label-color); font-size: var(--astro-label-font-size); line-height: 1.3; }
+.a11y-option + .a11y-option { padding-top: var(--create-forms-stack-gap, 1rem); border-top: 1px solid rgb(170 166 184 / 80%); }
+.a11y-option small { display: block; margin-top: calc(1.5 * var(--astro-field-gap)); font-size: inherit; line-height: 1.5; color: var(--a11y-description-color); }
+.a11y-option .astro-toggle-switch { width: calc(3.1rem * var(--astro-scale)); height: calc(1.5rem * var(--astro-scale)); }
+.a11y-slider-label { display: flex; justify-content: space-between; gap: 1rem; color: var(--a11y-label-color); font-size: var(--astro-label-font-size); line-height: 1.2; }
+.a11y-slider-label output { color: var(--astro-text); font-weight: 600; }
+.a11y-slider-label { flex-wrap: wrap; }
+.a11y-option > span { min-width: 0; overflow-wrap: anywhere; }
+html[data-astro-text-size]:not([data-astro-text-size='100']) .workspace-settings-page :is(h1, h2, h3, .settings-tab) { overflow-wrap: anywhere; }
+html[data-astro-text-size]:not([data-astro-text-size='100']) .workspace-settings-page :is(button, label) { white-space: normal; overflow-wrap: anywhere; }
+.a11y-fieldset input[type='range'] { display: block; width: 100%; height: max(32px, calc(2rem * var(--astro-scale))); min-height: 0; margin: 0; padding: 0; border: 0; background: transparent; accent-color: #a794ed; }
+.a11y-fieldset input[type='range'] { appearance: none; cursor: pointer; }
+.a11y-fieldset input[type='range']::-webkit-slider-runnable-track { height: 4px; border-radius: 999px; background: linear-gradient(to right, var(--a11y-range-active) var(--a11y-text-progress), var(--astro-field) var(--a11y-text-progress)); }
+.a11y-fieldset input[type='range']::-moz-range-track { height: 4px; border-radius: 999px; background: linear-gradient(to right, var(--a11y-range-active) var(--a11y-text-progress), var(--astro-field) var(--a11y-text-progress)); }
+.a11y-fieldset input[type='range']::-webkit-slider-thumb { appearance: none; box-sizing: border-box; width: 16px; height: 16px; margin-top: -6px; border: 2px solid var(--astro-text); border-radius: 50%; background: var(--a11y-range-active); }
+.a11y-fieldset input[type='range']::-moz-range-thumb { box-sizing: border-box; width: 16px; height: 16px; border: 2px solid var(--astro-text); border-radius: 50%; background: var(--a11y-range-active); }
+.a11y-fieldset input[type='range']:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; border-radius: var(--astro-control-radius); }
+.a11y-settings .a11y-hint { margin: 0; color: var(--a11y-description-color); font-size: var(--astro-label-font-size); line-height: 1.5; }
+.a11y-camera-button { width: min(100%, var(--astro-compact-action-width)); }
+.a11y-fields > .a11y-camera-button { margin-top: var(--astro-field-gap); }
+.a11y-disclosure { display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden; margin-top: calc(-1 * var(--create-forms-stack-gap, 1rem)); transition: grid-template-rows 260ms ease, opacity 180ms ease, margin-top 260ms ease, visibility 0s 260ms; }
+.a11y-disclosure[data-open='true'] { grid-template-rows: 1fr; opacity: 1; visibility: visible; margin-top: 0; transition-delay: 0s; }
+.a11y-disclosure > div { min-height: 0; overflow: hidden; }
+.a11y-disclosure[data-open='true'] > div { overflow: visible; }
+.a11y-text-size-control { display: grid; grid-template-columns: max(24px, var(--astro-icon-md)) minmax(0, 1fr) max(24px, var(--astro-icon-md)); align-items: center; gap: var(--create-forms-stack-gap, .75rem); }
+.a11y-text-size-control input { flex: 1; min-width: 0; }
+.a11y-text-size-control .a11y-text-size-button { display: grid; place-items: center; flex: none; width: max(24px, var(--astro-icon-md)); height: max(44px, calc(2.5rem * var(--astro-scale))); min-height: 0; padding: 0; border: 0; border-radius: var(--astro-control-radius); color: var(--astro-text); background: transparent; cursor: pointer; transition: color 160ms ease; }
+.a11y-text-size-control button svg { display: block; width: var(--astro-icon-sm); height: var(--astro-icon-sm); }
+.a11y-text-size-control button:first-child svg { justify-self: start; }
+.a11y-text-size-control button:last-child svg { justify-self: end; }
+.a11y-text-size-control button:hover:not(:disabled) { color: color-mix(in srgb, var(--astro-text), #000 30%); }
+.a11y-text-size-control button:disabled { opacity: .5; cursor: default; }
+.a11y-text-size-control button:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
+.a11y-loading-state { display: flex; align-items: center; gap: .6rem; }
+.a11y-loading-spinner { display: inline-block; flex: none; width: 1rem; height: 1rem; margin-right: .4rem; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: middle; animation: a11y-spin .8s linear infinite; }
+@keyframes a11y-spin { to { transform: rotate(360deg); } }
+.a11y-face-panel, .a11y-global-error, .a11y-settings :is([role='alert'], [role='status']) { animation: astro-popup-in 220ms ease both; }
+.a11y-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .75rem; margin-top: 1.5rem; }
+.a11y-actions > button { flex: 1; width: auto; min-width: min(100%, 10rem); }
+.a11y-settings .a11y-error { color: var(--astro-primary-error); line-height: 1.5; }
+.a11y-workspace-card { margin-top: var(--create-forms-section-gap); }
+.create-forms-card.a11y-workspace-card > h2 { margin-bottom: calc(2 * var(--astro-field-gap)); }
+.a11y-workspace-card .a11y-settings { display: flex; flex-direction: column; gap: var(--create-forms-outer-gap); }
+.a11y-workspace-card .a11y-settings > :is(p, .a11y-actions, .a11y-notes) { margin: 0; }
+.a11y-workspace-card .a11y-fieldset { margin: 0; }
+.a11y-notes { display: flex; flex-direction: column; gap: var(--create-forms-stack-gap, .75rem); margin-top: var(--create-forms-section-gap, 1.5rem); }
+.a11y-notes .a11y-hint { margin: 0; }
+.a11y-workspace-card .a11y-actions { padding-top: calc(var(--create-forms-stack-gap) + .15rem * var(--astro-scale)); border-top: 1px solid rgb(170 166 184 / 80%); }
+.a11y-settings > [role='status'] { color: var(--a11y-description-color); font-size: var(--astro-label-font-size); line-height: 1.5; }
+html[data-astro-contrast='true'] .a11y-settings { --a11y-label-color: var(--astro-text); --a11y-description-color: var(--a11y-muted); }
+html[data-astro-contrast='true'] .a11y-section-title { color: var(--astro-text); }
+html[data-astro-contrast='true'] .a11y-settings { --a11y-range-active: #ffe16b; }
+.a11y-settings .astro-toolbar-select { min-width: 0; }
+.a11y-workspace-card .a11y-actions { justify-content: flex-end; }
+.a11y-workspace-card .a11y-actions > button { flex: 0 1 auto; }
+.a11y-reading-guide { position: fixed; z-index: 2147483647; left: 0; right: 0; width: 100vw; height: 32px; margin: 0; padding: 0; border: 0; border-top: 2px solid #d4b4ff; border-bottom: 2px solid #d4b4ff; border-radius: 0; background: rgb(193 145 255 / 9%); pointer-events: none; overflow: visible; }
+/* O guia é visual; nunca bloqueia cliques ou a seleção de texto. */
+.a11y-reading-guide:popover-open { pointer-events: none; }
+.astro-toolbar-search { position: relative; }
+.astro-toolbar-search > input { width: 0; flex: 1; min-width: 0; }
+.astro-toolbar-search-voice { display: grid; place-items: center; flex: none; width: 2rem; height: 2rem; padding: .25rem; border: 0; border-radius: .35rem; color: var(--astro-text); background: transparent; cursor: pointer; }
+.astro-toolbar-search-voice:hover { color: var(--astro-placeholder); }
+.astro-toolbar-search-voice:disabled { opacity: .45; cursor: not-allowed; }
+.astro-toolbar-search--listening { box-shadow: inset 0 0 0 2px #c154ff; }
+.astro-toolbar-search-voice[aria-pressed='true'] { color: #e0acff; }
+.astro-toolbar-voice-error { position: absolute; z-index: 5; top: calc(100% + .35rem); left: 0; width: max-content; max-width: min(25rem, 85vw); padding: .65rem .8rem; border: 1px solid var(--astro-primary-error); border-radius: .45rem; color: var(--astro-text); background: var(--astro-background); font-size: .875rem; line-height: 1.4; }
+.a11y-face-panel { position: fixed; z-index: 2147483646; right: 1rem; top: 1rem; width: min(26rem, calc(100% - 2rem)); box-sizing: border-box; max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 1.5rem; border: 0; border-radius: .625rem; color: var(--astro-text); background: #332754; box-shadow: 0 16px 44px rgb(0 0 0 / 22%); font-family: Montserrat, sans-serif; }
+.a11y-face-header { display: flex; align-items: center; gap: 1rem; }
+.a11y-face-copy { min-width: 0; flex: 1; }
+.a11y-face-panel h2 { margin: 0; font-size: 1.1rem; font-weight: 600; line-height: 1.3; letter-spacing: -.035em; }
+.a11y-face-panel p { margin: .35rem 0 0; color: #c4bdd4; font-size: .875rem; line-height: 1.5; }
+.a11y-face-panel .a11y-face-help { margin-top: 1rem; }
+.a11y-face-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: 1.25rem; }
+.a11y-face-actions > button { width: 100%; min-width: 0; min-height: 2.75rem; padding: .5rem; font-size: .875rem; white-space: normal; }
+.a11y-face-actions > button:disabled { opacity: .5; cursor: default; }
+.a11y-face-stop { grid-column: 1 / -1; border: 0; border-radius: var(--astro-control-radius); color: var(--astro-link); background: transparent; font: inherit; cursor: pointer; }
+.a11y-face-stop:hover { text-decoration: underline; text-underline-offset: .2em; }
+.a11y-face-preview { flex: none; width: 4.5rem; height: 4.5rem; border-radius: .625rem; overflow: hidden; background: var(--astro-field); }
+.a11y-face-preview video { display: block; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+html[data-astro-contrast='true'] .a11y-face-panel { background: var(--astro-background); border: 1px solid var(--astro-text); }
+html[data-astro-contrast='true'] .a11y-face-panel p { color: var(--astro-text); }
+.a11y-face-cursor { position: fixed; z-index: 2147483647; left: 50%; top: 50%; width: 36px; height: 36px; margin: 0; border: 2px solid #fff; border-radius: 50%; background: conic-gradient(#e1acff var(--face-dwell, 0deg), #4f2b80 0); box-shadow: 0 0 0 2px #24143c; transform: translate(-50%, -50%); pointer-events: none; }
+.a11y-face-target { outline: 3px solid #e1acff !important; outline-offset: 3px !important; }
+.a11y-global-error { position: fixed; z-index: 2147483646; left: 1rem; bottom: 4.5rem; display: flex; flex-wrap: wrap; gap: .75rem; max-width: min(35rem, calc(100vw - 2rem)); padding: 1rem; border: 1px solid var(--astro-primary-error); border-radius: .6rem; color: var(--astro-text); background: var(--astro-background); font-size: .95rem; }
+.a11y-global-error button { padding: .5rem; border: 1px solid currentColor; border-radius: .3rem; color: inherit; background: transparent; font: inherit; cursor: pointer; }
+#astro-libras[hidden] { display: none !important; }
+#astro-libras:has(#vlibras-access-wrapper) > [vw-access-button] { display: none !important; }
+/* Mantém o cursor acima da regra azul que o SDK injeta depois do CSS do app. */
+html:root body :not(.vlibras-ignore, .sr-only, .sr-only *, #vlibras-app-root *, #vlibras-app-wrapper *) .vlibras--hover { cursor: url('./assets/librasCursor.svg') 0 0, pointer !important; }
+html:root body :not(.vlibras-ignore, .sr-only, .sr-only *, #vlibras-app-root *, #vlibras-app-wrapper *) .vlibras--hover[src], html:root body :not(.vlibras-ignore, .sr-only, .sr-only *, #vlibras-app-root *, #vlibras-app-wrapper *) .vlibras--hover img { cursor: url('./assets/librasImageCursor.svg') 0 0, pointer !important; }
+#astro-libras, #astro-libras:popover-open { z-index: 2147483647 !important; margin: 0; padding: 0; border: 0; overflow: visible; color: inherit; background: transparent; }
+/* O SDK pode deixar classes de captura após fechar: elas não devem manter
+   seu cursor personalizado quando o painel já não está aberto. */
+html:root:has(#vlibras-app-root[data-astro-open='false']) body .vlibras--hover,
+html:root:has(#vlibras-app-root[data-astro-open='false']) body .vlibras--hover img {
+  cursor: revert !important;
+}
+
+/* Fonte e reflow aplicados também aos dialogs, tabelas e conteúdo dinâmico. */
+html[data-astro-dyslexic='true'] :where(body, input, textarea, button, select, option, h1, h2, h3, h4, h5, h6, p, span, a, label, th, td, legend, output, li, strong, small) { font-family: 'OpenDyslexic', Arial, sans-serif !important; letter-spacing: .035em; word-spacing: .06em; }
+html[data-astro-text-size]:not([data-astro-text-size='100']) :where(.position-toolbar, .position-toolbar-selects, .astro-modal-actions, .account-main-actions, .account-transfer-actions) { flex-wrap: wrap; }
+html[data-astro-text-size]:not([data-astro-text-size='100']) :where(.astro-action, .app-navigation-link) { height: auto; white-space: normal; line-height: 1.35; }
+html[data-astro-text-size]:not([data-astro-text-size='100']) .app-sidebar { overflow-y: auto; }
+html[data-astro-text-size]:not([data-astro-text-size='100']) :where(.create-password-page, .include-company-page, .set-address-page) { overflow: visible; height: auto; min-height: 100dvh; }
+
+html[data-astro-contrast='true'] {
+  --a11y-page: #000; --a11y-surface: #111; --a11y-field: #202020; --a11y-text: #fff; --a11y-muted: #ededed;
+  --astro-background: #000; --astro-field: #202020; --astro-text: #fff; --astro-placeholder: #ededed; --astro-text-muted: #ededed;
+  --astro-link: #7de4ff; --astro-primary-error: #ffb0b0; --astro-focus-border: #ffe16b; --astro-input-focus-border: #fff;
+  --astro-orb-accent: #7524a5; --astro-orb-accent-hover: #591980;
+  --astro-focus-surface: #393939; --a11y-selected: #393939; --a11y-selected-hover: #484848; --a11y-switch: #ffe16b;
+  color-scheme: dark !important;
+}
+html[data-astro-contrast='true'] :where(.main-position-screen, .home-content, .astro-data-table-shell, .astro-modal, .create-forms-page, .astro-chat-window) {
+  --position-panel: var(--a11y-page) !important; --position-surface: var(--a11y-surface) !important; --position-text-muted: var(--a11y-muted) !important;
+  --home-text-muted: var(--a11y-muted) !important; --astro-data-table-surface: var(--a11y-surface) !important; --astro-data-table-divider: var(--a11y-page) !important; --astro-data-table-text: var(--a11y-text) !important;
+  --home-action-surface: var(--a11y-selected) !important; --home-action-surface-hover: var(--a11y-selected-hover) !important;
+}
+html[data-astro-contrast='true'] :where(.home-card, .create-forms-card, .set-address-card, .payment-summary, .payment-summary-card, .workspace-settings-tabs, .astro-modal, .astro-options-popup, .astro-chat-window, .astro-chat-sessions, .event-information-card, .dashboard-metric, .dashboard-chart) { color: var(--astro-text) !important; background: var(--a11y-surface) !important; border: 1px solid var(--astro-input-focus-border); }
+html[data-astro-contrast='true'] :where(h1, h2, h3, h4, label, legend, .create-forms-label, .astro-card-title, .astro-modal-title, .workspace-settings-row h3, .help-link, .app-navigation-link, .astro-toolbar-select-option, .astro-options-popup button, .account-transfer-card p, .workspace-settings-row p, .form-card p, .manager-details-form-error) { color: var(--astro-text) !important; }
+html[data-astro-contrast='true'] :where(.login-heading p, .position-heading p, .page-heading p, .create-forms-field label, .account-profile-header p, .form-field-hint) { color: var(--a11y-muted) !important; }
+html[data-astro-contrast='true'] :where(input:not([type='checkbox'],[type='radio'],[type='range']), textarea, .astro-toolbar-select-trigger, .astro-toolbar-select-popover) { color: var(--astro-text) !important; background: var(--a11y-field) !important; }
+html[data-astro-contrast='true'] :where(.workspace-link, .workspace-key-link, .payment-info-link, .attach-excel-model-link) { color: var(--astro-link) !important; }
+html[data-astro-contrast='true'] :where(.login-field-error, .create-forms-field-error, [role='alert'], .a11y-error) { color: var(--astro-primary-error) !important; }
+html[data-astro-contrast='true'] :where(input, textarea, select)[aria-invalid='true'] { border-color: var(--astro-primary-error) !important; }
+html[data-astro-contrast='true'] .workspace-settings-tabs button[aria-current],
+html[data-astro-contrast='true'] .workspace-settings-tabs button:not([aria-disabled]):hover { color: var(--astro-text); background: var(--a11y-selected); }
+html[data-astro-contrast='true'] .workspace-settings-tabs button[aria-current]:hover { background: var(--a11y-selected-hover); }
+html[data-astro-contrast='true'] .astro-toggle-switch input:checked + svg rect { fill: var(--a11y-switch); }
+html[data-astro-contrast='true'] .astro-toggle-switch input:checked + svg circle { fill: #111; }
+html[data-astro-contrast='true'] :where(.astro-toolbar-select-option, .astro-options-popup-item):focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; }
+html[data-astro-contrast='true'] .astro-options-popup-item--danger { color: var(--astro-primary-error) !important; }
+html[data-astro-contrast='true'] .astro-options-popup-item--disabled { color: var(--a11y-muted) !important; }
+html[data-astro-contrast='true'] .compliance-overview-action.astro-action { color: var(--astro-text); background: var(--a11y-selected); }
+html[data-astro-contrast='true'] .compliance-overview-action.astro-action:hover { background: var(--a11y-selected-hover); }
+html[data-astro-contrast='true'] :where(.home-card, .create-forms-card, .astro-data-table-shell, .app-navigation-link, input, textarea, select, button) { border-color: #fff !important; }
+html[data-astro-contrast='true'] :where(a, button, input, textarea, select, [tabindex]):focus-visible { outline: 3px solid #ffe16b !important; outline-offset: 3px !important; }
+
+/* Paletas de diferenciação; os nomes dos estados permanecem visíveis. */
+html[data-astro-vision='protanopia'] { --a11y-success: #0072b2; --a11y-warning: #c79827; --a11y-error: #a63778; --a11y-accent: #345ca8; }
+html[data-astro-vision='deuteranopia'] { --a11y-success: #0072b2; --a11y-warning: #b88b16; --a11y-error: #bd4b00; --a11y-accent: #345ca8; }
+html[data-astro-vision='tritanopia'] { --a11y-success: #087f73; --a11y-warning: #92518d; --a11y-error: #bf3053; --a11y-accent: #7541a2; }
+html[data-astro-vision='protanomalia'] { --a11y-success: #16739f; --a11y-warning: #b58b27; --a11y-error: #a14178; --a11y-accent: #3e60a0; }
+html[data-astro-vision='deuteranomalia'] { --a11y-success: #24749b; --a11y-warning: #b18222; --a11y-error: #b5541e; --a11y-accent: #3d5f9c; }
+html[data-astro-vision='tritanomalia'] { --a11y-success: #287b72; --a11y-warning: #8c5c91; --a11y-error: #ad3859; --a11y-accent: #6c4b96; }
+html[data-astro-vision='acromatopsia'] { --a11y-success: #444; --a11y-warning: #888; --a11y-error: #222; --a11y-accent: #555; }
+html[data-astro-vision]:not([data-astro-vision='default']) { --astro-primary-green: var(--a11y-success); --astro-quinary-green: var(--a11y-success); --astro-danger: var(--a11y-error); --astro-danger-hover: color-mix(in srgb, var(--a11y-error), #000 15%); --astro-orb-accent: var(--a11y-accent); --astro-orb-accent-hover: color-mix(in srgb, var(--a11y-accent), #000 15%); }
+html[data-astro-vision]:not([data-astro-vision='default']):not([data-astro-contrast='true']) { --astro-primary-error: color-mix(in srgb, var(--a11y-error), #fff 70%); }
+html[data-astro-vision]:not([data-astro-vision='default']):not([data-astro-contrast='true']) .astro-toggle-switch input:checked + svg rect { fill: var(--a11y-accent); }
+html[data-astro-vision]:not([data-astro-vision='default']) .a11y-fieldset input[type='range'] { accent-color: var(--a11y-accent); }
+html[data-astro-vision]:not([data-astro-vision='default']) .home-content { --compliance-compliant: var(--a11y-success); --compliance-expiring: var(--a11y-warning); --compliance-expired: var(--a11y-error); --compliance-pending: #aaa; }
+html[data-astro-vision]:not([data-astro-vision='default']) :where(.position-status--active, .position-status--valid, .event-status--completed) { color: #fff; background: var(--a11y-success); }
+html[data-astro-vision]:not([data-astro-vision='default']) :where(.position-status--expired, .event-status--overdue) { color: #fff; background: var(--a11y-error); }
+html[data-astro-vision='acromatopsia'] :where(.compliance-legend-dot, .position-status, .event-status) { border: 1px solid currentColor; }
+
+html[data-astro-reduced-motion='true'] *, html[data-astro-reduced-motion='true'] *::before, html[data-astro-reduced-motion='true'] *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
+}
+@media (forced-colors: active) {
+  .a11y-public-link, .a11y-fieldset, .a11y-face-panel { color: CanvasText; background: Canvas; border: 1px solid CanvasText; }
+}
+@media (max-width: 600px) {
+  .a11y-panel.astro-modal { width: calc(100vw - 1.5rem); max-width: calc(100vw - 1.5rem); padding: 1.2rem; zoom: 1; }
+  .a11y-actions { flex-direction: column; }
+  .a11y-face-panel { top: .5rem; right: .5rem; width: calc(100% - 1rem); }
+}

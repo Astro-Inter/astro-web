@@ -68,7 +68,7 @@ export function useLogin(): UseLoginResult {
       if (mounted.current) {
         setState((current) => ({
           ...current,
-          status: 'error',
+          status: error instanceof AuthenticationError && error.inactiveAccount ? 'inactive' : 'error',
           message: error instanceof Error ? error.message : 'Não foi possível entrar. Tente novamente.',
           invalidCredentials: error instanceof AuthenticationError && error.invalidCredentials,
         }))

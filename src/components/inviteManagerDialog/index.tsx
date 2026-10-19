@@ -63,7 +63,7 @@ function InviteManagerDialog({ candidates, loading, error, saving, onRetry, onCl
     <AppModal trackingName={DIALOG_NAMES.convidar_gestor} className="position-dialog invite-manager-dialog" dismissible={!saving && !submitting} onClose={onClose} title="Convidar gestor">
       {(dismiss) => <form data-track-submit={BUTTONS.comuns.convidar} aria-busy={saving || submitting} autoComplete="off" noValidate onSubmit={(event) => { void handleSubmit(event, dismiss) }}>
         <p className="astro-modal-description">Selecione um colaborador ativo para promovê-lo a gestor, preservando sua conta.</p>
-        {loading && <ApiContentSkeleton label="Carregando colaboradores ativos" fields={2} actions={0} />}
+        {loading && <ApiContentSkeleton className="dialog-row-skeleton" label="Carregando colaboradores ativos" fields={2} actions={0} />}
         {error && <div className="position-api-feedback"><p role="alert">{error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} onClick={onRetry} type="button">Tentar novamente</button></div>}
         {!loading && !error && candidates.length === 0 && <p role="status">Nenhum colaborador ativo disponível para promoção.</p>}
         <ActionLoading active={submitting} />
@@ -83,7 +83,7 @@ function InviteManagerDialog({ candidates, loading, error, saving, onRetry, onCl
               options={emailOptions}
               value={values.collaboratorId}
             />
-            {errors.collaboratorId && <span id="invite-manager-email-error" role="alert">{errors.collaboratorId}</span>}
+            {errors.collaboratorId && <p className="login-field-error" id="invite-manager-email-error" role="alert">{errors.collaboratorId}</p>}
           </div>
           <div className="position-dialog-field">
             <label htmlFor="invite-manager-status">Status</label>
@@ -100,7 +100,7 @@ function InviteManagerDialog({ candidates, loading, error, saving, onRetry, onCl
               options={statusOptions}
               value={values.status}
             />
-            {errors.status && <span id="invite-manager-status-error" role="alert">{errors.status}</span>}
+            {errors.status && <p className="login-field-error" id="invite-manager-status-error" role="alert">{errors.status}</p>}
           </div>
         </div>
 

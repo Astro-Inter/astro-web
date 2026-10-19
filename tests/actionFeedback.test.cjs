@@ -23,6 +23,200 @@ function environment(overrides = {}) {
   }
   return { load }
 }
+
+test('rota desconhecida mostra 404, ajuda por email e retorno conforme a sessão', async () => {
+  const { MemoryRouter, Routes, Route } = require('react-router-dom')
+  for (const [user, status] of [[null, 'ready'], [{ uid: 'gestor' }, 'ready'], [null, 'loading']]) {
+    const dom = new JSDOM('<!doctype html><div id="root"></div>')
+    const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+    Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+    const env = environment({ '../../hooks/useAuthentication': { useAuthentication: () => ({ user, status }) } })
+    const Page = env.load('src/pages/notFound/index.tsx').default
+    const root = createRoot(document.getElementById('root'))
+    try {
+      await React.act(async () => root.render(React.createElement(MemoryRouter, { initialEntries: ['/rota-inexistente'] },
+        React.createElement(Routes, null,
+          React.createElement(Route, { path: '*', element: React.createElement(Page) }),
+          React.createElement(Route, { path: '/', element: React.createElement('h1', null, 'Login') }),
+          React.createElement(Route, { path: '/mainHomeScreen', element: React.createElement('h1', null, 'Home') })))))
+      assert.equal(document.querySelector('h1').textContent, 'Ops! Página não encontrada')
+      assert.equal(document.querySelector('.help-link').getAttribute('href'), 'mailto:astro.instituto@gmail.com')
+      const button = document.querySelector('.status-screen-actions button')
+      assert.equal(button.disabled, status === 'loading')
+      if (status === 'ready') {
+        await React.act(async () => button.click())
+        assert.equal(document.querySelector('h1').textContent, user ? 'Home' : 'Login')
+      }
+    } finally {
+      await React.act(async () => root.unmount())
+      dom.window.close()
+      Object.assign(global, previous)
+    }
+  }
+})
+
+test('ajuda mantém carregamento até perder foco, expirar ou desmontar', async () => {
+  const dom = new JSDOM('<!doctype html><div id="root"></div>')
+  const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+  Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+  let timeout
+  dom.window.setTimeout = callback => { timeout = callback; return 1 }
+  dom.window.clearTimeout = () => { timeout = null }
+  const env = environment(), Help = env.load('src/components/helpLink/index.tsx').default
+  const store = env.load('src/utils/actionFeedback.ts')
+  const root = createRoot(document.getElementById('root'))
+  try {
+    await React.act(async () => root.render(React.createElement(Help)))
+    const link = document.querySelector('a')
+    link.addEventListener('click', event => event.preventDefault())
+    await React.act(async () => { link.click(); link.click() })
+    assert.equal(store.getActionFeedback().pending, 1)
+    assert.equal(link.getAttribute('aria-busy'), 'true')
+    await React.act(async () => window.dispatchEvent(new window.Event('blur')))
+    assert.equal(store.getActionFeedback().pending, 0)
+    assert.equal(timeout, null)
+    await React.act(async () => link.click())
+    await React.act(async () => timeout())
+    assert.equal(store.getActionFeedback().pending, 0)
+    await React.act(async () => link.click())
+    await React.act(async () => root.unmount())
+    assert.equal(store.getActionFeedback().pending, 0)
+  } finally {
+    await React.act(async () => root.unmount())
+    dom.window.close()
+    Object.assign(global, previous)
+  }
+})
+
+test('preferências são isoladas por conta, não atuam no login e resetam ao sair', async () => {
+  const dom = new JSDOM('<!doctype html><div id="root"></div>', { url: 'https://astro.test' })
+  const globals = { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, localStorage: dom.window.localStorage, requestAnimationFrame: callback => { callback(); return 0 }, IS_REACT_ACT_ENVIRONMENT: true }
+  const previous = Object.fromEntries(Object.keys(globals).map(key => [key, Object.getOwnPropertyDescriptor(global, key)]))
+  for (const [key, value] of Object.entries(globals)) Object.defineProperty(global, key, { value, configurable: true, writable: true })
+  const auth = { user: null, status: 'loading' }
+  const env = environment({ '../../hooks/useAuthentication': { useAuthentication: () => auth } })
+  const Provider = env.load('src/providers/accessibility/index.tsx').default
+  const { useAccessibility } = env.load('src/hooks/useAccessibility.ts')
+  const storage = env.load('src/utils/accessibility.ts')
+  storage.saveAccessibility({ ...storage.DEFAULT_ACCESSIBILITY, textSize: 125, highContrast: true }, 'A')
+  let controls
+  function Probe() {
+    const current = useAccessibility()
+    React.useEffect(() => { controls = current }, [current])
+    return null
+  }
+  const root = createRoot(document.getElementById('root'))
+  const render = async () => React.act(async () => root.render(React.createElement(Provider, null, React.createElement(Probe))))
+  try {
+    await render()
+    assert.equal(document.documentElement.dataset.astroTextSize, '100')
+    await React.act(async () => { controls.update({ textSize: 150 }); controls.openPanel() })
+    assert.equal(controls.panelOpen, false)
+    auth.user = { uid: 'A' }; auth.status = 'ready'; await render()
+    assert.equal(document.documentElement.dataset.astroTextSize, '125')
+    await React.act(async () => { controls.update({ textSize: 140 }); controls.openPanel() })
+    assert.equal(controls.panelOpen, true)
+    assert.equal(JSON.parse(localStorage.getItem(storage.ACCESSIBILITY_KEY)).accountId, 'A')
+    auth.user = { uid: 'B' }; await render()
+    assert.deepEqual(controls.preferences, storage.DEFAULT_ACCESSIBILITY)
+    assert.equal(controls.panelOpen, false)
+    await React.act(async () => controls.update({ dyslexicFont: true, readingGuide: true, libras: true }))
+    auth.user = null; await render()
+    assert.deepEqual(controls.preferences, storage.DEFAULT_ACCESSIBILITY)
+    assert.equal(document.documentElement.dataset.astroDyslexic, 'false')
+    assert.equal(document.documentElement.dataset.astroContrast, 'false')
+    assert.equal(document.documentElement.dataset.astroTextSize, '100')
+    assert.equal(localStorage.getItem(storage.ACCESSIBILITY_KEY), null)
+    await React.act(async () => document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'a', code: 'KeyA', altKey: true, bubbles: true })))
+    assert.equal(controls.panelOpen, false)
+    auth.user = { uid: 'B' }; await render()
+    assert.deepEqual(controls.preferences, storage.DEFAULT_ACCESSIBILITY)
+  } finally {
+    await React.act(async () => root.unmount())
+    dom.window.close()
+    for (const [key, descriptor] of Object.entries(previous)) { if (descriptor) Object.defineProperty(global, key, descriptor); else delete global[key] }
+  }
+})
+
+test('overlay normal é fechado antes do primeiro layout do frame do planeta', async () => {
+  const dom = new JSDOM('<!doctype html><div id="root"></div>')
+  const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+  Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+  let closed = false
+  dom.window.HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
+  dom.window.HTMLDialogElement.prototype.close = function () { closed = true; this.removeAttribute('open') }
+  const env = environment()
+  const Overlay = env.load('src/components/loginLoadingOverlay/index.tsx').default
+  const Loading = env.load('src/components/loadingScreenState/index.tsx').default
+  function PlanetFrame() {
+    React.useLayoutEffect(() => { assert.equal(closed, true) }, [])
+    return React.createElement(Loading, { label: 'Carregando', planet: true })
+  }
+  const root = createRoot(document.getElementById('root'))
+  try {
+    await React.act(async () => root.render(React.createElement(Overlay)))
+    assert.ok(document.querySelector('.login-loading-spinner'))
+    await React.act(async () => root.render(React.createElement(PlanetFrame)))
+    assert.ok(document.querySelector('.loading-planet-svg'))
+    assert.equal(document.querySelector('.login-loading-spinner'), null)
+  } finally {
+    await React.act(async () => root.unmount())
+    dom.window.close()
+    Object.assign(global, previous)
+  }
+})
+
+test('entrada no planeta preserva o SVG ao confirmar a sessão e só depois inicia a ida à Home', async () => {
+  const { MemoryRouter, useNavigate } = require('react-router-dom')
+  const dom = new JSDOM('<!doctype html><div id="root"></div>', { url: 'http://localhost' })
+  const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+  Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+  dom.window.scrollTo = () => {}
+  const timers = []
+  dom.window.setTimeout = (callback, duration) => { timers.push({ callback, duration }); return timers.length }
+  dom.window.clearTimeout = () => {}
+  const context = { status: 'ready', user: null, error: '' }
+  function beginLogin(navigate) {
+    context.status = 'authenticating'
+    navigate('/loadingScreen', { state: { afterLogin: true } })
+  }
+  function Login() {
+    const navigate = useNavigate()
+    return React.createElement('button', { onClick: () => beginLogin(navigate) }, 'Concluir login')
+  }
+  const authentication = { useAuthentication: () => context }
+  const env = environment({
+    '../hooks/useAuthentication': authentication,
+    '../../hooks/useAuthentication': authentication,
+    '../../hooks/useSessionRecovery': { useSessionRecovery: () => ({ pending: false, error: '', retry() {}, returnToLogin() {} }) },
+    '../pages/login': { __esModule: true, default: Login },
+    '../pages/mainHomeScreen': { __esModule: true, default: () => React.createElement('h1', null, 'Home') },
+  })
+  const Routes = env.load('src/routes/index.tsx').default
+  const root = createRoot(document.getElementById('root'))
+  const render = () => root.render(React.createElement(MemoryRouter, null, React.createElement(Routes)))
+  try {
+    await React.act(async () => render())
+    await React.act(async () => document.querySelector('button').click())
+    const planet = document.querySelector('.loading-planet-svg')
+    assert.ok(planet)
+    assert.ok(document.querySelector('.astro-route-content--planet'))
+    assert.equal(document.querySelector('.login-loading-spinner'), null)
+    assert.equal(timers.some(timer => timer.duration === 10000), false)
+    context.status = 'ready'; context.user = { uid: 'manager', accountType: 'GESTOR' }
+    await React.act(async () => render())
+    assert.equal(document.querySelector('.loading-planet-svg'), planet)
+    const homeTimer = timers.find(timer => timer.duration === 10000)
+    assert.ok(homeTimer)
+    await React.act(async () => homeTimer.callback())
+    assert.match(document.body.textContent, /Home/)
+    assert.equal(document.querySelector('.loading-planet-svg'), null)
+  } finally {
+    await React.act(async () => root.unmount())
+    dom.window.close()
+    Object.assign(global, previous)
+  }
+})
 test('ações simultâneas exibem um único Carregando, liberado apenas após todas terminarem', async () => {
   const dom = new JSDOM('<div id="root"><button>Origem</button></div><dialog open><button>Confirmar</button></dialog>')
   const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }

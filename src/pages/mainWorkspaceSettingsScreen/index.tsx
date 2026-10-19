@@ -1,9 +1,12 @@
+import AccessibilitySettings from '../../components/accessibilitySettings'
 import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AstroBrand, AstroIcon, CompactPurpleButton, HelpLink } from '../../components'
 import WorkspaceSettingsPasswordModal from '../../components/workspaceSettingsPasswordModal'
 import SettingsTabs from '../../components/settingsTabs'
+import { useAuthentication } from '../../hooks/useAuthentication'
+import { hasWorkspaceAccess } from '../../utils/accessControl'
 import type { WorkspaceSettingsNavigationState, WorkspaceSettingsSection } from '../../types/workspaceSettings'
 
 interface WorkspaceSettingsAction {
@@ -22,6 +25,8 @@ const sections: readonly WorkspaceSettingsAction[] = [
 ]
 
 function MainWorkspaceSettingsScreenPage() {
+  const { user } = useAuthentication()
+  const canManageWorkspace = hasWorkspaceAccess(user?.accountType)
   const navigate = useNavigate()
   const location = useLocation()
   const [section, setSection] = useState<WorkspaceSettingsSection | null>(null)
@@ -36,6 +41,7 @@ function MainWorkspaceSettingsScreenPage() {
   }
 
   function continueToSection() {
+    if (!canManageWorkspace) return
     const target = sections.find(item => item.id === section)
     if (target) navigate(`${target.path}?context=settings`, { state: { from: returnPath } })
   }
@@ -52,7 +58,7 @@ function MainWorkspaceSettingsScreenPage() {
 
         <div className="settings-tab-content">
         <h1 id="workspace-settings-title">Configurações de workspace</h1>
-        <section className="create-forms-card workspace-settings-card" aria-labelledby="workspace-settings-edit-title">
+        {canManageWorkspace && <section className="create-forms-card workspace-settings-card" aria-labelledby="workspace-settings-edit-title">
           <h2 id="workspace-settings-edit-title">Editar informações</h2>
           <div className="workspace-settings-rows">
             {sections.map(item => (
@@ -65,12 +71,16 @@ function MainWorkspaceSettingsScreenPage() {
               </div>
             ))}
           </div>
+        </section>}
+        <section className="create-forms-card a11y-workspace-card" aria-labelledby="workspace-accessibility-title">
+          <h2 id="workspace-accessibility-title" tabIndex={-1}>Acessibilidade</h2>
+          <AccessibilitySettings />
         </section>
         </div>
       </main>
 
       <HelpLink />
-      {section && <WorkspaceSettingsPasswordModal key={section} onCancel={closePassword} onContinue={continueToSection} section={section} />}
+      {canManageWorkspace && section && <WorkspaceSettingsPasswordModal key={section} onCancel={closePassword} onContinue={continueToSection} section={section} />}
     </div>
   )
 }

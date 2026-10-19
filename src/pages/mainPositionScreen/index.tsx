@@ -10,7 +10,6 @@ import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, RegulatoryStandardsDialog, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import { usePositions } from '../../hooks/usePositions'
 import { useRoleNrRecommendations } from '../../hooks/useRoleNrRecommendations'
-import WorkspaceTableSkeleton from '../../components/workspaceTableSkeleton'
 import type { DataTableColumn } from '../../components/dataTable'
 import type { Position, PositionFormValues } from '../../types'
 
@@ -250,7 +249,7 @@ function MainPositionScreenPage() {
 
           {api.error && <div className="position-api-feedback"><p role="alert">{api.error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} onClick={api.retry} type="button">Tentar novamente</button></div>}
           <ActionLoading active={api.saving} />
-          <DataTable trackingName={SHOWCASE_NAMES.lista_cargos} ariaLabel="Cargos" columns={columns} loadingContent={api.loading ? <WorkspaceTableSkeleton /> : undefined} emptyMessage={api.error ? 'Lista de cargos indisponível.' : 'Nenhum cargo encontrado para esses filtros.'} getRowClassName={(position) => position.id === savedPositionId ? 'astro-data-table-row--saved' : undefined} getRowKey={(position) => position.id} rows={visiblePositions} />
+          <DataTable trackingName={SHOWCASE_NAMES.lista_cargos} ariaLabel="Cargos" columns={columns} loading={api.loading} emptyMessage={api.error ? 'Lista de cargos indisponível.' : 'Nenhum cargo encontrado para esses filtros.'} getRowClassName={(position) => position.id === savedPositionId ? 'astro-data-table-row--saved' : undefined} getRowKey={(position) => position.id} rows={visiblePositions} />
         </section>
 
         {openPosition && createPortal(

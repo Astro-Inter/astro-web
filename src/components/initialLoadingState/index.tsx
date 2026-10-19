@@ -4,9 +4,10 @@ import SessionErrorState from '../sessionErrorState'
 
 interface InitialLoadingStateProps {
   error?: string
+  planet?: boolean
 }
 
-function InitialLoadingState({ error = '' }: InitialLoadingStateProps) {
+function InitialLoadingState({ error = '', planet = false }: InitialLoadingStateProps) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -15,7 +16,7 @@ function InitialLoadingState({ error = '' }: InitialLoadingStateProps) {
   }, [])
 
   if (error) return <SessionErrorState error={error} />
-  return visible ? <LoadingScreenState label="Carregando" /> : null
+  return visible ? <LoadingScreenState label="Carregando" planet={planet} /> : null
 }
 
 export default InitialLoadingState

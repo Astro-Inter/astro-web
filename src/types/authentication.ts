@@ -8,7 +8,7 @@ export interface LoginFieldErrors {
   password?: string
 }
 
-export type LoginStatus = 'idle' | 'loading' | 'success' | 'error'
+export type LoginStatus = 'idle' | 'loading' | 'success' | 'error' | 'inactive'
 
 export type WebAccountType = 'GESTOR' | 'GESTOR_WORKSPACE'
 
@@ -21,7 +21,7 @@ export interface AuthenticatedUser {
 
 export interface AuthenticationState {
   user: AuthenticatedUser | null
-  status: 'loading' | 'ready' | 'error'
+  status: 'loading' | 'authenticating' | 'ready' | 'error' | 'inactive'
   error: string
 }
 

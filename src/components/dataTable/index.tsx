@@ -7,6 +7,7 @@ export interface DataTableColumn<Row> {
   width?: string
   className?: string
   rowHeader?: boolean
+  skeleton?: 'identity' | 'text' | 'status' | 'actions'
   render: (row: Row) => ReactNode
 }
 

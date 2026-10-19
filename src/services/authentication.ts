@@ -30,11 +30,13 @@ let pendingLoginAccess: { email: string; accountType: WebAccountType } | null = 
 
 export class AuthenticationError extends Error {
   readonly invalidCredentials: boolean
+  readonly inactiveAccount: boolean
 
-  constructor(message: string, cause: unknown, invalidCredentials = false) {
+  constructor(message: string, cause: unknown, invalidCredentials = false, inactiveAccount = false) {
     super(message, { cause })
     this.name = 'AuthenticationError'
     this.invalidCredentials = invalidCredentials
+    this.inactiveAccount = inactiveAccount
   }
 }
 
@@ -64,6 +66,11 @@ async function verifyLoginEmail(email: string, signal?: AbortSignal): Promise<We
     if (body.data.userType !== 'GESTOR' && body.data.userType !== 'GESTOR_WORKSPACE') {
       throw new AuthenticationError(verificationError, undefined)
     }
+    const userStatus = 'userStatus' in body.data && typeof body.data.userStatus === 'string' ? body.data.userStatus.trim().toUpperCase() : ''
+    if (['DESATIVADO', 'INATIVO', 'INATIVADO'].includes(userStatus)) {
+      throw new AuthenticationError('Sua conta foi inativada. Entre em contato com o Administrador para reativar seu acesso.', undefined, false, true)
+    }
+    if (userStatus !== 'ATIVO') throw new AuthenticationError(verificationError, undefined)
     return body.data.userType
   } catch (error: unknown) {
     if (error instanceof AuthenticationError) throw error
@@ -88,6 +95,7 @@ export async function loginWithEmailAndPassword(credentials: LoginCredentials): 
         authenticationErrorMessages[error.code] ?? 'Não foi possível entrar. Tente novamente.',
         error,
         invalidCredentialCodes.has(error.code),
+        error.code === 'auth/user-disabled',
       )
     }
     throw new AuthenticationError('Não foi possível entrar. Tente novamente.', error)
@@ -98,8 +106,8 @@ export async function loginWithEmailAndPassword(credentials: LoginCredentials): 
 
 export function observeAuthentication(
   onUserChanged: (user: AuthenticatedUser | null) => void,
-  onError: (message: string) => void,
-  onVerificationStarted?: () => void,
+  onError: (message: string, inactiveAccount?: boolean) => void,
+  onVerificationStarted?: (interactiveLogin?: boolean) => void,
 ): () => void {
   let active = true
   let revision = 0
@@ -115,7 +123,7 @@ export function observeAuthentication(
         return
       }
 
-      onVerificationStarted?.()
+      onVerificationStarted?.(Boolean(pendingLoginAccess && pendingLoginAccess.email === user.email?.trim().toLowerCase()))
       controller = new AbortController()
       try {
         if (!user.email) throw new AuthenticationError('Sua sessão não possui um email válido.', undefined)
@@ -128,7 +136,7 @@ export function observeAuthentication(
         }
       } catch (error: unknown) {
         if (active && currentRevision === revision) {
-          onError(error instanceof Error ? error.message : 'Não foi possível verificar sua sessão. Tente novamente.')
+          onError(error instanceof Error ? error.message : 'Não foi possível verificar sua sessão. Tente novamente.', error instanceof AuthenticationError && error.inactiveAccount)
         }
       }
     }, () => {

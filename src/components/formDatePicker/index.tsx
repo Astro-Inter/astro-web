@@ -10,6 +10,7 @@ interface FormDatePickerProps {
   onValidityChange?: (valid: boolean) => void
   value: string
   validate?: boolean
+  error?: string
   escapeOverflow?: boolean
 }
 
@@ -66,7 +67,7 @@ function sameDate(first: Date | null, second: Date) {
   return first !== null && first.getFullYear() === second.getFullYear() && first.getMonth() === second.getMonth() && first.getDate() === second.getDate()
 }
 
-function FormDatePicker({ id, label, onChange, onValidityChange, value, validate = true, escapeOverflow = false }: FormDatePickerProps) {
+function FormDatePicker({ id, label, onChange, onValidityChange, value, error, validate = true, escapeOverflow = false }: FormDatePickerProps) {
   const generatedId = useId()
   const calendarId = `${generatedId}-calendar`
   const containerRef = useRef<HTMLDivElement>(null)
@@ -84,7 +85,9 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, validate
   const inputValue = inputDraft ?? formatInputDate(value)
   const invalidInput = inputValue !== '' && parseDisplayDate(inputValue) === null
   const [touched, setTouched] = useState(false)
-  const showError = validate && invalidInput && (touched || inputValue.length === 10)
+  const inputError = validate && invalidInput && (touched || inputValue.length === 10)
+  const message = inputError ? 'Informe uma data válida no formato dd/mm/aaaa.' : error
+  const showError = Boolean(message)
 
   const closeCalendar = useCallback((onFinished?: () => void, restoreFocus = false) => {
     requestClose(() => {
@@ -249,7 +252,7 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, validate
           <AstroIcon name="calendar" />
         </button>
       </div>
-      {showError && <p className="create-forms-date-error" id={`${id}-error`} role="alert">Informe uma data válida no formato dd/mm/aaaa.</p>}
+      {showError && <p className="login-field-error create-forms-date-error" id={`${id}-error`} role="alert">{message}</p>}
 
       {open && <div aria-label={`Calendário: ${label}`} className={`create-forms-calendar${closing ? ' create-forms-calendar--closing' : ''}`} id={calendarId} popover={escapeOverflow ? 'manual' : undefined} ref={calendarRef} role="dialog" style={escapeOverflow ? { maxHeight: calendarMaxHeight } : undefined}>
         <div className="create-forms-calendar-header">

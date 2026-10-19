@@ -148,6 +148,32 @@ test('campos inválidos não chamam a API nem o Firebase', async () => {
   assert.equal(env.signIns.length, 0)
 })
 
+test('gestor inativado recebe estado próprio e não inicia autenticação nem libera o painel', async () => {
+  for (const userType of ['GESTOR', 'GESTOR_WORKSPACE']) {
+    for (const userStatus of ['DESATIVADO', 'INATIVO', 'INATIVADO']) {
+      const env = environment()
+      env.respondWith(async () => Response.json({ success: true, data: { userType, userStatus } }))
+      await assert.rejects(env.loginWithEmailAndPassword(credentials), error => error instanceof env.AuthenticationError && error.inactiveAccount && !error.invalidCredentials)
+      assert.equal(env.signIns.length, 0)
+      const users = [], errors = []
+      env.observeAuthentication(user => users.push(user), (message, inactive) => errors.push({ message, inactive }))
+      await env.emit(sessionUser())
+      assert.equal(users.length, 0)
+      assert.equal(errors.length, 1)
+      assert.equal(errors[0].inactive, true)
+    }
+  }
+})
+
+test('status de conta ausente ou desconhecido não libera acesso e não é confundido com inativação', async () => {
+  for (const userStatus of [undefined, null, '', 'OUTRO', 'PRE_CADASTRADO']) {
+    const env = environment()
+    env.respondWith(async () => Response.json({ success: true, data: { userType: 'GESTOR', userStatus } }))
+    await assert.rejects(env.loginWithEmailAndPassword(credentials), error => !error.inactiveAccount && /Não conseguimos verificar/.test(error.message))
+    assert.equal(env.signIns.length, 0)
+  }
+})
+
 test('preserva as mensagens do Firebase após a API liberar o gestor', async () => {
   for (const [code, message, invalidCredentials] of [
     ['auth/invalid-credential', /E-mail ou senha inválido/, true],
@@ -161,6 +187,7 @@ test('preserva as mensagens do Firebase após a API liberar o gestor', async () 
       assert.ok(error instanceof env.AuthenticationError)
       assert.match(error.message, message)
       assert.equal(error.invalidCredentials, invalidCredentials)
+      assert.equal(error.inactiveAccount, code === 'auth/user-disabled')
       return true
     })
     assert.equal(env.requests.length, 1)
@@ -178,7 +205,7 @@ test('publica o perfil retornado pela verificação inicial depois do Firebase, 
     const users = []
     let pending = 0
     env.respondWith(async () => response(accountType))
-    env.observeAuthentication(user => users.push(user), assert.fail, () => pending++)
+    env.observeAuthentication(user => users.push(user), assert.fail, interactive => { assert.equal(interactive, true); pending++ })
     env.signInWith(async () => { await env.emit(sessionUser()); return env.credential })
     await env.loginWithEmailAndPassword(credentials)
     assert.deepEqual(users, [{ ...sessionUser(), accountType }])
@@ -193,7 +220,7 @@ test('sessão restaurada consulta novamente a API e aguarda o perfil antes de li
   let resolve
   let pending = false
   env.respondWith(() => new Promise(done => { resolve = done }))
-  env.observeAuthentication(user => users.push(user), assert.fail, () => { pending = true })
+  env.observeAuthentication(user => users.push(user), assert.fail, interactive => { assert.equal(interactive, false); pending = true })
   const restoring = env.emit(sessionUser())
   assert.equal(pending, true)
   assert.equal(users.length, 0)

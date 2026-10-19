@@ -26,6 +26,9 @@
    ========================================================================= */
 
 :root {
+  --astro-root-font-size: 16px;
+  --astro-text-scale: 1;
+  font-size: calc(var(--astro-root-font-size) * var(--astro-text-scale));
   /* O tema do produto é fixo, inclusive nos controles nativos do navegador. */
   color-scheme: only dark;
   --astro-popup-duration: 260ms;
@@ -123,7 +126,7 @@
    limita a escala em telas ultralargas para não cortar os formulários. */
 @media (min-width: 1600px) {
   :root {
-    font-size: clamp(16px, min(1.05vw, 1.8vh), 40px);
+    --astro-root-font-size: clamp(16px, min(1.05vw, 1.8vh), 40px);
   }
 }
 
@@ -363,10 +366,32 @@ main.payment-page {
   box-shadow: inset 0 0 0 1000px var(--astro-autofill-background, var(--astro-field)), var(--astro-autofill-focus-shadow, 0 0 transparent) !important;
 }
 
+/* O Chromium também aplica uma fonte própria à primeira linha preenchida. */
+:is(input, textarea):is(:autofill, :-webkit-autofill)::first-line {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+
 /* A borda transparente normalmente mostra o fundo do próprio campo.
    Impede que o fundo azul do navegador apareça nesse único pixel. */
 :is(input, textarea, select):is(:autofill, :-webkit-autofill):not(:focus):not([aria-invalid="true"]) {
-  border-color: var(--astro-autofill-background, var(--astro-field));
+  border-color: var(--astro-autofill-border, var(--astro-autofill-background, var(--astro-field))) !important;
+}
+
+:is(input, textarea, select):is(:autofill, :-webkit-autofill):focus:not([aria-invalid="true"]) {
+  border-color: var(--astro-input-focus-border) !important;
+}
+
+:is(input, textarea, select):is(:autofill, :-webkit-autofill)[aria-invalid="true"] {
+  border-color: var(--astro-primary-error) !important;
+  --astro-autofill-focus-shadow: 0 0 transparent;
+}
+
+:is(input, textarea, select):is(:autofill, :-webkit-autofill)[aria-invalid="true"]:focus {
+  border-color: #cf3e3e !important;
 }
 
 :is(input, textarea, select):disabled {
@@ -584,6 +609,7 @@ textarea::selection {
 /* Animate page content, keeping the background and fixed controls opaque. */
 .astro-route-transition { min-height: 100dvh; }
 .astro-route-content { animation: astro-route-enter 550ms cubic-bezier(.2, .8, .2, 1) both; }
+.astro-route-content--planet { animation: none; }
 .astro-route-content--logout,
 .astro-route-content--logout :is(.login-welcome, .login-card) { animation: none; }
 html.logout-transition::view-transition-group(root) { animation-duration: 550ms; }

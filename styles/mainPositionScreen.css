@@ -69,13 +69,14 @@
 .position-dialog-field input { width: 100%; min-height: var(--astro-control-height); padding: 0 var(--astro-control-padding-inline); border: 1px solid transparent; border-radius: var(--astro-control-radius); color: var(--astro-text); background: var(--astro-field); font-family: inherit; font-size: var(--astro-control-font-size); }
 .position-dialog-field input::placeholder { color: var(--astro-placeholder); }
 .position-dialog-field input:focus { --astro-autofill-focus-shadow: 0 0 0 1px rgb(47 46 50 / 22%); border-color: var(--astro-input-focus-border); box-shadow: 0 0 0 1px rgb(47 46 50 / 22%); outline: none; }
-.position-dialog-field input[aria-invalid="true"] { border-color: #eb6264; }
-.position-dialog-field [role="alert"], .position-dialog-form-error { color: #eb6264; font-size: var(--astro-label-font-size); line-height: 1.2; }
+.position-dialog-field input[aria-invalid="true"] { border-color: var(--astro-primary-error); }
+.position-dialog-field input[aria-invalid="true"]:focus { --astro-autofill-focus-shadow: 0 0 transparent; border-color: #cf3e3e; box-shadow: none; }
+.position-dialog-field [role="alert"], .position-dialog-form-error { color: var(--astro-primary-error); font-size: var(--astro-label-font-size); line-height: 1.2; }
 .position-dialog-form-error { margin: 1rem 0 0; }
 .position-dialog-select { width: 100%; min-width: 0; height: var(--astro-control-height); }
 .position-dialog-select .astro-toolbar-select-trigger { height: var(--astro-control-height); }
-.position-dialog-select--invalid .astro-toolbar-select-trigger,
-.position-dialog-select--invalid .astro-toolbar-select-control:focus-within .astro-toolbar-select-trigger { border-color: #eb6264; box-shadow: none; }
+.position-dialog-select--invalid .astro-toolbar-select-trigger { border-color: var(--astro-primary-error); box-shadow: none; }
+.position-dialog-select--invalid .astro-toolbar-select-control:focus-within .astro-toolbar-select-trigger { border-color: #cf3e3e; box-shadow: none; }
 .position-dialog-select--placeholder .astro-toolbar-select-input--muted { color: var(--astro-placeholder); }
 
 @media (max-width: 1050px) {

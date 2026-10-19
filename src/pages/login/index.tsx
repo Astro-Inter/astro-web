@@ -1,5 +1,5 @@
 import { AnimatedWelcome, AstroBrand, HelpLink, LoginForm } from '../../components'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { useLogin } from '../../hooks/useLogin'
 import LoginLoadingOverlay from '../../components/loginLoadingOverlay'
 import { useEffect } from 'react'
@@ -18,9 +18,11 @@ function LoginPage() {
     })
   }
 
+  if (status === 'inactive') return <Navigate to="/inactiveScreenLayout" replace />
+
   return (
     <>
-    <main data-track-page={true} className="login-page" inert={status === 'loading'} aria-busy={status === 'loading'}>
+    <main data-track-page={true} className="login-page" inert={status === 'loading' || status === 'success'} aria-busy={status === 'loading'}>
       <AnimatedWelcome
         title="Seja bem-vindo ao Astro!"
         description="Insira suas credenciais para entrar no seu workspace."
@@ -43,7 +45,7 @@ function LoginPage() {
         <HelpLink />
       </section>
     </main>
-    {status === 'loading' && <LoginLoadingOverlay />}
+    {(status === 'loading' || status === 'success') && <LoginLoadingOverlay />}
     </>
   )
 }

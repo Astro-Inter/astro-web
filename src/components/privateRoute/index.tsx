@@ -14,8 +14,12 @@ function PrivateRoute({ required = true }: PrivateRouteProps) {
 
   if (!required) return <Outlet />
 
+  if (status === 'inactive') return <Navigate to="/inactiveScreenLayout" replace />
+
   if (status !== 'ready') {
-    return <InitialLoadingState error={error} />
+    // O frame visual não carrega dados privados. Preservá-lo evita remontar o planeta.
+    if (location.pathname === '/loadingScreen' && !error) return <RouteContent />
+    return <InitialLoadingState error={error} planet={location.pathname === '/loadingScreen'} />
   }
 
   if (!user) {

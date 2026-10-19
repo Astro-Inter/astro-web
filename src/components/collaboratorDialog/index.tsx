@@ -23,7 +23,7 @@ function CollaboratorDialog({ mode, collaborator, options, loading, error, savin
   return <AppModal trackingName={mode === 'create' ? DIALOG_NAMES.adicionar_colaborador : mode === 'edit' ? DIALOG_NAMES.editar_colaborador : DIALOG_NAMES.informacoes_colaborador} className="account-details-modal manager-details-modal" dimmed={dimmed} dismissible={!saving} onClose={onClose} open={open}
     title={mode === 'create' ? 'Adicionar colaborador' : mode === 'edit' ? 'Editar colaborador' : 'Informações do colaborador'}>
     {(dismiss) => <>
-      {loading && <ApiContentSkeleton label="Carregando informações do colaborador" variant={mode === 'create' ? 'form' : 'profile'} fields={7} actions={mode === 'view' ? 1 : 2} className={`account-details-form${mode === 'create' ? '' : ' api-loading--account-details'}`} />}
+      {loading && <ApiContentSkeleton label="Carregando informações do colaborador" variant={mode === 'create' ? 'form' : 'profile'} fields={7} actions={mode === 'view' ? 1 : 2} actionLabels={mode === 'view' ? ['Voltar'] : ['Cancelar', mode === 'create' ? 'Adicionar' : 'Salvar alterações']} onCancel={dismiss} className={`account-details-form api-loading--collaborator${mode === 'create' ? '' : ' api-loading--account-details'}`} />}
       {error && <div className="position-api-feedback"><p role="alert">{error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} disabled={saving} onClick={onRetry} type="button">Tentar novamente</button></div>}
       {!loading && (mode === 'create' || collaborator) && <CollaboratorForm collaborator={collaborator} disabled={loading || Boolean(error) || saving} saving={saving} mode={mode}
         onCancel={dismiss} onSubmit={onSubmit} options={options} />}

@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import LoadingIndicator from '../loadingIndicator'
 
 function LoginLoadingOverlay() {
   const dialogRef = useRef<HTMLDialogElement>(null)
-  useEffect(() => {
+  // Fecha antes da próxima pintura para não cobrir o planeta por um frame.
+  useLayoutEffect(() => {
     const dialog = dialogRef.current
     if (!dialog) return
     const focused = document.activeElement

@@ -38,7 +38,12 @@ function environment(accountType) {
     return module.exports
   }
   function render(component, route = '/mainHomeScreen', props = {}) {
-    return renderToStaticMarkup(React.createElement(MemoryRouter, { initialEntries: [route] }, React.createElement(component, props)))
+    const { AccessibilityContext } = load('src/contexts/accessibility.ts')
+    const { AccessibilityRuntimeContext } = load('src/contexts/accessibilityRuntime.ts')
+    const { DEFAULT_ACCESSIBILITY } = load('src/utils/accessibility.ts')
+    return renderToStaticMarkup(React.createElement(MemoryRouter, { initialEntries: [route] },
+      React.createElement(AccessibilityContext.Provider, { value: { preferences: DEFAULT_ACCESSIBILITY, update() {}, reset() {} } },
+        React.createElement(AccessibilityRuntimeContext.Provider, { value: { face: { status: 'idle', stop() {}, start() {} }, libras: { loading: false, error: '' } } }, React.createElement(component, props)))))
   }
   return { ...load('src/utils/accessControl.ts'), context, load, render }
 }
@@ -46,10 +51,10 @@ function environment(accountType) {
 test('perfis compartilham as áreas do Figma; gestão de gestores e configurações são exclusivas do workspace', () => {
   const env = environment()
   for (const route of ['/mainHomeScreen', '/mainDashboardsScreen', '/mainEmployeerScreen', '/mainConformityScreen',
-    '/mainUnitScreen', '/mainPositionScreen', '/mainFormScreen', '/mainEventScreen', '/mainAccountScreen', '/createForms', '/editForms', '/loadingScreen']) {
+    '/mainUnitScreen', '/mainPositionScreen', '/mainFormScreen', '/mainEventScreen', '/mainAccountScreen', '/mainWorkspaceSettingsScreen', '/createForms', '/editForms', '/loadingScreen']) {
     for (const role of ['GESTOR', 'GESTOR_WORKSPACE']) assert.equal(env.canAccessPage(role, route), true, `${role}: ${route}`)
   }
-  for (const route of ['/mainManagerScreen', '/mainWorkspaceSettingsScreen', '/MAINMANAGERSCREEN/']) {
+  for (const route of ['/mainManagerScreen', '/MAINMANAGERSCREEN/']) {
     assert.equal(env.canAccessPage('GESTOR', route), false)
     assert.equal(env.canAccessPage('GESTOR_WORKSPACE', route), true)
   }
@@ -69,17 +74,16 @@ test('formulários de empresa, planilha, unidades e pagamentos em contexto de co
   assert.equal(env.canAccessPage('GESTOR', '/mainManagerScreen', '?role=workspaceManager'), false)
 })
 
-test('menu de gestor mostra Conta, preserva áreas compartilhadas e oculta Gestores e Configurações', () => {
+test('menu de gestor mostra Configurações e preserva restrições de gestão', () => {
   const env = environment('GESTOR')
   const menu = env.render(env.load('src/components/appSidebar/index.tsx').default)
-  assert.doesNotMatch(menu, /Gestores|Configurações|mainManagerScreen|mainWorkspaceSettingsScreen/)
-  assert.match(menu, /href="\/mainAccountScreen"/)
-  assert.match(menu, /data-track-item="conta"/)
-  assert.match(menu, />Conta<\/span>/)
+  assert.doesNotMatch(menu, /Gestores|mainManagerScreen/)
+  assert.match(menu, /href="\/mainWorkspaceSettingsScreen"/)
+  assert.match(menu, />Configurações<\/span>/)
   for (const label of ['Home', 'Colaboradores', 'Conformidade', 'Unidades', 'Cargos', 'Formulários', 'Eventos']) {
     assert.ok(menu.includes(`>${label}</span>`))
   }
-  assert.match(menu, /icons\/sidebar\/account.svg/)
+  assert.match(menu, /icons\/sidebar\/settings.svg/)
 })
 
 test('menu de gestor do workspace mantém Gestores e Configurações', () => {
@@ -92,12 +96,11 @@ test('menu de gestor do workspace mantém Gestores e Configurações', () => {
   assert.equal(env.getNavigationItems('GESTOR_WORKSPACE').length, 9)
 })
 
-test('abas de Workspace e Conta só são renderizadas para gestor do workspace', () => {
+test('ambos os gestores acessam as abas Workspace e Conta nas configurações', () => {
   for (const role of ['GESTOR', 'GESTOR_WORKSPACE']) {
     const env = environment(role)
     const markup = env.render(env.load('src/components/settingsTabs/index.tsx').default, '/mainAccountScreen', { active: 'account', from: '/mainHomeScreen' })
-    if (role === 'GESTOR') assert.equal(markup, '')
-    else {
+    {
       assert.match(markup, />Workspace<\/button>/)
       assert.match(markup, /aria-current="page"[^>]*>Conta<\/button>/)
     }
@@ -112,14 +115,15 @@ test('conta usa apenas o perfil autenticado, ignorando qualquer tentativa de alt
       const markup = env.render(account, `/mainAccountScreen${query}`)
       if (role === 'GESTOR') {
         assert.match(markup, />Enviar email<\/button>/)
-        assert.doesNotMatch(markup, />Substituir<\/button>|>Workspace<\/button>/)
-        assert.match(markup, /<h1 class="sr-only"/)
+        assert.doesNotMatch(markup, />Substituir<\/button>/)
+        assert.match(markup, />Workspace<\/button>/)
       } else {
         assert.match(markup, />Substituir<\/button>/)
         assert.doesNotMatch(markup, />Enviar email<\/button>/)
         assert.match(markup, />Workspace<\/button>/)
       }
       assert.match(markup, />Sair da conta<\/button>/)
+      assert.doesNotMatch(markup, /id="account-accessibility-title"/)
     }
   }
 })
@@ -129,7 +133,7 @@ test('guarda de rotas impede montar telas exclusivas ao acessar a URL diretament
   const PrivateRoute = env.load('src/components/privateRoute/index.tsx').default
   let result
   function Probe() { result = PrivateRoute({}); return result }
-  for (const route of ['/mainManagerScreen', '/mainWorkspaceSettingsScreen', '/attachExcelFile?context=settings',
+  for (const route of ['/mainManagerScreen', '/attachExcelFile?context=settings',
     '/includeCompanyInformation?context=settings', '/setAddress?context=settings', '/paymentMethod?context=settings']) {
     const markup = env.render(Probe, route)
     assert.equal(result.type, Navigate)
@@ -158,4 +162,67 @@ test('carregamento do perfil, falha de sessão e sessão ausente nunca montam co
   assert.equal(result.type, Navigate)
   assert.equal(result.props.to, '/')
   assert.doesNotMatch(env.render(PrivateRoute, '/includeCompanyInformation', { required: false }), /Carregando|Não foi possível/)
+})
+
+test('conta inativada vai para sua tela de bloqueio nas rotas privadas e de login', () => {
+  const env = environment('GESTOR')
+  env.context.status = 'inactive'
+  env.context.user = null
+  for (const [component, route] of [['privateRoute', '/mainHomeScreen'], ['guestRoute', '/']]) {
+    const Guard = env.load(`src/components/${component}/index.tsx`).default
+    let result
+    function Probe() { result = Guard({}); return result }
+    const markup = env.render(Probe, route)
+    assert.equal(result.type, Navigate)
+    assert.equal(result.props.to, '/inactiveScreenLayout')
+    assert.doesNotMatch(markup, /Conteúdo autorizado/)
+  }
+})
+
+test('primeiro destino do login autenticado é o carregamento do planeta antes da Home', () => {
+  const env = environment('GESTOR')
+  const GuestRoute = env.load('src/components/guestRoute/index.tsx').default
+  let result
+  function Probe() { result = GuestRoute({}); return result }
+  env.render(Probe, '/')
+  assert.equal(result.props.to, '/loadingScreen')
+  assert.equal(result.props.state.afterLogin, true)
+  const markup = env.render(env.load('src/pages/loadingScreen/index.tsx').default, '/loadingScreen')
+  assert.match(markup, /loading-planet-svg/)
+  assert.doesNotMatch(markup, /login-loading-spinner/)
+})
+
+test('guarda do frame do planeta nunca monta o spinner e login interativo mantém seu formulário', () => {
+  const env = environment(null)
+  env.context.status = 'loading'
+  for (const [component, route, planet] of [['guestRoute', '/', undefined], ['privateRoute', '/mainHomeScreen', false]]) {
+    const Guard = env.load(`src/components/${component}/index.tsx`).default
+    let result
+    function Probe() { result = Guard({}); return result }
+    env.render(Probe, route)
+    assert.equal(result.props.planet, planet)
+  }
+  env.context.status = 'authenticating'
+  const GuestRoute = env.load('src/components/guestRoute/index.tsx').default
+  assert.match(env.render(GuestRoute, '/'), /Conteúdo autorizado/)
+  const PrivateRoute = env.load('src/components/privateRoute/index.tsx').default
+  assert.doesNotMatch(env.render(PrivateRoute, '/mainHomeScreen'), /Conteúdo autorizado/)
+  assert.match(env.render(PrivateRoute, '/loadingScreen'), /Conteúdo autorizado/)
+  env.context.status = 'ready'
+  env.context.user = { uid: 'manager', accountType: 'GESTOR' }
+  assert.match(env.render(PrivateRoute, '/loadingScreen'), /Conteúdo autorizado/)
+})
+
+
+test('Workspace do gestor comum mostra só acessibilidade; responsável vê gestão antes dela', () => {
+  for (const role of ['GESTOR', 'GESTOR_WORKSPACE']) {
+    const env = environment(role)
+    const page = env.load('src/pages/mainWorkspaceSettingsScreen/index.tsx').default
+    const markup = env.render(page, '/mainWorkspaceSettingsScreen')
+    assert.match(markup, /id="workspace-accessibility-title"/)
+    for (const control of ['Tamanho do texto', 'Alto contraste', 'Tradutor VLibras', 'Navegação facial']) assert.ok(markup.includes(control))
+    assert.doesNotMatch(markup, />Tema<|>Claro</)
+    if (role === 'GESTOR') assert.doesNotMatch(markup, /Editar informações|Alterar informações|Alterar unidades|Alterar pagamentos|Adicionar planilha/)
+    else assert.ok(markup.indexOf('Editar informações') < markup.indexOf('id="workspace-accessibility-title"'))
+  }
 })

@@ -21,8 +21,8 @@ function AuthenticationProvider({ children }: AuthenticationProviderProps) {
     let active = true
     const unsubscribe = observeAuthentication(
       (user) => { if (active) setState({ user, status: 'ready', error: '' }) },
-      (error) => { if (active) setState({ user: null, status: 'error', error }) },
-      () => { if (active) setState({ user: null, status: 'loading', error: '' }) },
+      (error, inactiveAccount) => { if (active) setState({ user: null, status: inactiveAccount ? 'inactive' : 'error', error }) },
+      (interactiveLogin) => { if (active) setState({ user: null, status: interactiveLogin ? 'authenticating' : 'loading', error: '' }) },
     )
     return () => { active = false; unsubscribe() }
   }, [attempt])

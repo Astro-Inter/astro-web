@@ -1,20 +1,23 @@
-function HomeDashboardSkeleton() {
+import CompactPurpleButton from '../compactPurpleButton'
+import SummaryStatCard from '../summaryStatCard'
+
+function HomeDashboardSkeleton({ onViewDashboards }: { onViewDashboards?: () => void }) {
   return <>
     <p className="sr-only" role="status">Carregando os indicadores do workspace.</p>
-    <div aria-hidden="true" className="home-dashboards home-dashboards--loading">
+    <div className="home-dashboards home-dashboards--loading">
       <div className="home-card compliance-overview">
         <div className="compliance-overview-header">
-          <div className="home-skeleton-heading">
-            <span className="home-skeleton home-skeleton-title" />
-            <span className="home-skeleton home-skeleton-description" />
+          <div>
+            <h3>Visão geral de conformidade</h3>
+            <p>Status de requisitos e treinamentos de toda empresa</p>
           </div>
-          <span className="home-skeleton home-skeleton-action" />
+          <CompactPurpleButton className="compliance-overview-action" disabled={!onViewDashboards} onClick={onViewDashboards}>Ver dashboards</CompactPurpleButton>
         </div>
-        <div className="compliance-overview-body">
+        <div aria-hidden="true" className="compliance-overview-body">
           <div className="compliance-donut home-skeleton-donut">
             <div className="compliance-donut-center">
-              <span className="home-skeleton home-skeleton-number" />
-              <span className="home-skeleton home-skeleton-label" />
+              <strong className="home-skeleton home-skeleton-number" />
+              <span className="home-skeleton home-skeleton-center-label" />
             </div>
           </div>
           <ul className="compliance-legend">
@@ -26,13 +29,8 @@ function HomeDashboardSkeleton() {
         </div>
       </div>
       <div className="home-summary">
-        {['units', 'collaborators'].map(id => <div className="home-card summary-stat" key={id}>
-          <span className="home-skeleton home-skeleton-title" />
-          <div className="summary-stat-row">
-            <span className="home-skeleton home-skeleton-value" />
-            <span className="home-skeleton summary-stat-link" />
-          </div>
-        </div>)}
+        <SummaryStatCard loading stat={{ id: 'units', label: 'Unidades', value: 0, icon: 'building', path: '/mainUnitScreen' }} />
+        <SummaryStatCard loading stat={{ id: 'collaborators', label: 'Colaboradores', value: 0, icon: 'collaborators', path: '/mainEmployeerScreen' }} />
       </div>
     </div>
   </>

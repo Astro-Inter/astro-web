@@ -26,7 +26,7 @@ function AccountDetailsModal({ profile, onCancel, editable = false, canChangeLin
   return (
     <AppModal trackingName={editable ? DIALOG_NAMES.editar_conta : DIALOG_NAMES.informacoes_conta} className="account-details-modal" dismissible={!locked} onClose={onCancel} preservePageScroll title={editable ? 'Altere suas informações' : 'Veja suas informações'}>
       {dismiss => <div className="account-details-content">
-        {details.loading && !details.data && <AccountProfileSkeleton details editable={editable} canChangeLinks={canChangeLinks} />}
+        {details.loading && !details.data && <AccountProfileSkeleton details editable={editable} canChangeLinks={canChangeLinks} onCancel={dismiss} />}
         {details.error && <><p role="alert">{details.error}</p><PurpleButton onClick={details.retry}>Tentar novamente</PurpleButton><button className="astro-modal-cancel" data-track-action={BUTTONS.comuns.voltar} onClick={dismiss} type="button">Voltar</button></>}
         {details.data && <div className="api-content-ready">
           <AccountProfileHeader disabled={locked} onPhotoSelected={onPhotoSelected} onRefreshPhoto={onRefreshPhoto} photoUpdate={photoUpdate} profile={{ ...details.data, photoUrl: profile.photoUrl }} />

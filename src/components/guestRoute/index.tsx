@@ -13,6 +13,10 @@ function GuestRoute({ enabled = true }: GuestRouteProps) {
 
   if (!enabled) return <Outlet />
 
+  if (status === 'inactive') return <Navigate to="/inactiveScreenLayout" replace />
+  // Mantém o formulário e seu overlay durante o login, sem montar o frame seguinte.
+  if (status === 'authenticating') return <RouteContent />
+
   if (status !== 'ready') {
     return <InitialLoadingState error={error} />
   }

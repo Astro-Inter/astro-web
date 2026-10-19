@@ -11,7 +11,7 @@ function FormField({ id, label, containerClassName = 'field-group', error, ...in
   return (
     <div className={containerClassName}>
       <label htmlFor={id}>{label}</label>
-      <input id={id} {...inputProps} aria-invalid={Boolean(error) || inputProps['aria-invalid']}
+      <input id={id} {...inputProps} placeholder={inputProps.placeholder ?? (inputProps.readOnly ? 'Não informado' : undefined)} aria-invalid={Boolean(error) || inputProps['aria-invalid']}
         aria-describedby={[inputProps['aria-describedby'], error ? `${id}-error` : undefined].filter(Boolean).join(' ') || undefined} />
       {error && <p className="login-field-error" id={`${id}-error`} role="alert">{error}</p>}
     </div>
