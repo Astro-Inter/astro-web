@@ -44,7 +44,7 @@ test('conecta os cinco endpoints de unidades com token e contratos do Swagger', 
     assert.equal(new URL(call.url).search, '')
   }
   assert.equal(calls[1].body, undefined)
-  assert.deepEqual(JSON.parse(calls[4].body), { nrs: [{ nr: 6, ativo: false }, { nr: 10, ativo: true }] })
+  assert.deepEqual(JSON.parse(calls[4].body), [{ nr: 6, ativo: false }, { nr: 10, ativo: true }])
 })
 
 test('erros HTTP, recusa da API e respostas inválidas são tratados', async () => {
@@ -70,6 +70,8 @@ test('validação e sessão ausente impedem requisições indevidas', async () =
   await assert.rejects(api.toggleUnitStatus('unidade-local'), /Identificador/)
   await assert.rejects(api.updateUnitNrs('42', [{ nr: 6, ativo: true }, { nr: 6, ativo: false }]), /Seleção/)
   await assert.rejects(api.updateUnitNrs('42', [{ nr: -1, ativo: true }]), /Seleção/)
+  await assert.rejects(api.updateUnitNrs('42', [{ nr: 6, ativo: 'true' }]), /Seleção/)
+  await assert.rejects(api.updateUnitNrs('42', [{ nr: 1.5, ativo: false }]), /Seleção/)
   auth.currentUser = null
   await assert.rejects(api.listUnits(), /Entre na sua conta/)
   assert.equal(calls, 0)
@@ -90,4 +92,16 @@ test('cancelamento durante obtenção do token impede iniciar uma consulta', asy
   global.fetch = async () => { calls++; return respond([]) }
   await assert.rejects(api.listUnits(controller.signal), { name: 'AbortError' })
   assert.equal(calls, 0)
+})
+
+test('envia array vazio diretamente, com JSON e Bearer, sem UID', async () => {
+  global.fetch = async (url, init) => {
+    assert.equal(url, 'https://api.example.test/units/42/nrs')
+    assert.equal(init.method, 'POST')
+    assert.equal(init.headers.Authorization, 'Bearer firebase-token')
+    assert.equal(init.headers['Content-Type'], 'application/json')
+    assert.equal(init.body, '[]')
+    return respond(null)
+  }
+  await api.updateUnitNrs('42', [])
 })

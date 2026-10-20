@@ -89,5 +89,5 @@ export async function listUnitNrOptions(id: string, signal?: AbortSignal): Promi
 export async function updateUnitNrs(id: string, nrs: UnitNrRequest[]): Promise<void> {
   if (nrs.some((row) => !Number.isSafeInteger(row.nr) || row.nr <= 0 || typeof row.ativo !== 'boolean')
     || new Set(nrs.map((row) => row.nr)).size !== nrs.length) throw new UnitsApiError('Seleção de NRs inválida.')
-  await requestUnits<void>(`${unitPath(id)}/nrs`, 'POST', { nrs })
+  await requestUnits<void>(`${unitPath(id)}/nrs`, 'POST', nrs)
 }
