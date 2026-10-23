@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom'
 import { AppSidebar, AstroChat, AstroIcon, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, OptionsPopup, RegulatoryStandardsDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import type { DataTableColumn } from '../../components/dataTable'
 import { useUnits } from '../../hooks/useUnits'
+import { useUnitNrRecommendations } from '../../hooks/useUnitNrRecommendations'
 import { useActionsMenu } from '../../hooks'
 import type { Unit } from '../../types'
 import { iconAsset } from '../../utils/iconAsset'
@@ -36,6 +37,7 @@ function MainUnitScreenPage() {
   const [filters, setFilters] = useState({ search: '', status: '' })
   const [nrs, setNrs] = useState<UnitNrsState>(closedNrs)
   const api = useUnits(nrs.unit?.id)
+  const recommendations = useUnitNrRecommendations(nrs.editing ? nrs.unit?.id : undefined)
   const { units } = api
   const nrOptionRows = api.nrs.options.map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.descricao }))
   const enabledNrIds = api.nrs.options.filter((row) => row.ativo).map((row) => String(row.nr))
@@ -164,6 +166,13 @@ function MainUnitScreenPage() {
         )}
         {nrs.unit && nrs.editing && !api.nrs.loading && !api.nrs.error && (
           <EditRegulatoryStandardsDialog
+            key={nrs.unit.id}
+            recommendationSubject="esta unidade"
+            recommendedIds={recommendations.rows.map(row => String(row.numero))}
+            recommendationDescriptions={Object.fromEntries(recommendations.rows.map(row => [String(row.numero), row.justificativa]))}
+            recommendationsLoading={recommendations.loading}
+            recommendationsError={recommendations.error}
+            onRetryRecommendations={recommendations.retry}
             dimmed={nrs.editDimmed}
             enabledIds={enabledNrIds}
             rows={nrOptionRows}

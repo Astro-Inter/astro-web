@@ -10,7 +10,44 @@ const api = moduleApi.exports
 const originalFetch = global.fetch, user = auth.currentUser
 const suggestion = { numero: 12, nome: 'Máquinas e equipamentos', justificativa: 'Opera máquinas no cargo.', confianca: 'alta' }
 const body = { cargo_id: 3, cargo: 'Operador', quantidade: 1, nrs_sugeridas: [suggestion] }
+const unitBody = { unidade_id: 42, unidade: 'Fábrica', empresa: 'Astro', quantidade_funcionarios_ativos: 10, quantidade: 1, nrs_sugeridas: [suggestion] }
 afterEach(() => { global.fetch = originalFetch; auth.currentUser = user })
+
+test('sugere NRs da unidade com token e sem payload, preservando o cancelamento', async () => {
+  const calls = []
+  global.fetch = async (url, init) => { calls.push({ url, ...init }); return Response.json(unitBody) }
+  const controller = new AbortController()
+  assert.deepEqual(await api.suggestUnitNrs('42', controller.signal), [suggestion])
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0].url, 'https://ai.example.test/support/unidades/42/nrs-sugeridas')
+  assert.equal(calls[0].method, 'POST')
+  assert.equal(calls[0].headers.Authorization, 'Bearer firebase-token')
+  assert.equal(calls[0].body, undefined)
+  controller.abort()
+  assert.equal(calls[0].signal.aborted, true)
+})
+
+test('valida a unidade e o contrato de sugestões, aceitando lista vazia', async () => {
+  global.fetch = async () => Response.json({ ...unitBody, quantidade: 0, nrs_sugeridas: [] })
+  assert.deepEqual(await api.suggestUnitNrs('42'), [])
+  for (const invalid of [null, body, { ...unitBody, unidade_id: 3 }, { ...unitBody, empresa: null },
+    { ...unitBody, quantidade_funcionarios_ativos: -1 }, { ...unitBody, quantidade: 0 },
+    { ...unitBody, nrs_sugeridas: [{ ...suggestion, justificativa: '' }] },
+    { ...unitBody, quantidade: 2, nrs_sugeridas: [suggestion, suggestion] }]) {
+    global.fetch = async () => Response.json(invalid)
+    await assert.rejects(api.suggestUnitNrs('42'), /sugestões inválidas para esta unidade/)
+  }
+})
+
+test('falhas da IA da unidade permitem edição manual e IDs inválidos não fazem requisição', async () => {
+  let calls = 0
+  global.fetch = async () => { calls++; return Response.json({}, { status: 403 }) }
+  await assert.rejects(api.suggestUnitNrs('../42'), /Identificador da unidade/)
+  assert.equal(calls, 0)
+  await assert.rejects(api.suggestUnitNrs('42'), /permissão.*da unidade/)
+  global.fetch = async () => { throw new TypeError('Failed to fetch') }
+  await assert.rejects(api.suggestUnitNrs('42'), /continuar editando/)
+})
 
 test('consulta o endpoint support com Bearer Firebase, sem payload ou escrita de vínculos', async () => {
   const calls = []

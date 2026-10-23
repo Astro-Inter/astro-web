@@ -11,3 +11,12 @@ export interface PositionNrRecommendationsResponse {
   quantidade: number
   nrs_sugeridas: NrRecommendation[]
 }
+
+export interface UnitNrRecommendationsResponse {
+  unidade_id: number
+  unidade: string
+  empresa: string
+  quantidade_funcionarios_ativos: number
+  quantidade: number
+  nrs_sugeridas: NrRecommendation[]
+}
