@@ -24,6 +24,7 @@ interface EditRegulatoryStandardsDialogProps {
   open?: boolean
   positionName: string
   recommendationText?: string
+  recommendationSubject?: 'este cargo' | 'esta unidade'
   recommendationDescriptions?: Readonly<Record<string, string>>
   recommendationsLoading?: boolean
   recommendationsError?: string
@@ -51,7 +52,7 @@ function recommendationCopy(row: NrsRow, description: string) {
   }
 }
 
-function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onDismissRequest, onRequestConfirmation, open = true, positionName, recommendationText = 'Recomendado para este cargo.', recommendationDescriptions = {}, recommendationsLoading = false, recommendationsError = '', onRetryRecommendations, recommendedIds = [], rows = defaultNrsRows }: EditRegulatoryStandardsDialogProps) {
+function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = false, onCancel, onDismissRequest, onRequestConfirmation, open = true, positionName, recommendationText = 'Recomendado para este cargo.', recommendationSubject = 'este cargo', recommendationDescriptions = {}, recommendationsLoading = false, recommendationsError = '', onRetryRecommendations, recommendedIds = [], rows = defaultNrsRows }: EditRegulatoryStandardsDialogProps) {
   const tooltipId = useId()
   const [form, setForm] = useState(() => ({ search: '', enabledIds: new Set(enabledIds) }))
   const [recommendationTooltip, setRecommendationTooltip] = useState<RecommendationTooltipState | null>(null)
@@ -257,7 +258,7 @@ function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = fals
           />
         </div>
 
-        {recommendationsLoading && <p className="nrs-edit-ai-feedback" role="status">Consultando sugestões de IA para este cargo…</p>}
+        {recommendationsLoading && <p className="nrs-edit-ai-feedback" role="status">Consultando sugestões de IA para {recommendationSubject}…</p>}
         {recommendationsError && <div className="nrs-edit-ai-feedback">
           <p role="alert">{recommendationsError} A edição manual continua disponível.</p>
           {onRetryRecommendations && <button className="astro-modal-cancel" data-track-action={BUTTONS.comuns.tentar_novamente} onClick={onRetryRecommendations} type="button">Tentar novamente</button>}

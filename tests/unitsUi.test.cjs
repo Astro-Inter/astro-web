@@ -7,8 +7,8 @@ const React = require('react')
 const { act } = React
 const { JSDOM } = require('jsdom')
 
-function Modal({ children, title, onClose, open = true }) {
-  return React.createElement('dialog', { open, 'aria-label': title }, typeof children === 'function' ? children(onClose) : children)
+function Modal({ children, title, onClose, className, open = true }) {
+  return React.createElement('dialog', { open, className, 'aria-label': title }, typeof children === 'function' ? children(onClose) : children)
 }
 function environment() {
   const cache = new Map()
@@ -16,7 +16,7 @@ function environment() {
     const filename = path.resolve(file)
     if (cache.has(filename)) return cache.get(filename).exports
     const module = { exports: {} }; cache.set(filename, module)
-    const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'").replaceAll('import.meta.env.VITE_API_URL', "'https://api.example.test'").replaceAll('import.meta.env.DEV', 'false')
+    const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'").replaceAll('import.meta.env.VITE_API_IA_URL', "'https://ai.example.test'").replaceAll('import.meta.env.VITE_API_URL', "'https://api.example.test'").replaceAll('import.meta.env.DEV', 'false')
     const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
     new Function('require', 'module', 'exports', code)(name => {
       if (name === './firebase') return { firebaseAuth: { currentUser: { uid: 'gestor', getIdToken: async () => 'token' } } }
@@ -56,11 +56,21 @@ test('erro no modal mantém seleção para retry e reabrir consulta os vínculos
   const env = environment()
   let options = [{ nr: 6, descricao: 'EPI', ativo: true }, { nr: 17, descricao: 'Ergonomia', ativo: false }]
   const calls = [], writes = []
+  let recommendations = 0
   global.fetch = async (url, init) => {
     const pathname = new URL(url).pathname
     calls.push([init.method, pathname])
     assert.equal(init.headers.Authorization, 'Bearer token')
     assert.equal(new URL(url).search, '')
+    if (pathname.startsWith('/support/')) {
+      recommendations++
+      assert.equal(pathname, '/support/unidades/42/nrs-sugeridas')
+      assert.equal(init.method, 'POST')
+      assert.equal(init.body, undefined)
+      if (recommendations === 1) return Response.json({ detail: 'IA indisponível.' }, { status: 503 })
+      return Response.json({ unidade_id: 42, unidade: 'Unidade API', empresa: 'Astro', quantidade_funcionarios_ativos: 2,
+        quantidade: 1, nrs_sugeridas: [{ numero: 17, nome: 'Ergonomia', justificativa: 'Há trabalho administrativo na unidade.', confianca: 'alta' }] })
+    }
     if (init.method === 'POST') {
       const body = JSON.parse(init.body)
       assert.ok(Array.isArray(body))
@@ -78,11 +88,22 @@ test('erro no modal mantém seleção para retry e reabrir consulta os vínculos
     const Page = env.load('src/pages/mainUnitScreen/index.tsx').default
     const Host = env.load('src/components/actionFeedbackHost/index.tsx').default
     await act(async () => root.render(React.createElement(React.Fragment, null, React.createElement(Host), React.createElement(Page))))
-    await click('Ações para Unidade API'); await click('Gerenciar NRs'); await click('Editar NRs')
+    await click('Ações para Unidade API'); await click('Gerenciar NRs')
+    assert.equal(recommendations, 0)
+    await click('Editar NRs')
     const editor = document.querySelector('dialog[aria-label="Edite as NRs de Unidade API"]')
     const switches = [...editor.querySelectorAll('input[type="checkbox"]')]
     assert.deepEqual(switches.map(input => input.checked), [true, false])
     await act(async () => { switches[0].click(); switches[1].click() })
+    assert.match(editor.querySelector('[role="alert"]').textContent, /IA indisponível.*edição manual continua disponível/)
+    await click('Tentar novamente', editor)
+    assert.equal(recommendations, 2)
+    assert.deepEqual(switches.map(input => input.checked), [false, true])
+    assert.equal(editor.querySelectorAll('.nrs-edit-row-recommendation').length, 1)
+    await click('Ver recomendação de IA para NR 17', editor)
+    assert.match(document.querySelector('[role="tooltip"]').textContent, /Há trabalho administrativo na unidade/)
+    assert.equal(writes.length, 0)
+    assert.deepEqual([...editor.querySelectorAll('.astro-truncated-text--multiline')].map(text => text.style.webkitLineClamp), ['2', '2'])
     await click('Salvar', editor)
     const confirmation = document.querySelector('dialog[aria-label="Deseja salvar as alterações das NRs desta unidade?"]')
     await click('Salvar', confirmation)

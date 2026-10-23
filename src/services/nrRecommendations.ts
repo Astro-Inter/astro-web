@@ -1,5 +1,5 @@
 import { firebaseAuth } from './firebase'
-import type { NrRecommendation, PositionNrRecommendationsResponse } from '../types/nrRecommendation'
+import type { NrRecommendation, PositionNrRecommendationsResponse, UnitNrRecommendationsResponse } from '../types/nrRecommendation'
 
 export class NrRecommendationsApiError extends Error {
   constructor(message: string, options?: ErrorOptions) {
@@ -18,8 +18,18 @@ function isRecommendation(value: unknown): value is NrRecommendation {
 }
 
 export async function suggestPositionNrs(id: string, signal?: AbortSignal): Promise<NrRecommendation[]> {
+  return suggestNrs('cargo', id, signal)
+}
+
+export async function suggestUnitNrs(id: string, signal?: AbortSignal): Promise<NrRecommendation[]> {
+  return suggestNrs('unidade', id, signal)
+}
+
+async function suggestNrs(resource: 'cargo' | 'unidade', id: string, signal?: AbortSignal): Promise<NrRecommendation[]> {
+  const entity = resource === 'cargo' ? 'do cargo' : 'da unidade'
+  const target = resource === 'cargo' ? 'este cargo' : 'esta unidade'
   try {
-    if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))) throw new NrRecommendationsApiError('Identificador do cargo inválido.')
+    if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))) throw new NrRecommendationsApiError(`Identificador ${entity} inválido.`)
     const baseUrl = import.meta.env.VITE_API_IA_URL?.trim().replace(/\/+$/, '')
     if (!baseUrl) throw new NrRecommendationsApiError('A URL da API de IA não está configurada.')
     const user = firebaseAuth.currentUser
@@ -28,7 +38,7 @@ export async function suggestPositionNrs(id: string, signal?: AbortSignal): Prom
     requestSignal.throwIfAborted()
     const token = await user.getIdToken()
     requestSignal.throwIfAborted()
-    const response = await fetch(`${baseUrl}/support/cargos/${id}/nrs-sugeridas`, {
+    const response = await fetch(`${baseUrl}/support/${resource === 'cargo' ? 'cargos' : 'unidades'}/${id}/nrs-sugeridas`, {
       method: 'POST', signal: requestSignal,
       headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
     })
@@ -36,14 +46,19 @@ export async function suggestPositionNrs(id: string, signal?: AbortSignal): Prom
     if (!response.ok) {
       const detail = typeof body === 'object' && body !== null && 'detail' in body && typeof body.detail === 'string' ? body.detail : ''
       throw new NrRecommendationsApiError(detail || (response.status === 401 ? 'Sua sessão expirou. Entre novamente.'
-        : response.status === 403 ? 'Você não tem permissão para consultar sugestões deste cargo.' : 'Não foi possível carregar as sugestões de IA. Tente novamente.'))
+        : response.status === 403 ? `Você não tem permissão para consultar sugestões ${entity}.` : 'Não foi possível carregar as sugestões de IA. Tente novamente.'))
     }
-    const data = body as Partial<PositionNrRecommendationsResponse> | null
-    if (!data || data.cargo_id !== Number(id) || typeof data.cargo !== 'string'
+    const data = body as Partial<PositionNrRecommendationsResponse & UnitNrRecommendationsResponse> | null
+    const validEntity = data && (resource === 'cargo'
+      ? data.cargo_id === Number(id) && typeof data.cargo === 'string'
+      : data.unidade_id === Number(id) && typeof data.unidade === 'string'
+        && typeof data.empresa === 'string' && Number.isSafeInteger(data.quantidade_funcionarios_ativos)
+        && Number(data.quantidade_funcionarios_ativos) >= 0)
+    if (!data || !validEntity
       || !Array.isArray(data.nrs_sugeridas) || data.quantidade !== data.nrs_sugeridas.length
       || !data.nrs_sugeridas.every(isRecommendation)
       || new Set(data.nrs_sugeridas.map(row => row.numero)).size !== data.nrs_sugeridas.length) {
-      throw new NrRecommendationsApiError('A IA retornou sugestões inválidas para este cargo.')
+      throw new NrRecommendationsApiError(`A IA retornou sugestões inválidas para ${target}.`)
     }
     return data.nrs_sugeridas
   } catch (error: unknown) {
