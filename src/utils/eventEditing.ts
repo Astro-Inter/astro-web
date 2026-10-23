@@ -1,6 +1,5 @@
 import type { EventConfiguration } from '../types/eventCreation'
 import type { CalendarEvent, EventCategory } from '../types/events'
-import { mockEventManager } from '../data/events'
 
 export function numberEventsByDay(events: readonly CalendarEvent[]): CalendarEvent[] {
   const counters = new Map<string, number>()
@@ -15,7 +14,7 @@ export function numberEventsByDay(events: readonly CalendarEvent[]): CalendarEve
 export function configurationForEvent(event: CalendarEvent): EventConfiguration {
   if (event.configuration) return structuredClone(event.configuration)
   return {
-    creatorId: mockEventManager.id,
+    creatorId: '',
     draft: { title: event.title, description: '', type: 'Evento', nr: '', externalLink: '' },
     selectedIds: [],
     groups: [{ id: 'group-1', name: 'Grupo 1' }],
@@ -28,12 +27,15 @@ export function configurationForEvent(event: CalendarEvent): EventConfiguration 
 export function startedGroupIds(value: EventConfiguration, now = Date.now()): string[] {
   return value.groups.filter(group => {
     const schedule = value.schedules[group.id]
-    return schedule?.date && schedule.startTime && new Date(`${schedule.date}T${schedule.startTime}:00`).getTime() <= now
+    if (!schedule?.date || !schedule.startTime) return false
+    const minute = `${schedule.date}T${schedule.startTime}`
+    const start = schedule.originalStart?.slice(0, 16) === minute ? schedule.originalStart : `${minute}:00`
+    return new Date(start).getTime() <= now
   }).map(group => group.id)
 }
 
 export function canEditEvent(value: EventConfiguration, managerId: string): boolean {
-  return value.creatorId === managerId
+  return value.permissions?.canEdit ?? value.creatorId === managerId
 }
 
 export function validateEventEdit(original: EventConfiguration, value: EventConfiguration, managerId: string, now = Date.now()): string | null {
@@ -42,15 +44,16 @@ export function validateEventEdit(original: EventConfiguration, value: EventConf
     || value.settings.completion !== original.settings.completion || value.settings.evidenceRequired !== original.settings.evidenceRequired) {
     return 'NR, modo de conclusão, evidência obrigatória e gestor criador não podem ser alterados.'
   }
-  if (JSON.stringify(value.groups) !== JSON.stringify(original.groups)) return 'As turmas são definidas na criação do evento.'
-  const lockedIds = startedGroupIds(original, now)
-  if (lockedIds.length && (value.draft.title !== original.draft.title || value.draft.description !== original.draft.description || value.draft.externalLink !== original.draft.externalLink)) {
+  if (!original.permissions && JSON.stringify(value.groups) !== JSON.stringify(original.groups)) return 'As turmas são definidas na criação do evento.'
+  const lockedIds = [...new Set([...(original.permissions?.lockedGroupIds ?? []), ...startedGroupIds(original, now)])]
+  if ((original.permissions?.detailsEditable === false || lockedIds.length) && (value.draft.title !== original.draft.title || value.draft.description !== original.draft.description || value.draft.externalLink !== original.draft.externalLink)) {
     return 'O evento já começou. Título, descrição e link externo não podem ser alterados.'
   }
   for (const groupId of lockedIds) {
     const before = original.schedules[groupId]
     const after = value.schedules[groupId]
-    if (!after || before.date !== after.date || before.startTime !== after.startTime || before.endTime !== after.endTime) {
+    if (!value.groups.some(group => group.id === groupId && group.name === original.groups.find(row => row.id === groupId)?.name)
+      || !after || before.date !== after.date || before.endDate !== after.endDate || before.startTime !== after.startTime || before.endTime !== after.endTime) {
       return 'Data e horários de uma turma que já começou não podem ser alterados.'
     }
     const members = (configuration: EventConfiguration) => Object.entries(configuration.assignments)
@@ -66,7 +69,7 @@ export function validateEventConfiguration(value: EventConfiguration): string | 
   for (const group of value.groups) {
     const schedule = value.schedules[group.id]
     if (!schedule?.date || !schedule.startTime || !schedule.endTime) return `Defina a data e os dois horários de ${group.name} na etapa Organizar grupos.`
-    if (schedule.endTime <= schedule.startTime) return `O horário de término de ${group.name} deve ser posterior ao início.`
+    if (`${schedule.endDate || schedule.date}T${schedule.endTime}` <= `${schedule.date}T${schedule.startTime}`) return `O horário de término de ${group.name} deve ser posterior ao início.`
   }
   return null
 }

@@ -2,7 +2,6 @@ import { SHOWCASE_NAMES } from '../../gtm/showcases'
 import { BUTTONS } from '../../gtm/buttons'
 import { useLayoutEffect, useRef } from 'react'
 import AstroIcon from '../astroIcon'
-import { eventCategoryLabels } from '../../data/events'
 import type { CalendarEvent, CalendarView } from '../../types/events'
 import { calendarDays, calendarPeriodLabel, eventDateLabel, weekDays } from '../../utils/events'
 
@@ -61,9 +60,9 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
 
   function eventItem(event: CalendarEvent, miniature = false, weekly = false) {
     const timedEvent = event.category === 'today' ? null : event
-    const eventLabel = event.category === 'today' ? eventCategoryLabels.today : `Evento ${event.eventNumber ?? 1}`
+    const eventLabel = event.category === 'today' ? 'Dia atual' : event.title
     const itemClass = `event-calendar-item event-calendar-item--${event.category}${event.category !== 'today' ? ` event-calendar-item--color-${((event.eventNumber ?? 1) - 1) % 4}` : ''}${event.inactive ? ' event-calendar-item--inactive' : ''}${miniature ? ' event-calendar-item--miniature' : ''}${weekly ? ' event-calendar-item--weekly' : ''}${savedEventId === (event.eventId ?? event.id) ? ' event-calendar-item--saved' : ''}`
-    const itemLabel = `${eventLabel}${event.inactive ? ', inativo' : ''}: ${event.title}, ${eventDateLabel(event.date)}${timedEvent ? `, das ${timedEvent.startTime} às ${timedEvent.endTime}` : ''}`
+    const itemLabel = `${eventLabel}${event.inactive ? ', inativo' : ''}, ${eventDateLabel(event.date)}${timedEvent ? `, das ${timedEvent.startTime} às ${timedEvent.endTime}` : ''}`
     const itemContent = miniature ? null : <span className="event-calendar-item-label">{eventLabel}</span>
 
     if (event.category === 'today') return <span

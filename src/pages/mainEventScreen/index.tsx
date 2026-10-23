@@ -9,12 +9,13 @@ import EventCalendar from '../../components/eventCalendar'
 import EventOptionsModal from '../../components/eventOptionsModal'
 import EventDetailsModal from '../../components/eventDetailsModal'
 import CreateEventFlowModal from '../../components/createEventFlowModal'
-import { mockEventManager, mockEvents } from '../../data/events'
+import { detailedCalendarEvent, useEvents } from '../../hooks/useEvents'
+import { useAuthentication } from '../../hooks/useAuthentication'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { useAnimatedResults } from '../../hooks/useAnimatedResults'
 import type { CalendarEvent, CalendarView } from '../../types/events'
 import type { EventConfiguration } from '../../types/eventCreation'
-import { calendarEntriesForEvent, configurationForEvent, canEditEvent, validateEventEdit, validateEventConfiguration, numberEventsByDay } from '../../utils/eventEditing'
+import { configurationForEvent, numberEventsByDay } from '../../utils/eventEditing'
 import { shiftCalendarPeriod, weekDays } from '../../utils/events'
 
 const viewOptions = [
@@ -23,18 +24,18 @@ const viewOptions = [
   { value: 'year', label: 'Esse ano' },
 ]
 
-function MainEventScreenPage() {
+function EventScreenContent() {
   const location = useLocation()
   const [month, setMonth] = useState(() => {
     const today = new Date()
     return new Date(today.getFullYear(), today.getMonth(), today.getDate())
   })
   const [view, setView] = useState<CalendarView>('month')
-  const [events, setEvents] = useState<CalendarEvent[]>(mockEvents)
   const [searchText, setSearchText] = useState('')
   const [openId, setOpenId] = useState<string | null>(null)
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [pendingInactivation, setPendingInactivation] = useState<CalendarEvent | null>(null)
+  const [cancellationReason, setCancellationReason] = useState('')
   const [informationEvent, setInformationEvent] = useState<CalendarEvent | null>(null)
   const setFeedback = useActionFeedback()
   const [editor, setEditor] = useState<{ mode: 'create' } | { mode: 'edit'; event: CalendarEvent; value: EventConfiguration } | null>(() => location.state?.openCreate === true ? { mode: 'create' } : null)
@@ -46,6 +47,7 @@ function MainEventScreenPage() {
   const panelRef = useRef<HTMLDivElement | null>(null)
   const headingRef = useRef<HTMLHeadingElement | null>(null)
   const { closing, requestClose } = useAnimatedClose()
+  const { events, loading, error, retry, details, retryDetails, save, cancel } = useEvents(month, view, openId ? openId.split(':')[0] : undefined)
 
   useEffect(() => () => {
     if (saveAnimationTimerRef.current !== null) window.clearTimeout(saveAnimationTimerRef.current)
@@ -86,18 +88,19 @@ function MainEventScreenPage() {
       top: Math.max(gap, Math.min(top, window.innerHeight - panel.height - gap)),
       left: Math.max(gap, Math.min(trigger.right - panel.width, window.innerWidth - panel.width - gap)),
     })
-  }, [openId])
+  }, [openId, details.loading, details.error])
 
   const search = searchText.trim().toLocaleLowerCase('pt-BR')
   const numberedEvents = useMemo(() => numberEventsByDay(events), [events])
   const visibleEvents = useMemo(() => numberedEvents.filter(event =>
-    `${event.title} Evento ${event.eventNumber ?? ''}`.toLocaleLowerCase('pt-BR').includes(search),
+    event.title.toLocaleLowerCase('pt-BR').includes(search),
   ), [numberedEvents, search])
   const calendarSnapshot = useMemo(() => [{ month, view, events: visibleEvents }], [month, view, visibleEvents])
   const calendarSignature = `${view}|${month.getTime()}|${JSON.stringify(visibleEvents.map(event => [event.id, event.title, event.date, event.category, event.inactive, event.eventNumber, event.category === 'today' ? '' : event.startTime, event.category === 'today' ? '' : event.endTime]))}`
   const calendarResults = useAnimatedResults(calendarSnapshot, calendarSignature, month.getTime(), view, animateCalendar)
   const displayedCalendar = calendarResults.items[0]
-  const selected = events.find(event => event.id === openId)
+  const selectedEntry = events.find(event => event.id === openId)
+  const selected = selectedEntry && details.data ? detailedCalendarEvent(selectedEntry, details.data) : selectedEntry
   const visiblePeriodCount = visibleEvents.filter(event => {
     if (view === 'year') return event.date.startsWith(`${month.getFullYear()}-`)
     if (view === 'month') return event.date.startsWith(`${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}-`)
@@ -116,22 +119,14 @@ function MainEventScreenPage() {
     else open()
   }
 
-  function saveEvent(value: EventConfiguration) {
+  async function saveEvent(value: EventConfiguration): Promise<void> {
     if (!editor) return
     const existing = editor.mode === 'edit' ? editor.event : null
-    const eventId = existing?.eventId ?? existing?.id ?? crypto.randomUUID()
-    const original = existing ? configurationForEvent(existing) : null
-    const error = validateEventConfiguration(value) ?? (original ? validateEventEdit(original, value, mockEventManager.id) : null)
-    if (error) { setFeedback(error, 'error'); return }
-    const entries = calendarEntriesForEvent(value, eventId, 'event', undefined, existing?.inactive)
+    const saved = await save(value, existing?.eventId ?? existing?.id)
+    const eventId = String(saved.id)
     setAnimateCalendar(false)
-    setEvents(current => {
-      const index = current.findIndex(event => (event.eventId ?? event.id) === eventId)
-      const remaining = current.filter(event => (event.eventId ?? event.id) !== eventId)
-      return index < 0 ? [...remaining, ...entries] : [...remaining.slice(0, index), ...entries, ...remaining.slice(index)]
-    })
     pendingSavedIdRef.current = eventId
-    const firstDate = entries[0]?.date
+    const firstDate = saved.eventClasses[0]?.startDate.slice(0, 10)
     if (firstDate) setMonth(new Date(`${firstDate}T12:00:00`))
     setFeedback(`Evento ${value.draft.title.trim()} ${existing ? 'atualizado' : 'criado'} com sucesso.`)
   }
@@ -167,35 +162,44 @@ function MainEventScreenPage() {
             <p>Organize eventos, acompanhe as atividades e gerencie a criação e programação de cada evento.</p>
           </header>
           <div aria-label="Ações e filtros dos eventos" className="position-toolbar" role="group">
-            <CompactPurpleButton data-track-action={BUTTONS.comuns.criar_evento} className="event-create-button" onClick={() => { setOpenId(null); setEditor({ mode: 'create' }) }} type="button"><AstroIcon name="plus" />Criar evento</CompactPurpleButton>
+            <CompactPurpleButton data-track-action={BUTTONS.comuns.criar_evento} className="event-create-button" onClick={() => { setOpenId(null); setFeedback(''); setEditor({ mode: 'create' }) }} type="button"><AstroIcon name="plus" />Criar evento</CompactPurpleButton>
             <ToolbarSearch label="Buscar eventos" placeholder="Buscar eventos..." value={searchText} onChange={event => changeCalendar(() => setSearchText(event.target.value))} onClear={() => changeCalendar(() => setSearchText(''))} />
             <div className="position-toolbar-selects">
               <ToolbarSelect trackingAction={BUTTONS.comuns.calendario} label="Visualização do calendário" options={viewOptions} searchable={false} value={view} onValueChange={value => changeCalendar(() => { setOpenId(null); setView(value as CalendarView) })} />
             </div>
           </div>
+          {loading && <p role="status">Carregando eventos...</p>}
+          {error && <div role="alert"><p>{error}</p><button className="astro-modal-cancel" onClick={retry} type="button">Tentar novamente</button></div>}
+          {!loading && !error && visiblePeriodCount === 0 && <p role="status">Nenhum evento encontrado neste período.</p>}
+          {openId && details.loading && <p className="sr-only" role="status">Carregando informações do evento...</p>}
+          {openId && details.error && <div role="alert"><p>{details.error}</p><button className="astro-modal-cancel" onClick={retryDetails} type="button">Tentar novamente</button></div>}
           <div className="event-board">
-            <div aria-busy={calendarResults.exiting} className={`event-calendar-transition${calendarResults.changed ? ' event-calendar-transition--animated' : ''}${calendarResults.direction ? ` event-calendar-transition--${calendarResults.direction}` : ''}${calendarResults.exiting ? ' event-calendar-transition--exiting' : ''}`} key={calendarResults.signature}>
+            <div aria-busy={loading || calendarResults.exiting} className={`event-calendar-transition${calendarResults.changed ? ' event-calendar-transition--animated' : ''}${calendarResults.direction ? ` event-calendar-transition--${calendarResults.direction}` : ''}${calendarResults.exiting ? ' event-calendar-transition--exiting' : ''}`} key={calendarResults.signature}>
               <EventCalendar events={displayedCalendar.events} month={displayedCalendar.month} view={displayedCalendar.view} onMonthChange={amount => changeCalendar(() => { setOpenId(null); setMonth(current => shiftCalendarPeriod(current, view, amount)) })} onOpenOptions={openOptions} selectedEventId={openId} savedEventId={savedEventId} />
             </div>
           </div>
           <p className="sr-only" role="status">{visiblePeriodCount} eventos visíveis neste período.</p>
         </section>
       </main>
-      {selected && createPortal(<EventOptionsModal closing={closing} event={selected} canEdit={!selected.inactive && canEditEvent(configurationForEvent(selected), mockEventManager.id)} onClose={() => closeMenu()} onViewInformation={() => closeMenu(() => setInformationEvent(selected))} onEdit={() => closeMenu(() => setEditor({ mode: 'edit', event: selected, value: configurationForEvent(selected) }))} onInactivate={() => closeMenu(() => setPendingInactivation(selected))} panelRef={panelRef} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} />, document.body)}
+      {selected && createPortal(<EventOptionsModal loading={details.loading} error={details.error} onRetry={retryDetails} closing={closing} event={selected} canEdit={details.data?.canEdit ?? false} canCancel={details.data?.canCancel ?? false} informationReady={!!details.data} onClose={() => closeMenu()} onViewInformation={() => closeMenu(() => setInformationEvent(selected))} onEdit={() => closeMenu(() => setEditor({ mode: 'edit', event: selected, value: configurationForEvent(selected) }))} onInactivate={() => closeMenu(() => { setCancellationReason(''); setPendingInactivation(selected) })} panelRef={panelRef} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} />, document.body)}
       {informationEvent && <EventDetailsModal event={informationEvent} onClose={() => {
         setInformationEvent(null)
         requestAnimationFrame(() => (triggerRef.current?.isConnected ? triggerRef.current : headingRef.current)?.focus({ preventScroll: true }))
       }} />}
-      {pendingInactivation && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_inativacao_evento} backdrop="dimmed" preservePageScroll className="event-deactivation-modal" confirmLabel="Inativar" tone="danger" title="Tem certeza de que deseja inativar este evento?" icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={() => setPendingInactivation(null)} onConfirm={() => null} onConfirmed={() => {
+      {pendingInactivation && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_inativacao_evento} backdrop="dimmed" preservePageScroll className="event-deactivation-modal" confirmLabel="Inativar" progressLabel="Inativando evento..." tone="danger" title="Tem certeza de que deseja inativar este evento?" description={<><span>O cancelamento é definitivo. Informe o motivo.</span><label className="event-create-field" htmlFor="event-cancellation-reason">Justificativa<textarea id="event-cancellation-reason" minLength={3} maxLength={1000} value={cancellationReason} onChange={event => setCancellationReason(event.target.value)} /></label></>} icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={() => setPendingInactivation(null)} onConfirm={async () => { await cancel(pendingInactivation.eventId ?? pendingInactivation.id, cancellationReason); return null }} onConfirmed={() => {
         setAnimateCalendar(true)
-        setEvents(current => current.map(event => (event.eventId ?? event.id) === (pendingInactivation.eventId ?? pendingInactivation.id) ? { ...event, inactive: true } : event))
         setFeedback(`Evento ${pendingInactivation.title} inativado.`)
         setPendingInactivation(null)
         requestAnimationFrame(() => headingRef.current?.focus())
       }} />}
-      {editor && <CreateEventFlowModal managerId={mockEventManager.id} initialValue={editor.mode === 'edit' ? editor.value : undefined} mode={editor.mode} onClose={closeEditor} onSubmit={saveEvent} />}
+      {editor && <CreateEventFlowModal managerId={editor.mode === 'edit' ? editor.value.creatorId : ''} initialValue={editor.mode === 'edit' ? editor.value : undefined} mode={editor.mode} onClose={closeEditor} onSubmit={saveEvent} />}
     </div>
   )
+}
+
+function MainEventScreenPage() {
+  const { user } = useAuthentication()
+  return <EventScreenContent key={user?.uid ?? 'guest'} />
 }
 
 export default MainEventScreenPage

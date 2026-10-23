@@ -16,10 +16,11 @@ interface EventReviewModalProps {
   onCreate: () => void
   editing?: boolean
   error?: string
+  submitting?: boolean
   onViewCollaborators?: (group: EventGroup, ids: string[]) => void
 }
 
-function EventReviewModal({ draft, groups, assignments, schedules, settings, onBack, onCreate, editing = false, error, onViewCollaborators }: EventReviewModalProps) {
+function EventReviewModal({ draft, groups, assignments, schedules, settings, onBack, onCreate, editing = false, error, submitting = false, onViewCollaborators }: EventReviewModalProps) {
   const link = /^https?:\/\//i.test(draft.externalLink) ? draft.externalLink : undefined
   return <>
     <p className="event-create-description">{editing ? 'Confira todas as informações antes de salvar as alterações.' : 'Confira todas as informações antes de criar o evento.'}</p>
@@ -28,7 +29,7 @@ function EventReviewModal({ draft, groups, assignments, schedules, settings, onB
         <div><dt>Título</dt><dd><TruncatedText>{draft.title || 'Não informado'}</TruncatedText></dd></div>
         <div><dt>Descrição</dt><dd><TruncatedText>{draft.description || 'Não informada'}</TruncatedText></dd></div>
         <div><dt>Tipo do evento</dt><dd><TruncatedText>{draft.type || 'Não informado'}</TruncatedText></dd></div>
-        <div><dt>NR</dt><dd><TruncatedText>{formatRegulatoryStandardCode(draft.nr) || 'Não informada'}</TruncatedText></dd></div>
+        <div><dt>NR</dt><dd><TruncatedText>{draft.nr ? formatRegulatoryStandardCode(`NR ${draft.nr}`) : 'Não informada'}</TruncatedText></dd></div>
         <div><dt>Link externo</dt><dd>{link ? <a data-track-action={BUTTONS.comuns.abrir_link_evento} href={link} rel="noopener noreferrer" target="_blank"><TruncatedText>{draft.externalLink}</TruncatedText></a> : <TruncatedText>{draft.externalLink || 'Não informado'}</TruncatedText>}</dd></div>
       </dl></section>
       <section className="event-create-summary-card event-create-summary-card--groups"><h3>Grupos</h3><EventGroupsSummary assignments={assignments} groups={groups} schedules={schedules} onViewCollaborators={onViewCollaborators} /></section>
@@ -40,7 +41,8 @@ function EventReviewModal({ draft, groups, assignments, schedules, settings, onB
       </dl></section>
     </div>
     {error && <p className="event-create-error" role="alert">{error}</p>}
-    <div className="astro-modal-actions event-create-actions"><button data-track-action={BUTTONS.comuns.voltar} className="astro-modal-cancel" onClick={onBack} type="button">Voltar</button><PurpleButton data-track-action={editing ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.criar_evento} onClick={onCreate} type="button">{editing ? 'Salvar alterações' : 'Criar evento'}</PurpleButton></div>
+    {submitting && <p role="status">Criando evento...</p>}
+    <div className="astro-modal-actions event-create-actions"><button disabled={submitting} data-track-action={BUTTONS.comuns.voltar} className="astro-modal-cancel" onClick={onBack} type="button">Voltar</button><PurpleButton disabled={submitting} data-track-action={editing ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.criar_evento} onClick={onCreate} type="button">{editing ? 'Salvar alterações' : 'Criar evento'}</PurpleButton></div>
   </>
 }
 
