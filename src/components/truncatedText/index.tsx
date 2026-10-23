@@ -1,5 +1,5 @@
 import { getPopupDuration } from '../../utils/popupMotion'
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 interface TruncatedTextProps {
@@ -7,11 +7,14 @@ interface TruncatedTextProps {
   truncate?: boolean
   focusParent?: boolean
   nativeEllipsis?: boolean
+  maxLines?: number
+  hoverDelay?: number
 }
 
-function TruncatedText({ children, truncate = true, focusParent = false, nativeEllipsis = false }: TruncatedTextProps) {
+function TruncatedText({ children, truncate = true, focusParent = false, nativeEllipsis = false, maxLines = 1, hoverDelay = 0 }: TruncatedTextProps) {
   const tooltipId = useId()
   const elementRef = useRef<HTMLSpanElement>(null)
+  const tooltipRef = useRef<HTMLSpanElement>(null)
   const [displayText, setDisplayText] = useState(children)
   const [truncated, setTruncated] = useState(false)
   const [tooltipPosition, setTooltipPosition] = useState({ left: 0, top: 0, zoom: 1 })
@@ -19,6 +22,7 @@ function TruncatedText({ children, truncate = true, focusParent = false, nativeE
   const [tooltipMounted, setTooltipMounted] = useState(false)
   const [tooltipVisible, setTooltipVisible] = useState(false)
   const hideTooltipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const showTooltipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const showTooltipFrameRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -27,6 +31,8 @@ function TruncatedText({ children, truncate = true, focusParent = false, nativeE
     let active = true
 
     const resetTooltip = () => {
+      if (showTooltipTimeoutRef.current) clearTimeout(showTooltipTimeoutRef.current)
+      showTooltipTimeoutRef.current = null
       if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
       if (showTooltipFrameRef.current) cancelAnimationFrame(showTooltipFrameRef.current)
       setTooltipVisible(false)
@@ -42,8 +48,10 @@ function TruncatedText({ children, truncate = true, focusParent = false, nativeE
         return
       }
       const width = element.clientWidth
-      if (nativeEllipsis) {
-        const overflow = width > 0 && element.scrollWidth > width + 1
+      if (nativeEllipsis || maxLines > 1) {
+        const overflow = width > 0 && (maxLines > 1
+          ? element.scrollHeight > element.clientHeight + 1
+          : element.scrollWidth > width + 1)
         setTruncated(overflow)
         if (!overflow) resetTooltip()
         return
@@ -83,17 +91,18 @@ function TruncatedText({ children, truncate = true, focusParent = false, nativeE
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
     observer?.observe(element)
     window.addEventListener('resize', update)
-    return () => { active = false; observer?.disconnect(); window.removeEventListener('resize', update); document.fonts?.removeEventListener('loadingdone', update) }
-  }, [children, nativeEllipsis, truncate])
+    return () => { active = false; if (showTooltipTimeoutRef.current) clearTimeout(showTooltipTimeoutRef.current); observer?.disconnect(); window.removeEventListener('resize', update); document.fonts?.removeEventListener('loadingdone', update) }
+  }, [children, maxLines, nativeEllipsis, truncate])
 
   const updateTooltipPosition = useCallback(() => {
     const element = elementRef.current
     if (!element) return
 
     const bounds = element.getBoundingClientRect()
-    const maxWidth = Math.min(512, window.innerWidth - 16)
+    const tooltipBounds = maxLines > 1 ? tooltipRef.current?.getBoundingClientRect() : undefined
+    const maxWidth = tooltipBounds?.width || Math.min(512, window.innerWidth - 16)
     const left = Math.max(8, Math.min(bounds.left, window.innerWidth - maxWidth - 8))
-    const estimatedHeight = 64
+    const estimatedHeight = tooltipBounds?.height || 64
     const top = bounds.bottom + 8 + estimatedHeight <= window.innerHeight
       ? bounds.bottom + 8
       : Math.max(8, bounds.top - estimatedHeight - 8)
@@ -101,9 +110,15 @@ function TruncatedText({ children, truncate = true, focusParent = false, nativeE
     const dialog = element.closest('dialog')
     setTooltipHost(dialog)
     setTooltipPosition({ left, top, zoom: dialog ? 1 / (Number(getComputedStyle(dialog).zoom) || 1) : 1 })
-  }, [])
+  }, [maxLines])
+
+  useLayoutEffect(() => {
+    if (maxLines > 1 && tooltipMounted) updateTooltipPosition()
+  }, [maxLines, tooltipMounted, updateTooltipPosition])
 
   const showTooltip = useCallback(() => {
+    if (showTooltipTimeoutRef.current) clearTimeout(showTooltipTimeoutRef.current)
+    showTooltipTimeoutRef.current = null
     if (!truncated) return
     if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
     updateTooltipPosition()
@@ -114,7 +129,19 @@ function TruncatedText({ children, truncate = true, focusParent = false, nativeE
     })
   }, [truncated, updateTooltipPosition])
 
+  const scheduleTooltip = useCallback(() => {
+    if (!truncated) return
+    if (tooltipMounted || hoverDelay <= 0) {
+      showTooltip()
+      return
+    }
+    if (showTooltipTimeoutRef.current) clearTimeout(showTooltipTimeoutRef.current)
+    showTooltipTimeoutRef.current = setTimeout(showTooltip, hoverDelay)
+  }, [hoverDelay, showTooltip, tooltipMounted, truncated])
+
   const hideTooltip = useCallback(() => {
+    if (showTooltipTimeoutRef.current) clearTimeout(showTooltipTimeoutRef.current)
+    showTooltipTimeoutRef.current = null
     if (!tooltipMounted) return
     if (showTooltipFrameRef.current) cancelAnimationFrame(showTooltipFrameRef.current)
     if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
@@ -160,12 +187,13 @@ function TruncatedText({ children, truncate = true, focusParent = false, nativeE
   }, [tooltipMounted])
 
   useEffect(() => () => {
+    if (showTooltipTimeoutRef.current) clearTimeout(showTooltipTimeoutRef.current)
     if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
     if (showTooltipFrameRef.current) cancelAnimationFrame(showTooltipFrameRef.current)
   }, [])
 
   const tooltip = truncated && tooltipMounted && typeof document !== 'undefined'
-    ? createPortal(<span className={`astro-truncated-tooltip${tooltipVisible ? ' astro-truncated-tooltip--visible' : ''}`} id={tooltipId} onMouseEnter={showTooltip} onMouseLeave={hideTooltip} popover="manual" ref={element => { if (element?.showPopover && !element.matches(':popover-open')) element.showPopover() }} role="tooltip" style={{ right: 'auto', bottom: 'auto', margin: 0, left: tooltipPosition.left, top: tooltipPosition.top, zoom: tooltipPosition.zoom }}>{children}</span>, tooltipHost ?? document.body)
+    ? createPortal(<span className={`astro-truncated-tooltip${maxLines > 1 ? ' astro-truncated-tooltip--multiline' : ''}${tooltipVisible ? ' astro-truncated-tooltip--visible' : ''}`} id={tooltipId} onMouseEnter={showTooltip} onMouseLeave={hideTooltip} popover="manual" ref={element => { tooltipRef.current = element; if (element?.showPopover && !element.matches(':popover-open')) element.showPopover() }} role="tooltip" style={{ right: 'auto', bottom: 'auto', margin: 0, left: tooltipPosition.left, top: tooltipPosition.top, zoom: tooltipPosition.zoom }}>{children}</span>, tooltipHost ?? document.body)
     : null
 
   return <>
@@ -173,17 +201,20 @@ function TruncatedText({ children, truncate = true, focusParent = false, nativeE
       aria-label={children}
       aria-describedby={truncated && tooltipMounted ? tooltipId : undefined}
       tabIndex={truncated && !focusParent ? 0 : undefined}
-      className="astro-truncated-text"
+      className={`astro-truncated-text${truncate && maxLines > 1 ? ' astro-truncated-text--multiline' : ''}`}
+      style={truncate && maxLines > 1 ? { WebkitLineClamp: maxLines } : undefined}
       data-truncated={truncated}
       ref={elementRef}
       onBlur={hideTooltip}
       onFocus={showTooltip}
-      onMouseEnter={showTooltip}
+      onMouseEnter={scheduleTooltip}
       onMouseLeave={() => {
+        if (showTooltipTimeoutRef.current) clearTimeout(showTooltipTimeoutRef.current)
+        showTooltipTimeoutRef.current = null
         const focusTarget = focusParent ? elementRef.current?.closest('button') : elementRef.current
         if (document.activeElement !== focusTarget) hideTooltip()
       }}
-    >{nativeEllipsis ? children : <>{displayText}{truncated ? '...' : ''}</>}</span>
+    >{nativeEllipsis || maxLines > 1 ? children : <>{displayText}{truncated ? '...' : ''}</>}</span>
     {tooltip}
   </>
 }
