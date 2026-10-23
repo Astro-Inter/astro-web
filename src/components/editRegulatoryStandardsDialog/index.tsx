@@ -9,6 +9,7 @@ import DataTable from '../dataTable'
 import PurpleButton from '../purpleButton'
 import ToolbarSearch from '../toolbarSearch'
 import ToggleSwitch from '../toggleSwitch'
+import TruncatedText from '../truncatedText'
 import { defaultNrsRows } from '../../data/regulatoryStandards'
 import type { DataTableColumn } from '../dataTable'
 import type { NrsRow } from '../../types'
@@ -179,7 +180,7 @@ function EditRegulatoryStandardsDialog({ contextLabel, enabledIds, dimmed = fals
 
   const columns: readonly DataTableColumn<NrsRow>[] = [
     { id: 'code', label: 'NR', width: '16%', rowHeader: true, render: (row) => <span className="nrs-dialog-code">{row.code}</span> },
-    { id: 'description', label: 'Descrição', width: '62%', render: (row) => <span className="nrs-dialog-description">{row.description}</span> },
+    { id: 'description', label: 'Descrição', width: '62%', render: (row) => <span className="nrs-dialog-description"><TruncatedText maxLines={2} hoverDelay={700}>{row.description}</TruncatedText></span> },
     {
       id: 'actions', label: 'Ações', width: '22%', className: 'nrs-edit-actions-cell',
       render: (row) => <div className="nrs-edit-row-actions">
