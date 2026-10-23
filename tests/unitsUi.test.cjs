@@ -80,7 +80,7 @@ test('erro no modal mantém seleção para retry e reabrir consulta os vínculos
       return new Response(JSON.stringify({ success: true, data: null }))
     }
     const data = pathname.endsWith('/associated') ? options.filter(row => row.ativo).map(({ nr, descricao }) => ({ nr, descricao }))
-      : pathname.endsWith('/nrs') ? options : [{ id_unidade: 42, nome: 'Unidade API', quantidade_colaboradores: 2, status: 'ativo' }]
+      : pathname.endsWith('/nrs') ? options : [{ unitId: 42, name: 'Unidade API', collaboratorCount: 2, status: 'ativo' }]
     return new Response(JSON.stringify({ success: true, data }))
   }
   const { createRoot } = require('react-dom/client'), root = createRoot(document.getElementById('root'))

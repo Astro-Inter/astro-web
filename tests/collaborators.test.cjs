@@ -51,7 +51,7 @@ test('conecta os cinco endpoints com Bearer e os DTOs do Swagger, sem UID, senha
     assert.equal(new URL(call.url).search, '')
     if (call.method === 'GET') assert.equal(call.body, undefined)
   }
-  const payload = { nome: 'Ana Silva', cpf: '52998224725', email: 'ana@example.com', roleId: 5, unitId: 8, modalidade: 'HIBRIDO' }
+  const payload = { name: 'Ana Silva', cpf: '52998224725', email: 'ana@example.com', roleId: 5, unitId: 8, workModel: 'HIBRIDO' }
   assert.deepEqual(JSON.parse(calls[2].body), payload)
   assert.deepEqual(JSON.parse(calls[3].body), { ...payload, status: 'ATIVO' })
   assert.deepEqual(JSON.parse(calls[4].body), { status: 'DESATIVADO' })

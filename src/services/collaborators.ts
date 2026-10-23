@@ -77,8 +77,8 @@ function toDetails(row: CollaboratorDetailsResponse): CollaboratorDetails {
 function collaboratorPayload(values: CollaboratorFormValues): CreateCollaboratorRequest {
   const errors = validateCollaborator(values)
   if (Object.keys(errors).length) throw new CollaboratorsApiError(Object.values(errors).join(' '))
-  return { nome: values.name.trim(), cpf: values.cpf.replace(/[.\-\s]/g, ''), email: values.email.trim().toLowerCase(),
-    roleId: Number(values.roleId), unitId: Number(values.unitId), modalidade: values.modality as CreateCollaboratorRequest['modalidade'] }
+  return { name: values.name.trim(), cpf: values.cpf.replace(/[.\-\s]/g, ''), email: values.email.trim().toLowerCase(),
+    roleId: Number(values.roleId), unitId: Number(values.unitId), workModel: values.modality as CreateCollaboratorRequest['workModel'] }
 }
 
 export async function listCollaborators(signal?: AbortSignal): Promise<Collaborator[]> {

@@ -23,7 +23,7 @@ const originalFetch = global.fetch
 const user = auth.currentUser
 afterEach(() => { global.fetch = originalFetch; auth.currentUser = user })
 
-const unit = { id_unidade: 42, id_workspace: 3, nome: 'Swift Pirituba', quantidade_colaboradores: 530, status: 'ativo' }
+const unit = { unitId: 42, workspaceId: 3, name: 'Swift Pirituba', collaboratorCount: 530, status: 'ativo' }
 function respond(data) { return new Response(JSON.stringify({ success: true, data }), { status: 200 }) }
 
 test('conecta os cinco endpoints de unidades com token e contratos do Swagger', async () => {

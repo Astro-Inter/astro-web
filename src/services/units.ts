@@ -2,6 +2,8 @@ import { firebaseAuth } from './firebase'
 import { getSystemApiBaseUrl } from './systemApi'
 import type { Unit } from '../types/unit'
 import type { UnitResponse, UnitNrResponse, UnitNrOptionResponse, UnitNrRequest } from '../types/unit'
+import type { WorkspaceUnitAddress } from '../types/address'
+import { workspaceUnitPayload } from '../utils/workspaceSettings'
 
 export class UnitsApiError extends Error {
   constructor(message: string, options?: ErrorOptions) {
@@ -45,18 +47,39 @@ function unitPath(id: string): string {
 }
 
 function toUnit(unit: UnitResponse): Unit {
-  if (!unit || !Number.isSafeInteger(unit.id_unidade) || unit.id_unidade <= 0 || typeof unit.nome !== 'string'
-    || !Number.isSafeInteger(unit.quantidade_colaboradores) || unit.quantidade_colaboradores < 0
+  if (!unit || !Number.isSafeInteger(unit.unitId) || unit.unitId <= 0 || typeof unit.name !== 'string'
+    || !Number.isSafeInteger(unit.collaboratorCount) || unit.collaboratorCount < 0
     || typeof unit.status !== 'string' || !['ativo', 'inativo'].includes(unit.status.trim().toLowerCase())) {
     throw new UnitsApiError('A API retornou dados inválidos para a unidade.')
   }
-  return { id: String(unit.id_unidade), name: unit.nome, collaboratorCount: unit.quantidade_colaboradores, active: unit.status.trim().toLowerCase() === 'ativo' }
+  return { id: String(unit.unitId), name: unit.name, collaboratorCount: unit.collaboratorCount, active: unit.status.trim().toLowerCase() === 'ativo' }
 }
 
 export async function listUnits(signal?: AbortSignal): Promise<Unit[]> {
   const data = await requestUnits<UnitResponse[]>('/units', 'GET', undefined, signal)
   if (!Array.isArray(data)) throw new UnitsApiError('A API retornou uma lista de unidades inválida.')
   return data.map(toUnit)
+}
+
+function toUnitAddress(unit: UnitResponse): WorkspaceUnitAddress {
+  toUnit(unit)
+  for (const value of [unit.postalCode, unit.state, unit.city, unit.neighborhood, unit.street, unit.number, unit.addressLine2]) {
+    if (value != null && typeof value !== 'string') throw new UnitsApiError('A API retornou um endereço inválido.')
+  }
+  return { id: unit.unitId, persistedId: unit.unitId, name: unit.name, cep: unit.postalCode ?? '',
+    state: unit.state ?? '', city: unit.city ?? '', neighborhood: unit.neighborhood ?? '', street: unit.street ?? '',
+    number: unit.number ?? '', complement: unit.addressLine2 ?? '', source: 'manual' }
+}
+
+export async function listUnitAddresses(signal?: AbortSignal): Promise<WorkspaceUnitAddress[]> {
+  const data = await requestUnits<UnitResponse[]>('/units', 'GET', undefined, signal)
+  if (!Array.isArray(data)) throw new UnitsApiError('A API retornou uma lista de unidades inválida.')
+  return data.map(toUnitAddress)
+}
+
+export async function saveUnitAddress(unit: WorkspaceUnitAddress, signal?: AbortSignal): Promise<WorkspaceUnitAddress> {
+  const path = unit.persistedId ? unitPath(String(unit.persistedId)) : '/units'
+  return toUnitAddress(await requestUnits<UnitResponse>(path, unit.persistedId ? 'PUT' : 'POST', workspaceUnitPayload(unit), signal))
 }
 
 export async function toggleUnitStatus(id: string): Promise<boolean> {

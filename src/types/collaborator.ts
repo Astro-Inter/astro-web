@@ -57,12 +57,12 @@ export interface CollaboratorOptions {
 }
 
 export interface CreateCollaboratorRequest {
-  nome: string
+  name: string
   cpf: string
   email: string
   roleId: number
   unitId: number
-  modalidade: CollaboratorModality
+  workModel: CollaboratorModality
 }
 
 export interface UpdateCollaboratorRequest extends CreateCollaboratorRequest {

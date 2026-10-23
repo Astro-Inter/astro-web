@@ -5,11 +5,18 @@ export interface Unit {
   active: boolean
 }
 export interface UnitResponse {
-  id_unidade: number
-  id_workspace: number
-  nome: string
-  quantidade_colaboradores: number
+  unitId: number
+  workspaceId: number
+  name: string
+  collaboratorCount: number
   status: string
+  postalCode: string | null
+  state: string | null
+  city: string | null
+  neighborhood: string | null
+  street: string | null
+  number: string | null
+  addressLine2: string | null
 }
 
 export interface UnitNrResponse {
