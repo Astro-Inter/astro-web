@@ -9,6 +9,7 @@ import { completionOptions, evidenceOptions } from '../../data/eventSettings'
 import type { CalendarEvent } from '../../types/events'
 import { configurationForEvent } from '../../utils/eventEditing'
 import { formatRegulatoryStandardCode } from '../../utils/regulatoryStandardCode'
+import { useEventCollaboratorPhotos } from '../../hooks/useEventCollaboratorPhotos'
 
 
 interface EventDetailsModalProps {
@@ -17,7 +18,8 @@ interface EventDetailsModalProps {
 }
 
 function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
-  const { draft, groups, assignments, schedules, settings, selectedIds } = configurationForEvent(event)
+  const { draft, groups, assignments, schedules, settings, selectedIds, collaborators = [] } = configurationForEvent(event)
+  const people = useEventCollaboratorPhotos(collaborators)
   const id = useId()
   const link = /^https?:\/\//i.test(draft.externalLink) ? draft.externalLink : undefined
   const participantIds = [...new Set(selectedIds)]
@@ -35,7 +37,8 @@ function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
           <dl aria-label="Dados do evento" className="event-information-panel-scroll" tabIndex={0}>
               <div><dt>Título</dt><dd><TruncatedText>{draft.title || 'Não informado'}</TruncatedText></dd></div>
               <div><dt>Descrição</dt><dd className="event-information-description"><TruncatedText>{draft.description || 'Não informada'}</TruncatedText></dd></div>
-              <div><dt>NR</dt><dd><TruncatedText>{formatRegulatoryStandardCode(draft.nr) || 'Não informada'}</TruncatedText></dd></div>
+              <div><dt>NR</dt><dd><TruncatedText>{draft.nr ? formatRegulatoryStandardCode(`NR ${draft.nr}`) : 'Não informada'}</TruncatedText></dd></div>
+              {event.status && <div><dt>Status</dt><dd>{event.status === 'ATIVO' ? 'Ativo' : event.status === 'CANCELADO' ? 'Cancelado' : 'Concluído'}</dd></div>}
               <div><dt>Link externo</dt><dd>{link ? <a data-track-action={BUTTONS.comuns.abrir_link_evento} href={link} target="_blank" rel="noopener noreferrer"><TruncatedText>{draft.externalLink}</TruncatedText></a> : <TruncatedText>{draft.externalLink || 'Não informado'}</TruncatedText>}</dd></div>
             </dl>
         </section>
@@ -55,7 +58,7 @@ function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
       </div>
       <div className="astro-modal-actions"><button data-track-action={BUTTONS.comuns.voltar} className="astro-modal-cancel" type="button" onClick={dismiss}>Voltar</button></div>
     </>}
-  </AppModal>{collaboratorGroup && <EventGroupCollaboratorsModal groupName={collaboratorGroup.name} participantIds={collaboratorGroup.ids} onClose={() => setCollaboratorGroup(null)} />}</>
+  </AppModal>{collaboratorGroup && <EventGroupCollaboratorsModal collaborators={people} groupName={collaboratorGroup.name} participantIds={collaboratorGroup.ids} onClose={() => setCollaboratorGroup(null)} />}</>
 }
 
 export default EventDetailsModal

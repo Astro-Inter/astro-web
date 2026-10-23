@@ -12,7 +12,9 @@ export interface EventCollaborator {
   email: string
   unit: string
   position: string
-  modality: 'Presencial' | 'Remoto'
+  modality: 'Presencial' | 'Remoto' | 'Híbrido' | 'Não informado'
+  profilePhotoUrl?: string | null
+  avatarInitials?: string | null
 }
 
 export interface EventGroup {
@@ -22,8 +24,11 @@ export interface EventGroup {
 
 export interface EventGroupSchedule {
   date: string
+  endDate?: string
   startTime: string
   endTime: string
+  originalStart?: string
+  originalEnd?: string
 }
 
 export interface EventSettings {
@@ -32,6 +37,8 @@ export interface EventSettings {
 }
 
 export interface EventConfiguration {
+  collaborators?: EventCollaborator[]
+  permissions?: { canEdit: boolean; canCancel: boolean; detailsEditable: boolean; lockedGroupIds: string[] }
   creatorId: string
   draft: EventDraft
   selectedIds: string[]
