@@ -6,6 +6,8 @@ import ConfirmationModal from '../confirmationModal'
 interface WorkspaceSettingsSaveModalProps {
   section: WorkspaceSettingsSection
   onCancel: () => void
+  onSave?: () => Promise<string | null>
+  onSaved?: () => void
 }
 
 const screens: Record<WorkspaceSettingsSection, { name: string; title: string }> = {
@@ -15,7 +17,7 @@ const screens: Record<WorkspaceSettingsSection, { name: string; title: string }>
   payments: { name: 'paymentSettingsConfirmationModalWeb', title: 'Deseja salvar as alterações de pagamento?' },
 }
 
-function WorkspaceSettingsSaveModal({ section, onCancel }: WorkspaceSettingsSaveModalProps) {
+function WorkspaceSettingsSaveModal({ section, onCancel, onSave, onSaved }: WorkspaceSettingsSaveModalProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as WorkspaceSettingsNavigationState | null)?.from
@@ -26,11 +28,15 @@ function WorkspaceSettingsSaveModal({ section, onCancel }: WorkspaceSettingsSave
       className={screens[section].name}
       confirmLabel="Salvar"
       onCancel={onCancel}
-      onConfirm={() => {
+      onConfirm={async () => {
+        if (onSave) return await onSave()
         navigate('/mainWorkspaceSettingsScreen', { state: { from, savedSection: section } })
         return null
       }}
-      onConfirmed={() => null}
+      onConfirmed={() => {
+        if (onSaved) { onSaved(); return }
+        if (onSave) navigate('/mainWorkspaceSettingsScreen', { state: { from, savedSection: section } })
+      }}
       preservePageScroll
       title={screens[section].title}
     />

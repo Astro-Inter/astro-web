@@ -11,16 +11,17 @@ import PasswordConfirmationForm from '../passwordConfirmationForm'
 import PurpleButton from '../purpleButton'
 
 interface ReplaceAccountFlowModalProps {
-  collaborators: readonly EventCollaborator[]
+  collaborators: readonly Pick<EventCollaborator, 'id' | 'name' | 'email'>[]
   onCancel: () => void
-  onReplaced: () => void
+  onReplaced: (managerId: string) => void
+  initialReplacementId?: string
 }
 
 type ReplacementStep = 'selection' | 'confirmation' | 'password'
 
-function ReplaceAccountFlowModal({ collaborators, onCancel, onReplaced }: ReplaceAccountFlowModalProps) {
+function ReplaceAccountFlowModal({ collaborators, onCancel, onReplaced, initialReplacementId = '' }: ReplaceAccountFlowModalProps) {
   const [step, setStep] = useState<ReplacementStep>('selection')
-  const [replacementId, setReplacementId] = useState('')
+  const [replacementId, setReplacementId] = useState(initialReplacementId)
   const replacement = collaborators.find(person => person.id === replacementId)
   const replacedRef = useRef(false)
   const actionRef = useRef(onReplaced)
@@ -45,11 +46,12 @@ function ReplaceAccountFlowModal({ collaborators, onCancel, onReplaced }: Replac
     : <><span className="astro-confirmation-title-icon"><span className="position-deactivation-icon"><AstroIcon name="warning" /></span></span><span className="astro-confirmation-title-text">Tem certeza que deseja substituir o gestor atual do workspace por outro gestor?</span></>
 
   return (
-    <AppModal trackingName={({ selection: DIALOG_NAMES.selecionar_gestor_workspace, confirmation: DIALOG_NAMES.confirmar_substituicao_gestor, password: DIALOG_NAMES.confirmar_senha })[step]} className={`account-replace-flow-modal ${stepClasses[step]}`} dismissible={confirmation.status !== 'success'} onDismissRequest={() => { if (!replacedRef.current) confirmation.cancel() }} onClose={() => confirmation.consumeConfirmation() ? actionRef.current() : onCancel()} preservePageScroll title={title}>
+    <AppModal trackingName={({ selection: DIALOG_NAMES.selecionar_gestor_workspace, confirmation: DIALOG_NAMES.confirmar_substituicao_gestor, password: DIALOG_NAMES.confirmar_senha })[step]} className={`account-replace-flow-modal ${stepClasses[step]}`} dismissible={confirmation.status !== 'success'} onDismissRequest={() => { if (!replacedRef.current) confirmation.cancel() }} onClose={() => confirmation.consumeConfirmation() ? actionRef.current(replacementId) : onCancel()} preservePageScroll title={title}>
       {dismiss => <>
         {step === 'selection' && <AccountManagerSelectionForm collaborators={collaborators} onCancel={dismiss} onChange={setReplacementId} onContinue={() => changeStep('confirmation')} value={replacementId} />}
         {step === 'confirmation' && replacement && <>
           <p className="astro-confirmation-description">Novo gestor: <strong>{replacement.name}</strong><span>{replacement.email}</span></p>
+          <p className="astro-confirmation-description">Você passará a gestor e perderá as permissões exclusivas de responsável pelo workspace.</p>
           <div className="astro-modal-actions">
             <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" onClick={dismiss} type="button">Cancelar</button>
             <PurpleButton data-track-action={BUTTONS.comuns.substituir} onClick={() => changeStep('password')} variant="danger">Alterar gestor</PurpleButton>

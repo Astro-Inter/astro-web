@@ -26,3 +26,10 @@ export async function readSpreadsheetUnitNames(file: File, managerEmail: string)
   const { extractSpreadsheetUnitNames } = await import('./excelUnits')
   return extractSpreadsheetUnitNames(await file.arrayBuffer(), managerEmail)
 }
+
+export async function readImportSpreadsheetUnitNames(file: File): Promise<string[]> {
+  const validation = validateSpreadsheetFile(file)
+  if (!validation.valid) throw new Error(validation.message)
+  const { extractSpreadsheetUnitNames } = await import('./excelUnits')
+  return extractSpreadsheetUnitNames(await file.arrayBuffer(), '', true)
+}

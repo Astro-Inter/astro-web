@@ -8,8 +8,7 @@ import AccountDetailsModal from '../../components/accountDetailsModal'
 import AccountProfileHeader from '../../components/accountProfileHeader'
 import PasswordConfirmationModal from '../../components/passwordConfirmationModal'
 import SettingsTabs from '../../components/settingsTabs'
-import ReplaceAccountFlowModal from '../../components/replaceAccountFlowModal'
-import { mockEventCollaborators } from '../../data/eventCreation'
+import WorkspaceManagerTransferModal from '../../components/workspaceManagerTransferModal'
 import type { WorkspaceSettingsNavigationState } from '../../types/workspaceSettings'
 import { useLogout } from '../../hooks/useLogout'
 import { useAuthentication } from '../../hooks/useAuthentication'
@@ -17,8 +16,6 @@ import { useAccountProfile } from '../../hooks/useAccountProfile'
 import { canAccessPage, hasWorkspaceAccess } from '../../utils/accessControl'
 
 type AccountPopup = 'view-password' | 'view' | 'edit-password' | 'edit' | 'replace' | 'logout' | null
-
-const replacementCandidates = mockEventCollaborators.filter(person => person.id !== 'kirk')
 
 function MainAccountScreenPage() {
   const { user } = useAuthentication()
@@ -95,7 +92,7 @@ function AccountScreen() {
       {popup === 'view-password' && <PasswordConfirmationModal className="account-view-password-modal" onCancel={closePopup} onContinue={() => setPopup('view')} />}
       {popup === 'edit-password' && <PasswordConfirmationModal className="textPasswotdAccount1ModalWeb" onCancel={closePopup} onContinue={() => setPopup('edit')} />}
       {(popup === 'view' || popup === 'edit') && profile && <AccountDetailsModal canChangeLinks={isWorkspaceManager} editable={popup === 'edit'} onCancel={closePopup} onPhotoSelected={file => { void uploadPhoto(file) }} onRefreshPhoto={() => { void refreshPhoto() }} onSaved={applyProfile} photoUpdate={photoUpdate} profile={profile} />}
-      {popup === 'replace' && isWorkspaceManager && <ReplaceAccountFlowModal collaborators={replacementCandidates} onCancel={closePopup} onReplaced={closePopup} />}
+      {popup === 'replace' && isWorkspaceManager && <WorkspaceManagerTransferModal onClose={closePopup} />}
       {popup === 'logout' && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_logout} backdrop="dimmed" className="position-deactivation-modal logoutManagerAccountModalWeb" confirmLabel="Sair" progressLabel="" icon={warningIcon} onCancel={closePopup} onConfirm={() => null} onConfirmed={() => { closePopup(); void submitLogout() }} preservePageScroll title="Tem certeza que deseja sair da conta?" tone="danger" />}
     </div>
   )

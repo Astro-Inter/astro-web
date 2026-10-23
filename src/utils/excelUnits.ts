@@ -2,7 +2,7 @@ import { read, utils } from 'xlsx'
 import { normalizeUnitName } from './workspaceUnits'
 import { ManagerEmailMissingError } from './spreadsheetErrors'
 
-export function extractSpreadsheetUnitNames(data: ArrayBuffer, managerEmail: string): string[] {
+export function extractSpreadsheetUnitNames(data: ArrayBuffer, managerEmail: string, importMode = false): string[] {
   const bytes = new Uint8Array(data)
   const isZip = bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04
   const isOle = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1].every((byte, index) => bytes[index] === byte)
@@ -33,21 +33,23 @@ export function extractSpreadsheetUnitNames(data: ArrayBuffer, managerEmail: str
     if (matches.length !== 1) throw new Error(`A primeira aba deve conter uma única coluna chamada "${field}".`)
     requiredColumns.set(field, matches[0])
   }
-  const normalizedEmail = managerEmail.trim().toLowerCase()
-  if (!normalizedEmail) throw new Error('Informe o e-mail do gestor no cadastro antes de validar a planilha.')
-  const emailColumn = requiredColumns.get('email')!
-  const managerRows = rows.slice(1).flatMap((row, index) =>
-    String(row[emailColumn] ?? '').trim().toLowerCase() === normalizedEmail ? [{ row, number: firstRow + index + 2 }] : [])
-  if (!managerRows.length) {
-    throw new ManagerEmailMissingError()
-  }
-  if (managerRows.length > 1) {
-    throw new Error(`O e-mail do gestor aparece mais de uma vez (linhas ${managerRows.map(entry => entry.number).join(', ')}). Mantenha exatamente uma linha para ele na primeira aba.`)
-  }
-  const manager = managerRows[0]
-  for (const field of ['nome', 'cargo']) {
-    if (!String(manager.row[requiredColumns.get(field)!] ?? '').trim()) {
-      throw new Error(`Linha ${manager.number}: preencha o ${field} do gestor na planilha.`)
+  if (!importMode) {
+    const normalizedEmail = managerEmail.trim().toLowerCase()
+    if (!normalizedEmail) throw new Error('Informe o e-mail do gestor no cadastro antes de validar a planilha.')
+    const emailColumn = requiredColumns.get('email')!
+    const managerRows = rows.slice(1).flatMap((row, index) =>
+      String(row[emailColumn] ?? '').trim().toLowerCase() === normalizedEmail ? [{ row, number: firstRow + index + 2 }] : [])
+    if (!managerRows.length) {
+      throw new ManagerEmailMissingError()
+    }
+    if (managerRows.length > 1) {
+      throw new Error(`O e-mail do gestor aparece mais de uma vez (linhas ${managerRows.map(entry => entry.number).join(', ')}). Mantenha exatamente uma linha para ele na primeira aba.`)
+    }
+    const manager = managerRows[0]
+    for (const field of ['nome', 'cargo']) {
+      if (!String(manager.row[requiredColumns.get(field)!] ?? '').trim()) {
+        throw new Error(`Linha ${manager.number}: preencha o ${field} do gestor na planilha.`)
+      }
     }
   }
   const names = new Map<string, string>()
@@ -55,8 +57,8 @@ export function extractSpreadsheetUnitNames(data: ArrayBuffer, managerEmail: str
     if (row.every(value => !String(value).trim())) continue
     const name = String(row[unitColumns[0]] ?? '').trim()
     const rowNumber = firstRow + index + 2
-    if (name.length < 2 || name.length > 80) {
-      throw new Error(`Linha ${rowNumber}: preencha a unidade com um nome de 2 a 80 caracteres na planilha.`)
+    if (name.length < 2 || name.length > (importMode ? 255 : 80)) {
+      throw new Error(`Linha ${rowNumber}: preencha a unidade com um nome de 2 a ${importMode ? 255 : 80} caracteres na planilha.`)
     }
     const key = normalizeUnitName(name)
     if (!names.has(key)) names.set(key, name)
