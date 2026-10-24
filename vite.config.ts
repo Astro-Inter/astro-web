@@ -5,6 +5,7 @@ import { defineConfig, loadEnv } from 'vite'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_')
   const apiBaseUrl = env.VITE_API_URL?.trim().replace(/\/+$/, '')
+  const dashboardTarget = env.VITE_DASHBOARD_API_PROXY_URL?.trim() || env.VITE_DASHBOARD_API_URL?.trim() || 'https://astro-dashboard-api.app-4str0.workers.dev'
   return {
     plugins: [react()],
     worker: { format: 'es' },
@@ -14,7 +15,14 @@ export default defineConfig(({ mode }) => {
       include: ['xlsx'],
     },
     server: {
-      proxy: apiBaseUrl ? {
+      proxy: {
+        '/dashboard-api': {
+          target: dashboardTarget,
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/dashboard-api(?=\/|$)/, ''),
+          configure: proxy => { proxy.on('proxyReq', request => request.removeHeader('origin')) },
+        },
+        ...(apiBaseUrl ? {
         '/api': {
           target: apiBaseUrl,
           changeOrigin: true,
@@ -27,7 +35,8 @@ export default defineConfig(({ mode }) => {
             })
           },
         },
-      } : undefined,
+        } : {}),
+      },
     },
   }
 })
