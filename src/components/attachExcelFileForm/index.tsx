@@ -33,14 +33,7 @@ function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = n
 
   function selectFile(file?: File) {
     if (!file || reading) return
-
-    if (settingsMode) {
-      setSelection({ file, error: '' })
-      onSelectionChange?.(file)
-      return
-    }
-
-    const result = validateSpreadsheetFile(file, 5 * 1024 * 1024)
+    const result = validateSpreadsheetFile(file, (settingsMode ? 10 : 5) * 1024 * 1024)
     setSelection(result.valid ? { file: result.file, error: '' } : { file: null, error: result.message })
     onSelectionChange?.(result.valid ? result.file : null)
   }
@@ -48,16 +41,14 @@ function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = n
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (reading) return
-    if (!settingsMode) {
-      if (!selection.file) {
-        setSelection(current => ({ ...current, error: 'Selecione a planilha de colaboradores para continuar.' }))
-        return
-      }
-      const result = validateSpreadsheetFile(selection.file, 5 * 1024 * 1024)
-      if (!result.valid) {
-        setSelection(current => ({ ...current, error: result.message }))
-        return
-      }
+    if (!selection.file) {
+      setSelection(current => ({ ...current, error: 'Selecione a planilha de colaboradores para continuar.' }))
+      return
+    }
+    const result = validateSpreadsheetFile(selection.file, (settingsMode ? 10 : 5) * 1024 * 1024)
+    if (!result.valid) {
+      setSelection(current => ({ ...current, error: result.message }))
+      return
     }
     void onContinue(selection.file)
   }
@@ -81,10 +72,10 @@ function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = n
           }}
           disabled={reading}
           maxSizeMb={settingsMode ? 10 : 5}
-          errorId={!settingsMode && (selection.error || readingError) ? "spreadsheet-error" : undefined}
+          errorId={(selection.error || readingError) ? "spreadsheet-error" : undefined}
         />
 
-        {!settingsMode && (selection.error || readingError) && <p className="login-field-error" id="spreadsheet-error" role="alert">{selection.error || readingError}</p>}
+        {(selection.error || readingError) && <p className="login-field-error" id="spreadsheet-error" role="alert">{selection.error || readingError}</p>}
 
         <PurpleButton data-track-action={settingsMode ? BUTTONS.comuns.adicionar : BUTTONS.comuns.continuar} className="attach-excel-continue" type="submit" disabled={reading}>{settingsMode ? 'Adicionar colaboradores' : 'Continuar'}</PurpleButton>
         <button data-track-action={BUTTONS.comuns.modelo}

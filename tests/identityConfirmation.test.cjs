@@ -323,8 +323,8 @@ test('transferência do gestor usa a mesma validação e só confirma depois do 
   const Modal = env.load('src/components/replaceAccountFlowModal/index.tsx').default
   const response = deferred()
   env.respondWith(() => response.promise)
-  let replaced = 0
-  let modal = env.renderWith(() => Modal({ collaborators: [{ id: 'replacement', name: 'Novo gestor', email: 'new@example.test' }], onCancel() {}, onReplaced: () => { replaced++ } }))
+  let replaced = 0, replacementId = ''
+  let modal = env.renderWith(() => Modal({ collaborators: [{ id: 'replacement', name: 'Novo gestor', email: 'new@example.test' }], onCancel() {}, onReplaced: id => { replaced++; replacementId = id } }))
   const dismiss = () => modal.props.onDismissRequest()
   const children = () => modal.props.children(dismiss).props.children
   children()[0].props.onChange('replacement')
@@ -332,7 +332,7 @@ test('transferência do gestor usa a mesma validação e só confirma depois do 
   children()[0].props.onContinue()
   modal = env.render()
   // Confirmação administrativa -> etapa de senha.
-  children()[1].props.children[1].props.children[1].props.onClick()
+  children()[1].props.children[2].props.children[1].props.onClick()
   modal = env.render()
   children()[2].props.confirmation.updatePassword('senha')
   modal = env.render()
@@ -343,6 +343,7 @@ test('transferência do gestor usa a mesma validação e só confirma depois do 
   modal = env.render()
   modal.props.onClose()
   assert.equal(replaced, 1)
+  assert.equal(replacementId, 'replacement')
   assert.equal(env.requests.length, 1)
   assert.equal(env.requests[0].credential.email, env.user.email)
 })

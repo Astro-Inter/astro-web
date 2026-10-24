@@ -29,6 +29,7 @@ function ConfirmationModal({ trackingName, cancelLabel = 'Cancelar', className =
   const confirmTimerRef = useRef<number | null>(null)
   const notify = useActionFeedback()
   const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
   const submittingRef = useRef(false)
 
   useEffect(() => () => {
@@ -45,11 +46,13 @@ function ConfirmationModal({ trackingName, cancelLabel = 'Cancelar', className =
       {(dismiss) => <>
         {description && <p className="astro-confirmation-description">{description}</p>}
         <ActionLoading active={submitting} />
+        {error && <p className="login-field-error" role="alert">{error}</p>}
         <div className="astro-modal-actions">
           <button data-track-action={cancelLabel === 'Voltar' ? BUTTONS.comuns.voltar : BUTTONS.comuns.cancelar} className="astro-modal-cancel" disabled={submitting} onClick={dismiss} type="button">{cancelLabel}</button>
           <PurpleButton data-track-action={confirmationAction(confirmLabel)} variant={tone === 'danger' ? 'danger' : 'solid'} disabled={submitting} onClick={async () => {
             if (submittingRef.current || confirmedRef.current) return
             submittingRef.current = true
+            setError('')
             setSubmitting(true)
             let nextError: string | null
             try { nextError = await onConfirm() }
@@ -57,6 +60,7 @@ function ConfirmationModal({ trackingName, cancelLabel = 'Cancelar', className =
             submittingRef.current = false
             setSubmitting(false)
             if (nextError) {
+              setError(nextError)
               notify(nextError, 'error')
               return
             }

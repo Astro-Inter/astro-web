@@ -42,7 +42,7 @@ export function useWorkspaceAddresses(initialUnits?: WorkspaceUnitAddress[], loc
   }
 
   function removeUnit() {
-    if (activeUnit.source === 'spreadsheet') return
+    if (activeUnit.source === 'spreadsheet' || activeUnit.persistedId) return
     resetPostalCode()
     setAddress((current) => {
       if (current.units.find(unit => unit.id === current.activeId)?.source === 'spreadsheet') return current
@@ -74,5 +74,9 @@ export function useWorkspaceAddresses(initialUnits?: WorkspaceUnitAddress[], loc
     setAddress(current => ({ ...current, activeId: id }))
   }
 
-  return { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit, selectUnit, postalCode }
+  function applySavedUnit(localId: number, saved: WorkspaceUnitAddress) {
+    setAddress(current => ({ ...current, units: current.units.map(unit => unit.id === localId ? { ...saved, id: localId } : unit) }))
+  }
+
+  return { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit, selectUnit, postalCode, applySavedUnit }
 }

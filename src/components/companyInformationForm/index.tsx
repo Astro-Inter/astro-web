@@ -7,6 +7,7 @@ import FormField from '../formField'
 import PageHeading from '../pageHeading'
 import PurpleButton from '../purpleButton'
 import { validateRegistrationCompanyFields } from '../../utils/workspaceRegistration'
+import { validateWorkspaceCompany } from '../../utils/workspaceSettings'
 
 interface CompanyInformationFormProps {
   onContinue: (company: CompanyInformation) => void
@@ -32,7 +33,7 @@ function CompanyInformationForm({ onContinue, settingsMode = false, initialCompa
 
       <form data-track-submit={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.continuar} className="company-information-form" noValidate onSubmit={(event) => {
         event.preventDefault()
-        const nextErrors = settingsMode ? {} : validateRegistrationCompanyFields(company)
+        const nextErrors = settingsMode ? validateWorkspaceCompany(company) : validateRegistrationCompanyFields(company)
         setErrors(nextErrors)
         if (!Object.keys(nextErrors).length) onContinue(company)
       }}>
@@ -41,7 +42,7 @@ function CompanyInformationForm({ onContinue, settingsMode = false, initialCompa
             id="company-name"
             label="Nome da empresa"
             error={errors.name}
-            maxLength={120}
+            maxLength={settingsMode ? 255 : 120}
             onChange={(event) => changeField('name', event.target.value)}
             placeholder="Digite o nome da empresa"
             type="text"

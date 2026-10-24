@@ -9,6 +9,7 @@ export interface WorkspaceUnitAddress {
   number: string
   complement: string
   source?: 'spreadsheet' | 'manual'
+  persistedId?: number
 }
 
 export interface WorkspaceAddressState {
@@ -17,7 +18,7 @@ export interface WorkspaceAddressState {
   nextId: number
 }
 
-export type WorkspaceAddressField = Exclude<keyof WorkspaceUnitAddress, 'id' | 'source'>
+export type WorkspaceAddressField = Exclude<keyof WorkspaceUnitAddress, 'id' | 'source' | 'persistedId'>
 
 export type PostalAddress = Pick<WorkspaceUnitAddress, 'state' | 'city' | 'neighborhood' | 'street'>
 

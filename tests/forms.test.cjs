@@ -120,7 +120,7 @@ test('destinatários usam endpoint próprio, filtram o próprio gestor e preserv
   global.fetch = async url => {
     const pathname = new URL(url).pathname; calls.push(pathname)
     return response(pathname === '/units/3/nrs' ? [{ nr: 1, descricao: 'Disposições gerais', ativo: false }] : pathname === '/units' ? [
-      { id_unidade: 3, nome: 'Ativa', quantidade_colaboradores: 0, status: 'ativo' }, { id_unidade: 4, nome: 'Inativa', quantidade_colaboradores: 0, status: 'inativo' },
+      { unitId: 3, name: 'Ativa', collaboratorCount: 0, status: 'ativo' }, { unitId: 4, name: 'Inativa', collaboratorCount: 0, status: 'inativo' },
     ] : { currentManagerId: 7, items: [
       { id: 7, name: 'Eu mesmo', unitName: 'Sede' }, { id: 8, name: 'Ana', unitName: 'Ativa' },
     ] })
@@ -138,9 +138,9 @@ test('formulários usam somente o catálogo Empresa de uma unidade ativa e mant�
     assert.equal(init.signal, controller.signal); assert.equal(init.headers.Authorization, 'Bearer firebase-token')
     if (pathname === '/forms/recipients') return response({ currentManagerId: 7, items: [] })
     if (pathname === '/units') return response([
-      { id_unidade: 2, nome: 'Inativa', quantidade_colaboradores: 0, status: 'inativo' },
-      { id_unidade: 3, nome: 'Sede', quantidade_colaboradores: 0, status: 'ativo' },
-      { id_unidade: 4, nome: 'Filial', quantidade_colaboradores: 0, status: 'ativo' },
+      { unitId: 2, name: 'Inativa', collaboratorCount: 0, status: 'inativo' },
+      { unitId: 3, name: 'Sede', collaboratorCount: 0, status: 'ativo' },
+      { unitId: 4, name: 'Filial', collaboratorCount: 0, status: 'ativo' },
     ])
     assert.equal(pathname, '/units/3/nrs')
     return response([{ nr: 1, descricao: 'Disposições gerais', ativo: false }, { nr: 5, descricao: 'CIPA', ativo: true }])
@@ -157,7 +157,7 @@ test('catálogo Empresa vazio, sem unidade ativa ou indisponível não libera o 
   global.fetch = async url => {
     const pathname = new URL(url).pathname; calls.push(pathname)
     if (pathname === '/forms/recipients') return response({ currentManagerId: 7, items: [] })
-    if (pathname === '/units') return response([{ id_unidade: 3, nome: 'Sede', quantidade_colaboradores: 0, status: active ? 'ativo' : 'inativo' }])
+    if (pathname === '/units') return response([{ unitId: 3, name: 'Sede', collaboratorCount: 0, status: active ? 'ativo' : 'inativo' }])
     if (fail) throw new TypeError('Offline')
     return response([])
   }

@@ -16,6 +16,7 @@ function environment(accountType) {
     const module = { exports: {} }
     cache.set(filename, module)
     const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'")
+      .replaceAll('import.meta.env.VITE_API_URL', "'https://api.example.test'").replaceAll('import.meta.env.DEV', 'false')
     const code = ts.transpileModule(source, {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
     }).outputText
@@ -222,7 +223,10 @@ test('Workspace do gestor comum mostra só acessibilidade; responsável vê gest
     assert.match(markup, /id="workspace-accessibility-title"/)
     for (const control of ['Tamanho do texto', 'Alto contraste', 'Tradutor VLibras', 'Navegação facial']) assert.ok(markup.includes(control))
     assert.doesNotMatch(markup, />Tema<|>Claro</)
-    if (role === 'GESTOR') assert.doesNotMatch(markup, /Editar informações|Alterar informações|Alterar unidades|Alterar pagamentos|Adicionar planilha/)
-    else assert.ok(markup.indexOf('Editar informações') < markup.indexOf('id="workspace-accessibility-title"'))
+    if (role === 'GESTOR') assert.doesNotMatch(markup, /Editar informações|Alterar informações|Alterar unidades|Alterar pagamentos|Adicionar planilha|Substituir/)
+    else {
+      assert.ok(markup.indexOf('Editar informações') < markup.indexOf('id="workspace-accessibility-title"'))
+      assert.match(markup, /Substituir/)
+    }
   }
 })
