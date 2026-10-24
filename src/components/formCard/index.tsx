@@ -1,18 +1,16 @@
 import { BUTTONS } from '../../gtm/buttons'
 import type { MouseEvent } from 'react'
 import AstroIcon from '../astroIcon'
-import CompactPurpleButton from '../compactPurpleButton'
 import { formStatusLabels } from '../../data/forms'
 import type { FormSummary } from '../../types/forms'
 
 interface FormCardProps {
   form: FormSummary
   menuOpen: boolean
-  onViewResponses?: () => void
   onOpenMenu: (event: MouseEvent<HTMLButtonElement>) => void
 }
 
-function FormCard({ form, menuOpen, onOpenMenu, onViewResponses }: FormCardProps) {
+function FormCard({ form, menuOpen, onOpenMenu }: FormCardProps) {
   return (
     <article aria-labelledby={`form-title-${form.id}`} className="form-card">
       <div className="form-card-heading">
@@ -29,7 +27,6 @@ function FormCard({ form, menuOpen, onOpenMenu, onViewResponses }: FormCardProps
         <span>{form.questionCount} perguntas</span>
         <span className={`form-card-status form-card-status--${form.status}`}><i aria-hidden="true" />{form.status === 'completed' ? 'Respondido' : formStatusLabels[form.status]}</span>
       </div>
-      {form.status === 'completed' && onViewResponses && <div className="form-card-responses"><CompactPurpleButton auto variant="outline" type="button" onClick={onViewResponses}><AstroIcon name="eye" />Ver respostas</CompactPurpleButton></div>}
     </article>
   )
 }

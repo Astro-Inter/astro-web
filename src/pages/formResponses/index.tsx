@@ -15,7 +15,7 @@ import type { FormResponseFile, FormReviewStatus } from '../../types/formReview'
 
 const previewStates: FormReviewStatus[] = ['awaiting_review', 'approved', 'rejected', 'awaiting_response']
 function FormResponsesPage() {
-  const [params, setParams] = useSearchParams()
+  const [params] = useSearchParams()
   const preview = import.meta.env.DEV && params.get('preview') === '1'
   const scenario = previewStates.find(status => status === params.get('state')) ?? 'awaiting_review'
   const { data, error, loading, retry, decide, canReview } = useFormReview(params.get('id'), preview, scenario)
@@ -34,9 +34,6 @@ function FormResponsesPage() {
           <Link className="payment-back-button form-review-back" aria-label="Voltar aos formulários" title="Voltar aos formulários" to="/mainFormScreen"><AstroIcon name="back" /></Link>
           <div><h1>Respostas do formulário</h1><p>Confira as respostas do gestor e avalie a validade do formulário.</p></div>
         </header>
-        {preview && <aside className="form-review-preview" aria-label="Prévia local do fluxo"><div><AstroIcon name="eye" /><p><strong>Prévia para validação</strong><span>Dados de exemplo. As decisões aqui não são enviadas ao servidor.</span></p></div>
-          <label>Estado da prévia<select value={scenario} onChange={event => { setDialog(null); setPhoto(null); setParams({ preview: '1', state: event.target.value }) }}>
-            {previewStates.map(status => <option key={status} value={status}>{reviewStatusLabels[status]}</option>)}</select></label></aside>}
         {loading && <ApiContentSkeleton label="Carregando respostas do formulário" variant="cards" cardCount={2} />}
         {error && <section className="form-review-load-error" role="alert"><AstroIcon name="warning-circle" /><h2>Não foi possível abrir as respostas</h2><p>{error}</p>
           <CompactPurpleButton auto type="button" onClick={retry}><AstroIcon name="reload" />Tentar novamente</CompactPurpleButton></section>}
@@ -54,9 +51,11 @@ function FormResponsesPage() {
               {form.questions.map((question, index) => <FormResponseCard key={question.id} question={question} number={index + 1} onOpenPhoto={setPhoto} />)}
               {!form.questions.length && <p className="form-response-empty">Este formulário não possui perguntas.</p>}
             </section>
-            <FormReviewPanel review={review} recipientName={data.recipientName} answeredCount={answeredQuestionCount(form.questions)} questionCount={form.questions.length}
-              actionsAvailable={actionsAvailable} titleRef={decisionTitleRef} onApprove={() => setDialog('approve')} onReject={() => setDialog('reject')}
-              availabilityMessage={!preview && review.status === 'awaiting_review' ? canReview ? 'A gravação da análise ainda não está disponível neste ambiente.' : 'Apenas o remetente e o gestor do workspace podem validar as respostas.' : undefined} />
+            <div className="form-review-sidebar">
+              <FormReviewPanel review={review} recipientName={data.recipientName} answeredCount={answeredQuestionCount(form.questions)} questionCount={form.questions.length}
+                actionsAvailable={actionsAvailable} titleRef={decisionTitleRef} onApprove={() => setDialog('approve')} onReject={() => setDialog('reject')}
+                availabilityMessage={!preview && review.status === 'awaiting_review' ? canReview ? 'A gravação da análise ainda não está disponível neste ambiente.' : 'Apenas o remetente e o gestor do workspace podem validar as respostas.' : undefined} />
+            </div>
           </div>
         </>}
       </div>

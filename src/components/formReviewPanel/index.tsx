@@ -19,7 +19,7 @@ interface FormReviewPanelProps {
 function FormReviewPanel({ review, recipientName, answeredCount, questionCount, actionsAvailable, availabilityMessage, titleRef, onApprove, onReject }: FormReviewPanelProps) {
   const final = review.status === 'approved' || review.status === 'rejected'
   const title = review.status === 'approved' ? 'Formulário aprovado' : review.status === 'rejected' ? 'Formulário reprovado' : 'Validação do formulário'
-  return <aside className={`form-review-decision form-review-decision--${review.status}`} aria-labelledby="review-decision-title">
+  return <aside className={`form-review-decision form-review-decision--${review.status}`} aria-labelledby="review-decision-title" tabIndex={0}>
     <header className="form-review-decision-heading">
       <span className="form-card-icon form-card-icon--purple form-review-decision-icon"><AstroIcon name={review.status === 'approved' ? 'check' : review.status === 'rejected' ? 'close' : 'document-lines'} /></span>
       <h2 id="review-decision-title" ref={titleRef} tabIndex={-1}>{title}</h2>

@@ -4,7 +4,7 @@ Interface web para consultar respostas e validar o fluxo de aprovação/reprova�
 
 ## Fluxo
 
-- A listagem oferece **Ver respostas** para formulários respondidos, com o status visual **Respondido**. Criar/editar definições permanece no editor existente.
+- A ação **Ver respostas** fica somente no menu dos três pontos do card, para formulários respondidos, com o status visual **Respondido**. A consulta/edição da definição permanece em **Consultar**/**Editar** no mesmo menu, usando o editor existente.
 - `/mainFormScreen/responses?id=<uuid>` mostra título, descrição, destinatário, unidade, remetente, prazo, data de resposta e perguntas com respostas textuais, alternativas, datas e anexos.
 - O card lateral reúne status, destinatário, quantidade de respostas e ações. Aprovação abre confirmação; reprovação abre um modal com descrição obrigatória. Os estados finais mostram revisor e data, sem novas ações.
 - Somente o remetente e o gestor do workspace podem validar um formulário respondido. Na prévia, a reprovação encerra o formulário sem novo envio.
@@ -20,11 +20,11 @@ Na integração futura, o backend deverá garantir essa mesma ausência no Mongo
 ## Prévia de desenvolvimento
 
 1. Executar `npm run dev` e entrar na conta.
-2. Na listagem, usar **Ver prévia de análise das respostas**, ou abrir `/mainFormScreen/responses?preview=1`.
-3. O seletor permite testar aguardando resposta, aguardando análise, aprovado e reprovado. A quinta pergunta é opcional e não respondida; o contador mostra quatro de cinco respostas.
+2. Na listagem, abrir os **três pontos** de qualquer formulário e escolher **Ver respostas (prévia)**. Em desenvolvimento, a opção aparece inclusive para formulários pendentes e rascunhos; ela abre dados de exemplo sem alterar o formulário selecionado. Também é possível abrir `/mainFormScreen/responses?preview=1` diretamente.
+3. A tela abre em aguardando análise, sem faixa ou seletor de prévia. Para testar os estados diretamente, acrescentar `&state=awaiting_response`, `&state=approved` ou `&state=rejected` à URL de prévia. A quinta pergunta é opcional e não respondida; o contador mostra quatro de cinco respostas.
 4. Aprovar/reprovar afeta somente a memória da página. Sair ou recarregar descarta a simulação.
 
-O link e o modo de prévia só são habilitados em desenvolvimento (`import.meta.env.DEV`). Não há gravação em `localStorage` nem chamadas de escrita para simular decisões. Os anexos da prévia são nomes de arquivos de exemplo; não representam imagens carregadas.
+A opção do menu e o modo de prévia só são habilitados em desenvolvimento (`import.meta.env.DEV`). Não há gravação em `localStorage` nem chamadas de escrita para simular decisões. Os anexos da prévia são nomes de arquivos de exemplo; não representam imagens carregadas.
 
 ## Integração e limites
 
@@ -40,7 +40,7 @@ Arquivos aceitam apenas URL HTTPS sem credenciais. Conteúdo dinâmico é render
 - Montserrat, escala de 90%, superfícies/tokens do Astro, ícones e badges compartilhados e ações `CompactPurpleButton`.
 - Seta de retorno à esquerda, título/subtítulo ao lado; perguntas com faixa roxa; alternativas únicas com círculo/ponto e múltiplas com check quadrado de Eventos.
 - Card lateral sem carteira, com ícone de documento, resumo e textos reduzidos. Os avisos adicionais no card, no rodapé da página e no fim do modal de reprovação foram retirados conforme revisão.
-- Layout em duas colunas no desktop e uma coluna em telas menores; o card deixa de ser fixo em telas baixas.
+- Layout em duas colunas no desktop e uma coluna em telas menores. No desktop, o card compacto permanece ao lado durante a rolagem (sticky), com altura natural até o fim do seu conteúdo, sem esticar até o rodapé da janela. A altura máxima respeita o espaço visível; conteúdo longo tem rolagem interna e foco por teclado. A coluna lateral usa alinhamento ao fim da linha do grid e fixação pela base (`align-self: end` e `bottom`), para a base do card coincidir com a base da última pergunta ao final da rolagem. O card interno conserva sua altura natural. A roda do mouse sobre o card pode continuar a rolagem da página ao atingir seus limites internos, sem bloqueio de encadeamento de scroll. Em uma coluna, sua altura acompanha o próprio conteúdo, sem fixação lateral.
 
 O Figma fornecido foi aberto na página Web V2, mas a extração de contexto pelo conector não ficou disponível. As telas novas seguem o web existente; não se declara reprodução pixel a pixel de um frame específico.
 

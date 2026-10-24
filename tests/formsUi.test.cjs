@@ -13,7 +13,7 @@ const detail = { id, status: 'RASCUNHO', managerId: 8, nrCode: null, unitId: nul
 const options = { managers: [{ value: '8', label: 'Ana da API' }], nrs: [{ value: '6', label: 'NR 6' }], units: [{ value: '3', label: 'Unidade da API' }], currentManagerId: '7', managersError: '' }
 function deferred() { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no }); return { promise, resolve, reject } }
 function Modal({ children, title, onClose }) { return React.createElement('section', { role: 'dialog', 'aria-label': title }, typeof children === 'function' ? children(onClose) : children) }
-function environment() {
+function environment({ development = true } = {}) {
   const cache = new Map(), calls = [], context = { user: { uid: 'gestor', accountType: 'GESTOR_WORKSPACE' } }
   const services = {
     getFormOptions: async () => options, getFormRecipients: async () => options, getForm: async () => structuredClone(detail), createForm: async () => structuredClone(detail),
@@ -25,7 +25,7 @@ function environment() {
     filename = path.resolve(filename)
     if (cache.has(filename)) return cache.get(filename).exports
     const module = { exports: {} }; cache.set(filename, module)
-    const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'").replaceAll('import.meta.env.DEV', 'true')
+    const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'").replaceAll('import.meta.env.DEV', String(development))
     const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
     new Function('require', 'module', 'exports', code)(name => {
       if (name === '../services/forms') return tracked
@@ -318,4 +318,48 @@ test('salvamento recusa NR fora do catálogo e aceita remover o vínculo opciona
   await act(async () => current.setValues(values => ({ ...values, nr: '' })))
   await act(async () => { await current.save() })
   assert.equal(env.calls.find(call => call.name === 'updateForm').args[1].nr, '')
+}))
+
+
+test('menu dos três pontos abre a prévia de respostas de um formulário pendente em desenvolvimento', async () => withDom(async root => {
+  const env = environment(), Page = env.load('src/pages/mainFormScreen/index.tsx').default
+  env.services.listForms = async (_search, _status, page, size) => ({ items: [{ id, title: 'Inspeção API', description: 'Dados reais', status: 'PENDENTE', questionCount: 1 }], page, size, totalPages: 1, totalElements: 1 })
+  await mount(root, Page, '/mainFormScreen'); await waitForList()
+  const card = document.querySelector('.form-card')
+  assert.equal(card.querySelectorAll('button').length, 1)
+  assert.equal(document.querySelector('a[href*="preview=1"]'), null)
+  assert.equal(document.querySelector('[role="menu"]'), null)
+  await click('Opções para Inspeção API')
+  const menu = document.querySelector('[role="menu"]')
+  assert.ok(menu.querySelector('[aria-label="Editar"]'))
+  assert.ok(menu.querySelector('[aria-label="Ver respostas (prévia)"]'))
+  await click('Ver respostas (prévia)', menu)
+  assert.equal(document.getElementById('location').textContent, '/mainFormScreen/responses?preview=1')
+  assert.equal(document.querySelector('[role="menu"]'), null)
+  assert.equal(env.calls.some(call => ['getForm', 'updateForm', 'publishForm', 'deleteForm'].includes(call.name)), false)
+}))
+
+test('produção não oferece prévia nem análise de formulário ainda pendente', async () => withDom(async root => {
+  const env = environment({ development: false }), Page = env.load('src/pages/mainFormScreen/index.tsx').default
+  env.services.listForms = async (_search, _status, page, size) => ({ items: [{ id, title: 'Inspeção API', description: 'Dados reais', status: 'PENDENTE', questionCount: 1 }], page, size, totalPages: 1, totalElements: 1 })
+  await mount(root, Page, '/mainFormScreen'); await waitForList()
+  await click('Opções para Inspeção API')
+  const menu = document.querySelector('[role="menu"]')
+  assert.ok(menu.querySelector('[aria-label="Editar"]'))
+  assert.doesNotMatch(menu.textContent, /Ver respostas|prévia/)
+  assert.equal(document.querySelector('a[href*="preview=1"]'), null)
+}))
+
+test('produção abre respostas reais pelo menu de um formulário concluído e preserva o bloqueio de exclusão', async () => withDom(async root => {
+  const env = environment({ development: false }), Page = env.load('src/pages/mainFormScreen/index.tsx').default
+  env.services.listForms = async (_search, _status, page, size) => ({ items: [{ id, title: 'Inspeção API', description: 'Dados reais', status: 'CONCLUIDO', questionCount: 1 }], page, size, totalPages: 1, totalElements: 1 })
+  await mount(root, Page, '/mainFormScreen'); await waitForList()
+  assert.equal(document.querySelector('.form-card').querySelectorAll('button').length, 1)
+  await click('Opções para Inspeção API')
+  const menu = document.querySelector('[role="menu"]')
+  assert.ok(menu.querySelector('[aria-label="Consultar"]'))
+  assert.equal(menu.querySelector('[aria-label="Excluir"]').getAttribute('aria-disabled'), 'true')
+  assert.doesNotMatch(menu.textContent, /prévia/)
+  await click('Ver respostas', menu)
+  assert.equal(document.getElementById('location').textContent, `/mainFormScreen/responses?id=${id}`)
 }))
