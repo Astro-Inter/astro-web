@@ -5,7 +5,7 @@ import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, OptionsPopup, ToolbarSearch, ToolbarSelect } from '../../components'
 import FormCard from '../../components/formCard'
 import { formStatusLabels } from '../../data/forms'
@@ -118,6 +118,7 @@ function MainFormScreenPage() {
           <header className="position-heading">
             <h1 id="forms-title" ref={headingRef} tabIndex={-1}>Formulários</h1>
             <p>Gerencie e organize todos os formulários.</p>
+            {import.meta.env.DEV && <Link className="form-review-preview-link" to="/mainFormScreen/responses?preview=1"><AstroIcon name="eye" />Ver prévia de análise das respostas</Link>}
           </header>
           <div aria-label="Ações e filtros dos formulários" className="position-toolbar" role="group">
             <CompactPurpleButton data-track-action={BUTTONS.comuns.criar_forms} onClick={() => navigate('/createForms')} type="button"><AstroIcon name="plus" />Criar novo formulário</CompactPurpleButton>
@@ -127,7 +128,7 @@ function MainFormScreenPage() {
           {loading && <ApiContentSkeleton label="Carregando formulários" variant="cards" cardCount={pageSize} />}
           {error && <div role="alert"><p>{error}</p><button onClick={retry} type="button">Tentar novamente</button></div>}
           <div hidden={loading || !!error} data-track-showcase={SHOWCASE_NAMES.lista_formularios} aria-busy={loading || results.exiting} className={`forms-grid${results.changed ? ' forms-grid--animated' : ''}${results.direction ? ` forms-grid--${results.direction}` : ''}${results.exiting ? ' forms-grid--exiting' : ''}`} key={results.signature}>
-            {results.items.map(form => <FormCard key={form.id} form={form} menuOpen={openId === form.id} onOpenMenu={event => {
+            {results.items.map(form => <FormCard key={form.id} form={form} onViewResponses={() => navigate(`/mainFormScreen/responses?id=${encodeURIComponent(form.id)}`)} menuOpen={openId === form.id} onOpenMenu={event => {
               const trigger = event.currentTarget
               const open = () => { triggerRef.current = trigger; setMenuPosition(null); setOpenId(form.id) }
               if (openId === form.id) closeMenu()
@@ -148,7 +149,7 @@ function MainFormScreenPage() {
       </main>
       {selected && createPortal(<OptionsPopup trackingName={DIALOG_NAMES.acoes_formulario} ariaLabel={`Opções para ${selected.name}`} closing={closing} id={`form-options-${selected.id}`} panelRef={panelRef} onClose={() => closeMenu()} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} items={[
         { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', tone: 'muted', separatorAfter: true, onSelect: () => closeMenu() },
-        { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: selected.status === 'completed' ? 'Consultar' : 'Editar', separatorAfter: true, onSelect: () => closeMenu(() => navigate(`/editForms?id=${encodeURIComponent(selected.id)}`)) },
+        { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: selected.status === 'completed' ? 'Ver respostas' : 'Editar', separatorAfter: true, onSelect: () => closeMenu(() => navigate(`${selected.status === 'completed' ? '/mainFormScreen/responses' : '/editForms'}?id=${encodeURIComponent(selected.id)}`)) },
         { trackingAction: BUTTONS.comuns.excluir, id: 'delete', label: 'Excluir', disabled: selected.status === 'completed', tone: 'danger', onSelect: () => closeMenu(() => setPendingDeletion(selected)) },
       ]} />, document.body)}
       {pendingDeletion && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_exclusao_formulario} backdrop="dimmed" preservePageScroll className="forms-deletion-modal" confirmLabel="Excluir" progressLabel="Excluindo formulário..." tone="danger" title="Tem certeza de que deseja excluir este formulário?" icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={() => setPendingDeletion(null)} onConfirm={async () => {

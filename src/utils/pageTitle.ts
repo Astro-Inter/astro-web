@@ -21,6 +21,7 @@ const pageNames: Record<string, string> = {
   '/mainConformityScreen': 'Conformidades',
   '/mainPositionScreen': 'Cargos',
   '/mainFormScreen': 'Formulários',
+  '/mainFormScreen/responses': 'Respostas do formulário',
   '/mainEventScreen': 'Eventos',
   '/mainWorkspaceSettingsScreen': 'Configurações do workspace',
   '/mainAccountScreen': 'Minha conta',

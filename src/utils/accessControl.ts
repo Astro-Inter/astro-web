@@ -5,7 +5,7 @@ import type { NavigationItem } from '../types/navigation'
 const sharedPaths = new Set([
   '/mainHomeScreen', '/mainDashboardsScreen', '/mainEmployeerScreen', '/mainConformityScreen',
   '/mainUnitScreen', '/mainPositionScreen', '/mainFormScreen', '/mainEventScreen',
-  '/mainAccountScreen', '/mainWorkspaceSettingsScreen', '/createForms', '/editForms', '/loadingScreen',
+  '/mainFormScreen/responses', '/mainAccountScreen', '/mainWorkspaceSettingsScreen', '/createForms', '/editForms', '/loadingScreen',
 ].map(path => path.toLowerCase()))
 
 const workspacePaths = new Set(['/mainManagerScreen'].map(path => path.toLowerCase()))

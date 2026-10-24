@@ -25,7 +25,7 @@ function environment() {
     filename = path.resolve(filename)
     if (cache.has(filename)) return cache.get(filename).exports
     const module = { exports: {} }; cache.set(filename, module)
-    const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'")
+    const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'").replaceAll('import.meta.env.DEV', 'true')
     const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
     new Function('require', 'module', 'exports', code)(name => {
       if (name === '../services/forms') return tracked
