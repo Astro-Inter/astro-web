@@ -22,6 +22,7 @@ export const ROUTE_SCREENS: Record<string, TrackingScreen | null> = {
   '/mainFormScreen': screen(SCREENS.formulario.name, SCREENS.formulario.context.principal),
   '/createForms': screen(SCREENS.formulario.name, SCREENS.formulario.context.criar),
   '/editForms': screen(SCREENS.formulario.name, SCREENS.formulario.context.editar),
+  '/mainFormScreen/responses': screen(SCREENS.formulario.name, SCREENS.formulario.context.respostas),
   '/mainEventScreen': screen(SCREENS.evento.name, SCREENS.evento.context.calendario),
   '/mainWorkspaceSettingsScreen': screen(SCREENS.configuracoes.name, SCREENS.configuracoes.context.principal),
   '/mainAccountScreen': screen(SCREENS.configuracoes.name, SCREENS.configuracoes.context.context),

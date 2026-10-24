@@ -61,7 +61,8 @@ export const SCREENS = {
     "context": {
       "principal": "principal",
       "criar": "criar_formulario",
-      "editar": "editar_formulario"
+      "editar": "editar_formulario",
+      "respostas": "respostas_formulario"
     }
   },
   "evento": {

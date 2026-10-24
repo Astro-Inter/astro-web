@@ -14,6 +14,7 @@ const chatRoutes = new Set([
   '/mainEmployeerScreen',
   '/mainPositionScreen',
   '/mainFormScreen',
+  '/mainFormScreen/responses',
   '/mainEventScreen',
   '/mainWorkspaceSettingsScreen',
   '/mainAccountScreen',

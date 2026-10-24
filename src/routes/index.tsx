@@ -14,6 +14,7 @@ const CreateFormPage = lazy(() => import('../pages/createForm'))
 const CreatePasswordPage = lazy(() => import('../pages/createPassword'))
 const CreateWorkspacePage = lazy(() => import('../pages/createWorkspace'))
 const EditFormPage = lazy(() => import('../pages/editForm'))
+const FormResponsesPage = lazy(() => import('../pages/formResponses'))
 const loadCompanyInformation = () => import('../pages/includeCompanyInformation')
 const IncludeCompanyInformationPage = lazy(loadCompanyInformation)
 const RegisterWorkspaceLoadingPage = lazy(() => import('../pages/registerWorkspaceLoading'))
@@ -218,6 +219,7 @@ function AppRoutes() {
           <Route path="/mainConformityScreen" element={<MainConformityScreenPage />} />
           <Route path="/mainPositionScreen" element={<MainPositionScreenPage />} />
           <Route path="/mainFormScreen" element={<MainFormScreenPage />} />
+          <Route path="/mainFormScreen/responses" element={<FormResponsesPage />} />
           <Route path="/mainEventScreen" element={<MainEventScreenPage />} />
           <Route path="/mainWorkspaceSettingsScreen" element={<MainWorkspaceSettingsScreenPage />} />
           <Route path="/mainAccountScreen" element={<MainAccountScreenPage />} />
