@@ -14,7 +14,7 @@ A tela `/mainDashboardsScreen` usa a sessão Firebase existente e confirma o usu
 - IDs, datas e textos oferecem contagem. Soma, média, menor e maior valor aparecem nos campos numéricos compatíveis, incluindo medidas derivadas como **Dias até a validação**. O catálogo informa quando o campo é calculado e qual data recebe o filtro do período.
 - A prévia consulta dados reais ao clicar em **Gerar prévia**; alterar a configuração oculta a prévia anterior. **Atualizar prévia** consulta a fonte sem usar o cache anterior.
 - Arraste pelo controle de cada gráfico ou use as setas para mudar a ordem.
-- **Salvar visão** guarda nome, filtros e layout no servidor. Cada visão salva aparece como uma aba com seu próprio nome; o seletor “Minhas visões” foi removido.
+- **Salvar visão** guarda nome, filtros, layout e receitas de cálculo no `localStorage` deste navegador, separados por conta e workspace. Cada visão salva aparece como uma aba com seu próprio nome; o seletor “Minhas visões” foi removido.
 - A tela tem somente **Voltar para a Home** como navegação externa, sem sidebar nem aviso de workspace.
 - Em gráficos de linhas e barras, passe o mouse ou toque no gráfico: data/categoria e quantidades aparecem em uma dica flutuante junto ao ponto. As setas esquerda/direita consultam os pontos quando o gráfico está focado.
 - Em gráficos estreitos, as datas do eixo usam ano abreviado para evitar sobreposição; a dica mantém a data completa.
@@ -22,13 +22,17 @@ A tela `/mainDashboardsScreen` usa a sessão Firebase existente e confirma o usu
 - Em gráficos de linhas e barras com múltiplas séries, clique em uma série da legenda para ocultá-la ou mostrá-la; pelo menos uma permanece visível. Registros ausentes são identificados como **Sem registro**, sem inventar zeros. Gráficos de pizza exibem os valores na legenda e uma dica nativa ao passar o mouse sobre uma fatia.
 - Não há exibição ou opção de tabela. Configurações antigas desse tipo reabrem no gráfico padrão do indicador. Distribuições em pizza com mais de 20 categorias usam barras para preservar a leitura.
 
-As visões salvas pertencem ao usuário e ao workspace. O frontend não envia IDs para escolher outro workspace. Os dados analíticos não são salvos junto com a configuração; abrir uma visão solicita os resultados à API, que pode reutilizar o cache curto. Atualizar dados solicita uma nova consulta ao Databricks. Alguns indicadores mostram o estado disponível, independentemente de datas; isso é indicado junto ao gráfico.
+As visões salvas ficam neste navegador, separadas por UID Firebase, usuário Astro e workspace. Não há sincronização entre dispositivos, navegadores ou origens (por exemplo, localhost e site publicado). Limpar os dados do site remove as configurações. O armazenamento usa a chave `astro:dashboard-views:v1:<uid>:<userId>:<workspaceId>`, com versão de formato, até 200 visões e limite de 2 milhões de caracteres por chave. Somente as propriedades de configuração permitidas são gravadas; respostas analíticas e tokens não entram nesse armazenamento.
+
+Salvar, editar e excluir não chamam a API. Alterações em outras abas atualizam a lista; o controle de versão e, quando disponível, Web Locks evitam sobrescrever uma edição concorrente sem aviso. Bloqueio de armazenamento, falta de espaço e conteúdo inválido exibem erro sem apagar os dados anteriores.
+
+O frontend não envia IDs para escolher outro workspace. Abrir uma visão consulta os resultados na API, que mantém a autorização no servidor e pode reutilizar o cache curto. Atualizar dados solicita uma nova consulta ao Databricks. Alguns indicadores mostram o estado disponível, independentemente de datas; isso é indicado junto ao gráfico. Nenhuma tabela de configurações é necessária no PostgreSQL.
 
 ## Carregamento e cache
 
 A API pode reutilizar resultados por até **90 segundos**, com cache separado por usuário, workspace, acesso atual e consulta. A autorização continua sendo verificada em cada chamada. A data da consulta original é preservada e a tela indica quando recebeu dados em cache. **Atualizar dados** ignora o cache e busca a fonte novamente.
 
-O cache fica na memória do Worker e pode ser perdido em reinícios ou entre instâncias; acelera hits, sem garantir que toda abertura será instantânea. Dados, credenciais e tokens não são persistidos em localStorage pelo serviço de dashboards.
+O cache fica na memória do Worker e pode ser perdido em reinícios ou entre instâncias; acelera hits, sem garantir que toda abertura será instantânea. Somente as configurações das visões são persistidas em localStorage; resultados analíticos, credenciais e tokens não são gravados pelo serviço de dashboards.
 
 ## Desenvolvimento
 
@@ -45,7 +49,7 @@ O `.env` do frontend contém apenas configuração pública. Credenciais Databri
 
 ## Publicação posterior
 
-A API precisa publicar as rotas `/api/saved-dashboards`, `/api/dashboard-catalog`, `/api/explorer/catalog` e `/api/explorer/query`, aplicar a migração `001_saved_dashboards.sql` no banco escolhido e permitir a origem exata do web em `CORS_ALLOWED_ORIGINS`. O CORS também permite `X-Dashboard-Refresh`. Em produção o frontend usa diretamente `VITE_DASHBOARD_API_URL`, sem o proxy Vite.
+A API precisa publicar as rotas `/api/dashboard-catalog`, `/api/explorer/catalog` e `/api/explorer/query` e permitir a origem exata do web em `CORS_ALLOWED_ORIGINS`. O CORS também permite `X-Dashboard-Refresh`. Não há rotas de persistência de visões nem migração para configurações de dashboards. Em produção o frontend usa diretamente `VITE_DASHBOARD_API_URL`, sem o proxy Vite.
 
 Os indicadores prontos estão em `src/data/dashboardCatalog.ts`. As bases e os campos do editor de cálculos vêm de `/api/explorer/catalog`, definidos e autorizados no servidor. O frontend configura o cálculo; a API monta a consulta com operações e parâmetros permitidos. O editor não aceita SQL livre, joins arbitrários nem fórmulas entre bases diferentes.
 

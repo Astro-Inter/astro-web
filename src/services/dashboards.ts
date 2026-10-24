@@ -1,7 +1,5 @@
 import { firebaseAuth } from './firebase'
-import { analyticsCatalog, validAnalyticsFilters } from '../data/dashboardCatalog'
-import { isExplorerQuery } from '../data/explorer'
-import type { AnalyticsDashboard, AnalyticsFilters, AnalyticsIdentity, AnalyticsView, DashboardDraft, ExplorerCatalog, ExplorerQuery, ExplorerResult, SavedDashboard } from '../types/dashboard'
+import type { AnalyticsDashboard, AnalyticsFilters, AnalyticsIdentity, AnalyticsView, ExplorerCatalog, ExplorerQuery, ExplorerResult } from '../types/dashboard'
 
 export class DashboardApiError extends Error {
   status: number
@@ -59,30 +57,6 @@ export async function loadAnalytics(view: AnalyticsView, filters: AnalyticsFilte
     throw new DashboardApiError('O serviço retornou dados incompatíveis com esta visão.')
   }
   return result
-}
-function saved(value: unknown): SavedDashboard {
-  const item = value as SavedDashboard
-  // Configurações antigas de tabela reabrem como o gráfico padrão do indicador.
-  if (Array.isArray(item?.config?.widgets)) item.config.widgets = item.config.widgets.map(widget => {
-    const source = analyticsCatalog.find(entry => entry.id === widget?.datasetId)
-    return { ...widget, width: 'half', ...((widget?.type as string) === 'table' && source ? { type: source.types[0] } : {}) }
-  })
-  if (!item || typeof item.id !== 'string' || typeof item.name !== 'string' || !Number.isInteger(item.version) || item.version < 1 || !item.config || !item.config.filters || !validAnalyticsFilters(item.config.filters)
-    || !Array.isArray(item.config.widgets) || item.config.widgets.length > 12 || item.config.widgets.some(w => typeof w.id !== 'string' || typeof w.title !== 'string' || !['half', 'full'].includes(w.width) || !(w.datasetId === 'custom' ? isExplorerQuery(w.query) && ['line', 'bar', 'pie'].includes(w.type) : analyticsCatalog.some(c => c.id === w.datasetId && c.types.includes(w.type))))) throw new DashboardApiError('Não foi possível ler a configuração de uma visão salva.')
-  return item
-}
-export async function loadSavedDashboards(workspaceId: string, signal?: AbortSignal): Promise<SavedDashboard[]> {
-  const result = await request('/api/saved-dashboards', {}, signal) as { workspaceId: string; items: unknown[] }
-  if (result?.workspaceId !== workspaceId || !Array.isArray(result.items)) throw new DashboardApiError('Não foi possível confirmar as visões deste workspace.')
-  return result.items.map(saved)
-}
-export async function saveDashboard(draft: DashboardDraft, existing: SavedDashboard | null, signal?: AbortSignal): Promise<SavedDashboard> {
-  return saved(await request(existing ? `/api/saved-dashboards/${encodeURIComponent(existing.id)}` : '/api/saved-dashboards', {
-    method: existing ? 'PUT' : 'POST', body: JSON.stringify({ ...draft, ...(existing ? { version: existing.version } : {}) }),
-  }, signal))
-}
-export async function removeDashboard(item: SavedDashboard, signal?: AbortSignal): Promise<void> {
-  await request(`/api/saved-dashboards/${encodeURIComponent(item.id)}`, { method: 'DELETE', body: JSON.stringify({ version: item.version }) }, signal)
 }
 export async function loadExplorerCatalog(signal?: AbortSignal): Promise<ExplorerCatalog> {
   const result = await request('/api/explorer/catalog', {}, signal) as ExplorerCatalog

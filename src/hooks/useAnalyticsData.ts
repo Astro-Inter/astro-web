@@ -22,6 +22,6 @@ export function useAnalyticsData(views: AnalyticsView[], filters: AnalyticsFilte
       setState({ key, results: data, errors, pending: false })
     })
     return () => controller.abort()
-  }, [selection, filters, workspaceId, key])
+  }, [selection, filters, workspaceId, key, attempt])
   return state.key === key ? state : { key, results: {}, errors: {}, pending: true }
 }

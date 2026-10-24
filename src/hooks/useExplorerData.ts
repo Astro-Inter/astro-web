@@ -34,6 +34,6 @@ export function useExplorerData(widgets: AnalyticsWidget[], filters: AnalyticsFi
     }
     void Promise.all(Array.from({ length: Math.min(3, groups.length) }, worker)).then(() => { if (!controller.signal.aborted) setState({ key, results, errors, pending: false }) })
     return () => controller.abort()
-  }, [selection, filters, workspaceId, key])
+  }, [selection, filters, workspaceId, key, attempt])
   return state.key === key ? state : { key, results: {}, errors: {}, pending: true }
 }

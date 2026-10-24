@@ -5,7 +5,8 @@ import { useAuthentication } from '../../hooks/useAuthentication'
 import { useAnalyticsData } from '../../hooks/useAnalyticsData'
 import { useExplorerCatalog, useExplorerData } from '../../hooks/useExplorerData'
 import { analyticsCatalog, defaultAnalyticsFilters, templateWidgets, validAnalyticsFilters } from '../../data/dashboardCatalog'
-import { loadAnalyticsIdentity, loadSavedDashboards, removeDashboard, saveDashboard } from '../../services/dashboards'
+import { loadAnalyticsIdentity } from '../../services/dashboards'
+import { loadSavedDashboards, removeDashboard, saveDashboard, subscribeSavedDashboards } from '../../services/dashboardStorage'
 import type { AnalyticsFilters, AnalyticsIdentity, AnalyticsView, AnalyticsWidget, DashboardDraft, SavedDashboard } from '../../types/dashboard'
 import AnalyticsChart from '../../components/analyticsChart'
 import AnalyticsEditor from '../../components/analyticsEditor'
@@ -45,13 +46,14 @@ function WorkspaceDashboards({ identity }: { identity: AnalyticsIdentity }) {
   useEffect(() => {
     const controller = new AbortController()
     setSavedLoading(true); setSavedError('')
-    loadSavedDashboards(identity.workspaceId, controller.signal).then(items => {
+    loadSavedDashboards(identity, controller.signal).then(items => {
       if (!controller.signal.aborted) { setSaved(items); setSavedLoading(false) }
     }).catch((failure: unknown) => {
       if (!controller.signal.aborted) { setSavedError(failure instanceof Error ? failure.message : 'Não foi possível carregar as visões salvas.'); setSavedLoading(false) }
     })
     return () => controller.abort()
-  }, [identity.workspaceId, savedAttempt])
+  }, [identity, savedAttempt])
+  useEffect(() => subscribeSavedDashboards(identity, () => setSavedAttempt(value => value + 1)), [identity])
   useEffect(() => () => mutation.current?.abort(), [])
   useEffect(() => {
     if (!dirty && editor === undefined) return
@@ -85,11 +87,11 @@ function WorkspaceDashboards({ identity }: { identity: AnalyticsIdentity }) {
     setBusy(true); setError(''); setFeedback('')
     const controller = new AbortController(); mutation.current = controller
     try {
-      const result = await saveDashboard({ ...draft, name: draft.name.trim() }, selected, controller.signal)
+      const result = await saveDashboard({ ...draft, name: draft.name.trim() }, selected, identity, controller.signal)
       if (controller.signal.aborted) return
       setSaved(items => [result, ...items.filter(item => item.id !== result.id)])
       setSelected(result); setDraft({ name: result.name, config: result.config }); setBaseline(JSON.stringify({ name: result.name, config: result.config }))
-      setTemplateView(null); setEditing(false); setEditor(undefined); setSavedError(''); setFeedback('Visão salva na sua conta e no seu workspace.')
+      setTemplateView(null); setEditing(false); setEditor(undefined); setSavedError(''); setFeedback('Visão salva neste navegador para sua conta e workspace.')
     } catch (failure) { if (!controller.signal.aborted) setError(failure instanceof Error ? failure.message : 'Não foi possível salvar a visão.') }
     finally { if (!controller.signal.aborted) setBusy(false) }
   }
@@ -97,7 +99,7 @@ function WorkspaceDashboards({ identity }: { identity: AnalyticsIdentity }) {
     if (!selected || busy || !window.confirm(`Excluir a visão “${selected.name}”? Esta ação remove somente a configuração salva, sem alterar os dados dos gráficos.`)) return
     const controller = new AbortController(); mutation.current = controller; setBusy(true); setError('')
     try {
-      await removeDashboard(selected, controller.signal)
+      await removeDashboard(selected, identity, controller.signal)
       if (controller.signal.aborted) return
       setSaved(items => items.filter(item => item.id !== selected.id))
       const next = template('visao-geral', draft.config.filters)
@@ -162,7 +164,7 @@ function WorkspaceDashboards({ identity }: { identity: AnalyticsIdentity }) {
         </section>
       })}
     </div>
-    <footer className="analytics-footer">Os resultados podem ser reutilizados por até 90 segundos. Use Atualizar dados para consultar a fonte novamente. A disponibilidade depende da carga das tabelas no Databricks.</footer>
+    <footer className="analytics-footer">Suas visões ficam salvas somente neste navegador. Limpar os dados do site remove essas configurações. Os resultados podem ser reutilizados por até 90 segundos; use Atualizar dados para consultar a fonte novamente.</footer>
   </>
 }
 
@@ -180,7 +182,7 @@ export default function MainDashboardsScreenPage() {
   const identity = access.key === key ? access.identity : undefined, error = access.key === key ? access.error : undefined
   return <div className="analytics-page"><main className="analytics-main" id="conteudo-principal" data-track-page={true}>
     <section className="position-content analytics-content astro-scale-90" aria-labelledby="dashboards-title">
-      {identity ? <WorkspaceDashboards key={`${uid}/${identity.workspaceId}`} identity={identity} /> : <><Link className="analytics-back" to="/mainHomeScreen"><AstroIcon name="back" />Voltar para a Home</Link><header className="analytics-heading"><div><h1 id="dashboards-title">Dashboards</h1><p>Indicadores e visões da sua equipe.</p></div></header>{error ? <div className="analytics-feedback"><p role="alert">{error}</p><button type="button" className="analytics-secondary" onClick={() => setAttempt(n => n + 1)}>Tentar novamente</button></div> : <div className="analytics-access-loading" role="status">Confirmando seu acesso…</div>}</>}
+      {identity ? <WorkspaceDashboards key={`${uid}/${identity.userId}/${identity.workspaceId}`} identity={identity} /> : <><Link className="analytics-back" to="/mainHomeScreen"><AstroIcon name="back" />Voltar para a Home</Link><header className="analytics-heading"><div><h1 id="dashboards-title">Dashboards</h1><p>Indicadores e visões da sua equipe.</p></div></header>{error ? <div className="analytics-feedback"><p role="alert">{error}</p><button type="button" className="analytics-secondary" onClick={() => setAttempt(n => n + 1)}>Tentar novamente</button></div> : <div className="analytics-access-loading" role="status">Confirmando seu acesso…</div>}</>}
     </section>
   </main></div>
 }
