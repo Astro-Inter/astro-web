@@ -21,9 +21,9 @@ export function useWorkspaceImport() {
   const busy = useRef(false)
   useEffect(() => () => controller.current?.abort(), [])
 
-  function reset() {
+  function reset(file: File | null = null) {
     controller.current?.abort()
-    setState({ file: null, units: null, reading: false, error: '', rows: [], result: null })
+    setState({ file, units: null, reading: false, error: '', rows: [], result: null })
   }
 
   async function prepare(file: File | null): Promise<boolean> {

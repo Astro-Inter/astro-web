@@ -8,16 +8,20 @@ import ConfirmationModal from '../confirmationModal'
 
 interface WorkspaceSettingsBackButtonProps {
   screen: 'backCompanyModalWeb' | 'backExcelModalWeb' | 'backAdressesModalWeb' | 'backPaymentsModalWeb'
+  hasChanges?: boolean
 }
 
-function WorkspaceSettingsBackButton({ screen }: WorkspaceSettingsBackButtonProps) {
+function WorkspaceSettingsBackButton({ screen, hasChanges = false }: WorkspaceSettingsBackButtonProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as WorkspaceSettingsNavigationState | null)?.from
   const [confirming, setConfirming] = useState(false)
+  function goBack() {
+    navigate('/mainWorkspaceSettingsScreen', { state: { from } })
+  }
   return (
     <>
-      <button data-track-action={BUTTONS.comuns.voltar} aria-haspopup="dialog" aria-label="Voltar para configurações" className="payment-back-button workspace-settings-back" onClick={() => setConfirming(true)} type="button">
+      <button data-track-action={BUTTONS.comuns.voltar} aria-haspopup={hasChanges ? 'dialog' : undefined} aria-label="Voltar para configurações" className="payment-back-button workspace-settings-back" onClick={() => hasChanges ? setConfirming(true) : goBack()} type="button">
         <AstroIcon name="back" />
       </button>
       {confirming && (
@@ -28,7 +32,7 @@ function WorkspaceSettingsBackButton({ screen }: WorkspaceSettingsBackButtonProp
           icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>}
           onCancel={() => setConfirming(false)}
           onConfirm={() => {
-            navigate('/mainWorkspaceSettingsScreen', { state: { from } })
+            goBack()
             return null
           }}
           onConfirmed={() => null}

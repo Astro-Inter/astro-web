@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { WorkspaceUnitAddress } from '../types/address'
 import { saveUnitAddress } from '../services/units'
-import { workspaceUnitPayload } from '../utils/workspaceSettings'
+import { workspaceUnitPayload, workspaceUnitSnapshot } from '../utils/workspaceSettings'
 import { useWorkspaceAddresses } from './useWorkspaceAddresses'
 
 export function useWorkspaceUnitEditor(initialUnits: WorkspaceUnitAddress[]) {
   const addresses = useWorkspaceAddresses(initialUnits)
-  const baseline = useRef(new Map(initialUnits.filter(unit => unit.persistedId).map(unit => [unit.id, JSON.stringify({ ...unit, source: unit.source ?? 'manual' })])))
+  const baseline = useRef(new Map(initialUnits.filter(unit => unit.persistedId).map(unit => [unit.id, workspaceUnitSnapshot(unit)])))
+  const [draftBaseline, setDraftBaseline] = useState(() => new Map(addresses.address.units.map(unit => [unit.id, workspaceUnitSnapshot(unit)])))
   const [message, setMessage] = useState('')
   const request = useRef<AbortController | null>(null)
   useEffect(() => () => request.current?.abort(), [])
@@ -19,11 +20,12 @@ export function useWorkspaceUnitEditor(initialUnits: WorkspaceUnitAddress[]) {
       units.forEach(workspaceUnitPayload)
       for (const unit of units) {
         controller.signal.throwIfAborted()
-        if (baseline.current.get(unit.id) === JSON.stringify(unit)) continue
+        if (baseline.current.get(unit.id) === workspaceUnitSnapshot(unit)) continue
         const saved = { ...await saveUnitAddress(unit, controller.signal), id: unit.id }
         controller.signal.throwIfAborted()
         addresses.applySavedUnit(unit.id, saved)
-        baseline.current.set(unit.id, JSON.stringify(saved))
+        baseline.current.set(unit.id, workspaceUnitSnapshot(saved))
+        setDraftBaseline(current => new Map(current).set(unit.id, workspaceUnitSnapshot(saved)))
       }
       setMessage('Unidades atualizadas.')
       return null
@@ -34,5 +36,7 @@ export function useWorkspaceUnitEditor(initialUnits: WorkspaceUnitAddress[]) {
       return message
     } finally { if (request.current === controller) request.current = null }
   }
-  return { addresses, save, message }
+  const hasChanges = addresses.address.units.length !== draftBaseline.size
+    || addresses.address.units.some(unit => draftBaseline.get(unit.id) !== workspaceUnitSnapshot(unit))
+  return { addresses, save, message, hasChanges }
 }

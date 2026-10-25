@@ -2,8 +2,7 @@ import { BUTTONS } from '../../gtm/buttons'
 import { useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AstroIcon, HelpLink, PaymentMethodForm, PaymentSummary } from '../../components'
-import WorkspaceSettingsBackButton from '../../components/workspaceSettingsBackButton'
-import WorkspaceSettingsSaveModal from '../../components/workspaceSettingsSaveModal'
+import WorkspacePaymentSettingsPage from '../workspacePaymentSettings'
 import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
 import { useWorkspaceEmailVerification } from '../../hooks/useWorkspaceEmailVerification'
 import { validateManagerEmail } from '../../utils/workspaceRegistration'
@@ -13,15 +12,12 @@ import { useWorkspaceCodeCooldown } from '../../hooks/useWorkspaceCodeCooldown'
 
 function PaymentMethodPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const settingsMode = searchParams.get('context') === 'settings'
-  const [confirming, setConfirming] = useState(false)
   const { draft, updateDraft } = useWorkspaceRegistration()
   const emailVerification = useWorkspaceEmailVerification()
   const [emailError, setEmailError] = useState('')
   const [codePopup, setCodePopup] = useState<{ email: string; kind: 'sent' | 'already-sent' | 'resent' } | null>(null)
   const requestedEmails = useRef(new Set<string>())
-  const pending = !settingsMode && emailVerification.status === 'loading'
+  const pending = emailVerification.status === 'loading'
   const resendWait = useWorkspaceCodeCooldown(codePopup?.email ?? draft.email)
 
   async function requestCode(email: string, resend = false): Promise<void> {
@@ -33,7 +29,6 @@ function PaymentMethodPage() {
   }
 
   async function handleCompletePurchase(): Promise<void> {
-    if (settingsMode) { setConfirming(true); return }
     if (pending) return
     const message = validateManagerEmail(draft.email)
     setEmailError(message)
@@ -50,10 +45,10 @@ function PaymentMethodPage() {
   return (
     <>
     <main data-track-page={true} className="payment-page" aria-busy={pending} inert={pending}>
-      {settingsMode ? <WorkspaceSettingsBackButton screen="backPaymentsModalWeb" /> : <button data-track-action={BUTTONS.comuns.voltar} className="payment-back-button" disabled={pending} onClick={() => navigate('/')} type="button">
+      <button data-track-action={BUTTONS.comuns.voltar} className="payment-back-button" disabled={pending} onClick={() => navigate('/')} type="button">
         <AstroIcon name="back" />
         <span className="sr-only">Voltar para o login</span>
-      </button>}
+      </button>
 
       <div className="payment-stage astro-scale-90">
         <section className="payment-content" aria-labelledby="payment-title">
@@ -62,7 +57,7 @@ function PaymentMethodPage() {
             <p>Assinatura mensal de R$ 10 por funcionário ativo</p>
           </div>
 
-          <PaymentMethodForm disabled={pending} emailError={emailError || (!settingsMode && !codePopup && emailVerification.status === 'error' ? emailVerification.message : '')} initialEmail={settingsMode ? '' : draft.email} onEmailChange={settingsMode ? undefined : email => {
+          <PaymentMethodForm disabled={pending} emailError={emailError || (!codePopup && emailVerification.status === 'error' ? emailVerification.message : '')} initialEmail={draft.email} onEmailChange={email => {
             setEmailError('')
             emailVerification.clearError()
             updateDraft({ email })
@@ -70,12 +65,11 @@ function PaymentMethodPage() {
         </section>
 
         <section className="payment-aside" aria-label="Detalhes da compra">
-          <PaymentSummary settingsMode={settingsMode} status={pending ? 'loading' : 'idle'}
+          <PaymentSummary status={pending ? 'loading' : 'idle'}
             onCompletePurchase={() => { void handleCompletePurchase() }} />
         </section>
       </div>
       <HelpLink />
-      {confirming && <WorkspaceSettingsSaveModal onCancel={() => setConfirming(false)} section="payments" />}
     </main>
     {pending && !codePopup && <LoginLoadingOverlay />}
     {codePopup && <WorkspaceCodeSentModal kind={codePopup.kind} pending={pending} resendWait={resendWait}
@@ -87,4 +81,9 @@ function PaymentMethodPage() {
   )
 }
 
-export default PaymentMethodPage
+function PaymentMethodRoute() {
+  const [searchParams] = useSearchParams()
+  return searchParams.get('context') === 'settings' ? <WorkspacePaymentSettingsPage /> : <PaymentMethodPage />
+}
+
+export default PaymentMethodRoute

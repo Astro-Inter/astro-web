@@ -4,6 +4,7 @@ import PrivateRoute from '../components/privateRoute'
 import GuestRoute from '../components/guestRoute'
 import { useAuthentication } from '../hooks/useAuthentication'
 import LoadingScreenPage from '../pages/loadingScreen'
+import RouteErrorBoundary from '../components/routeErrorBoundary'
 
 const MainHomeScreenPage = lazy(() => import('../pages/mainHomeScreen'))
 const MainDashboardsScreenPage = lazy(() => import('../pages/mainDashboardsScreen'))
@@ -145,6 +146,9 @@ function AppRoutes() {
           document.documentElement.classList.remove('settings-tab-transition')
         }
         void transition.finished.then(finish, finish)
+      }, () => {
+        if (cancelled) return
+        startTransition(() => { setTabChange(false); setDisplayedLocation(location) })
       })
       return () => { cancelled = true }
     }
@@ -191,7 +195,8 @@ function AppRoutes() {
   }, [displayedLocation.key])
 
   return (
-    <Suspense fallback={null}>
+    <RouteErrorBoundary key={renderedLocation.key}>
+    <Suspense fallback={<main className="route-loading" role="status">Carregando página…</main>}>
     <div data-track-route={renderedLocation.pathname} data-track-search={renderedLocation.search} data-track-visit={renderedLocation.key} className={`astro-route-transition${tabChange ? ' astro-route-transition--tab-change' : ''}${tabChange && tabFallback ? ' astro-route-transition--tab-fallback' : ''}${isSettingsLocation(renderedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={renderedLocation.key} ref={routeRef}>
       <Routes location={renderedLocation}>
         <Route element={<RouteContent />}>
@@ -247,6 +252,7 @@ function AppRoutes() {
       </Routes>
     </div>
     </Suspense>
+    </RouteErrorBoundary>
   )
 }
 

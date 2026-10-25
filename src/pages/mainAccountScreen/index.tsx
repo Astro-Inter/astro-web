@@ -78,7 +78,7 @@ function AccountScreen() {
         <section aria-labelledby="account-transfer-title" className="create-forms-card account-transfer-card">
           <h2 id="account-transfer-title">Transferência de cargo do gestor do workspace.</h2>
           <p>{isWorkspaceManager
-            ? 'Ao substituir o gestor, você deixará de ser responsável pela gestão deste workspace e perderá as permissões e funcionalidades exclusivas de gestor. O novo gestor assumirá a responsabilidade pelo workspace, incluindo gerenciamento de acessos, configurações e demais recursos administrativos. Após a confirmação, essa alteração não poderá ser desfeita.'
+            ? 'Ao transferir a responsabilidade, você continuará como gestor e perderá apenas as permissões exclusivas de responsável pelo workspace. O novo responsável assumirá o gerenciamento de acessos e das configurações do workspace. Para transferir novamente, será necessária uma nova ação do responsável atual.'
             : 'Caso o gestor do workspace precise ser substituído ou esteja inacessível, clique no botão abaixo para nos enviar um e-mail. Para que a equipe Astro possa analisar o caso, certifique-se de informar o CPF ou o e-mail do novo gestor e anexar as evidências que justificam a solicitação.'}</p>
           <div className="account-transfer-actions">
             {isWorkspaceManager ? <CompactPurpleButton data-track-action={BUTTONS.comuns.substituir} aria-haspopup="dialog" id="account-transfer-action" onClick={event => openPopup('replace', event.currentTarget)} variant="danger">Substituir</CompactPurpleButton> : <CompactPurpleButton data-track-action={BUTTONS.comuns.enviar_email} id="account-transfer-action" onClick={() => setEmailPreview(true)}>Enviar email</CompactPurpleButton>}

@@ -33,15 +33,17 @@ function App() {
   usePageTitle()
   const { user, status } = useAuthentication()
   const location = useLocation()
-  const chatVisible = chatRoutes.has(location.pathname)
-    || (settingsFormRoutes.has(location.pathname) && new URLSearchParams(location.search).get('context') === 'settings')
+  const settingsForm = settingsFormRoutes.has(location.pathname)
+    && new URLSearchParams(location.search).get('context') === 'settings'
+  const settingsPage = ['/mainWorkspaceSettingsScreen', '/mainAccountScreen'].includes(location.pathname) || settingsForm
+  const chatVisible = chatRoutes.has(location.pathname) || settingsForm
 
   return (
     <>
       <Tracking />
       <ActionFeedbackHost />
       <AppRoutes />
-      {status === 'ready' && user && <div hidden={!chatVisible || !canAccessPage(user.accountType, location.pathname, location.search)}>
+      {status === 'ready' && user && <div className={settingsPage ? 'settings-chat-dock' : undefined} hidden={!chatVisible || !canAccessPage(user.accountType, location.pathname, location.search)}>
         <AstroChat key={user.uid} />
       </div>}
     </>
