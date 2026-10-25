@@ -61,15 +61,17 @@ async function verifyLoginEmail(email: string, signal?: AbortSignal): Promise<We
       throw new AuthenticationError(verificationError, undefined)
     }
     if (body.data.userType === 'COLABORADOR') {
-      throw new AuthenticationError('O acesso ao painel é permitido apenas para gestores e gestores de workspace.', undefined)
+      throw new AuthenticationError('O acesso ao painel é permitido apenas para gestores, gestores de workspace e administradores.', undefined)
     }
-    if (body.data.userType !== 'GESTOR' && body.data.userType !== 'GESTOR_WORKSPACE') {
+    if (body.data.userType !== 'GESTOR' && body.data.userType !== 'GESTOR_WORKSPACE' && body.data.userType !== 'ADMIN') {
       throw new AuthenticationError(verificationError, undefined)
     }
     const userStatus = 'userStatus' in body.data && typeof body.data.userStatus === 'string' ? body.data.userStatus.trim().toUpperCase() : ''
     if (['DESATIVADO', 'INATIVO', 'INATIVADO'].includes(userStatus)) {
       throw new AuthenticationError('Sua conta foi inativada. Entre em contato com o Administrador para reativar seu acesso.', undefined, false, true)
     }
+    // ADMIN é uma conta técnica sem coluna de status na API.
+    if (body.data.userType === 'ADMIN' && 'userStatus' in body.data && body.data.userStatus === null) return 'ADMIN'
     if (userStatus !== 'ATIVO') throw new AuthenticationError(verificationError, undefined)
     return body.data.userType
   } catch (error: unknown) {

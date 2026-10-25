@@ -1,5 +1,10 @@
 import type { NavigationItem } from '../types/navigation'
 
+// SCRUM-618: only the authenticated ADMIN profile receives this menu.
+export const administrativeNavigationItems: readonly NavigationItem[] = [
+  { label: 'Revisão de NRs', icon: 'compliance', path: '/admin/nrs/pending' },
+]
+
 export const navigationItems: readonly NavigationItem[] = [
   { label: 'Home', icon: 'home', path: '/mainHomeScreen' },
   { label: 'Gestores', icon: 'managers', path: '/mainManagerScreen' },

@@ -36,6 +36,11 @@ const MainManagerScreenPage = lazy(loadManagers)
 const MainEmployeerScreenPage = lazy(loadEmployees)
 const MainUnitScreenPage = lazy(loadUnits)
 const MainConformityScreenPage = lazy(loadConformities)
+const PendingNrListPage = lazy(() => import('../pages/pendingNrList'))
+const PendingNrReviewPage = lazy(() => import('../pages/pendingNrReview'))
+const NrCatalogPage = lazy(() => import('../pages/nrCatalog'))
+const NrReviewRoute = lazy(() => import('../components/nrReviewRoute'))
+
 const MainPositionScreenPage = lazy(loadPositions)
 const MainFormScreenPage = lazy(loadForms)
 const MainEventScreenPage = lazy(loadEvents)
@@ -225,6 +230,11 @@ function AppRoutes() {
           <Route path="/mainAccountScreen" element={<MainAccountScreenPage />} />
           <Route path="/createForms" element={<CreateFormPage />} />
           <Route path="/editForms" element={<EditFormPage />} />
+        </Route>
+        <Route element={<NrReviewRoute />}>
+          <Route path="/admin/nrs/catalog" element={<NrCatalogPage />} />
+          <Route path="/admin/nrs/pending" element={<PendingNrListPage />} />
+          <Route path="/admin/nrs/pending/:id" element={<PendingNrReviewPage />} />
         </Route>
         <Route element={<PrivateRoute required={new URLSearchParams(renderedLocation.search).get('context') !== 'registration'} />}>
           <Route element={<GuestRoute enabled={new URLSearchParams(renderedLocation.search).get('context') === 'registration'} />}>

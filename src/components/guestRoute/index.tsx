@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuthentication } from '../../hooks/useAuthentication'
 import InitialLoadingState from '../initialLoadingState'
 import RouteContent from '../routeContent'
+import { getDefaultAuthenticatedPath } from '../../utils/accessControl'
 
 interface GuestRouteProps {
   enabled?: boolean
@@ -25,7 +26,7 @@ function GuestRoute({ enabled = true }: GuestRouteProps) {
     return <Navigate to="/loadingScreen" replace state={{ afterLogin: true }} />
   }
 
-  return user ? <Navigate to="/mainHomeScreen" replace /> : <RouteContent />
+  return user ? <Navigate to={getDefaultAuthenticatedPath(user.accountType)} replace /> : <RouteContent />
 }
 
 export default GuestRoute

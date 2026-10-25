@@ -33,6 +33,9 @@ const pageNames: Record<string, string> = {
 
 export function getPageTitle(pathname: string, search: string): string {
   const path = pathname.replace(/\/+$/, '') || '/'
+  if (path === '/admin/nrs/pending') return 'Revisão de NRs'
+  if (path === '/admin/nrs/catalog') return 'Catálogo atual de NRs'
+  if (path.startsWith('/admin/nrs/pending/')) return 'Revisão individual de NR'
   const name = path === '/loadingScreen' && new URLSearchParams(search).get('context') === 'registration'
     ? 'Criando workspace'
     : pageNames[path] ?? 'Página não encontrada'

@@ -7,7 +7,7 @@ const React = require('react')
 const { renderToStaticMarkup } = require('react-dom/server')
 const { MemoryRouter, Navigate } = require('react-router-dom')
 
-function environment(accountType) {
+function environment(accountType, development = false, nrMode = 'demo') {
   const context = { user: accountType ? { uid: 'manager', accountType } : null, status: 'ready', error: '' }
   const cache = new Map()
   function load(filename) {
@@ -16,7 +16,8 @@ function environment(accountType) {
     const module = { exports: {} }
     cache.set(filename, module)
     const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'")
-      .replaceAll('import.meta.env.VITE_API_URL', "'https://api.example.test'").replaceAll('import.meta.env.DEV', 'false')
+      .replaceAll('import.meta.env.VITE_API_URL', "'https://api.example.test'").replaceAll('import.meta.env.DEV', String(development))
+      .replaceAll('import.meta.env.VITE_NR_DATA_MODE', JSON.stringify(nrMode))
     const code = ts.transpileModule(source, {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
     }).outputText
@@ -62,7 +63,79 @@ test('perfis compartilham as áreas do Figma; gestão de gestores e configuraç�
   for (const role of [null, undefined, 'COLABORADOR', 'ADMIN']) {
     assert.equal(env.canAccessPage(role, '/mainHomeScreen'), false)
     assert.equal(env.canAccessPage(role, '/mainManagerScreen'), false)
-    assert.deepEqual(env.getNavigationItems(role), [])
+    if (role !== 'ADMIN') assert.deepEqual(env.getNavigationItems(role), [])
+  }
+})
+
+test('somente ADMIN acessa a revisão de NRs, inclusive diretamente e sem promoção por query string', () => {
+  const env = environment()
+  for (const route of ['/admin/nrs/pending', '/admin/nrs/pending/20', '/ADMIN/NRS/PENDING/20/']) {
+    assert.equal(env.canAccessPage('ADMIN', route), true)
+    for (const role of ['GESTOR', 'GESTOR_WORKSPACE', 'COLABORADOR', null, undefined]) {
+      assert.equal(env.canAccessPage(role, route, '?role=ADMIN&accountType=ADMIN'), false)
+    }
+  }
+  assert.equal(env.canAccessPage('ADMIN', '/admin/nrs/pending/20/excluir'), false)
+  assert.equal(env.canAccessPage('ADMIN', '/loadingScreen'), true)
+  assert.equal(env.getDefaultAuthenticatedPath('ADMIN'), '/admin/nrs/pending')
+  const admin = environment('ADMIN')
+  assert.deepEqual(admin.getNavigationItems('ADMIN').map(item => item.path), ['/admin/nrs/pending'])
+  const menu = admin.render(admin.load('src/components/appSidebar/index.tsx').default, '/admin/nrs/pending')
+  assert.match(menu, /Revisão de NRs/)
+  for (const role of ['GESTOR', 'GESTOR_WORKSPACE']) {
+    const manager = environment(role)
+    assert.doesNotMatch(manager.render(manager.load('src/components/appSidebar/index.tsx').default), /Revisão de NRs/)
+  }
+})
+
+test('PrivateRoute não monta a tela de revisão para gestores, sessão ausente ou em verificação', () => {
+  for (const role of ['ADMIN', 'GESTOR', 'GESTOR_WORKSPACE', null]) {
+    const env = environment(role), Guard = env.load('src/components/privateRoute/index.tsx').default
+    let result
+    function Probe() { result = Guard({}); return result }
+    const markup = env.render(Probe, '/admin/nrs/pending/20?role=ADMIN')
+    if (role === 'ADMIN') assert.match(markup, /Conteúdo autorizado/)
+    else {
+      assert.doesNotMatch(markup, /Conteúdo autorizado/)
+      assert.equal(result.type, Navigate)
+      assert.equal(result.props.to, role ? '/mainHomeScreen' : '/')
+    }
+    env.context.status = 'loading'
+    assert.doesNotMatch(env.render(Probe, '/admin/nrs/pending'), /Conteúdo autorizado/)
+  }
+  const env = environment('ADMIN'), Guard = env.load('src/components/privateRoute/index.tsx').default
+  let result
+  function AdminProbe() { result = Guard({}); return result }
+  env.render(AdminProbe, '/mainHomeScreen')
+  assert.equal(result.props.to, '/admin/nrs/pending')
+})
+
+test('prévia de NRs libera gestores apenas em desenvolvimento e mantém autenticação obrigatória', () => {
+  for (const development of [false, true]) {
+    for (const role of ['ADMIN', 'GESTOR', 'GESTOR_WORKSPACE', null]) {
+      const env = environment(role, development)
+      const PreviewRoute = env.load('src/components/nrReviewRoute/index.tsx').default
+      for (const path of ['/admin/nrs/pending', '/admin/nrs/pending/20']) {
+        const markup = env.render(PreviewRoute, path)
+        assert.equal(markup.includes('Conteúdo autorizado'), role === 'ADMIN' || (development && role !== null), `${development}: ${role}: ${path}`)
+      }
+      env.context.status = 'loading'
+      assert.doesNotMatch(env.render(PreviewRoute, '/admin/nrs/pending'), /Conteúdo autorizado/)
+    }
+  }
+  const env = environment()
+  assert.equal(env.canAccessPage('GESTOR', '/mainManagerScreen', '', true), false)
+  assert.equal(env.canAccessPage('COLABORADOR', '/admin/nrs/pending', '', true), false)
+  assert.equal(env.canAccessPage('GESTOR', '/admin/nrs/pending/20/excluir', '', true), false)
+})
+
+test('modo API exige ADMIN nas telas de NRs também durante o desenvolvimento', () => {
+  for (const role of ['ADMIN', 'GESTOR', 'GESTOR_WORKSPACE', null]) {
+    const env = environment(role, true, 'api')
+    const Guard = env.load('src/components/nrReviewRoute/index.tsx').default
+    for (const route of ['/admin/nrs/pending', '/admin/nrs/catalog']) {
+      assert.equal(env.render(Guard, route).includes('Conteúdo autorizado'), role === 'ADMIN')
+    }
   }
 })
 

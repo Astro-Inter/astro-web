@@ -58,8 +58,19 @@ function response(userType) {
 
 const credentials = { email: ' GESTOR@Example.com ', password: ' Senha123 ' }
 
-test('verifica o email antes do Firebase para os dois tipos de gestor, sem enviar a senha à API', async () => {
-  for (const userType of ['GESTOR', 'GESTOR_WORKSPACE']) {
+test('ADMIN com status null segue o contrato da API tanto no login quanto na sessão restaurada', async () => {
+  const env = environment()
+  env.respondWith(async () => Response.json({ success: true, data: { userType: 'ADMIN', userStatus: null } }))
+  await env.loginWithEmailAndPassword(credentials)
+  assert.equal(env.signIns.length, 1)
+  const users = []
+  env.observeAuthentication(user => users.push(user), message => assert.fail(message))
+  await env.emit({ uid: 'admin', email: 'admin@example.com' })
+  assert.equal(users.at(-1).accountType, 'ADMIN')
+})
+
+test('verifica o email antes do Firebase para gestores e ADMIN, sem enviar a senha à API', async () => {
+  for (const userType of ['GESTOR', 'GESTOR_WORKSPACE', 'ADMIN']) {
     const env = environment()
     env.respondWith(async (url, options) => {
       assert.equal(env.signIns.length, 0)
@@ -149,7 +160,7 @@ test('campos inválidos não chamam a API nem o Firebase', async () => {
 })
 
 test('gestor inativado recebe estado próprio e não inicia autenticação nem libera o painel', async () => {
-  for (const userType of ['GESTOR', 'GESTOR_WORKSPACE']) {
+  for (const userType of ['GESTOR', 'GESTOR_WORKSPACE', 'ADMIN']) {
     for (const userStatus of ['DESATIVADO', 'INATIVO', 'INATIVADO']) {
       const env = environment()
       env.respondWith(async () => Response.json({ success: true, data: { userType, userStatus } }))
@@ -200,7 +211,7 @@ function sessionUser(email = 'gestor@example.com', uid = 'manager') {
 }
 
 test('publica o perfil retornado pela verificação inicial depois do Firebase, sem repetir a consulta', async () => {
-  for (const accountType of ['GESTOR', 'GESTOR_WORKSPACE']) {
+  for (const accountType of ['GESTOR', 'GESTOR_WORKSPACE', 'ADMIN']) {
     const env = environment()
     const users = []
     let pending = 0
@@ -245,7 +256,7 @@ test('novo evento de sessão não reutiliza perfil antigo nem verificação de l
 })
 
 test('sessão restaurada sem perfil permitido ou com falha da API não publica usuário autenticado', async () => {
-  for (const result of [response('COLABORADOR'), response('ADMIN'), new Response(null, { status: 404 }), new Response(null, { status: 503 })]) {
+  for (const result of [response('COLABORADOR'), response('SUPER_ADMIN'), new Response(null, { status: 404 }), new Response(null, { status: 503 })]) {
     const env = environment()
     const users = [], errors = []
     env.respondWith(async () => result)

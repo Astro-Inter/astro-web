@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import LoadingScreenState from '../../components/loadingScreenState'
 import { useAuthentication } from '../../hooks/useAuthentication'
+import { getDefaultAuthenticatedPath } from '../../utils/accessControl'
 
 function LoadingScreenPage() {
   const navigate = useNavigate()
@@ -12,7 +13,7 @@ function LoadingScreenPage() {
 
   useEffect(() => {
     if (status !== 'ready' || !user) return
-    const timer = window.setTimeout(() => navigate('/mainHomeScreen', { replace: true }), duration)
+    const timer = window.setTimeout(() => navigate(getDefaultAuthenticatedPath(user.accountType), { replace: true }), duration)
     return () => window.clearTimeout(timer)
   }, [duration, navigate, status, user])
 
