@@ -13,6 +13,7 @@ interface ToolbarSelectOption {
 interface ToolbarSelectProps {
   trackingAction?: string
   className?: string
+  closeOnPageScroll?: boolean
   disabled?: boolean
   error?: string
   escapeOverflow?: boolean
@@ -26,7 +27,7 @@ interface ToolbarSelectProps {
   value: string
 }
 
-function ToolbarSelect({ trackingAction, id, label, options, className = '', disabled = false, error, escapeOverflow = false, onValueChange, searchable = true, maxVisibleRows = 4, preferredPlacement = 'auto', value }: ToolbarSelectProps) {
+function ToolbarSelect({ trackingAction, id, label, options, className = '', closeOnPageScroll = true, disabled = false, error, escapeOverflow = false, onValueChange, searchable = true, maxVisibleRows = 4, preferredPlacement = 'auto', value }: ToolbarSelectProps) {
   const generatedId = useId()
   const selectId = id ?? generatedId
   const listId = `${selectId}-options`
@@ -91,6 +92,8 @@ function ToolbarSelect({ trackingAction, id, label, options, className = '', dis
     }
 
     function closeOnScroll(event: Event) {
+      // Inline filters can follow the page when the browser scrolls an option into view.
+      if (!closeOnPageScroll) return
       if (event.target instanceof Node && containerRef.current?.contains(event.target)) return
       // O menu absoluto acompanha o dialog; rolar esse ancestral ao focar
       // uma opção não deve encerrar a navegação do próprio seletor.
@@ -104,7 +107,7 @@ function ToolbarSelect({ trackingAction, id, label, options, className = '', dis
       document.removeEventListener('pointerdown', closeOnOutsideClick)
       window.removeEventListener('scroll', closeOnScroll, true)
     }
-  }, [closeSelect, open])
+  }, [closeSelect, closeOnPageScroll, open])
 
   function choose(valueToSelect: string) {
     const option = options.find((item) => item.value === valueToSelect)

@@ -10,7 +10,7 @@ export interface LoginFieldErrors {
 
 export type LoginStatus = 'idle' | 'loading' | 'success' | 'error' | 'inactive'
 
-export type WebAccountType = 'GESTOR' | 'GESTOR_WORKSPACE'
+export type WebAccountType = 'GESTOR' | 'GESTOR_WORKSPACE' | 'ADMIN'
 
 export interface AuthenticatedUser {
   uid: string
