@@ -59,7 +59,7 @@ function CompanyInformationForm({ onContinue, settingsMode = false, initialCompa
             onChange={(event) => handleMaskedInput(event, formatCnpj, cnpj => changeField('cnpj', cnpj))}
             placeholder="00.000.000/0000-00"
             type="text"
-            value={company.cnpj}
+            value={formatCnpj(company.cnpj)}
           />
 
         <PurpleButton data-track-action={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.continuar} className="astro-form-action" type="submit">{settingsMode ? 'Salvar alterações' : 'Continuar'}</PurpleButton>

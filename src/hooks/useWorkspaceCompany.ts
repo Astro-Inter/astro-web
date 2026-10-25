@@ -21,5 +21,9 @@ export function useWorkspaceCompany() {
     } catch (error: unknown) { return error instanceof Error ? error.message : 'Não foi possível salvar a empresa.' }
     finally { if (request.current === controller) request.current = null }
   }
-  return { ...query, company: company ?? query.data, setCompany, save }
+  const hasChanges = Boolean(company && query.data && (
+    company.name.trim() !== query.data.name.trim()
+    || company.cnpj.replace(/\D/g, '') !== query.data.cnpj.replace(/\D/g, '')
+  ))
+  return { ...query, company: company ?? query.data, hasChanges, setCompany, save }
 }

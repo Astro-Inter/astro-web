@@ -67,7 +67,8 @@ function SpreadsheetExplanationModal({ example = employeeExample, onDismiss, ope
       </div>
 
       <h3 className="spreadsheet-explanation-section-title">Como deve ser sua planilha?</h3>
-      <div className={`spreadsheet-preview${example.className ? ` ${example.className}` : ''}`}>
+      <p className="spreadsheet-scroll-hint" id="spreadsheet-scroll-hint">Role a tabela para os lados para conferir todas as colunas.</p>
+      <div className={`spreadsheet-preview${example.className ? ` ${example.className}` : ''}`} tabIndex={0} role="region" aria-label="Prévia da planilha" aria-describedby="spreadsheet-scroll-hint">
         <table aria-label={example.ariaLabel}>
           <colgroup>
             <col className="spreadsheet-row-number" />
@@ -89,18 +90,13 @@ function SpreadsheetExplanationModal({ example = employeeExample, onDismiss, ope
                 {example.columns.map((_, column) => <td key={columnLetters[column]} title={row[column]}>{row[column]}</td>)}
               </tr>
             ))}
-            {[5, 6, 7, 8, 9].map((rowNumber) => (
-              <tr key={rowNumber}>
-                <th scope="row">{rowNumber}</th>
-                {example.columns.map((_, column) => <td key={columnLetters[column]} />)}
-              </tr>
-            ))}
           </tbody>
         </table>
-        <button data-track-action={BUTTONS.comuns.modelo} className="spreadsheet-preview-download" type="button" aria-label="Baixar modelo de planilha Excel" disabled={download.pending} onClick={() => { void download.download() }}>
-          <AstroIcon name="download" strokeScale={0.9} />
-        </button>
       </div>
+      <button data-track-action={BUTTONS.comuns.modelo} className="spreadsheet-preview-download" type="button" aria-label="Baixar modelo de planilha Excel" disabled={download.pending} onClick={() => { void download.download() }}>
+        <AstroIcon name="download" strokeScale={0.9} />
+        <span>{download.pending ? 'Preparando modelo…' : 'Baixar modelo Excel'}</span>
+      </button>
       {download.error && <p className="login-field-error" role="alert">{download.error}</p>}
 
       <PurpleButton data-track-action={BUTTONS.comuns.entendi} className="spreadsheet-explanation-confirm" onClick={dismiss}>

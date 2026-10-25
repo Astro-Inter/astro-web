@@ -4,6 +4,10 @@ import type { WorkspaceUnitRequest } from '../types/workspaceSettings'
 
 const states = new Set('AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' '))
 
+export function workspaceUnitSnapshot(unit: WorkspaceUnitAddress): string {
+  return JSON.stringify({ ...unit, cep: unit.cep.replace(/\D/g, ''), source: unit.source ?? 'manual' })
+}
+
 export function validateWorkspaceCompany(company: CompanyInformation): Partial<Record<keyof CompanyInformation, string>> {
   const errors: Partial<Record<keyof CompanyInformation, string>> = {}
   if (company.name.trim().length < 2 || company.name.trim().length > 255) errors.name = 'Informe um nome entre 2 e 255 caracteres.'
