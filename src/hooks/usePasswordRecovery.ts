@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import type { PasswordRecoveryErrors, PasswordRecoveryValues } from '../types/passwordRecovery'
-import { getRecoveryChallenge, PasswordRecoveryMockError, replacePassword, requestPasswordRecovery } from '../services/passwordRecoveryMock'
+import { getRecoveryChallenge, PasswordRecoveryError, replacePassword, requestPasswordRecovery } from '../services/passwordRecovery'
 import { validatePasswordReplacement, validateRecoveryEmail } from '../utils/passwordRecovery'
 
-export function usePasswordRecovery(initialEmail = '') {
+export function usePasswordRecovery(initialEmail = '', oobCode = '') {
   const [values, setValues] = useState<PasswordRecoveryValues>(() => ({ email: getRecoveryChallenge()?.email ?? initialEmail, password: '', confirmation: '' }))
   const [errors, setErrors] = useState<PasswordRecoveryErrors>({})
   const [pending, setPending] = useState(false)
@@ -26,17 +26,17 @@ export function usePasswordRecovery(initialEmail = '') {
     try {
       if (mode === 'request') await requestPasswordRecovery(values.email, controller.signal)
       else {
-        await replacePassword(values, controller.signal)
+        await replacePassword(values, oobCode, controller.signal)
         setValues(current => ({ ...current, password: '', confirmation: '' }))
       }
       return true
     } catch (error: unknown) {
       if (controller.signal.aborted) return false
-      const field = error instanceof PasswordRecoveryMockError ? error.field : mode === 'request' ? 'email' : 'form'
+      const field = error instanceof PasswordRecoveryError ? error.field : mode === 'request' ? 'email' : 'form'
       setErrors({ [field]: error instanceof Error ? error.message : 'Não foi possível continuar. Tente novamente.' })
       return false
     } finally {
-      if (controllerRef.current === controller) { controllerRef.current = null; setPending(false) }
+      if (controllerRef.current === controller) { controllerRef.current = null; if (!controller.signal.aborted) setPending(false) }
     }
   }
 

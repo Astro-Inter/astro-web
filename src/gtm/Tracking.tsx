@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
+import { passwordResetLink } from '../utils/passwordResetLink'
 import { useAuthentication } from '../hooks/useAuthentication'
 import { createTrackingRuntime } from './runtime'
 import { initGTM, type TrackingBrowser } from './track'
 
-const enabled = import.meta.env.VITE_TRACKING_ENABLED !== 'false'
+const enabled = import.meta.env.VITE_TRACKING_ENABLED !== 'false' && !passwordResetLink.active
 const gtmId = import.meta.env.VITE_GTM_ID || 'GTM-NF932KMT'
 
 export default function Tracking() {
