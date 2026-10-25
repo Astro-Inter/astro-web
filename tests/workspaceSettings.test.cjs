@@ -186,6 +186,35 @@ test('transferência filtra gestores ativos, envia ID, confirma perda de acesso 
   assert.equal(env.navigations[0][0], '/mainHomeScreen')
 }))
 
+test('conflito de transferência explica o bloqueio sem misturar aviso de permissões nem repetir a operação', async () => withDOM(async (root, env) => {
+  let writes = 0
+  const message = 'O workspace deve ter um único gestor responsável para realizar a transferência'
+  global.fetch = async (url) => {
+    if (url.endsWith('/managers')) return response([
+      { id_usuario: 42, nome: 'Ana', email: 'ana@example.com', unidade_id: 12, unidade: 'Filial', status: 'ATIVO' },
+    ])
+    writes++
+    return Response.json({ success: false, message, data: null, errors: [message] }, { status: 409 })
+  }
+  let closed = 0
+  const Modal = env.load('src/components/workspaceManagerTransferModal/index.tsx').default
+  await act(async () => root.render(React.createElement(Modal, { onClose() { closed++ } })))
+  await act(async () => { const select = document.querySelector('select'); select.value = '42'; select.dispatchEvent(new window.Event('change', { bubbles: true })) })
+  await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
+  await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Alterar gestor').click())
+  await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
+  assert.equal(document.querySelector('dialog').getAttribute('aria-label'), 'Transferência bloqueada')
+  assert.equal(document.querySelector('[role="alert"]').textContent, message)
+  assert.doesNotMatch(document.body.textContent, /perderá as permissões|Tentar novamente/)
+  assert.equal(writes, 1)
+  assert.equal(env.refreshed(), 0)
+  assert.equal(env.navigations.length, 0)
+  await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Voltar à seleção').click())
+  assert.equal(document.querySelector('select').value, '42')
+  assert.equal(writes, 1)
+  assert.equal(closed, 0)
+}))
+
 test('unidades salvas antes de falha parcial conservam ID e não são recriadas no reenvio', async () => withDOM(async (root, env) => {
   let editor
   function Harness() { editor = env.load('src/hooks/useWorkspaceUnitEditor.ts').useWorkspaceUnitEditor([address]); return null }
