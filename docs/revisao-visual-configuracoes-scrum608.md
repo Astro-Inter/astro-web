@@ -2,7 +2,7 @@
 
 ## Correções
 
-- Nas configurações, ajuda e acionador do chat ficam no fluxo da página, depois do conteúdo. Os botões e campos deixam de ser encobertos no celular; o chat aberto mantém sua janela própria. Outras áreas preservam o acionador flutuante.
+- Nas configurações, a ajuda fica após o conteúdo e o chat usa o mesmo posicionamento flutuante das outras telas. Foram removidos o rodapé centralizado e as sobrescritas que prendiam o robô ao fluxo da página. Não há faixa reservada, fundo adicional ou limite próprio de altura/rolagem para as configurações. A janela e o arraste do chat mantêm seu comportamento padrão.
 - O formulário de unidades deixa de limitar sua altura ao viewport: os campos, ações, ajuda e chat ocupam espaços separados, inclusive em telas estreitas.
 - Empresa, unidades e importação só confirmam o descarte quando existem dados locais não salvos. Navegar entre unidades ou apenas aplicar máscaras não conta como edição. Restaurar o conteúdo original elimina o aviso.
 - CNPJ e CEP são exibidos com máscara desde o carregamento. A API continua recebendo os valores normalizados pelos serviços existentes.
@@ -38,3 +38,7 @@ A tela anterior aceitava dados de cartão/Pix e exibia um salvamento aparente se
 | E10 | Parcial: teclado e foco conferidos nos fluxos citados. Auditoria completa com NVDA/VoiceOver permanece pendente. |
 
 Não foram introduzidos Context, reducer, armazenamento persistente ou memoização sem necessidade para essa demanda.
+
+## Correção complementar do chat
+
+A revisão posterior encontrou que o robô no fluxo criava um rodapé centralizado e podia ficar cortado. Esse posicionamento foi removido para restaurar o chat flutuante padrão. Uma tentativa intermediária de reservar uma faixa inferior também foi descartada após a captura enviada pelo usuário: a versão final não contém essa faixa nem limita a altura da página. A prévia da porta 5178 recebeu o mesmo ajuste. O controle do navegador estava desativado nesta etapa, portanto não houve nova captura automatizada da versão final; as evidências visuais anteriores acima não devem ser tratadas como validação dessa correção complementar.
