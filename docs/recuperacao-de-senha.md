@@ -6,7 +6,7 @@ POST /auth/forgot-password recebe {email}. A mensagem não confirma se uma conta
 
 A rota /replacePassword exige mode=resetPassword e um único oobCode não vazio. O bootstrap passwordResetLink captura o código em memória e limpa a query antes do tracking. Não persiste o código; atualizar a página exige reabrir o link original. GTM fica desabilitado na sessão iniciada por essa rota e referrer é no-referrer. continueUrl e apiKey da URL não selecionam destinos ou projeto Firebase.
 
-No Firebase Console, configure a Custom Email Action URL para https://astro-inter.github.io/astro-web/replacePassword e autorize o domínio astro-inter.github.io. A URL é global aos templates do projeto segundo a documentação Firebase: inventarie os demais fluxos antes de ativá-la. Esta implementação rejeita modos diferentes de resetPassword, sem consumir os respectivos códigos. Não mude a URL global em produção até garantir os outros fluxos. O Worker não configura o Console e continueUrl não substitui essa configuração.
+O modo padrão do Worker agora usa Firebase para gerar o código e SendGrid para enviar HTML/texto próprios do Astro, seguindo o fluxo Ludos. O backend monta o link diretamente para https://astro-inter.github.io/astro-web/replacePassword?mode=resetPassword&oobCode=...; não é necessário alterar a Custom Email Action URL global nesse modo. Configure as credenciais Google/SendGrid e um remetente verificado somente no backend, nunca no .env do Web. Confira o guia atualizado no repositório astro-password-reset. Autorize o domínio astro-inter.github.io quando exigido pelo Firebase. Se optar explicitamente pelo modo native, a URL personalizada do Firebase afeta todos os templates: assegure atendimento aos outros modos antes de mudar essa configuração global. O Web aceita somente resetPassword.
 
 O workflow Pages injeta a variável de API e cria entradas estáticas para replacePassword e passwordChanged, além do fallback 404 existente. Após publicar, verificar as duas rotas diretamente e confirmar que o redirect de diretório do Pages preserva a query. O servidor Vite local não prova esse comportamento do host publicado.
 
@@ -15,7 +15,7 @@ O workflow Pages injeta a variável de API e cria entradas estáticas para repla
 - Build TypeScript/Vite aprovado; 391 testes aprovados, incluindo oito testes de recuperação com Firebase/API simulados.
 - Integração local do serviço real do Web com o handler do Worker aprovada para envio, confirmação e código expirado, sem e-mails reais.
 - Navegador local: ausência de código bloqueia formulário, link funciona com Tab/Enter, envio vazio mostra erro e ausência da URL do Worker mostra indisponibilidade. Link fictício tem query removida e apresenta formulário. Link secundário revisado com espaçamento, alinhamento central e foco visível.
-- Nenhum teste com credenciais/códigos reais ou alteração de senha real foi executado. Firebase Console, deploy Worker e validação final no Pages estão pendentes.
+- Nenhum teste com credenciais/códigos reais ou alteração de senha real foi executado. Configuração das credenciais Firebase/SendGrid, deploy Worker e validação final no Pages estão pendentes.
 
 ## Critérios DAD aplicáveis
 
