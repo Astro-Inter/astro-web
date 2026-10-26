@@ -2,6 +2,7 @@ import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { WorkspaceSettingsNavigationState, WorkspaceSettingsSection } from '../../types/workspaceSettings'
 import ConfirmationModal from '../confirmationModal'
+import { useActionFeedback } from '../../hooks/useActionFeedback'
 
 interface WorkspaceSettingsSaveModalProps {
   section: WorkspaceSettingsSection
@@ -17,8 +18,16 @@ const screens: Record<WorkspaceSettingsSection, { name: string; title: string }>
   payments: { name: 'paymentSettingsConfirmationModalWeb', title: 'Deseja salvar as alterações de pagamento?' },
 }
 
+const successMessages: Record<WorkspaceSettingsSection, string> = {
+  company: 'Informações da empresa atualizadas com sucesso.',
+  spreadsheet: 'Colaboradores importados com sucesso.',
+  addresses: 'Endereços das unidades atualizados com sucesso.',
+  payments: 'Informações de pagamento atualizadas com sucesso.',
+}
+
 function WorkspaceSettingsSaveModal({ section, onCancel, onSave, onSaved }: WorkspaceSettingsSaveModalProps) {
   const navigate = useNavigate()
+  const notify = useActionFeedback()
   const location = useLocation()
   const from = (location.state as WorkspaceSettingsNavigationState | null)?.from
 
@@ -30,12 +39,12 @@ function WorkspaceSettingsSaveModal({ section, onCancel, onSave, onSaved }: Work
       onCancel={onCancel}
       onConfirm={async () => {
         if (onSave) return await onSave()
-        navigate('/mainWorkspaceSettingsScreen', { state: { from, savedSection: section } })
         return null
       }}
       onConfirmed={() => {
+        notify(successMessages[section])
         if (onSaved) { onSaved(); return }
-        if (onSave) navigate('/mainWorkspaceSettingsScreen', { state: { from, savedSection: section } })
+        navigate('/mainWorkspaceSettingsScreen', { state: { from, savedSection: section } })
       }}
       preservePageScroll
       title={screens[section].title}

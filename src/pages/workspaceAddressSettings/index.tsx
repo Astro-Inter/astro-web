@@ -22,7 +22,7 @@ function WorkspaceAddressEditor({ units }: WorkspaceAddressEditorProps) {
 
 function WorkspaceAddressSettingsPage() {
   const query = useWorkspaceQuery(listUnitAddresses)
-  return <main data-track-page={true} className="set-address-page">
+  return <main data-track-page={true} className="set-address-page" aria-busy={query.loading} inert={query.loading}>
     <WorkspaceSettingsBackButton screen="backAdressesModalWeb" />
     <WorkspaceQueryFeedback loading={query.loading} error={query.error} onRetry={query.retry} />
     {query.data && <WorkspaceAddressEditor units={query.data} />}

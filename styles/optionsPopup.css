@@ -38,6 +38,7 @@
 .astro-options-popup-item--muted { color: #bcbacc; }
 .astro-options-popup-item--disabled { color: #aaa4b8; cursor: not-allowed; }
 .astro-options-popup-item--disabled:hover { color: #aaa4b8; }
+.astro-options-popup-skeleton { width: 90%; height: 1.15em; }
 .astro-options-popup-item--separated::after { position: absolute; right: 0; bottom: 0; left: 0; border-bottom: 1px solid #70628a; content: ''; }
 .astro-options-popup-item:hover,
 .astro-options-popup-item:focus-visible { color: #c4bdd4; background: transparent; outline: none; }
@@ -57,3 +58,5 @@
 }
 
 .astro-options-popup-item:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; border-radius: var(--astro-control-radius); }
+
+.astro-options-popup-item > .event-loading-ready { display: block; min-width: 0; }

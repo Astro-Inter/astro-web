@@ -126,7 +126,7 @@ test('consulta real carrega dados pela API existente mas não simula a gravaçã
   await mount(root, Page, '/mainFormScreen/responses?id=61000000-0000-4000-8000-000000000001&workspaceId=999')
   assert.equal(env.calls.length, 1)
   assert.equal(env.calls[0][0], '61000000-0000-4000-8000-000000000001')
-  assert.match(document.body.textContent, /A gravação da análise ainda não está disponível/)
+  assert.match(document.body.textContent, /A validação das respostas está temporariamente indisponível/)
   assert.ok([...document.querySelectorAll('button')].filter(button => /Aprovar formulário|Reprovar formulário/.test(button.textContent)).every(button => button.disabled))
 }))
 test('ID inválido é tratado sem consultar o serviço', async () => withDom(async root => {

@@ -1,4 +1,5 @@
 import { DIALOG_NAMES } from '../../gtm/dialogs'
+import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { usePopupStepTransition } from '../../hooks/usePopupStepTransition'
 import { useEventCandidates } from '../../hooks/useEventCandidates'
@@ -53,7 +54,7 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode
   const [randomClosing, setRandomClosing] = useState(false)
   const [schedules, setSchedules] = useState<Record<string, EventGroupSchedule>>(() => initialValue?.schedules ?? {})
   const [settings, setSettings] = useState<EventSettings>(() => initialValue?.settings ?? { completion: '', evidenceRequired: '' })
-  const [error, setError] = useState('')
+  const notify = useActionFeedback()
   const submittedRef = useRef(false)
   const [submitting, setSubmitting] = useState(false)
   const [pendingSave, setPendingSave] = useState<EventConfiguration | null>(null)
@@ -76,7 +77,6 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode
   }
 
   function changeStep(nextStep: EventCreationStep) {
-    setError('')
     animatePopupChange(() => setStep(nextStep))
   }
 
@@ -85,7 +85,7 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode
     const value: EventConfiguration = { ...initialValue, creatorId: initialValue?.creatorId ?? managerId, draft, selectedIds, groups, assignments, schedules, settings }
     const validationError = validationFor(value)
     if (validationError) {
-      setError(validationError)
+      notify(validationError, 'error')
       return
     }
     if (mode === 'edit') {
@@ -95,9 +95,8 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode
     }
     submittedRef.current = true
     setSubmitting(true)
-    setError('')
     try { await onSubmit(value); setSubmitting(false); dismiss() }
-    catch (error: unknown) { setError(error instanceof Error ? error.message : 'Não foi possível criar o evento. Tente novamente.') }
+    catch (error: unknown) { notify(error instanceof Error ? error.message : 'Não foi possível criar o evento. Tente novamente.', 'error') }
     finally { submittedRef.current = false; setSubmitting(false) }
   }
 
@@ -154,14 +153,13 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode
   return <>
     <AppModal dismissible={!submitting} trackingName={({ details: DIALOG_NAMES.informacoes_evento, collaborators: DIALOG_NAMES.selecionar_colaboradores_evento, groups: DIALOG_NAMES.organizar_equipes_evento, schedule: DIALOG_NAMES.editar_equipes_evento, settings: DIALOG_NAMES.configuracoes_evento, review: DIALOG_NAMES.detalhes_evento })[step]} className={`event-create-modal event-create-modal--${step}`} dimmed={saveDimmed || (randomOpen && !randomClosing) || Boolean(collaboratorGroup)} onClose={() => { if (!pendingSave) onClose() }} open={!saveClosing} preservePageScroll title={mode === 'edit' && step === 'details' ? 'Editar evento' : titles[step]}>
       {dismiss => <div className="event-create-step-frame">
-        {candidates.loading && <p role="status">Carregando NRs e participantes elegíveis...</p>}
         {candidates.error && <div role="alert"><p>{candidates.error}</p><button className="astro-modal-cancel" onClick={candidates.retry} type="button">Tentar novamente</button></div>}
-        {step === 'details' && <EventInformationModal nrs={candidates.nrs} loading={candidates.loading || !!candidates.error} editing={mode === 'edit'} detailsLocked={detailsLocked} draft={draft} onCancel={dismiss} onChange={changes => { if (!detailsLocked) { if (changes.nr !== undefined && changes.nr !== draft.nr && mode === 'create') { setSelectedIds([]); setAssignments({}) }; setDraft(current => ({ ...current, ...changes, ...(mode === 'edit' && initialValue ? { nr: initialValue.draft.nr, type: initialValue.draft.type } : {}) })) } }} onContinue={() => changeStep('collaborators')} />}
-        {step === 'collaborators' && <EventParticipantsModal collaborators={collaborators} loading={candidates.loading || !!candidates.error} lockedParticipantIds={lockedParticipantIds} nr={draft.nr} onBack={() => changeStep('details')} onContinue={() => changeStep('groups')} onSelectionChange={updateSelection} selectedIds={selectedIds} />}
+        {step === 'details' && <EventInformationModal nrs={candidates.nrs} loading={candidates.nrsLoading} unavailable={!!candidates.error} editing={mode === 'edit'} detailsLocked={detailsLocked} draft={draft} onCancel={dismiss} onChange={changes => { if (!detailsLocked) { if (changes.nr !== undefined && changes.nr !== draft.nr && mode === 'create') { setSelectedIds([]); setAssignments({}) }; setDraft(current => ({ ...current, ...changes, ...(mode === 'edit' && initialValue ? { nr: initialValue.draft.nr, type: initialValue.draft.type } : {}) })) } }} onContinue={() => changeStep('collaborators')} />}
+        {step === 'collaborators' && <EventParticipantsModal collaborators={collaborators} loading={candidates.loading} unavailable={!!candidates.error} lockedParticipantIds={lockedParticipantIds} nr={draft.nr} onBack={() => changeStep('details')} onContinue={() => changeStep('groups')} onSelectionChange={updateSelection} selectedIds={selectedIds} />}
         {step === 'groups' && <EventGroupsModal editing={mode === 'edit'} lockedGroupIds={lockedGroupIds} distributionVersion={distributionVersion} assignments={assignments} collaborators={collaborators.filter(person => selectedIds.includes(person.id))} groups={groups} onAddGroup={addGroup} onAssign={(personId, groupId) => { if (!lockedGroupIds.includes(groupId) && !lockedParticipantIds.includes(personId)) setAssignments(current => ({ ...current, [personId]: groupId })) }} onBack={() => changeStep('collaborators')} onContinue={() => changeStep('schedule')} onRandom={() => { setRandomClosing(false); setRandomOpen(true) }} onRemoveGroup={removeGroup} onReset={resetGroups} />}
         {step === 'schedule' && <EventGroupScheduleModal lockedGroupIds={lockedGroupIds} assignments={assignments} groups={groups} onBack={() => changeStep('groups')} onChange={(groupId, changes) => { if (!lockedGroupIds.includes(groupId)) setSchedules(current => ({ ...current, [groupId]: { ...(current[groupId] ?? { date: '', startTime: '', endTime: '' }), ...changes } })) }} onContinue={() => changeStep('settings')} schedules={schedules} />}
         {step === 'settings' && <EventSettingsModal editing={mode === 'edit'} onBack={() => changeStep('schedule')} onChange={changes => { if (mode !== 'edit') setSettings(current => ({ ...current, ...changes })) }} onContinue={() => changeStep('review')} settings={settings} />}
-        {step === 'review' && <EventReviewModal submitting={submitting} editing={mode === 'edit'} error={error} assignments={assignments} draft={draft} groups={groups} onBack={() => changeStep('settings')} onCreate={() => { void submit(dismiss) }} schedules={schedules} settings={settings} onViewCollaborators={(group, ids) => setCollaboratorGroup({ name: group.name, ids })} />}
+        {step === 'review' && <EventReviewModal submitting={submitting} editing={mode === 'edit'} assignments={assignments} draft={draft} groups={groups} onBack={() => changeStep('settings')} onCreate={() => { void submit(dismiss) }} schedules={schedules} settings={settings} onViewCollaborators={(group, ids) => setCollaboratorGroup({ name: group.name, ids })} />}
       </div>}
     </AppModal>
     {collaboratorGroup && <EventGroupCollaboratorsModal collaborators={collaborators} groupName={collaboratorGroup.name} participantIds={collaboratorGroup.ids} onClose={() => setCollaboratorGroup(null)} />}

@@ -1,3 +1,5 @@
+import ActionLoading from '../actionLoading'
+
 interface WorkspaceQueryFeedbackProps {
   loading: boolean
   error: string
@@ -5,7 +7,7 @@ interface WorkspaceQueryFeedbackProps {
 }
 
 function WorkspaceQueryFeedback({ loading, error, onRetry }: WorkspaceQueryFeedbackProps) {
-  return <>{loading && <p role="status">Carregando informações do workspace…</p>}
+  return <><ActionLoading active={loading} />
     {error && <div><p className="login-field-error" role="alert">{error}</p><button type="button" onClick={onRetry}>Tentar novamente</button></div>}</>
 }
 

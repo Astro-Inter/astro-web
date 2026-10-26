@@ -74,3 +74,9 @@ html[data-astro-reduced-motion='true'] :is(.api-skeleton, .api-loading, .api-loa
 @media (max-width: 480px) {
   .account-profile-skeleton .astro-modal-actions > .api-skeleton-action { flex: none; width: 100%; max-width: none; }
 }
+
+.event-loading-exit { animation: event-loading-leave 180ms ease both !important; pointer-events: none; }
+.event-loading-ready:not([hidden]) { animation: page-enter 180ms ease both; }
+@keyframes event-loading-leave { from { opacity: 1; } to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .event-loading-exit, .event-loading-ready:not([hidden]) { animation: none !important; } }
+html[data-astro-reduced-motion='true'] :is(.event-loading-exit, .event-loading-ready:not([hidden])) { animation: none !important; }

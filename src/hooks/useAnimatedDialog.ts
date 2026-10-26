@@ -10,9 +10,13 @@ interface AnimatedDialogOptions {
 
 export function useAnimatedDialog({ initialFocusRef, onClose, onDismissRequest, open }: AnimatedDialogOptions) {
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const closeRequestedRef = useRef(false)
+  const previousOpenRef = useRef(open)
   const { closing, requestClose } = useAnimatedClose('modal')
 
   const dismiss = useCallback(() => {
+    if (closeRequestedRef.current) return
+    closeRequestedRef.current = true
     onDismissRequest?.()
     requestClose(() => dialogRef.current?.close())
   }, [onDismissRequest, requestClose])
@@ -20,8 +24,11 @@ export function useAnimatedDialog({ initialFocusRef, onClose, onDismissRequest, 
   useLayoutEffect(() => {
     const dialog = dialogRef.current
     if (!dialog) return
+    if (open && !previousOpenRef.current) closeRequestedRef.current = false
+    previousOpenRef.current = open
 
     if (open) {
+      if (closeRequestedRef.current) return
       if (!dialog.open) {
         const pageScroll = { left: window.scrollX, top: window.scrollY }
         dialog.showModal()

@@ -149,7 +149,7 @@ function MainFormScreenPage() {
       {selected && createPortal(<OptionsPopup trackingName={DIALOG_NAMES.acoes_formulario} ariaLabel={`Opções para ${selected.name}`} closing={closing} id={`form-options-${selected.id}`} panelRef={panelRef} onClose={() => closeMenu()} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} items={[
         { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', tone: 'muted', separatorAfter: true, onSelect: () => closeMenu() },
         { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: selected.status === 'completed' ? 'Consultar' : 'Editar', separatorAfter: true, onSelect: () => closeMenu(() => navigate(`/editForms?id=${encodeURIComponent(selected.id)}`)) },
-        ...(import.meta.env.DEV || selected.status === 'completed' ? [{ id: 'responses', label: import.meta.env.DEV ? 'Ver respostas (prévia)' : 'Ver respostas', separatorAfter: true,
+        ...(import.meta.env.DEV || selected.status === 'completed' ? [{ id: 'responses', label: 'Ver respostas', separatorAfter: true,
           onSelect: () => closeMenu(() => navigate(import.meta.env.DEV ? '/mainFormScreen/responses?preview=1' : `/mainFormScreen/responses?id=${encodeURIComponent(selected.id)}`)) }] : []),
         { trackingAction: BUTTONS.comuns.excluir, id: 'delete', label: 'Excluir', disabled: selected.status === 'completed', tone: 'danger', onSelect: () => closeMenu(() => setPendingDeletion(selected)) },
       ]} />, document.body)}

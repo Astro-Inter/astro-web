@@ -75,13 +75,26 @@ test('criação associa validação ao nome e gestor sem enviar formulário inv�
   const env = environment(), Page = env.load('src/pages/createForm/index.tsx').default
   await mount(root, Page, '/createForms')
   await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
-  for (const field of ['name', 'manager']) {
+  for (const field of ['name', 'description', 'manager']) {
     const input = document.getElementById(`create-forms-${field}`)
     assert.equal(input.getAttribute('aria-invalid'), 'true')
     const message = document.getElementById(input.getAttribute('aria-describedby'))
     assert.equal(message.getAttribute('role'), 'alert')
     assert.ok(message.classList.contains('login-field-error'))
   }
+  assert.equal(env.calls.filter(call => call.name === 'createForm').length, 0)
+  await act(async () => {
+    const input = document.getElementById('create-forms-name')
+    Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, 'Inspeção')
+    input.dispatchEvent(new window.Event('input', { bubbles: true }))
+  })
+  for (const field of ['name', 'description', 'manager']) {
+    assert.equal(document.getElementById(`create-forms-${field}`).getAttribute('aria-invalid'), 'false')
+    assert.equal(document.getElementById(`create-forms-${field}-error`), null)
+  }
+  await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
+  assert.equal(document.getElementById('create-forms-name').getAttribute('aria-invalid'), 'false')
+  for (const field of ['description', 'manager']) assert.equal(document.getElementById(`create-forms-${field}`).getAttribute('aria-invalid'), 'true')
   assert.equal(env.calls.filter(call => call.name === 'createForm').length, 0)
 }))
 
@@ -272,26 +285,21 @@ test('falha de destinatários permite nova tentativa sem apagar os campos preenc
   const pending = deferred()
   env.services.getFormRecipients = () => pending.promise
   await click('Tentar novamente')
-  assert.equal(document.querySelector('[aria-label="Gestor destinatário"]'), null)
-  assert.match(document.querySelector('[aria-busy="true"]').textContent, /Carregando gestores/)
+  assert.equal(document.querySelector('[aria-label="Gestor destinatário"]').disabled, true)
+  assert.ok(document.querySelector('.login-loading-overlay .login-loading-spinner'))
+  assert.equal(document.querySelector('.api-skeleton'), null)
   await act(async () => pending.resolve(options))
+  assert.equal(document.querySelector('.login-loading-overlay'), null)
   assert.equal(document.getElementById('create-forms-name').value, 'Rascunho preservado')
   assert.equal(document.querySelector('[aria-label="Gestor destinatário"]').disabled, false)
   assert.equal(document.querySelector('[role="alert"]'), null)
 }))
 
-test('botões de navegação usam o padrão Astro; recarregar exige confirmação antes de descartar', async () => withDom(async root => {
+test('editor mantém o menu de voltar sem os botões extras de navegação', async () => withDom(async root => {
   const env = environment(), Page = env.load('src/pages/editForm/index.tsx').default
   await mount(root, Page, `/editForms?id=${id}`)
-  const back = [...document.querySelectorAll('button')].find(b => b.textContent === 'Voltar aos formulários')
-  assert.ok(back.classList.contains('astro-action--outline'))
-  await click('Recarregar formulário')
-  assert.match(document.querySelector('[role="dialog"]').textContent, /As alterações não salvas serão descartadas/)
-  assert.equal(env.calls.filter(c => c.name === 'getForm').length, 1)
-  await click('Cancelar')
-  assert.equal(env.calls.filter(c => c.name === 'getForm').length, 1)
-  await click('Recarregar formulário'); await click('Recarregar')
-  assert.equal(env.calls.filter(c => c.name === 'getForm').length, 2)
+  assert.equal([...document.querySelectorAll('button')].some(button => ['Voltar aos formulários', 'Recarregar formulário'].includes(button.textContent)), false)
+  assert.ok(document.querySelector('[aria-label="Voltar e abrir opções do formulário"]'))
 }))
 
 test('NR antiga fora do catálogo Empresa não reaparece no dropdown e precisa ser substituída ou removida', async () => withDom(async root => {
@@ -332,8 +340,8 @@ test('menu dos três pontos abre a prévia de respostas de um formulário penden
   await click('Opções para Inspeção API')
   const menu = document.querySelector('[role="menu"]')
   assert.ok(menu.querySelector('[aria-label="Editar"]'))
-  assert.ok(menu.querySelector('[aria-label="Ver respostas (prévia)"]'))
-  await click('Ver respostas (prévia)', menu)
+  assert.ok(menu.querySelector('[aria-label="Ver respostas"]'))
+  await click('Ver respostas', menu)
   assert.equal(document.getElementById('location').textContent, '/mainFormScreen/responses?preview=1')
   assert.equal(document.querySelector('[role="menu"]'), null)
   assert.equal(env.calls.some(call => ['getForm', 'updateForm', 'publishForm', 'deleteForm'].includes(call.name)), false)
@@ -363,3 +371,24 @@ test('produção abre respostas reais pelo menu de um formulário concluído e p
   await click('Ver respostas', menu)
   assert.equal(document.getElementById('location').textContent, `/mainFormScreen/responses?id=${id}`)
 }))
+
+for (const [page, route, title] of [
+  ['createForm', '/createForms', 'Crie seu formulário'],
+  ['editForm', `/editForms?id=${id}`, 'Editar formulário'],
+]) {
+  test(`${page}: carregamento inicial não sobrepõe título ou conteúdo ao indicador`, async () => withDom(async root => {
+    const env = environment(), pending = deferred()
+    env.services.getFormOptions = () => pending.promise
+    const Page = env.load(`src/pages/${page}/index.tsx`).default
+    await mount(root, Page, route)
+    assert.ok(document.querySelector('.login-loading-overlay .login-loading-spinner'))
+    assert.equal(document.querySelector('h1'), null)
+    assert.equal(document.querySelector('.create-forms-header'), null)
+    assert.equal(document.querySelector('.create-forms-card'), null)
+    await act(async () => pending.resolve(options))
+    assert.equal(document.querySelector('.login-loading-overlay'), null)
+    assert.equal(document.querySelector('h1').textContent, title)
+    assert.ok(document.querySelector('.create-forms-header'))
+    assert.ok(document.querySelector('.create-forms-card'))
+  }))
+}

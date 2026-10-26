@@ -179,3 +179,12 @@ test('falha do catálogo não inventa gestores e não impede abrir os demais cam
     await assert.rejects(api.getFormRecipients(), /destinatários.*inválidos/)
   }
 })
+
+test('descrição é obrigatória fora do rascunho e espaços não contam como conteúdo', () => {
+  for (const description of ['', '   ']) {
+    const values = { ...utils.formValues(form), description }
+    assert.throws(() => utils.formRequest(values, 'PENDENTE'), /Informe a descrição do formulário/)
+    assert.doesNotThrow(() => utils.formRequest(values, 'RASCUNHO'))
+  }
+  assert.doesNotThrow(() => utils.formRequest(utils.formValues(form), 'PENDENTE'))
+})

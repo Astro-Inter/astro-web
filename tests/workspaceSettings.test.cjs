@@ -157,9 +157,12 @@ test('empresa carrega dados reais, preserva formulário após erro e navega só 
   assert.match(document.querySelector('dialog').textContent, /CNPJ em conflito/)
   assert.equal(document.querySelector('#company-cnpj').value, company.cnpj)
   assert.equal(env.navigations.length, 0)
+  const feedback = env.load('src/utils/actionFeedback.ts')
+  assert.equal(feedback.getActionFeedback().notices.some(notice => notice.tone === 'success'), false)
   await act(async () => save().click())
   assert.equal(writes, 2)
   assert.equal(env.navigations[0][0], '/mainWorkspaceSettingsScreen')
+  assert.ok(feedback.getActionFeedback().notices.some(notice => notice.tone === 'success' && /Informações da empresa atualizadas com sucesso/.test(notice.message)))
 }))
 
 test('transferência filtra gestores ativos, envia ID, confirma perda de acesso e revalida sessão', async () => withDOM(async (root, env) => {
@@ -240,4 +243,82 @@ test('importação identifica só unidades novas, preserva arquivo e endereços 
   assert.match(document.body.textContent, /Linha 4, campo cpf: Linha idêntica repetida/)
   assert.equal(reads, 1)
   assert.equal(writes, 2)
+}))
+
+
+test('leitura do workspace usa o mesmo carregamento do login e o remove ao concluir, falhar ou desmontar', async () => withDOM(async (root, env) => {
+  const Feedback = env.load('src/components/workspaceQueryFeedback/index.tsx').default
+  const Host = env.load('src/components/actionFeedbackHost/index.tsx').default
+  const state = env.load('src/utils/actionFeedback.ts')
+  let retries = 0
+  const render = props => root.render(React.createElement(React.Fragment, null, React.createElement(Host), React.createElement(Feedback, { onRetry: () => { retries++ }, error: '', ...props })))
+  await act(async () => render({ loading: true }))
+  assert.equal(state.getActionFeedback().pending, 1)
+  assert.ok(document.querySelector('dialog.login-loading-overlay .login-loading-indicator'))
+  assert.doesNotMatch(document.body.textContent, /Carregando informações do workspace/)
+  await act(async () => render({ loading: false, error: 'Falha ao consultar workspace.' }))
+  assert.equal(document.querySelector('.login-loading-overlay'), null)
+  assert.equal(state.getActionFeedback().pending, 0)
+  assert.match(document.querySelector('[role=alert]').textContent, /Falha ao consultar/)
+  await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Tentar novamente').click())
+  assert.equal(retries, 1)
+  await act(async () => render({ loading: true }))
+  assert.ok(document.querySelector('.login-loading-overlay'))
+  await act(async () => render({ loading: false }))
+  assert.equal(document.querySelector('.login-loading-overlay'), null)
+  await act(async () => render({ loading: true }))
+  await act(async () => root.render(null))
+  assert.equal(state.getActionFeedback().pending, 0)
+  assert.equal(document.querySelector('.login-loading-overlay'), null)
+}))
+
+
+test('carregamento permanece contínuo entre senha confirmada, navegação e consulta do workspace', async () => withDOM(async (root, env) => {
+  const Host = env.load('src/components/actionFeedbackHost/index.tsx').default
+  const Form = env.load('src/components/passwordConfirmationForm/index.tsx').default
+  const Feedback = env.load('src/components/workspaceQueryFeedback/index.tsx').default
+  const state = env.load('src/utils/actionFeedback.ts')
+  const confirmation = { password: '', visible: false, error: '', blocked: true, updatePassword() {}, toggleVisibility() {} }
+  const render = phase => root.render(React.createElement(React.Fragment, null, React.createElement(Host), phase < 2
+    ? React.createElement(Form, { confirmation: { ...confirmation, status: phase === 0 ? 'loading' : 'success' }, onCancel() {}, onContinue: async () => {} })
+    : React.createElement(Feedback, { loading: phase === 2, error: '', onRetry() {} })))
+  await act(async () => render(0))
+  const overlay = document.querySelector('.login-loading-overlay')
+  assert.ok(overlay)
+  await act(async () => render(1))
+  assert.equal(state.getActionFeedback().pending, 1)
+  assert.equal(document.querySelector('.login-loading-overlay'), overlay)
+  await act(async () => render(2))
+  assert.equal(state.getActionFeedback().pending, 1)
+  assert.equal(document.querySelector('.login-loading-overlay'), overlay)
+  await act(async () => render(3))
+  assert.equal(state.getActionFeedback().pending, 0)
+  assert.equal(document.querySelector('.login-loading-overlay'), null)
+}))
+
+test('dialog não reabre enquanto a navegação mantém a tela anterior montada e pode abrir em novo ciclo', async () => withDOM(async (root, env) => {
+  window.matchMedia = () => ({ matches: false })
+  window.scrollTo = () => {}
+  document.documentElement.style.setProperty('--astro-popup-duration', '20ms')
+  let opened = 0, closed = 0, dismissals = 0
+  window.HTMLDialogElement.prototype.showModal = function () { opened++; this.setAttribute('open', '') }
+  window.HTMLDialogElement.prototype.close = function () {
+    this.removeAttribute('open')
+    const dialog = this
+    window.setTimeout(() => dialog.dispatchEvent(new window.Event('close')), 0)
+  }
+  const Modal = env.load('src/components/appModal/index.tsx').default
+  const render = open => root.render(React.createElement(Modal, { title: 'Confirmar senha', open, onDismissRequest: () => { dismissals++ }, onClose: () => { closed++ } }, dismiss => React.createElement('button', { onClick: dismiss }, 'Fechar')))
+  await act(async () => render(true))
+  await act(async () => document.querySelector('button').click())
+  await act(async () => new Promise(resolve => window.setTimeout(resolve, 40)))
+  assert.equal(closed, 1)
+  await act(async () => render(true))
+  assert.equal(document.querySelector('dialog').open, false)
+  assert.equal(opened, 1)
+  assert.equal(dismissals, 1)
+  await act(async () => render(false))
+  await act(async () => render(true))
+  assert.equal(document.querySelector('dialog').open, true)
+  assert.equal(opened, 2)
 }))

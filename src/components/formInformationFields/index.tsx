@@ -22,15 +22,15 @@ export default function FormInformationFields({ errors = {}, prefix, values, set
   const change = (field: keyof Omit<CreateFormValues, 'questions'>, value: string) => setValues(current => ({ ...current, [field]: value }))
   return <>
     <div className="create-forms-field"><label htmlFor={`${prefix}-name`}>Nome do formulário</label><input aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? `${prefix}-name-error` : undefined} id={`${prefix}-name`} placeholder="Digite o nome do formulário" maxLength={100} onChange={e => change('name', e.target.value)} value={values.name} />{fieldError('name')}</div>
-    <div className="create-forms-field"><label htmlFor={`${prefix}-description`}>Descrição do formulário</label><input aria-invalid={Boolean(errors.description)} aria-describedby={errors.description ? `${prefix}-description-error` : undefined} id={`${prefix}-description`} placeholder="Digite a descrição do formulário" maxLength={240} onChange={e => change('description', e.target.value)} value={values.description} />{fieldError('description')}</div>
+    <div className="create-forms-field"><label htmlFor={`${prefix}-description`}>Descrição do formulário</label><input required aria-invalid={Boolean(errors.description)} aria-describedby={errors.description ? `${prefix}-description-error` : undefined} id={`${prefix}-description`} placeholder="Digite a descrição do formulário" maxLength={240} onChange={e => change('description', e.target.value)} value={values.description} />{fieldError('description')}</div>
     <div className="create-forms-field">
       <span className="create-forms-label">Gestor destinatário</span>
-      {options.managersLoading ? <div aria-busy="true"><span className="sr-only" role="status">Carregando gestores</span><span aria-hidden="true" className="api-skeleton api-skeleton-control" /></div> : <ToolbarSelect trackingAction={BUTTONS.comuns.gestor} className="create-forms-select" id={`${prefix}-manager`} error={errors.manager} label="Gestor destinatário"
+      <ToolbarSelect trackingAction={BUTTONS.comuns.gestor} className="create-forms-select" id={`${prefix}-manager`} error={errors.manager} label="Gestor destinatário"
         disabled={!!options.managersError || options.managersLoading}
         onValueChange={value => change('manager', value)}
         options={[{ value: '', label: 'Selecione o gestor', tone: 'muted' },
           ...options.managers.filter(manager => manager.value !== options.currentManagerId)]}
-        value={options.managers.some(manager => manager.value === values.manager && manager.value !== options.currentManagerId) ? values.manager : ''} />}
+        value={options.managers.some(manager => manager.value === values.manager && manager.value !== options.currentManagerId) ? values.manager : ''} />
       {fieldError('manager')}
       {options.managersError ? <div className="forms-recipients-feedback" role="alert">
         <p>{options.managersError}</p>

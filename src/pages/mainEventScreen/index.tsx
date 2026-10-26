@@ -8,12 +8,14 @@ import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, ToolbarS
 import EventCalendar from '../../components/eventCalendar'
 import EventOptionsModal from '../../components/eventOptionsModal'
 import EventDetailsModal from '../../components/eventDetailsModal'
+import EventActionPendingModal, { type EventAction } from '../../components/eventActionPendingModal'
 import CreateEventFlowModal from '../../components/createEventFlowModal'
 import { detailedCalendarEvent, useEvents } from '../../hooks/useEvents'
 import { useAuthentication } from '../../hooks/useAuthentication'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { useAnimatedResults } from '../../hooks/useAnimatedResults'
-import type { CalendarEvent, CalendarView } from '../../types/events'
+import { useExitPresence } from '../../hooks/useExitPresence'
+import type { CalendarEvent, CalendarView, EventResponse } from '../../types/events'
 import type { EventConfiguration } from '../../types/eventCreation'
 import { configurationForEvent, numberEventsByDay } from '../../utils/eventEditing'
 import { shiftCalendarPeriod, weekDays } from '../../utils/events'
@@ -34,11 +36,11 @@ function EventScreenContent() {
   const [searchText, setSearchText] = useState('')
   const [openId, setOpenId] = useState<string | null>(null)
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null)
-  const [pendingInactivation, setPendingInactivation] = useState<CalendarEvent | null>(null)
+  const [eventAction, setEventAction] = useState<{ action: EventAction; event: CalendarEvent } | null>(null)
+  const [loadedAction, setLoadedAction] = useState<{ selection: NonNullable<typeof eventAction>; data: EventResponse } | null>(null)
   const [cancellationReason, setCancellationReason] = useState('')
-  const [informationEvent, setInformationEvent] = useState<CalendarEvent | null>(null)
   const setFeedback = useActionFeedback()
-  const [editor, setEditor] = useState<{ mode: 'create' } | { mode: 'edit'; event: CalendarEvent; value: EventConfiguration } | null>(() => location.state?.openCreate === true ? { mode: 'create' } : null)
+  const [creationEditor, setEditor] = useState<{ mode: 'create' } | null>(() => location.state?.openCreate === true ? { mode: 'create' } : null)
   const [savedEventId, setSavedEventId] = useState<string | null>(null)
   const [animateCalendar, setAnimateCalendar] = useState(true)
   const pendingSavedIdRef = useRef<string | null>(null)
@@ -47,7 +49,7 @@ function EventScreenContent() {
   const panelRef = useRef<HTMLDivElement | null>(null)
   const headingRef = useRef<HTMLHeadingElement | null>(null)
   const { closing, requestClose } = useAnimatedClose()
-  const { events, loading, error, retry, details, retryDetails, save, cancel } = useEvents(month, view, openId ? openId.split(':')[0] : undefined)
+  const { events, loading, error, retry, details, retryDetails, save, cancel } = useEvents(month, view, eventAction ? eventAction.event.eventId ?? eventAction.event.id.split(':')[0] : undefined)
 
   useEffect(() => () => {
     if (saveAnimationTimerRef.current !== null) window.clearTimeout(saveAnimationTimerRef.current)
@@ -88,19 +90,46 @@ function EventScreenContent() {
       top: Math.max(gap, Math.min(top, window.innerHeight - panel.height - gap)),
       left: Math.max(gap, Math.min(trigger.right - panel.width, window.innerWidth - panel.width - gap)),
     })
-  }, [openId, details.loading, details.error])
+  }, [openId])
 
   const search = searchText.trim().toLocaleLowerCase('pt-BR')
   const numberedEvents = useMemo(() => numberEventsByDay(events), [events])
   const visibleEvents = useMemo(() => numberedEvents.filter(event =>
     event.title.toLocaleLowerCase('pt-BR').includes(search),
   ), [numberedEvents, search])
-  const calendarSnapshot = useMemo(() => [{ month, view, events: visibleEvents }], [month, view, visibleEvents])
-  const calendarSignature = `${view}|${month.getTime()}|${JSON.stringify(visibleEvents.map(event => [event.id, event.title, event.date, event.category, event.inactive, event.eventNumber, event.category === 'today' ? '' : event.startTime, event.category === 'today' ? '' : event.endTime]))}`
-  const calendarResults = useAnimatedResults(calendarSnapshot, calendarSignature, month.getTime(), view, animateCalendar)
+  const calendarSnapshot = useMemo(() => [{ month, view, events: visibleEvents, loading }], [month, view, visibleEvents, loading])
+  const calendarSignature = `${view}|${month.getTime()}|${loading}|${JSON.stringify(visibleEvents.map(event => [event.id, event.title, event.date, event.category, event.inactive, event.eventNumber, event.category === 'today' ? '' : event.startTime, event.category === 'today' ? '' : event.endTime]))}`
+  const calendarResults = useAnimatedResults(calendarSnapshot, calendarSignature, month.getTime(), view, animateCalendar, loading)
   const displayedCalendar = calendarResults.items[0]
+  const calendarLoading = loading || displayedCalendar.loading
   const selectedEntry = events.find(event => event.id === openId)
-  const selected = selectedEntry && details.data ? detailedCalendarEvent(selectedEntry, details.data) : selectedEntry
+  const selected = selectedEntry
+  // Mantém o conteúdo aberto estável enquanto a gravação atualiza a resposta da API.
+  if (eventAction && details.data && !details.loading && loadedAction?.selection !== eventAction) {
+    setLoadedAction({ selection: eventAction, data: details.data })
+  }
+  const actionData = loadedAction?.selection === eventAction ? loadedAction?.data : details.data
+  const actionEvent = eventAction && actionData ? detailedCalendarEvent(eventAction.event, actionData) : eventAction?.event
+  const actionLoading = useExitPresence(true, Boolean(eventAction && details.loading))
+  const actionReady = !!eventAction && !actionLoading.present && !details.error && !!details.data
+  const permissionError = actionReady && ((eventAction.action === 'edit' && !actionData?.canEdit) || (eventAction.action === 'inactivate' && !actionData?.canCancel))
+    ? 'Você não tem permissão para realizar esta ação neste evento.' : ''
+  const informationEvent = actionReady && eventAction?.action === 'information' ? actionEvent : null
+  const pendingInactivation = actionReady && !permissionError && eventAction?.action === 'inactivate' ? actionEvent : null
+  const editor = creationEditor ?? (actionReady && !permissionError && eventAction?.action === 'edit' && actionEvent
+    ? { mode: 'edit' as const, event: actionEvent, value: configurationForEvent(actionEvent) } : null)
+
+  function closeEventAction() {
+    setEventAction(null)
+    requestAnimationFrame(() => (triggerRef.current?.isConnected ? triggerRef.current : headingRef.current)?.focus({ preventScroll: true }))
+  }
+
+  function requestEventAction(action: EventAction, event: CalendarEvent) {
+    closeMenu(() => {
+      setCancellationReason('')
+      setEventAction({ action, event })
+    }, false)
+  }
   const visiblePeriodCount = visibleEvents.filter(event => {
     if (view === 'year') return event.date.startsWith(`${month.getFullYear()}-`)
     if (view === 'month') return event.date.startsWith(`${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}-`)
@@ -121,6 +150,7 @@ function EventScreenContent() {
 
   async function saveEvent(value: EventConfiguration): Promise<void> {
     if (!editor) return
+    if (editor.mode === 'edit' && !details.data?.canEdit) throw new Error('Você não tem permissão para editar este evento.')
     const existing = editor.mode === 'edit' ? editor.event : null
     const saved = await save(value, existing?.eventId ?? existing?.id)
     const eventId = String(saved.id)
@@ -138,6 +168,7 @@ function EventScreenContent() {
 
   function closeEditor() {
     setEditor(null)
+    setEventAction(null)
     if (pendingSavedIdRef.current) {
       if (saveAnimationTimerRef.current !== null) window.clearTimeout(saveAnimationTimerRef.current)
       setSavedEventId(pendingSavedIdRef.current)
@@ -148,7 +179,7 @@ function EventScreenContent() {
       }, 900)
     }
     requestAnimationFrame(() => {
-      if (!triggerRef.current?.isConnected) headingRef.current?.focus({ preventScroll: true })
+      (triggerRef.current?.isConnected ? triggerRef.current : headingRef.current)?.focus({ preventScroll: true })
     })
   }
 
@@ -168,31 +199,28 @@ function EventScreenContent() {
               <ToolbarSelect trackingAction={BUTTONS.comuns.calendario} label="Visualização do calendário" options={viewOptions} searchable={false} value={view} onValueChange={value => changeCalendar(() => { setOpenId(null); setView(value as CalendarView) })} />
             </div>
           </div>
-          {loading && <p role="status">Carregando eventos...</p>}
           {error && <div role="alert"><p>{error}</p><button className="astro-modal-cancel" onClick={retry} type="button">Tentar novamente</button></div>}
-          {!loading && !error && visiblePeriodCount === 0 && <p role="status">Nenhum evento encontrado neste período.</p>}
-          {openId && details.loading && <p className="sr-only" role="status">Carregando informações do evento...</p>}
-          {openId && details.error && <div role="alert"><p>{details.error}</p><button className="astro-modal-cancel" onClick={retryDetails} type="button">Tentar novamente</button></div>}
+          {!calendarLoading && !error && !calendarResults.exiting && visiblePeriodCount === 0 && <p role="status">Nenhum evento encontrado neste período.</p>}
           <div className="event-board">
-            <div aria-busy={loading || calendarResults.exiting} className={`event-calendar-transition${calendarResults.changed ? ' event-calendar-transition--animated' : ''}${calendarResults.direction ? ` event-calendar-transition--${calendarResults.direction}` : ''}${calendarResults.exiting ? ' event-calendar-transition--exiting' : ''}`} key={calendarResults.signature}>
-              <EventCalendar events={displayedCalendar.events} month={displayedCalendar.month} view={displayedCalendar.view} onMonthChange={amount => changeCalendar(() => { setOpenId(null); setMonth(current => shiftCalendarPeriod(current, view, amount)) })} onOpenOptions={openOptions} selectedEventId={openId} savedEventId={savedEventId} />
+            <div aria-busy={loading || calendarResults.exiting} className={`event-calendar-transition${calendarResults.changed ? ' event-calendar-transition--animated' : ''}${calendarResults.direction ? ` event-calendar-transition--${calendarResults.direction}` : ''}${calendarResults.exiting ? ' event-calendar-transition--exiting' : ''}`}>
+              <EventCalendar loading={calendarLoading} events={displayedCalendar.events} month={displayedCalendar.month} view={displayedCalendar.view} onMonthChange={amount => changeCalendar(() => { setOpenId(null); setMonth(current => shiftCalendarPeriod(current, view, amount)) })} onOpenOptions={openOptions} selectedEventId={openId} savedEventId={savedEventId} />
             </div>
           </div>
-          <p className="sr-only" role="status">{visiblePeriodCount} eventos visíveis neste período.</p>
+          {!calendarLoading && !calendarResults.exiting && <p className="sr-only" role="status">{visiblePeriodCount} eventos visíveis neste período.</p>}
         </section>
       </main>
-      {selected && createPortal(<EventOptionsModal loading={details.loading} error={details.error} onRetry={retryDetails} closing={closing} event={selected} canEdit={details.data?.canEdit ?? false} canCancel={details.data?.canCancel ?? false} informationReady={!!details.data} onClose={() => closeMenu()} onViewInformation={() => closeMenu(() => setInformationEvent(selected))} onEdit={() => closeMenu(() => setEditor({ mode: 'edit', event: selected, value: configurationForEvent(selected) }))} onInactivate={() => closeMenu(() => { setCancellationReason(''); setPendingInactivation(selected) })} panelRef={panelRef} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} />, document.body)}
-      {informationEvent && <EventDetailsModal event={informationEvent} onClose={() => {
-        setInformationEvent(null)
-        requestAnimationFrame(() => (triggerRef.current?.isConnected ? triggerRef.current : headingRef.current)?.focus({ preventScroll: true }))
-      }} />}
-      {pendingInactivation && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_inativacao_evento} backdrop="dimmed" preservePageScroll className="event-deactivation-modal" confirmLabel="Inativar" progressLabel="Inativando evento..." tone="danger" title="Tem certeza de que deseja inativar este evento?" description={<><span>O cancelamento é definitivo. Informe o motivo.</span><label className="event-create-field" htmlFor="event-cancellation-reason">Justificativa<textarea id="event-cancellation-reason" minLength={3} maxLength={1000} value={cancellationReason} onChange={event => setCancellationReason(event.target.value)} /></label></>} icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={() => setPendingInactivation(null)} onConfirm={async () => { await cancel(pendingInactivation.eventId ?? pendingInactivation.id, cancellationReason); return null }} onConfirmed={() => {
+      {selected && createPortal(<EventOptionsModal closing={closing} event={selected} onClose={() => closeMenu()} onViewInformation={() => requestEventAction('information', selected)} onEdit={() => requestEventAction('edit', selected)} onInactivate={() => requestEventAction('inactivate', selected)} panelRef={panelRef} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} />, document.body)}
+      {eventAction && (!actionReady || permissionError) && <EventActionPendingModal action={eventAction.action} loading={actionLoading.present} exiting={actionLoading.exiting} error={details.error || permissionError || 'Não foi possível carregar os dados do evento.'} onClose={closeEventAction} onRetry={permissionError ? undefined : retryDetails} />}
+      <div className={eventAction ? 'event-action-resolved' : undefined}>
+      {informationEvent && <EventDetailsModal event={informationEvent} onClose={closeEventAction} />}
+      {pendingInactivation && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_inativacao_evento} backdrop="dimmed" preservePageScroll className="event-deactivation-modal" confirmLabel="Inativar" progressLabel="Inativando evento..." tone="danger" title="Tem certeza de que deseja inativar este evento?" description={<><span>O cancelamento é definitivo. Informe o motivo.</span><label className="event-create-field" htmlFor="event-cancellation-reason">Justificativa<textarea id="event-cancellation-reason" minLength={3} maxLength={1000} value={cancellationReason} onChange={event => setCancellationReason(event.target.value)} /></label></>} icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={closeEventAction} onConfirm={async () => { if (!details.data?.canCancel) throw new Error('Você não tem permissão para inativar este evento.'); await cancel(pendingInactivation.eventId ?? pendingInactivation.id, cancellationReason); return null }} onConfirmed={() => {
         setAnimateCalendar(true)
         setFeedback(`Evento ${pendingInactivation.title} inativado.`)
-        setPendingInactivation(null)
+        setEventAction(null)
         requestAnimationFrame(() => headingRef.current?.focus())
       }} />}
       {editor && <CreateEventFlowModal managerId={editor.mode === 'edit' ? editor.value.creatorId : ''} initialValue={editor.mode === 'edit' ? editor.value : undefined} mode={editor.mode} onClose={closeEditor} onSubmit={saveEvent} />}
+      </div>
     </div>
   )
 }

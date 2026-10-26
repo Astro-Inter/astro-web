@@ -1,6 +1,7 @@
 import { BUTTONS } from '../../gtm/buttons'
 import type { EventDraft, EventGroup, EventGroupSchedule, EventSettings } from '../../types/eventCreation'
 import PurpleButton from '../purpleButton'
+import ActionLoading from '../actionLoading'
 import EventGroupsSummary from '../eventGroupsSummary'
 import { completionOptions, evidenceOptions } from '../../data/eventSettings'
 import TruncatedText from '../truncatedText'
@@ -15,12 +16,11 @@ interface EventReviewModalProps {
   onBack: () => void
   onCreate: () => void
   editing?: boolean
-  error?: string
   submitting?: boolean
   onViewCollaborators?: (group: EventGroup, ids: string[]) => void
 }
 
-function EventReviewModal({ draft, groups, assignments, schedules, settings, onBack, onCreate, editing = false, error, submitting = false, onViewCollaborators }: EventReviewModalProps) {
+function EventReviewModal({ draft, groups, assignments, schedules, settings, onBack, onCreate, editing = false, submitting = false, onViewCollaborators }: EventReviewModalProps) {
   const link = /^https?:\/\//i.test(draft.externalLink) ? draft.externalLink : undefined
   return <>
     <p className="event-create-description">{editing ? 'Confira todas as informações antes de salvar as alterações.' : 'Confira todas as informações antes de criar o evento.'}</p>
@@ -40,8 +40,7 @@ function EventReviewModal({ draft, groups, assignments, schedules, settings, onB
         <div><dt>Total de turmas</dt><dd><TruncatedText>{`${groups.length} ${groups.length === 1 ? 'turma' : 'turmas'}`}</TruncatedText></dd></div>
       </dl></section>
     </div>
-    {error && <p className="event-create-error" role="alert">{error}</p>}
-    {submitting && <p role="status">Criando evento...</p>}
+    <ActionLoading active={submitting} />
     <div className="astro-modal-actions event-create-actions"><button disabled={submitting} data-track-action={BUTTONS.comuns.voltar} className="astro-modal-cancel" onClick={onBack} type="button">Voltar</button><PurpleButton disabled={submitting} data-track-action={editing ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.criar_evento} onClick={onCreate} type="button">{editing ? 'Salvar alterações' : 'Criar evento'}</PurpleButton></div>
   </>
 }

@@ -1,6 +1,5 @@
 import ActionLoading from '../../components/actionLoading'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
-import FormEditorSkeleton from '../../components/formEditorSkeleton'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react'
@@ -35,8 +34,8 @@ function CreateFormPage() {
   const setFeedback = useActionFeedback()
   const [error, setError] = useState('')
   const [deadlineValid, setDeadlineValid] = useState(true)
-  const [validationDraft, setValidationDraft] = useState<boolean | null>(null)
-  const fieldErrors = validationDraft === null ? {} : validateAndSanitizeForm(values, validationDraft).errors
+  const [validationAttempt, setValidationAttempt] = useState<{ values: typeof values; draft: boolean } | null>(null)
+  const fieldErrors = validationAttempt?.values === values ? validateAndSanitizeForm(values, validationAttempt.draft).errors : {}
   const menuTriggerRef = useRef<HTMLButtonElement>(null)
   const menuPanelRef = useRef<HTMLDivElement>(null)
   const highlightTimerRef = useRef<number | null>(null)
@@ -120,7 +119,7 @@ function CreateFormPage() {
   async function persist(draft: boolean) {
     if (saving || leaving) return
     if (removingQuestionIdsRef.current.size) { setError('Aguarde a remoção da pergunta antes de salvar.'); return }
-    setValidationDraft(draft)
+    setValidationAttempt({ values, draft })
     const validation = validateAndSanitizeForm(values, draft)
     if (validation.errors.questions) setFeedback(validation.errors.questions, 'error')
     if (!deadlineValid || Object.keys(validation.errors).length) return
@@ -139,6 +138,8 @@ function CreateFormPage() {
     event.preventDefault()
     void persist(false)
   }
+
+  if (loading) return <div className="create-forms-page astro-scale-90" aria-busy="true"><ActionLoading /></div>
 
   return (
     <div className={`create-forms-page astro-scale-90${leaving ? ' create-forms-page--leaving' : ''}`}>
@@ -161,9 +162,8 @@ function CreateFormPage() {
 
       <main data-track-page={true} className="create-forms-main">
         <h1>Crie seu formulário</h1>
-        {loading && <FormEditorSkeleton />}
         {loadError && <div role="alert"><p>{loadError}</p><button type="button" onClick={retry}>Tentar novamente</button><button type="button" onClick={() => navigate('/mainFormScreen')}>Voltar aos formulários</button></div>}
-        <ActionLoading active={saving} />
+        <ActionLoading active={loading || options.managersLoading || saving} />
         <form hidden={loading} data-track-submit={BUTTONS.comuns.criar_forms} noValidate onSubmit={submitForm}>
           <fieldset aria-label="Definição do formulário" className="forms-editor-fields" disabled={loading || !!loadError || saving || leaving} aria-busy={loading || saving}>
           <section aria-labelledby="create-forms-initial-title" className="create-forms-card">

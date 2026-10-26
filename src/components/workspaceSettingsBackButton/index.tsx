@@ -27,11 +27,8 @@ function WorkspaceSettingsBackButton({ screen }: WorkspaceSettingsBackButtonProp
           confirmLabel="Sair"
           icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>}
           onCancel={() => setConfirming(false)}
-          onConfirm={() => {
-            navigate('/mainWorkspaceSettingsScreen', { state: { from } })
-            return null
-          }}
-          onConfirmed={() => null}
+          onConfirm={() => null}
+          onConfirmed={() => navigate('/mainWorkspaceSettingsScreen', { state: { from } })}
           preservePageScroll
           title="Tem certeza de que deseja sair? As alterações não serão salvas."
           tone="danger"

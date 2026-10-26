@@ -7,6 +7,7 @@ interface EventTimePickerProps {
   label: string
   value: string
   onChange: (value: string) => void
+  error?: string
 }
 
 const timeOptions = [
@@ -17,10 +18,10 @@ const timeOptions = [
   }),
 ]
 
-function EventTimePicker({ id, label, value, onChange }: EventTimePickerProps) {
+function EventTimePicker({ id, label, value, onChange, error }: EventTimePickerProps) {
   const options = value && !timeOptions.some(option => option.value === value) ? [...timeOptions, { value, label: value }] : timeOptions
   return <div className="event-create-time-picker">
-    <ToolbarSelect trackingAction={label === 'Entrada' ? BUTTONS.comuns.horario_entrada : label === 'Saída' ? BUTTONS.comuns.horario_saida : BUTTONS.comuns.selecionar_horario} escapeOverflow id={id} label={label} maxVisibleRows={3} onValueChange={onChange} options={options} preferredPlacement="below" value={value} />
+    <ToolbarSelect error={error} trackingAction={label === 'Entrada' ? BUTTONS.comuns.horario_entrada : label === 'Saída' ? BUTTONS.comuns.horario_saida : BUTTONS.comuns.selecionar_horario} escapeOverflow id={id} label={label} maxVisibleRows={3} onValueChange={onChange} options={options} preferredPlacement="below" value={value} />
     <AstroIcon className="event-create-time-icon" name="clock" />
   </div>
 }
