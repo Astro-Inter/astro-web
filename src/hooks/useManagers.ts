@@ -88,7 +88,7 @@ export function useManagers(managerId?: string, needsOptions = false, needsCandi
   useEffect(() => {
     const controller = new AbortController()
     if (!uid || !needsCandidates) return () => controller.abort()
-    listCollaborators(controller.signal).then((data) => {
+    listCollaborators(controller.signal, true).then((data) => {
       if (!controller.signal.aborted) setCandidates({ key: candidatesKey, data, loading: false, error: '' })
     }).catch((error: unknown) => {
       if (!controller.signal.aborted) setCandidates({ key: candidatesKey, data: [], loading: false, error: message(error) })

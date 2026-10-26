@@ -4,7 +4,7 @@ A aba `/mainEmployeerScreen` usa os cinco endpoints de colaboradores do [Swagger
 
 | Operação | Endpoint | Comportamento |
 | --- | --- | --- |
-| Listar | `GET /collaborators` | Busca e filtros locais; mantém os três status e não recebe CPF. |
+| Listar | `GET /collaborators?excludeSelf=true` | Inclui COLABORADOR, GESTOR e GESTOR_WORKSPACE no escopo; oculta o próprio usuário. Mantém os três status e não recebe CPF. |
 | Consultar | `GET /collaborators/{collaboratorId}` | Carrega os detalhes para visualização e edição, incluindo CPF e modalidade. |
 | Pré-cadastrar | `POST /collaborators` | Envia nome, CPF, e-mail, roleId, unitId e modalidade, sem senha ou status. |
 | Editar | `PUT /collaborators/{collaboratorId}` | Envia todos os campos administrativos e o status selecionado após confirmar a identidade do gestor. |
@@ -40,3 +40,14 @@ A validação com conta real e a auditoria com leitor de tela (E10) permanecem p
 A validação inicial dos detalhes exigia CPF com 11 dígitos e modalidade preenchida. O modelo da API permite CPF/modalidade nulos e o [mapper dos detalhes](https://github.com/Astro-Inter/astro-api/blob/c6f697d176f341a12420a62ee67fba0f1ea4cae3/src/main/java/com/astro/api/user/mapper/CollaboratorMapper.java) preserva a modalidade nula. Esses registros faziam o frontend mostrar “A API retornou detalhes inválidos para o colaborador” antes de abrir a visualização ou a edição.
 
 A leitura agora aceita valores nulos, vazios ou ausentes e mostra “Não informado” na visualização. CPF legado em formato incompleto permanece visível para correção. A edição abre normalmente e continua exigindo CPF válido e modalidade selecionada antes do PUT, como determina o contrato de escrita. Respostas com CPF de tipo incorreto ou modalidade desconhecida continuam sendo recusadas, com erro específico por campo. Não foi possível inspecionar o payload da sessão que originou a captura; a regressão foi reproduzida com respostas simuladas contendo campos nulos.
+
+## Gestores como colaboradores
+
+A listagem e os detalhes usam `vw_colaboradores` com COLABORADOR, GESTOR e GESTOR_WORKSPACE. A aba de colaboradores solicita `excludeSelf=true` à API para ocultar somente o usuário autenticado. As seleções de conformidades usam a consulta sem esse parâmetro, mantendo a própria conta. O backend preserva as permissões de edição e status.
+## Permissões de administração por registro
+
+A API retorna `canManage` na listagem e nos detalhes. O gestor do workspace pode editar e alterar o status dos três perfis dentro do seu escopo. O gestor comum pode consultar todos, mas outros gestores e o gestor do workspace aparecem somente para leitura. O próprio perfil permanece editável pelos fluxos da conta; a regra de ocultar a própria conta na listagem continua ativa.
+
+O menu mantém “Ver mais informações” para todos os registros autorizados e mostra “Editar” e “Ativar/Desativar” somente com `canManage=true`. Campo ausente equivale a somente leitura. Os formulários também respeitam a permissão atualizada dos detalhes. A API revalida a autorização em cada escrita; esconder botões não substitui a autorização do backend.
+
+Testes de renderização em `tests/collaboratorsPermissionsUi.test.cjs` cobrem os menus com e sem permissão. `tests/collaborators.test.cjs` cobre a conversão e rejeição de permissões malformadas. M05/M12/E03: comunicação permanece no serviço e no hook, preservando estados e cancelamento; M11 mantém ações por botão e navegação do menu por teclado. Auditoria integral de acessibilidade e publicação continuam fora desta alteração.

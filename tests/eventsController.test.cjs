@@ -176,3 +176,14 @@ test('candidatos usam a NR selecionada e descartam consulta antiga e resposta ap
   env.unmount(); const writes = env.writes
   second.resolve([]); await flush(); assert.equal(env.writes, writes)
 })
+
+test('seleção de eventos preserva os três perfis mesmo sem permissão para editar seus cadastros', async () => {
+  const env = environment('useEventCandidates')
+  env.services.listEventCandidates = async () => ['COLABORADOR', 'GESTOR', 'GESTOR_WORKSPACE'].map((userType, index) => ({
+    id: index + 10, name: `Pessoa ${index}`, email: null, roleName: 'Cargo', unitName: 'Sede', workModel: 'PRESENCIAL', userType, canManage: false,
+  }))
+  env.render('10'); await flush()
+  assert.deepEqual(env.render().collaborators.map(person => person.id), ['10', '11', '12'])
+  assert.equal(env.calls.filter(call => call.name === 'listEventCandidates').length, 1)
+  assert.equal(env.calls.some(call => call.name === 'listCollaborators'), false)
+})

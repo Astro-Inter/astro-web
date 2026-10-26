@@ -182,3 +182,21 @@ test('cancelamento de leitura é propagado e impede fetch se ocorrer durante obt
   global.fetch = async () => { throw new TypeError('Failed to fetch') }
   await assert.rejects(api.listCollaborators(), /conectar à API/)
 })
+
+test('oculta a própria conta somente quando a tela solicita, preservando os seletores de conformidades', async () => {
+  const calls = []
+  global.fetch = async (url) => { calls.push(new URL(url)); return respond([summary]) }
+  const controller = new AbortController()
+  assert.equal((await api.listCollaborators(controller.signal, true)).length, 1)
+  assert.equal((await api.listCollaborators(controller.signal)).length, 1)
+  assert.equal(calls[0].search, '?excludeSelf=true')
+  assert.equal(calls[1].search, '')
+})
+test('permissões administrativas vêm da API e ausência de permissão mantém somente consulta', async () => {
+  for (const canManage of [true, false, undefined]) {
+    global.fetch = async () => respond([{ ...summary, canManage }])
+    assert.equal((await api.listCollaborators())[0].canManage, canManage === true)
+  }
+  global.fetch = async () => respond([{ ...summary, canManage: 'true' }])
+  await assert.rejects(api.listCollaborators(), /inválid/)
+})

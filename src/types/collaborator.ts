@@ -15,6 +15,7 @@ export interface CollaboratorSummaryResponse {
   status: CollaboratorStatus
   profilePhotoUrl?: string | null
   avatarInitials?: string | null
+  canManage?: boolean
 }
 
 export interface CollaboratorDetailsResponse extends CollaboratorSummaryResponse {
@@ -34,6 +35,7 @@ export interface Collaborator {
   status: CollaboratorStatus
   profilePhotoUrl: string | null
   avatarInitials: string | null
+  canManage?: boolean
 }
 
 export interface CollaboratorDetails extends Collaborator {

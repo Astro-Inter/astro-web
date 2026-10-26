@@ -191,3 +191,9 @@ test('voltar à mesma conta não aceita uma resposta de escrita da sessão antig
   assert.match((await operation).error, /sessão mudou/)
   assert.equal(env.render().managers[0].name, person.name)
 })
+
+test('promoção solicita exclusão do próprio responsável para não oferecer o gestor do workspace', async () => {
+  const env = environment()
+  env.render(undefined, false, true); await flush()
+  assert.equal(env.calls.find(call => call.name === 'listCollaborators').args[1], true)
+})

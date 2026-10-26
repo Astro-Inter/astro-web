@@ -119,6 +119,7 @@ test('opções usam NRs reais e colaboradores ativos; edição de histórico dis
   assert.equal(env.calls.some(call => call.name === 'listCollaborators'), false)
   env.render(undefined, true, true); await flush()
   assert.deepEqual(env.render().options.data.employees.map(person => person.id), ['7'])
+  assert.equal(env.calls.find(call => call.name === 'listCollaborators').args.length, 1)
   env.services.listConformityNrs = async () => { throw new Error('NRs indisponíveis.') }
   env.render().retryOptions(); env.render(); await flush()
   assert.equal(env.render().options.error, 'NRs indisponíveis.')

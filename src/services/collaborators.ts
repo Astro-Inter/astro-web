@@ -50,13 +50,14 @@ function toCollaborator(row: CollaboratorSummaryResponse): Collaborator {
     || typeof row.nome !== 'string' || typeof row.email !== 'string' || typeof row.cargo !== 'string' || typeof row.unidade !== 'string'
     || !['PRE_CADASTRADO', 'ATIVO', 'DESATIVADO'].includes(row.status)
     || (row.profilePhotoUrl != null && typeof row.profilePhotoUrl !== 'string')
-    || (row.avatarInitials != null && typeof row.avatarInitials !== 'string')) {
+    || (row.avatarInitials != null && typeof row.avatarInitials !== 'string')
+    || (row.canManage != null && typeof row.canManage !== 'boolean')) {
     throw new CollaboratorsApiError('A API retornou dados inválidos para o colaborador.')
   }
   return { id: String(row.id_usuario), name: row.nome, email: row.email, roleId: String(row.cargo_id), position: row.cargo,
     unitId: String(row.unidade_id), unit: row.unidade, status: row.status,
     profilePhotoUrl: row.profilePhotoUrl && /^https?:\/\//i.test(row.profilePhotoUrl) ? row.profilePhotoUrl : null,
-    avatarInitials: row.avatarInitials || null }
+    avatarInitials: row.avatarInitials || null, canManage: row.canManage === true }
 }
 
 function toDetails(row: CollaboratorDetailsResponse): CollaboratorDetails {
@@ -81,8 +82,8 @@ function collaboratorPayload(values: CollaboratorFormValues): CreateCollaborator
     roleId: Number(values.roleId), unitId: Number(values.unitId), workModel: values.modality as CreateCollaboratorRequest['workModel'] }
 }
 
-export async function listCollaborators(signal?: AbortSignal): Promise<Collaborator[]> {
-  const data = await requestCollaborators<CollaboratorSummaryResponse[]>('/collaborators', 'GET', undefined, signal)
+export async function listCollaborators(signal?: AbortSignal, excludeSelf = false): Promise<Collaborator[]> {
+  const data = await requestCollaborators<CollaboratorSummaryResponse[]>(excludeSelf ? '/collaborators?excludeSelf=true' : '/collaborators', 'GET', undefined, signal)
   if (!Array.isArray(data)) throw new CollaboratorsApiError('A API retornou uma lista de colaboradores inválida.')
   return data.map(toCollaborator)
 }
