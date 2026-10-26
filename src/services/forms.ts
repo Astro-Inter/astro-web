@@ -5,10 +5,11 @@ import { formApiStatuses, formRequest, isFormId, isFormReferenceId } from '../ut
 import type { CreateFormValues, FormDetailsResponse, FormEditorOptions, FormManagerOptions, FormRecipientsResponse, FormsPageResponse, FormStatus, FormSummaryResponse } from '../types/forms'
 
 export class FormsApiError extends Error {
-  constructor(message: string, options?: ErrorOptions) { super(message, options); this.name = 'FormsApiError' }
+  readonly status?: number
+  constructor(message: string, options?: ErrorOptions, status?: number) { super(message, options); this.name = 'FormsApiError'; this.status = status }
 }
 
-async function requestForms<T>(path: string, method = 'GET', payload?: object, signal?: AbortSignal): Promise<T> {
+export async function requestForms<T>(path: string, method = 'GET', payload?: object, signal?: AbortSignal): Promise<T> {
   try {
     const user = firebaseAuth.currentUser
     if (!user) throw new FormsApiError('Entre na sua conta para acessar os formulários.')
@@ -33,7 +34,7 @@ async function requestForms<T>(path: string, method = 'GET', payload?: object, s
           : response.status === 403 ? 'Você não tem permissão para esta operação de formulários.'
             : response.status === 404 ? 'Formulário ou vínculo não encontrado no seu workspace.'
               : response.status === 409 ? 'O formulário recebeu respostas ou foi alterado. Consulte novamente antes de tentar outra vez.'
-                : 'Não foi possível concluir a operação de formulários. Tente novamente.'))
+                : 'Não foi possível concluir a operação de formulários. Tente novamente.'), undefined, response.status)
     }
     if (result?.success !== true || !('data' in result)) throw new FormsApiError('A API retornou uma resposta inválida para formulários.')
     return result.data as T
@@ -54,7 +55,7 @@ const validDate = (value: string | null) => value === null || (/^\d{4}-\d{2}-\d{
 const validSummary = (row: FormSummaryResponse) => row && isFormId(row.id) && nullableText(row.title) && nullableText(row.description)
   && Number.isSafeInteger(row.questionCount) && row.questionCount >= 0 && row.questionCount <= 100 && validStatus(row.status)
 
-function details(row: FormDetailsResponse): FormDetailsResponse {
+export function parseFormDetails(row: FormDetailsResponse): FormDetailsResponse {
   if (!row || !isFormId(row.id) || !positiveId(row.workspaceId) || !positiveId(row.senderManagerId)
     || [row.managerId, row.nrCode, row.unitId].some(id => id !== null && !positiveId(id))
     || !nullableText(row.title) || !nullableText(row.description) || !validStatus(row.status) || !validDate(row.dueDate)
@@ -65,7 +66,7 @@ function details(row: FormDetailsResponse): FormDetailsResponse {
       || !Array.isArray(q.answer) || (q.options !== null && (!Array.isArray(q.options)
         || new Set(q.options.map(o => o?.id)).size !== q.options.length
         || q.options.some(o => !o || !positiveId(o.id) || typeof o.text !== 'string' || typeof o.other !== 'boolean')))
-      || (q.type === 'foto' && (!positiveId(q.maxFiles ?? 0) || (q.maxFiles ?? 0) > 10 || ![5, 10, 20, 50, 100].includes(q.maxFileSizeMb ?? 0))))
+      || (q.type === 'foto' && (!positiveId(q.maxFiles ?? 0) || (q.maxFiles ?? 0) > 10 || !positiveId(q.maxFileSizeMb ?? 0) || (q.maxFileSizeMb ?? 0) > 100)))
     || new Set(row.questions.map(q => q.id)).size !== row.questions.length) {
     throw new FormsApiError('A API retornou detalhes inválidos para o formulário.')
   }
@@ -86,20 +87,20 @@ export async function listForms(search: string, status: FormStatus | '', page: n
   return data
 }
 export async function getForm(id: string, signal?: AbortSignal): Promise<FormDetailsResponse> {
-  return details(await requestForms<FormDetailsResponse>(formPath(id), 'GET', undefined, signal))
+  return parseFormDetails(await requestForms<FormDetailsResponse>(formPath(id), 'GET', undefined, signal))
 }
 export async function createForm(values: CreateFormValues, draft = false, signal?: AbortSignal): Promise<FormDetailsResponse> {
-  return details(await requestForms<FormDetailsResponse>('/forms', 'POST', formRequest(values, draft ? 'RASCUNHO' : 'PENDENTE'), signal))
+  return parseFormDetails(await requestForms<FormDetailsResponse>('/forms', 'POST', formRequest(values, draft ? 'RASCUNHO' : 'PENDENTE'), signal))
 }
 export async function updateForm(id: string, values: CreateFormValues, existing: FormDetailsResponse, signal?: AbortSignal): Promise<FormDetailsResponse> {
   if (existing.id !== id) throw new FormsApiError('Consulte o formulário antes de salvar.')
-  return details(await requestForms<FormDetailsResponse>(formPath(id), 'PUT', formRequest(values, existing.status, existing), signal))
+  return parseFormDetails(await requestForms<FormDetailsResponse>(formPath(id), 'PUT', formRequest(values, existing.status, existing), signal))
 }
 export async function deleteForm(id: string, signal?: AbortSignal): Promise<void> {
   await requestForms<void>(formPath(id), 'DELETE', undefined, signal)
 }
 export async function publishForm(id: string, signal?: AbortSignal): Promise<FormDetailsResponse> {
-  return details(await requestForms<FormDetailsResponse>(`${formPath(id)}/publish`, 'POST', undefined, signal))
+  return parseFormDetails(await requestForms<FormDetailsResponse>(`${formPath(id)}/publish`, 'POST', undefined, signal))
 }
 
 export async function getFormRecipients(signal?: AbortSignal): Promise<FormManagerOptions> {
