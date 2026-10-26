@@ -1,12 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import type { PasswordRecoveryErrors, PasswordRecoveryValues } from '../types/passwordRecovery'
-import { getRecoveryChallenge, PasswordRecoveryError, replacePassword, requestPasswordRecovery } from '../services/passwordRecovery'
+import { getPasswordRecoveryRetrySeconds, getRecoveryChallenge, PasswordRecoveryError, replacePassword, requestPasswordRecovery } from '../services/passwordRecovery'
 import { validatePasswordReplacement, validateRecoveryEmail } from '../utils/passwordRecovery'
 
 export function usePasswordRecovery(initialEmail = '', oobCode = '') {
   const [values, setValues] = useState<PasswordRecoveryValues>(() => ({ email: getRecoveryChallenge()?.email ?? initialEmail, password: '', confirmation: '' }))
   const [errors, setErrors] = useState<PasswordRecoveryErrors>({})
   const [pending, setPending] = useState(false)
+  const [retryAfterSeconds, setRetryAfterSeconds] = useState(getPasswordRecoveryRetrySeconds)
+  const coolingDown = retryAfterSeconds > 0
+  useEffect(() => {
+    if (!coolingDown) return
+    const timer = setInterval(() => setRetryAfterSeconds(getPasswordRecoveryRetrySeconds()), 1000)
+    return () => clearInterval(timer)
+  }, [coolingDown])
   const controllerRef = useRef<AbortController | null>(null)
   useEffect(() => () => { controllerRef.current?.abort(); controllerRef.current = null }, [])
 
@@ -16,7 +23,7 @@ export function usePasswordRecovery(initialEmail = '', oobCode = '') {
   }
 
   async function submit(mode: 'request' | 'replace'): Promise<boolean> {
-    if (controllerRef.current) return false
+    if (controllerRef.current || getPasswordRecoveryRetrySeconds()) return false
     const validation = mode === 'request' ? validateRecoveryEmail(values.email) : validatePasswordReplacement(values)
     setErrors(validation)
     if (Object.keys(validation).length) return false
@@ -32,6 +39,7 @@ export function usePasswordRecovery(initialEmail = '', oobCode = '') {
       return true
     } catch (error: unknown) {
       if (controller.signal.aborted) return false
+      setRetryAfterSeconds(getPasswordRecoveryRetrySeconds())
       const field = error instanceof PasswordRecoveryError ? error.field : mode === 'request' ? 'email' : 'form'
       setErrors({ [field]: error instanceof Error ? error.message : 'Não foi possível continuar. Tente novamente.' })
       return false
@@ -40,5 +48,5 @@ export function usePasswordRecovery(initialEmail = '', oobCode = '') {
     }
   }
 
-  return { values, errors, pending, update, submit }
+  return { values, errors, pending, retryAfterSeconds, update, submit }
 }

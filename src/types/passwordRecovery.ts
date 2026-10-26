@@ -1,5 +1,6 @@
 export interface RecoveryChallenge {
   email: string
+  message: string
 }
 
 export interface PasswordRecoveryValues {
