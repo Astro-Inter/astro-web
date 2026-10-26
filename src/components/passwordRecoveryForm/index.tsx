@@ -10,11 +10,12 @@ interface PasswordRecoveryFormProps {
   values: PasswordRecoveryValues
   errors: PasswordRecoveryErrors
   pending: boolean
+  retryAfterSeconds: number
   onChange: (field: keyof PasswordRecoveryValues, value: string) => void
   onSubmit: () => Promise<void>
 }
 
-function PasswordRecoveryForm({ mode, values, errors, pending, onChange, onSubmit }: PasswordRecoveryFormProps) {
+function PasswordRecoveryForm({ mode, values, errors, pending, retryAfterSeconds, onChange, onSubmit }: PasswordRecoveryFormProps) {
   const [visible, setVisible] = useState({ password: false, confirmation: false })
   const replacing = mode === 'replace'
   return <>
@@ -29,7 +30,7 @@ function PasswordRecoveryForm({ mode, values, errors, pending, onChange, onSubmi
         </>}
       </fieldset>
       {errors.form && <p className="login-field-error" role="alert">{errors.form}</p>}
-      <PurpleButton className="astro-form-action" disabled={pending} type="submit">{replacing ? 'Alterar senha' : 'Enviar e-mail'}</PurpleButton>
+      <PurpleButton className="astro-form-action" disabled={pending || retryAfterSeconds > 0} type="submit">{retryAfterSeconds > 0 ? `Aguarde ${retryAfterSeconds}s` : replacing ? 'Alterar senha' : 'Enviar e-mail'}</PurpleButton>
     </form>
   </>
 }

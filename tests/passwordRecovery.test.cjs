@@ -13,7 +13,7 @@ function environment() {
     const filename = path.resolve(file)
     if (cache.has(filename)) return cache.get(filename).exports
     const module = { exports: {} }; cache.set(filename, module)
-    const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'").replaceAll('import.meta.env.VITE_PASSWORD_RESET_API_URL', "'https://worker.test'")
+    const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'").replaceAll('import.meta.env.DEV', 'false').replaceAll('import.meta.env.VITE_PASSWORD_RESET_API_URL', "'https://worker.test'")
     const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
     new Function('require', 'module', 'exports', code)(specifier => {
       if (!specifier.startsWith('.')) return require(specifier)
@@ -31,7 +31,8 @@ async function withDom(run) {
   Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
   const { createRoot } = require('react-dom/client')
   const root = createRoot(document.getElementById('root'))
-  global.fetch = async () => { await new Promise(resolve => setTimeout(resolve, 20)); return Response.json({ success: true }) }
+  const pendingRequests = []
+  global.fetch = () => new Promise(resolve => pendingRequests.push(() => resolve(Response.json({ success: true }))))
   const env = environment()
   const pages = Object.fromEntries(['forgotPassword', 'passwordRecoverySent', 'replacePassword', 'passwordChanged'].map(name => [name, env.load(`src/pages/${name}/index.tsx`).default]))
   async function mount(route = '/forgotPassword') {
@@ -48,7 +49,7 @@ async function withDom(run) {
     })
   }
   async function submit() { await React.act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))) }
-  async function settle() { await React.act(async () => { await new Promise(resolve => setTimeout(resolve, 60)) }) }
+  async function settle() { await React.act(async () => { pendingRequests.splice(0).forEach(resolve => resolve()) }) }
   try { await run({ ...env, mount, fill, submit, settle }) }
   finally { await React.act(async () => root.unmount()); dom.window.close(); Object.assign(global, previous) }
 }
@@ -140,5 +141,108 @@ test('cancelar envio não registra desafio pendente', async () => {
     controller.abort()
     await assert.rejects(pending, { name: 'AbortError' })
     assert.equal(service.getRecoveryChallenge(), null)
+  } finally { global.fetch = previous }
+})
+
+test('sucesso exige HTTP 200 e success=true e preserva mensagem genérica do serviço', async () => {
+  const previous = global.fetch
+  try {
+    const { service } = environment()
+    const signal = new AbortController().signal
+    global.fetch = async () => Response.json({ success: true, message: 'Se o e-mail estiver cadastrado, enviaremos um link.' })
+    const challenge = await service.requestPasswordRecovery('user@example.test', signal)
+    assert.equal(challenge.message, 'Se o e-mail estiver cadastrado, enviaremos um link.')
+    for (const [status, success] of [[202, true], [200, false], [400, true]]) {
+      global.fetch = async () => Response.json({ success }, { status })
+      await assert.rejects(service.replacePassword({ email: '', password: 'Astro1234', confirmation: 'Astro1234' }, 'test-code', signal))
+    }
+  } finally { global.fetch = previous }
+})
+
+test('INVALID_EMAIL é associado ao campo e falha de rede permite nova tentativa', async () => {
+  const previous = global.fetch
+  try {
+    const { service } = environment()
+    const signal = new AbortController().signal
+    global.fetch = async () => Response.json({ success: false, error: { code: 'INVALID_EMAIL' } }, { status: 400 })
+    await assert.rejects(service.requestPasswordRecovery('user@example.test', signal), { field: 'email' })
+    global.fetch = async () => { throw new TypeError('Failed to fetch') }
+    await assert.rejects(service.requestPasswordRecovery('user@example.test', signal), /conectar ao serviço/)
+    global.fetch = async () => Response.json({ success: true })
+    await service.requestPasswordRecovery('user@example.test', signal)
+  } finally { global.fetch = previous }
+})
+
+test('429 respeita Retry-After e compartilha espera entre os endpoints mesmo sem JSON', async () => {
+  const previous = global.fetch
+  const previousNow = Date.now
+  let now = 1800000000000
+  Date.now = () => now
+  try {
+    for (const [value, seconds] of [['90', 90], ['date', 120], ['inválido', 60]]) {
+      const header = value === 'date' ? new Date(now + seconds * 1000).toUTCString() : value
+      const { service } = environment()
+      let calls = 0
+      global.fetch = async () => { calls++; return new Response('Too many requests', { status: 429, headers: { 'Retry-After': header } }) }
+      const signal = new AbortController().signal
+      await assert.rejects(service.requestPasswordRecovery('user@example.test', signal), /Muitas solicitações/)
+      assert.equal(service.getPasswordRecoveryRetrySeconds(), seconds)
+      await assert.rejects(service.replacePassword({ email: '', password: 'Astro1234', confirmation: 'Astro1234' }, 'test-code', signal), /Muitas solicitações/)
+      assert.equal(calls, 1)
+      now += seconds * 1000
+      global.fetch = async () => Response.json({ success: true })
+      await service.requestPasswordRecovery('user@example.test', signal)
+      assert.equal(service.getPasswordRecoveryRetrySeconds(), 0)
+    }
+  } finally { global.fetch = previous; Date.now = previousNow }
+})
+
+test('429 mostra espera e bloqueia reenvio no formulário', async () => withDom(async ui => {
+  global.fetch = async () => new Response('', { status: 429, headers: { 'Retry-After': '90' } })
+  await ui.mount()
+  await ui.fill('recovery-email', 'user@example.test')
+  await ui.submit(); await ui.settle()
+  assert.match(document.querySelector('[role=alert]').textContent, /Muitas solicitações/)
+  const button = document.querySelector('button[type=submit]')
+  assert.equal(button.disabled, true)
+  assert.match(button.textContent, /Aguarde 90s/)
+}))
+
+test('envio que leva quinze segundos aguarda sucesso do Worker', async context => {
+  context.mock.timers.enable({ apis: ['setTimeout'] })
+  const previous = global.fetch
+  global.fetch = (_url, options) => new Promise((resolve, reject) => {
+    setTimeout(() => resolve(Response.json({ success: true })), 15000)
+    options.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })
+  })
+  try {
+    const { service } = environment()
+    const pending = service.requestPasswordRecovery('user@example.test', new AbortController().signal)
+    context.mock.timers.tick(15000)
+    await pending
+    assert.ok(service.getRecoveryChallenge())
+  } finally { global.fetch = previous }
+})
+
+test('timeout do Web cancela após 35 segundos e permite tentar novamente', async context => {
+  context.mock.timers.enable({ apis: ['setTimeout'] })
+  const previous = global.fetch
+  let requestSignal
+  global.fetch = (_url, options) => new Promise((_resolve, reject) => {
+    requestSignal = options.signal
+    options.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })
+  })
+  try {
+    const { service } = environment()
+    const signal = new AbortController().signal
+    const pending = service.requestPasswordRecovery('user@example.test', signal)
+    const rejected = assert.rejects(pending, /conectar ao serviço/)
+    context.mock.timers.tick(34999)
+    assert.equal(requestSignal.aborted, false)
+    context.mock.timers.tick(1)
+    await rejected
+    assert.equal(service.getRecoveryChallenge(), null)
+    global.fetch = async () => Response.json({ success: true })
+    await service.requestPasswordRecovery('user@example.test', signal)
   } finally { global.fetch = previous }
 })

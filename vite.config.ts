@@ -5,6 +5,7 @@ import { defineConfig, loadEnv } from 'vite'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_')
   const apiBaseUrl = env.VITE_API_URL?.trim().replace(/\/+$/, '')
+  const passwordResetTarget = env.VITE_PASSWORD_RESET_API_URL?.trim().replace(/\/+$/, '')
   const dashboardTarget = env.VITE_DASHBOARD_API_PROXY_URL?.trim() || env.VITE_DASHBOARD_API_URL?.trim() || 'https://astro-dashboard-api.app-4str0.workers.dev'
   return {
     plugins: [react()],
@@ -16,6 +17,15 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
+        ...(passwordResetTarget ? {
+          '/password-reset-api': {
+            target: passwordResetTarget,
+            changeOrigin: true,
+            rewrite: path => path.replace(/^\/password-reset-api(?=\/|$)/, ''),
+            // Apenas no Vite: produção chama o Worker diretamente com CORS.
+            configure: proxy => { proxy.on('proxyReq', request => request.removeHeader('origin')) },
+          },
+        } : {}),
         '/dashboard-api': {
           target: dashboardTarget,
           changeOrigin: true,
