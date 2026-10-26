@@ -1,5 +1,7 @@
 import { Route, Routes, useLocation, type Location } from 'react-router-dom'
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, useTransition } from 'react'
+import ApiContentSkeleton from '../components/apiContentSkeleton'
+import AppSidebar from '../components/appSidebar'
 import PrivateRoute from '../components/privateRoute'
 import GuestRoute from '../components/guestRoute'
 import { useAuthentication } from '../hooks/useAuthentication'
@@ -12,10 +14,12 @@ const AccessKeyVerifiedPage = lazy(() => import('../pages/accessKeyVerified'))
 const loadAttachExcelFile = () => import('../pages/attachExcelFile')
 const AttachExcelFilePage = lazy(loadAttachExcelFile)
 const CreateFormPage = lazy(() => import('../pages/createForm'))
+
 const CreatePasswordPage = lazy(() => import('../pages/createPassword'))
 const CreateWorkspacePage = lazy(() => import('../pages/createWorkspace'))
 const EditFormPage = lazy(() => import('../pages/editForm'))
 const FormResponsesPage = lazy(() => import('../pages/formResponses'))
+
 const loadCompanyInformation = () => import('../pages/includeCompanyInformation')
 const IncludeCompanyInformationPage = lazy(loadCompanyInformation)
 const RegisterWorkspaceLoadingPage = lazy(() => import('../pages/registerWorkspaceLoading'))
@@ -196,7 +200,7 @@ function AppRoutes() {
 
   return (
     <RouteErrorBoundary key={renderedLocation.key}>
-    <Suspense fallback={<main className="route-loading" role="status">Carregando página…</main>}>
+    <Suspense fallback={<div className="main-position-screen">{status === 'ready' && user && <AppSidebar />}<main className="position-main" id="conteudo-principal"><div className="position-content astro-scale-90"><ApiContentSkeleton label="Carregando conteúdo" variant="cards" cardCount={2} /></div></main></div>}>
     <div data-track-route={renderedLocation.pathname} data-track-search={renderedLocation.search} data-track-visit={renderedLocation.key} className={`astro-route-transition${tabChange ? ' astro-route-transition--tab-change' : ''}${tabChange && tabFallback ? ' astro-route-transition--tab-fallback' : ''}${isSettingsLocation(renderedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={renderedLocation.key} ref={routeRef}>
       <Routes location={renderedLocation}>
         <Route element={<RouteContent />}>
