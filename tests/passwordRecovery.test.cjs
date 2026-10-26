@@ -208,23 +208,23 @@ test('429 mostra espera e bloqueia reenvio no formulário', async () => withDom(
   assert.match(button.textContent, /Aguarde 90s/)
 }))
 
-test('envio que leva quinze segundos aguarda sucesso do Worker', async context => {
+test('envio que leva 45 segundos aguarda sucesso do Worker', async context => {
   context.mock.timers.enable({ apis: ['setTimeout'] })
   const previous = global.fetch
   global.fetch = (_url, options) => new Promise((resolve, reject) => {
-    setTimeout(() => resolve(Response.json({ success: true })), 15000)
+    setTimeout(() => resolve(Response.json({ success: true })), 45000)
     options.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })
   })
   try {
     const { service } = environment()
     const pending = service.requestPasswordRecovery('user@example.test', new AbortController().signal)
-    context.mock.timers.tick(15000)
+    context.mock.timers.tick(45000)
     await pending
     assert.ok(service.getRecoveryChallenge())
   } finally { global.fetch = previous }
 })
 
-test('timeout do Web cancela após 35 segundos e permite tentar novamente', async context => {
+test('timeout do Web cancela após 70 segundos e permite tentar novamente', async context => {
   context.mock.timers.enable({ apis: ['setTimeout'] })
   const previous = global.fetch
   let requestSignal
@@ -237,7 +237,7 @@ test('timeout do Web cancela após 35 segundos e permite tentar novamente', asyn
     const signal = new AbortController().signal
     const pending = service.requestPasswordRecovery('user@example.test', signal)
     const rejected = assert.rejects(pending, /conectar ao serviço/)
-    context.mock.timers.tick(34999)
+    context.mock.timers.tick(69999)
     assert.equal(requestSignal.aborted, false)
     context.mock.timers.tick(1)
     await rejected

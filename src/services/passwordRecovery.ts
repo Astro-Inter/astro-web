@@ -23,8 +23,8 @@ async function post(endpoint: string, payload: object, signal: AbortSignal): Pro
   const abort = () => controller.abort()
   signal.throwIfAborted()
   signal.addEventListener('abort', abort, { once: true })
-  // O Worker pode usar até 30s para OAuth, Firebase e aceitação SMTP.
-  const timer = setTimeout(abort, 35000)
+  // O Worker pode usar até 60s para OAuth, Firebase e aceitação SMTP.
+  const timer = setTimeout(abort, 70000)
   try {
     const url = new URL(baseUrl)
     if (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname))) throw new Error('invalid URL')

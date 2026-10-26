@@ -24,7 +24,7 @@ O e-mail real aponta para `https://astro-inter.github.io/astro-web/replacePasswo
 
 ## Verificação
 
-O Worker tem orçamento total de 30 segundos para OAuth, Firebase e aceitação SMTP; o Web aguarda 35 segundos. O diagnóstico real reproduziu o cancelamento do limite anterior de oito segundos durante DATA. Com 30 segundos, o SMTP aceitou o e-mail autorizado em aproximadamente 10,7 segundos no workerd local. Não há reenvio automático: em falhas ambíguas, conferir a caixa de entrada antes de repetir a solicitação.
+O Worker tem orçamento total de 60 segundos para OAuth, Firebase e aceitação SMTP; o Web aguarda 70 segundos. O diagnóstico real reproduziu o cancelamento do limite anterior de oito segundos durante DATA. Com 30 segundos no diagnóstico, o SMTP aceitou o e-mail autorizado em aproximadamente 10,7 segundos no workerd local; a margem foi ampliada para acomodar variações de latência. Não há reenvio automático: em falhas ambíguas, conferir a caixa de entrada antes de repetir a solicitação.
 
 Os testes de recuperação cobrem contratos, validação, cancelamento, navegação após HTTP 200/success, limpeza da query, ausência de código, erros, mensagem do serviço e espera de 429. O proxy permite verificar respostas reais de validação sem enviar e-mails ou alterar contas.
 
