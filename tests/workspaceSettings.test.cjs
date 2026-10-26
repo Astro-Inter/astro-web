@@ -155,7 +155,7 @@ test('empresa carrega dados reais, preserva formulário após erro e navega só 
   const save = () => [...document.querySelectorAll('dialog button')].find(button => button.textContent === 'Salvar')
   await act(async () => save().click())
   assert.match(document.querySelector('dialog').textContent, /CNPJ em conflito/)
-  assert.equal(document.querySelector('#company-cnpj').value, company.cnpj)
+  assert.equal(document.querySelector('#company-cnpj').value, '12.345.678/0001-99')
   assert.equal(env.navigations.length, 0)
   const feedback = env.load('src/utils/actionFeedback.ts')
   assert.equal(feedback.getActionFeedback().notices.some(notice => notice.tone === 'success'), false)
@@ -163,6 +163,82 @@ test('empresa carrega dados reais, preserva formulário após erro e navega só 
   assert.equal(writes, 2)
   assert.equal(env.navigations[0][0], '/mainWorkspaceSettingsScreen')
   assert.ok(feedback.getActionFeedback().notices.some(notice => notice.tone === 'success' && /Informações da empresa atualizadas com sucesso/.test(notice.message)))
+}))
+
+test('voltar sem alterações navega diretamente; com alterações pede confirmação e permite cancelar', async () => withDOM(async (root, env) => {
+  const Back = env.load('src/components/workspaceSettingsBackButton/index.tsx').default
+  await act(async () => root.render(React.createElement(Back, { screen: 'backCompanyModalWeb' })))
+  await act(async () => document.querySelector('button').click())
+  assert.equal(document.querySelector('dialog'), null)
+  assert.equal(env.navigations.length, 1)
+  await act(async () => root.render(React.createElement(Back, { screen: 'backCompanyModalWeb', hasChanges: true })))
+  await act(async () => document.querySelector('button').click())
+  assert.ok(document.querySelector('dialog'))
+  assert.ok([...document.querySelectorAll('dialog button')].some(button => button.textContent === 'Sair'))
+  await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Cancelar').click())
+  assert.equal(document.querySelector('dialog'), null)
+  assert.equal(env.navigations.length, 1)
+}))
+
+test('empresa distingue alteração real de máscara e restauração dos valores iniciais', async () => withDOM(async (root, env) => {
+  global.fetch = async () => response(company)
+  let editor
+  function Harness() { editor = env.load('src/hooks/useWorkspaceCompany.ts').useWorkspaceCompany(); return null }
+  await act(async () => root.render(React.createElement(Harness)))
+  assert.equal(editor.hasChanges, false)
+  await act(async () => editor.setCompany({ ...company, cnpj: '12.345.678/0001-99' }))
+  assert.equal(editor.hasChanges, false)
+  await act(async () => editor.setCompany({ ...company, name: 'Empresa alterada' }))
+  assert.equal(editor.hasChanges, true)
+  await act(async () => editor.setCompany(company))
+  assert.equal(editor.hasChanges, false)
+}))
+
+test('unidades ignoram navegação e máscara de CEP ao detectar mudanças', async () => withDOM(async (root, env) => {
+  let editor
+  function Harness() { editor = env.load('src/hooks/useWorkspaceUnitEditor.ts').useWorkspaceUnitEditor([{ ...address, cep: '01234567' }, { ...address, id: 13, persistedId: 13 }]); return null }
+  await act(async () => root.render(React.createElement(Harness)))
+  assert.equal(editor.hasChanges, false)
+  await act(async () => editor.addresses.moveUnit(1))
+  assert.equal(editor.hasChanges, false)
+  await act(async () => editor.addresses.changeField('cep', '01234567'))
+  assert.equal(editor.hasChanges, false)
+  await act(async () => editor.addresses.changeField('number', '99'))
+  assert.equal(editor.hasChanges, true)
+  await act(async () => editor.addresses.changeField('number', address.number))
+  assert.equal(editor.hasChanges, false)
+}))
+
+test('pagamentos das configurações informam indisponibilidade sem campos financeiros ou falso salvamento', async () => withDOM(async (root, env) => {
+  const Page = env.load('src/pages/workspacePaymentSettings/index.tsx').default
+  await act(async () => root.render(React.createElement(Page)))
+  assert.match(document.body.textContent, /ainda não estão disponíveis/)
+  assert.equal(document.querySelector('input'), null)
+  assert.doesNotMatch(document.body.textContent, /Pagamento inicial|Salvar alterações/)
+  assert.equal(document.querySelector('a').getAttribute('href'), 'mailto:app.4str0@gmail.com')
+}))
+
+test('arquivo selecionado é preservado para detectar descarte antes de iniciar a importação', async () => withDOM(async (root, env) => {
+  let importer
+  function Harness() { importer = env.load('src/hooks/useWorkspaceImport.ts').useWorkspaceImport(); return null }
+  await act(async () => root.render(React.createElement(Harness)))
+  const file = new File(['example'], 'equipe.xlsx')
+  await act(async () => importer.reset(file))
+  assert.equal(importer.file, file)
+  await act(async () => importer.reset(null))
+  assert.equal(importer.file, null)
+}))
+
+test('falha de carregamento da rota oferece recuperação visível em vez de tela vazia', async () => withDOM(async (root, env) => {
+  const Boundary = env.load('src/components/routeErrorBoundary/index.tsx').default
+  function BrokenPage() { throw new Error('Chunk unavailable') }
+  const originalError = console.error
+  console.error = () => {}
+  try {
+    await act(async () => root.render(React.createElement(Boundary, null, React.createElement(BrokenPage))))
+    assert.match(document.querySelector('[role="alert"]').textContent, /conexão|nova versão/)
+    assert.match(document.querySelector('button').textContent, /Recarregar página/)
+  } finally { console.error = originalError }
 }))
 
 test('transferência filtra gestores ativos, envia ID, confirma perda de acesso e revalida sessão', async () => withDOM(async (root, env) => {
@@ -187,6 +263,35 @@ test('transferência filtra gestores ativos, envia ID, confirma perda de acesso 
   assert.deepEqual(JSON.parse(calls[1][1]), { newManagerId: 42 })
   assert.equal(env.refreshed(), 1)
   assert.equal(env.navigations[0][0], '/mainHomeScreen')
+}))
+
+test('conflito de transferência explica o bloqueio sem misturar aviso de permissões nem repetir a operação', async () => withDOM(async (root, env) => {
+  let writes = 0
+  const message = 'O workspace deve ter um único gestor responsável para realizar a transferência'
+  global.fetch = async (url) => {
+    if (url.endsWith('/managers')) return response([
+      { id_usuario: 42, nome: 'Ana', email: 'ana@example.com', unidade_id: 12, unidade: 'Filial', status: 'ATIVO' },
+    ])
+    writes++
+    return Response.json({ success: false, message, data: null, errors: [message] }, { status: 409 })
+  }
+  let closed = 0
+  const Modal = env.load('src/components/workspaceManagerTransferModal/index.tsx').default
+  await act(async () => root.render(React.createElement(Modal, { onClose() { closed++ } })))
+  await act(async () => { const select = document.querySelector('select'); select.value = '42'; select.dispatchEvent(new window.Event('change', { bubbles: true })) })
+  await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
+  await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Alterar gestor').click())
+  await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
+  assert.equal(document.querySelector('dialog').getAttribute('aria-label'), 'Transferência bloqueada')
+  assert.equal(document.querySelector('[role="alert"]').textContent, message)
+  assert.doesNotMatch(document.body.textContent, /perderá as permissões|Tentar novamente/)
+  assert.equal(writes, 1)
+  assert.equal(env.refreshed(), 0)
+  assert.equal(env.navigations.length, 0)
+  await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Voltar à seleção').click())
+  assert.equal(document.querySelector('select').value, '42')
+  assert.equal(writes, 1)
+  assert.equal(closed, 0)
 }))
 
 test('unidades salvas antes de falha parcial conservam ID e não são recriadas no reenvio', async () => withDOM(async (root, env) => {

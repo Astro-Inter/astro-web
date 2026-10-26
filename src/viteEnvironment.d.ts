@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+  readonly VITE_PASSWORD_RESET_API_URL?: string
   readonly VITE_GTM_ID?: string
   readonly VITE_TRACKING_ENABLED?: string
   readonly VITE_API_URL: string

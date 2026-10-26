@@ -9,9 +9,11 @@ const { JSDOM } = require('jsdom')
 const { act } = React
 
 function environment() {
-  const cache = new Map(), calls = []
+  const cache = new Map(), calls = [], writes = [], images = []
   const context = { user: { uid: 'current', displayName: 'Revisor', accountType: 'GESTOR' }, status: 'ready' }
-  const services = { getFormReview: async () => load('src/data/formReviewPreview.ts').createFormReviewPreview() }
+  const services = { getFormReview: async () => load('src/data/formReviewPreview.ts').createFormReviewPreview(),
+    submitFormReview: async (_id, status) => ({ ...load('src/data/formReviewPreview.ts').createFormReviewPreview(status), canReview: false }),
+    getFormResponseImage: async (_id, imageId) => ({ id: imageId, url: 'https://images.test/signed.jpg', expiresAt: new Date(Date.now() + 60000).toISOString() }) }
   function Modal({ children, title, onClose }) { return React.createElement('section', { role: 'dialog' }, React.createElement('h2', null, title), typeof children === 'function' ? children(onClose) : children) }
   function load(filename) {
     filename = path.resolve(filename)
@@ -21,7 +23,9 @@ function environment() {
     const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
     new Function('require', 'module', 'exports', code)(name => {
       if (name.endsWith('/useAuthentication')) return { useAuthentication: () => context }
-      if (name === '../services/formReview') return { getFormReview: (...args) => { calls.push(args); return services.getFormReview(...args) } }
+      if (name === '../services/formReview') return { getFormReview: (...args) => { calls.push(args); return services.getFormReview(...args) },
+        submitFormReview: (...args) => { writes.push(args); return services.submitFormReview(...args) },
+        getFormResponseImage: (...args) => { images.push(args); return services.getFormResponseImage(...args) } }
       if (name.endsWith('/appModal')) return { __esModule: true, default: Modal }
       if (name.endsWith('/appSidebar')) return { __esModule: true, default: () => null }
       if (!name.startsWith('.')) return require(name)
@@ -31,7 +35,7 @@ function environment() {
     }, module, module.exports)
     return module.exports
   }
-  return { load, context, services, calls }
+  return { load, context, services, calls, writes, images }
 }
 async function withDom(run) {
   const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
@@ -121,17 +125,83 @@ test('resultado reprovado apresenta o motivo sem edição nem novo envio', async
   assert.equal(document.querySelector('textarea'), null)
   assert.equal([...document.querySelectorAll('button')].some(button => /Aprovar formulário|Reprovar formulário|Reenviar/.test(button.textContent)), false)
 }))
-test('consulta real carrega dados pela API existente mas não simula a gravação de aprovação', async () => withDom(async root => {
+test('consulta real envia aprovação e mostra somente a decisão confirmada pela API', async () => withDom(async root => {
   const env = environment(), Page = env.load('src/pages/formResponses/index.tsx').default
   await mount(root, Page, '/mainFormScreen/responses?id=61000000-0000-4000-8000-000000000001&workspaceId=999')
   assert.equal(env.calls.length, 1)
   assert.equal(env.calls[0][0], '61000000-0000-4000-8000-000000000001')
-  assert.match(document.body.textContent, /A validação das respostas está temporariamente indisponível/)
-  assert.ok([...document.querySelectorAll('button')].filter(button => /Aprovar formulário|Reprovar formulário/.test(button.textContent)).every(button => button.disabled))
+  await click('Aprovar formulário'); await click('Confirmar aprovação')
+  assert.equal(env.writes.length, 1)
+  assert.equal(env.writes[0][1], 'approved')
+  assert.match(document.body.textContent, /Formulário aprovado/)
+  assert.equal(document.querySelector('textarea'), null)
 }))
+
+test('canReview false impede ações mesmo para gestor do workspace', async () => withDom(async root => {
+  const env = environment(), Page = env.load('src/pages/formResponses/index.tsx').default
+  env.context.user.accountType = 'GESTOR_WORKSPACE'
+  env.services.getFormReview = async () => ({ ...env.load('src/data/formReviewPreview.ts').createFormReviewPreview(), currentManagerId: null, canReview: false })
+  await mount(root, Page, '/mainFormScreen/responses?id=61000000-0000-4000-8000-000000000001')
+  assert.ok([...document.querySelectorAll('button')].filter(button => /Aprovar formulário|Reprovar formulário/.test(button.textContent)).every(button => button.disabled))
+  assert.equal(env.writes.length, 0)
+}))
+
+test('falha de gravação mantém análise aberta e bloqueia envio duplicado durante a requisição', async () => withDom(async root => {
+  const env = environment(), Page = env.load('src/pages/formResponses/index.tsx').default
+  let reject
+  env.services.submitFormReview = () => new Promise((_resolve, fail) => { reject = fail })
+  await mount(root, Page, '/mainFormScreen/responses?id=61000000-0000-4000-8000-000000000001')
+  await click('Aprovar formulário'); await click('Confirmar aprovação'); await click('Confirmar aprovação')
+  assert.equal(env.writes.length, 1)
+  assert.ok([...document.querySelectorAll('[role="dialog"] button')].every(button => button.disabled))
+  await act(async () => reject(new Error('Sem conexão para salvar.')))
+  assert.match(document.querySelector('[role="dialog"] [role="alert"]').textContent, /Sem conexão/)
+  assert.doesNotMatch(document.body.textContent, /Formulário aprovado/)
+}))
+
+test('conflito recarrega a decisão remota e não reenvia a análise', async () => withDom(async root => {
+  const env = environment(), Page = env.load('src/pages/formResponses/index.tsx').default
+  env.services.submitFormReview = async () => { env.services.getFormReview = async () => env.load('src/data/formReviewPreview.ts').createFormReviewPreview('rejected'); throw Object.assign(new Error('Já analisado por outro gestor.'), { status: 409 }) }
+  await mount(root, Page, '/mainFormScreen/responses?id=61000000-0000-4000-8000-000000000001')
+  await click('Aprovar formulário'); await click('Confirmar aprovação')
+  assert.equal(env.writes.length, 1); assert.equal(env.calls.length, 2)
+  assert.match(document.body.textContent, /Formulário reprovado/)
+  assert.equal(document.querySelector('[role="dialog"]'), null)
+}))
+
+test('imagem real usa o ID do anexo e carrega URL temporária na abertura', async () => withDom(async root => {
+  const env = environment(), Page = env.load('src/pages/formResponses/index.tsx').default
+  env.services.getFormReview = async () => {
+    const data = env.load('src/data/formReviewPreview.ts').createFormReviewPreview()
+    data.form.questions[3].answer = [{ id: 'image-id', name: 'camera.jpg', contentType: 'image/jpeg', sizeBytes: 15 }]
+    return data
+  }
+  await mount(root, Page, '/mainFormScreen/responses?id=61000000-0000-4000-8000-000000000001')
+  const file = document.querySelector('[aria-label="Ver arquivo camera.jpg"]')
+  await act(async () => file.click())
+  assert.equal(env.images[0][1], 'image-id')
+  assert.equal(document.querySelector('[role="dialog"] img').getAttribute('src'), 'https://images.test/signed.jpg')
+}))
+
 test('ID inválido é tratado sem consultar o serviço', async () => withDom(async root => {
   const env = environment(), Page = env.load('src/pages/formResponses/index.tsx').default
   await mount(root, Page, '/mainFormScreen/responses?id=invalid')
   assert.match(document.querySelector('[role="alert"]').textContent, /formulário válido/)
   assert.equal(env.calls.length, 0)
+}))
+
+
+test('reprovação real aguarda confirmação e envia descrição aparada', async () => withDom(async root => {
+  const env = environment(), Page = env.load('src/pages/formResponses/index.tsx').default
+  await mount(root, Page, '/mainFormScreen/responses?id=61000000-0000-4000-8000-000000000001')
+  await click('Reprovar formulário')
+  const textarea = document.querySelector('textarea')
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set.call(textarea, '  Foto insuficiente  ')
+    textarea.dispatchEvent(new window.Event('input', { bubbles: true }))
+  })
+  await click('Confirmar reprovação')
+  assert.equal(env.writes.length, 1)
+  assert.equal(env.writes[0][1], 'rejected'); assert.equal(env.writes[0][2], 'Foto insuficiente')
+  assert.match(document.body.textContent, /Formulário reprovado/)
 }))

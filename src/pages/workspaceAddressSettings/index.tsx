@@ -14,6 +14,7 @@ function WorkspaceAddressEditor({ units }: WorkspaceAddressEditorProps) {
   const editor = useWorkspaceUnitEditor(units)
   const [confirming, setConfirming] = useState(false)
   return <>
+    <WorkspaceSettingsBackButton screen="backAdressesModalWeb" hasChanges={editor.hasChanges} />
     <AddressForm settingsMode addresses={editor.addresses} onComplete={() => setConfirming(true)} />
     {editor.message && <p role="status">{editor.message}</p>}
     {confirming && <WorkspaceSettingsSaveModal section="addresses" onCancel={() => setConfirming(false)} onSave={editor.save} />}
@@ -23,7 +24,7 @@ function WorkspaceAddressEditor({ units }: WorkspaceAddressEditorProps) {
 function WorkspaceAddressSettingsPage() {
   const query = useWorkspaceQuery(listUnitAddresses)
   return <main data-track-page={true} className="set-address-page" aria-busy={query.loading} inert={query.loading}>
-    <WorkspaceSettingsBackButton screen="backAdressesModalWeb" />
+    {!query.data && <WorkspaceSettingsBackButton screen="backAdressesModalWeb" />}
     <WorkspaceQueryFeedback loading={query.loading} error={query.error} onRetry={query.retry} />
     {query.data && <WorkspaceAddressEditor units={query.data} />}
     <HelpLink />

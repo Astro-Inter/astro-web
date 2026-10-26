@@ -1,3 +1,4 @@
+import './utils/passwordResetLink'
 import '../styles/actionFeedback.css'
 import '@fontsource/montserrat/400.css'
 import '@fontsource/montserrat/500.css'

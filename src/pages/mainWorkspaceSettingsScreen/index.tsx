@@ -23,7 +23,7 @@ const sections: readonly WorkspaceSettingsAction[] = [
   { id: 'company', title: 'Informações da empresa', description: 'Alterar informações da empresa.', action: 'Alterar informações', path: '/includeCompanyInformation' },
   { id: 'spreadsheet', title: 'Planilha empresarial', description: 'Adicionar planilha atual.', action: 'Adicionar planilha', path: '/attachExcelFile' },
   { id: 'addresses', title: 'Endereço das unidades', description: 'Alterar informações de unidades.', action: 'Alterar unidades', path: '/setAddress' },
-  { id: 'payments', title: 'Pagamentos', description: 'Alterar informações de pagamento.', action: 'Alterar pagamentos', path: '/paymentMethod' },
+  { id: 'payments', title: 'Pagamentos', description: 'Consulte a disponibilidade e os canais de atendimento.', action: 'Ver pagamentos', path: '/paymentMethod' },
 ]
 
 function MainWorkspaceSettingsScreenPage() {

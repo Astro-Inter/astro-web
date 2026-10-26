@@ -33,8 +33,9 @@ function App() {
   usePageTitle()
   const { user, status } = useAuthentication()
   const location = useLocation()
-  const chatVisible = chatRoutes.has(location.pathname)
-    || (settingsFormRoutes.has(location.pathname) && new URLSearchParams(location.search).get('context') === 'settings')
+  const settingsForm = settingsFormRoutes.has(location.pathname)
+    && new URLSearchParams(location.search).get('context') === 'settings'
+  const chatVisible = chatRoutes.has(location.pathname) || settingsForm
 
   return (
     <>

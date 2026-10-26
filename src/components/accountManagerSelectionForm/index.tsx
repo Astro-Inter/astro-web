@@ -14,7 +14,7 @@ interface AccountManagerSelectionFormProps {
 function AccountManagerSelectionForm({ collaborators, value, onChange, onCancel, onContinue }: AccountManagerSelectionFormProps) {
   const hasSelection = collaborators.some(person => person.id === value)
   const options = [
-    { label: 'Selecione o e-mail do colaborador', value: '', tone: 'muted' as const },
+    { label: 'Selecione o e-mail do gestor', value: '', tone: 'muted' as const },
     ...collaborators.map(person => ({ label: person.email, value: person.id })),
   ]
 
@@ -25,8 +25,8 @@ function AccountManagerSelectionForm({ collaborators, value, onChange, onCancel,
         onContinue()
       }}>
         <div className="field-group">
-          <label htmlFor="account-replacement-email">E-mail do colaborador</label>
-          <ToolbarSelect trackingAction={BUTTONS.comuns.colaborador} className="account-field-select" id="account-replacement-email" label="E-mail do colaborador" onValueChange={onChange} options={options} value={value} />
+          <label htmlFor="account-replacement-email">E-mail do gestor</label>
+          <ToolbarSelect trackingAction={BUTTONS.comuns.colaborador} className="account-field-select" id="account-replacement-email" label="E-mail do gestor" onValueChange={onChange} options={options} value={value} />
         </div>
         <div className="astro-modal-actions">
           <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" onClick={onCancel} type="button">Cancelar</button>

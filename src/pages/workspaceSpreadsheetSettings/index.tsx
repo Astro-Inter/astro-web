@@ -24,7 +24,7 @@ function WorkspaceSpreadsheetSettingsPage() {
   const navigate = useNavigate()
   const [confirmation, setConfirmation] = useState<WorkspaceUnitAddress[] | null>(null)
   return <><main data-track-page={true} className="attach-excel-page workspace-spreadsheet-settings" aria-busy={spreadsheet.reading} inert={spreadsheet.reading}>
-    <WorkspaceSettingsBackButton screen="backExcelModalWeb" />
+    <WorkspaceSettingsBackButton screen="backExcelModalWeb" hasChanges={Boolean(spreadsheet.file && !spreadsheet.result)} />
     {!spreadsheet.result && <>
       <AttachExcelFileForm settingsMode reading={spreadsheet.reading} readingError={spreadsheet.error} onSelectionChange={spreadsheet.reset} onContinue={async file => {
         if (await spreadsheet.prepare(file)) setConfirmation([])

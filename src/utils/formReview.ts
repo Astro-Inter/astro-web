@@ -18,6 +18,8 @@ export function createReviewDecision(status: 'approved' | 'rejected', reviewerNa
   return { status, reviewerName, reviewedAt, description: description.trim() }
 }
 export function canReviewForm(data: FormReviewData, accountType: WebAccountType | null | undefined): boolean {
+  if (accountType !== 'GESTOR' && accountType !== 'GESTOR_WORKSPACE') return false
+  if (typeof data.canReview === 'boolean') return data.canReview && data.form.status === 'CONCLUIDO' && data.review.status === 'awaiting_review'
   return data.form.status === 'CONCLUIDO' && data.review.status === 'awaiting_review'
     && data.currentManagerId !== null
     && (accountType === 'GESTOR_WORKSPACE' || (accountType === 'GESTOR' && data.currentManagerId === data.form.senderManagerId))
@@ -48,9 +50,16 @@ export function responseFiles(question: FormQuestionResponse): FormResponseFile[
     const item = value && typeof value === 'object' ? value as Record<string, unknown> : null
     const url = safeResponseFileUrl(item?.url ?? value)
     if (!url && !item) return []
-    return [{ id: `${question.id}-${index}-${url ?? 'file'}`, name: typeof item?.name === 'string' && item.name.trim() ? item.name : `Foto ${index + 1}`, url }]
+    return [{ id: typeof item?.id === 'string' && item.id ? item.id : `${question.id}-${index}-${url ?? 'file'}`, name: typeof item?.name === 'string' && item.name.trim() ? item.name : `Foto ${index + 1}`, url }]
   })
 }
 export function answeredQuestionCount(questions: FormQuestionResponse[]): number {
   return questions.filter(question => question.answer.length > 0).length
+}
+
+export function otherAnswerText(question: FormQuestionResponse): string[] {
+  return question.answer.flatMap(value => {
+    if (!value || typeof value !== 'object' || !('otherText' in value)) return []
+    return typeof value.otherText === 'string' && value.otherText.trim() ? [value.otherText] : []
+  })
 }

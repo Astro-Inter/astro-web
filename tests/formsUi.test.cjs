@@ -329,7 +329,7 @@ test('salvamento recusa NR fora do catálogo e aceita remover o vínculo opciona
 }))
 
 
-test('menu dos três pontos abre a prévia de respostas de um formulário pendente em desenvolvimento', async () => withDom(async root => {
+test('menu de formulário pendente não oferece prévia nem análise em desenvolvimento', async () => withDom(async root => {
   const env = environment(), Page = env.load('src/pages/mainFormScreen/index.tsx').default
   env.services.listForms = async (_search, _status, page, size) => ({ items: [{ id, title: 'Inspeção API', description: 'Dados reais', status: 'PENDENTE', questionCount: 1 }], page, size, totalPages: 1, totalElements: 1 })
   await mount(root, Page, '/mainFormScreen'); await waitForList()
@@ -340,10 +340,8 @@ test('menu dos três pontos abre a prévia de respostas de um formulário penden
   await click('Opções para Inspeção API')
   const menu = document.querySelector('[role="menu"]')
   assert.ok(menu.querySelector('[aria-label="Editar"]'))
-  assert.ok(menu.querySelector('[aria-label="Ver respostas"]'))
-  await click('Ver respostas', menu)
-  assert.equal(document.getElementById('location').textContent, '/mainFormScreen/responses?preview=1')
-  assert.equal(document.querySelector('[role="menu"]'), null)
+  assert.doesNotMatch(menu.textContent, /Ver respostas|prévia/)
+  assert.equal(document.getElementById('location').textContent, '/mainFormScreen')
   assert.equal(env.calls.some(call => ['getForm', 'updateForm', 'publishForm', 'deleteForm'].includes(call.name)), false)
 }))
 
@@ -358,8 +356,8 @@ test('produção não oferece prévia nem análise de formulário ainda pendente
   assert.equal(document.querySelector('a[href*="preview=1"]'), null)
 }))
 
-test('produção abre respostas reais pelo menu de um formulário concluído e preserva o bloqueio de exclusão', async () => withDom(async root => {
-  const env = environment({ development: false }), Page = env.load('src/pages/mainFormScreen/index.tsx').default
+test('desenvolvimento abre respostas reais pelo menu de um formulário concluído e preserva o bloqueio de exclusão', async () => withDom(async root => {
+  const env = environment(), Page = env.load('src/pages/mainFormScreen/index.tsx').default
   env.services.listForms = async (_search, _status, page, size) => ({ items: [{ id, title: 'Inspeção API', description: 'Dados reais', status: 'CONCLUIDO', questionCount: 1 }], page, size, totalPages: 1, totalElements: 1 })
   await mount(root, Page, '/mainFormScreen'); await waitForList()
   assert.equal(document.querySelector('.form-card').querySelectorAll('button').length, 1)
