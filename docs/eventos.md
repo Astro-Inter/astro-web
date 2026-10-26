@@ -184,3 +184,9 @@ Essa validação também é aplicada antes do envio à API.
 Conferido no localhost: campos vazios mantêm a primeira etapa, o foco passa
 ao primeiro erro, link incompleto bloqueia o avanço e dados válidos liberam
 a seleção de colaboradores. Nenhum evento foi salvo nesse teste.
+
+### Perfis na seleção de participantes
+
+O seletor de eventos inclui COLABORADOR, GESTOR e GESTOR_WORKSPACE ativos e elegíveis para a NR no mesmo workspace. O criador permanece excluído, tanto na consulta quanto na gravação, conforme a regra confirmada. A permissão `canManage` refere-se à edição do cadastro da pessoa e não restringe sua participação em eventos. `useEventCandidates` mantém todos os candidatos retornados por `/events/eligible-candidates`; o backend continua responsável por elegibilidade e escopo.
+
+Outras seleções mantêm suas finalidades: conformidades incluem os três perfis e a própria conta; promoção a gestor oferece somente colaboradores ativos que ainda não são gestores, excluindo o próprio responsável do workspace.

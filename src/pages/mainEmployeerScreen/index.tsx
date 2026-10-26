@@ -10,6 +10,7 @@ import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTabl
 import CollaboratorDialog from '../../components/collaboratorDialog'
 import CollaboratorIdentity from '../../components/collaboratorIdentity'
 import type { DataTableColumn } from '../../components/dataTable'
+import type { OptionsPopupItem } from '../../components/optionsPopup'
 import PasswordConfirmationModal from '../../components/passwordConfirmationModal'
 import { useActionsMenu } from '../../hooks'
 import { useCollaborators } from '../../hooks/useCollaborators'
@@ -81,6 +82,7 @@ function MainEmployeerScreenPage() {
   }
 
   async function saveEmployee(employeeId: string, values: CollaboratorFormValues): Promise<string | null> {
+    if (employees.find(employee => employee.id === employeeId)?.canManage !== true || api.details.data?.canManage === false) return 'Você não tem permissão para editar este usuário.'
     const duplicateError = checkDuplicateEmail(values, employeeId)
     if (duplicateError) return duplicateError
 
@@ -91,6 +93,7 @@ function MainEmployeerScreenPage() {
   }
 
   async function toggleStatus(employee: Collaborator): Promise<string | null> {
+    if (employee.canManage !== true) return 'Você não tem permissão para alterar o status deste usuário.'
     const result = await api.changeStatus(employee.id, employee.status === 'DESATIVADO' ? 'ATIVO' : 'DESATIVADO')
     if (result.error !== null) return result.error
     showSavedEmployee(result.collaborator.id, `Colaborador ${result.collaborator.name} ${collaboratorStatusLabels[result.collaborator.status].toLowerCase()}.`)
@@ -179,7 +182,7 @@ function MainEmployeerScreenPage() {
             ariaLabel={`Opções para ${openEmployee.name}`}
             closing={actions.closing}
             id={`employee-actions-${openEmployee.id}`}
-            items={[
+            items={([
               { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
               { trackingAction: BUTTONS.comuns.informacoes, id: 'view', label: 'Ver mais informações', separatorAfter: true, onSelect: () => actions.close(() => { api.retryDetails(); setDialog({ kind: 'view', employee: openEmployee }) }) },
               { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit-password', employee: openEmployee })) },
@@ -187,7 +190,7 @@ function MainEmployeerScreenPage() {
                 if (openEmployee.status !== 'DESATIVADO') setDialog({ kind: 'deactivate', employee: openEmployee })
                 else void toggleStatus(openEmployee).then((error) => { if (error) setFeedback(error, 'error') })
               }) },
-            ]}
+            ] satisfies OptionsPopupItem[]).filter(item => !['edit', 'toggle-status'].includes(item.id) || openEmployee.canManage === true)}
             onClose={() => actions.close()}
             panelRef={actions.panelRef}
             style={actions.style}
@@ -221,7 +224,7 @@ function MainEmployeerScreenPage() {
           error={api.details.error || (dialog.kind !== 'view' ? api.options.error : '')}
           saving={api.saving}
           onRetry={() => { api.retryDetails(); if (dialog.kind !== 'view') api.retryOptions() }}
-          mode={dialog.kind === 'view' ? 'view' : 'edit'}
+          mode={dialog.kind === 'view' || api.details.data?.canManage !== true ? 'view' : 'edit'}
           onClose={closeDetails}
           onSubmit={(values) => {
             const error = checkDuplicateEmail(values, dialog.employee.id)

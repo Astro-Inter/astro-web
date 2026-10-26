@@ -141,3 +141,12 @@ test('trocar a conta oculta dados e salvamento da sessão anterior e descarta o 
   await saving
   assert.deepEqual(env.render().employees, [])
 })
+
+test('a aba de colaboradores solicita exclusão da própria conta à API', async () => {
+  const env = environment()
+  env.render()
+  await flush()
+  const call = env.calls.find(call => call.name === 'listCollaborators')
+  assert.equal(call.args[1], true)
+  assert.ok(call.args[0] instanceof AbortSignal)
+})
