@@ -1,5 +1,5 @@
 import AstroIcon from '../astroIcon'
-import { answerText, formatResponseDate, responseFiles, selectedOptionIds } from '../../utils/formReview'
+import { answerText, formatResponseDate, responseFiles, selectedOptionIds, otherAnswerText } from '../../utils/formReview'
 import type { FormQuestionResponse } from '../../types/forms'
 import type { FormResponseFile } from '../../types/formReview'
 
@@ -9,6 +9,7 @@ function FormResponseCard({ question, number, onOpenPhoto }: FormResponseCardPro
   const text = answerText(question)
   const selected = selectedOptionIds(question)
   const files = responseFiles(question)
+  const otherText = otherAnswerText(question)
   const hasAnswer = question.answer.length > 0
   return <article className="form-response-card" aria-labelledby={`response-question-${question.id}`}>
     <header className="form-response-question-heading">
@@ -22,6 +23,7 @@ function FormResponseCard({ question, number, onOpenPhoto }: FormResponseCardPro
           <span className={`form-response-choice${question.multiple ? ' event-create-checkbox-box form-response-choice--multiple' : ' form-response-choice--single'}`} aria-hidden="true">{question.multiple && selected.includes(option.id) && <AstroIcon name="check" />}</span>
           <span>{option.text}</span>{selected.includes(option.id) && <span className="form-response-option-label">Selecionada</span>}
         </li>)}
+        {otherText.map((value, index) => <li className="form-response-value" key={`other-${question.id}-${index}`}><p><strong>Outros:</strong> {value}</p></li>)}
         {selected.length === 0 && <li>Resposta enviada em um formato que ainda não pode ser exibido.</li>}
       </ul> : question.type === 'foto' ? <div className="form-response-files">
         {files.map(file => <button key={file.id} className="form-response-file" type="button" onClick={() => onOpenPhoto(file)} aria-label={`Ver arquivo ${file.name}`}>
