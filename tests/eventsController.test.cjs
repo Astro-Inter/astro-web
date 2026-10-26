@@ -43,6 +43,41 @@ function environment(hook = 'useEvents') {
 }
 const date = new Date(2099, 10, 5)
 
+test('selecionar NR atualiza apenas os participantes sem recarregar o catálogo ou o formulário', async () => {
+  const env = environment('useEventCandidates'), pending = deferred()
+  env.services.listEventNrs = async () => [{ code: 10, title: 'Eletricidade' }]
+  env.render(''); await flush()
+  assert.equal(env.render().nrsLoading, false)
+  env.services.listEventCandidates = () => pending.promise
+  const result = env.render('10')
+  assert.equal(result.loading, true)
+  assert.equal(result.nrsLoading, false)
+  assert.equal(result.nrs[0].code, 10)
+  assert.equal(env.calls.filter(call => call.name === 'listEventNrs').length, 1)
+  pending.resolve([]); await flush()
+  assert.equal(env.render().loading, false)
+  env.render(''); await flush()
+  assert.equal(env.calls.filter(call => call.name === 'listEventNrs').length, 1)
+  env.unmount()
+})
+
+test('catálogo vazio também permanece pronto e troca de conta descarta as NRs anteriores', async () => {
+  const env = environment('useEventCandidates'), pending = deferred()
+  env.render(''); await flush()
+  assert.equal(env.render().nrsLoading, false)
+  env.render('35'); await flush()
+  assert.equal(env.calls.filter(call => call.name === 'listEventNrs').length, 1)
+  env.services.listEventNrs = () => pending.promise
+  env.context.user = { uid: 'outro-gestor' }
+  assert.equal(env.render().nrsLoading, true)
+  assert.deepEqual(env.render().nrs, [])
+  const call = env.calls.filter(call => call.name === 'listEventNrs').at(-1)
+  env.unmount(); const writes = env.writes
+  assert.equal(call.args[0].aborted, true)
+  pending.resolve([{ code: 10 }]); await flush()
+  assert.equal(env.writes, writes)
+})
+
 test('fotos são cruzadas por ID em uma leitura por sessão, preservando os participantes elegíveis', async () => {
   const env = environment('useEventCollaboratorPhotos')
   const people = [{ id: '11', name: 'Ana', email: 'ana@example.test' }, { id: '12', name: 'Bruno', email: 'bruno@example.test' }]

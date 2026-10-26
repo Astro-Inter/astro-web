@@ -1,3 +1,4 @@
+import AnimatedFieldError from '../animatedFieldError'
 import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
@@ -11,6 +12,7 @@ interface FormDatePickerProps {
   value: string
   validate?: boolean
   error?: string
+  animateError?: boolean
   escapeOverflow?: boolean
 }
 
@@ -67,7 +69,7 @@ function sameDate(first: Date | null, second: Date) {
   return first !== null && first.getFullYear() === second.getFullYear() && first.getMonth() === second.getMonth() && first.getDate() === second.getDate()
 }
 
-function FormDatePicker({ id, label, onChange, onValidityChange, value, error, validate = true, escapeOverflow = false }: FormDatePickerProps) {
+function FormDatePicker({ id, label, onChange, onValidityChange, value, error, validate = true, escapeOverflow = false, animateError = false }: FormDatePickerProps) {
   const generatedId = useId()
   const calendarId = `${generatedId}-calendar`
   const containerRef = useRef<HTMLDivElement>(null)
@@ -252,7 +254,7 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, error, v
           <AstroIcon name="calendar" />
         </button>
       </div>
-      {showError && <p className="login-field-error create-forms-date-error" id={`${id}-error`} role="alert">{message}</p>}
+      {animateError ? <AnimatedFieldError className="login-field-error create-forms-date-error" id={`${id}-error`} message={message} /> : showError && <p className="login-field-error create-forms-date-error" id={`${id}-error`} role="alert">{message}</p>}
 
       {open && <div aria-label={`Calendário: ${label}`} className={`create-forms-calendar${closing ? ' create-forms-calendar--closing' : ''}`} id={calendarId} popover={escapeOverflow ? 'manual' : undefined} ref={calendarRef} role="dialog" style={escapeOverflow ? { maxHeight: calendarMaxHeight } : undefined}>
         <div className="create-forms-calendar-header">

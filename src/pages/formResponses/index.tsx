@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import AppSidebar from '../../components/appSidebar'
+import AstroBrand from '../../components/astroBrand'
+import HelpLink from '../../components/helpLink'
+import ActionLoading from '../../components/actionLoading'
 import AstroIcon from '../../components/astroIcon'
 import CompactPurpleButton from '../../components/compactPurpleButton'
 import ConfirmationModal from '../../components/confirmationModal'
 import AppModal from '../../components/appModal'
-import ApiContentSkeleton from '../../components/apiContentSkeleton'
+import FormResponseInformation from '../../components/formResponseInformation'
 import FormResponseCard from '../../components/formResponseCard'
 import FormRejectionModal from '../../components/formRejectionModal'
 import FormReviewPanel from '../../components/formReviewPanel'
 import { useFormResponseImage } from '../../hooks/useFormResponseImage'
 import { useFormReview } from '../../hooks/useFormReview'
-import { answeredQuestionCount, formatResponseDate, reviewStatusLabels } from '../../utils/formReview'
+import { answeredQuestionCount } from '../../utils/formReview'
 import type { FormResponseFile, FormReviewStatus } from '../../types/formReview'
 
 const previewStates: FormReviewStatus[] = ['awaiting_review', 'approved', 'rejected', 'awaiting_response']
@@ -34,29 +36,19 @@ function FormResponsesContent() {
     }
   }, [dialog, review?.status])
   function closeDecision() { setDialog(null); requestAnimationFrame(() => decisionTitleRef.current?.focus()) }
-  return <div className="main-position-screen form-responses-screen">
-    <AppSidebar />
-    <main className="position-main form-responses-main" id="conteudo-principal" data-track-page={true}>
-      <div className="position-content astro-scale-90 form-responses-content">
-        <header className="position-heading form-review-heading">
-          <Link className="payment-back-button form-review-back" aria-label="Voltar aos formulários" title="Voltar aos formulários" to="/mainFormScreen"><AstroIcon name="back" /></Link>
-          <div><h1>Respostas do formulário</h1><p>Confira as respostas do gestor e avalie a validade do formulário.</p></div>
-        </header>
-        {loading && <ApiContentSkeleton label="Carregando respostas do formulário" variant="cards" cardCount={2} />}
-        {error && <section className="form-review-load-error" role="alert"><AstroIcon name="warning-circle" /><h2>Não foi possível abrir as respostas</h2><p>{error}</p>
+  if (loading) return <div className="create-forms-page astro-scale-90" aria-busy="true"><ActionLoading /></div>
+  return <div className="create-forms-page form-responses-screen astro-scale-90">
+    <Link className="payment-back-button" aria-label="Voltar aos formulários" title="Voltar aos formulários" to="/mainFormScreen"><AstroIcon name="back" /></Link>
+    <header className="create-password-header create-forms-header"><AstroBrand /></header>
+    <main className="create-forms-main form-responses-main" id="conteudo-principal" data-track-page={true}>
+      <h1>Respostas do formulário</h1>
+        {error && <section className="create-forms-card form-review-load-error" role="alert"><AstroIcon name="warning-circle" /><h2>Não foi possível abrir as respostas</h2><p>{error}</p>
           <CompactPurpleButton auto type="button" onClick={retry}><AstroIcon name="reload" />Tentar novamente</CompactPurpleButton></section>}
         {!activeDialog && decisionError && <p className="form-review-load-error" role="alert">{decisionError}</p>}
         {!loading && !error && data && form && review && <>
-          <section className="form-review-overview" aria-labelledby="review-form-title">
-            <div className="form-review-overview-title"><span className="form-card-icon form-card-icon--purple form-review-document-icon"><AstroIcon name="document" /></span><div><h2 id="review-form-title">{form.title || 'Formulário sem título'}</h2><p>{form.description || 'Sem descrição.'}</p></div>
-              <div className="form-card-badges form-review-badges"><span className={`form-review-status form-review-status--${review.status}`}><i aria-hidden="true" />{reviewStatusLabels[review.status]}</span></div></div>
-            <dl className="form-review-metadata"><div><dt>Gestor destinatário</dt><dd><AstroIcon name="person-outline" />{data.recipientName}</dd></div>
-              <div><dt>Unidade</dt><dd><AstroIcon name="building" />{data.unitName}</dd></div><div><dt>Enviado por</dt><dd>{data.senderName}</dd></div>
-              <div><dt>Respondido em</dt><dd>{form.respondedAt ? formatResponseDate(form.respondedAt, true) : 'Aguardando resposta'}</dd></div>
-              <div><dt>Norma relacionada</dt><dd>{form.nrCode ? `NR ${form.nrCode}` : 'Não informada'}</dd></div><div><dt>Prazo de resposta</dt><dd>{formatResponseDate(form.dueDate)}</dd></div></dl>
-          </section>
+          <FormResponseInformation data={data} />
           <div className="form-review-layout">
-            <section className="form-responses-list" aria-labelledby="responses-list-title"><header className="form-responses-list-heading"><h2 id="responses-list-title">Respostas enviadas</h2><span>{answeredQuestionCount(form.questions)} de {form.questions.length} respondidas</span></header>
+            <section className="form-responses-list" aria-labelledby="responses-list-title"><header className="form-responses-list-heading"><h2 className="astro-card-title" id="responses-list-title">Respostas enviadas</h2><span>{answeredQuestionCount(form.questions)} de {form.questions.length} respondidas</span></header>
               {form.questions.map((question, index) => <FormResponseCard key={question.id} question={question} number={index + 1} onOpenPhoto={setPhoto} />)}
               {!form.questions.length && <p className="form-response-empty">Este formulário não possui perguntas.</p>}
             </section>
@@ -67,8 +59,8 @@ function FormResponsesContent() {
             </div>
           </div>
         </>}
-      </div>
     </main>
+    <HelpLink />
     {activeDialog === 'approve' && data && <ConfirmationModal title="Aprovar este formulário?" confirmLabel="Confirmar aprovação" cancelLabel="Voltar à análise" backdrop="dimmed"
       description="Ao confirmar, as respostas serão consideradas válidas e a análise será encerrada. Esta decisão é definitiva."
       onCancel={closeDecision} onConfirm={async () => { await decide('approved'); return null }} onConfirmed={closeDecision} />}

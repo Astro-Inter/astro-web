@@ -1,9 +1,11 @@
 import { useEffect, useRef, type CSSProperties, type KeyboardEvent, type RefObject } from 'react'
 import TruncatedText from '../truncatedText'
+import { useExitPresence } from '../../hooks/useExitPresence'
 
 export interface OptionsPopupItem {
   trackingAction?: string
   disabled?: boolean
+  loading?: boolean
   id: string
   label: string
   onSelect: () => void
@@ -20,9 +22,17 @@ interface OptionsPopupProps {
   onClose: () => void
   panelRef: RefObject<HTMLDivElement | null>
   style: CSSProperties
+  loading?: boolean
 }
 
-function OptionsPopup({ trackingName, ariaLabel, closing = false, id, items, onClose, panelRef, style }: OptionsPopupProps) {
+function OptionLabel({ label, loading = false }: { label: string; loading?: boolean }) {
+  const presence = useExitPresence(true, loading)
+  return presence.present
+    ? <span aria-hidden="true" className={`api-skeleton skeleton-copy astro-options-popup-skeleton${presence.exiting ? ' event-loading-exit' : ''}`}>{label}</span>
+    : <span className="event-loading-ready"><TruncatedText focusParent nativeEllipsis>{label}</TruncatedText></span>
+}
+
+function OptionsPopup({ trackingName, ariaLabel, closing = false, id, items, onClose, panelRef, style, loading = false }: OptionsPopupProps) {
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   useEffect(() => {
@@ -52,7 +62,7 @@ function OptionsPopup({ trackingName, ariaLabel, closing = false, id, items, onC
   }
 
   return (
-    <div data-track-dialog={trackingName} aria-label={ariaLabel} className={`astro-options-popup${closing ? ' astro-options-popup--closing' : ''}`} id={id} onKeyDown={handleKeyDown} ref={panelRef} role="menu" style={style}>
+    <div data-track-dialog={trackingName} aria-busy={loading || undefined} aria-label={ariaLabel} className={`astro-options-popup${closing ? ' astro-options-popup--closing' : ''}`} id={id} onKeyDown={handleKeyDown} ref={panelRef} role="menu" style={style}>
       {items.map((item, index) => (
         <button data-track-action={item.trackingAction}
           aria-label={item.label}
@@ -63,7 +73,7 @@ function OptionsPopup({ trackingName, ariaLabel, closing = false, id, items, onC
           ref={(element) => { itemRefs.current[index] = element }}
           role="menuitem"
           type="button"
-        ><TruncatedText focusParent nativeEllipsis>{item.label}</TruncatedText></button>
+        ><OptionLabel label={item.label} loading={item.loading} /></button>
       ))}
     </div>
   )

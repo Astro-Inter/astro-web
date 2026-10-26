@@ -17,6 +17,7 @@ function load(filename) {
 const api = load('src/services/events.ts')
 const utils = load('src/utils/eventApi.ts')
 const { validateEventInformation } = load('src/utils/eventInformationValidation.ts')
+const { validateEventSchedule } = load('src/utils/eventStepValidation.ts')
 const edits = load('src/utils/eventEditing.ts')
 const originalFetch = global.fetch, user = auth.currentUser
 afterEach(() => { global.fetch = originalFetch; auth.currentUser = user })
@@ -29,6 +30,13 @@ const event = {
     participants: [{ id: 11, name: 'Ana', email: 'ana@example.test', participationId: 22 }] }],
 }
 const calendar = { eventId: 42, eventClassId: 90, eventTitle: 'Treinamento', className: 'Turma A', startDate: '2099-11-05T08:07:23', endDate: '2099-11-06T06:13:49', status: 'ATIVO' }
+
+test('validação por etapa rejeita datas impossíveis e preserva segundos de horários históricos', () => {
+  const schedule = { date: '2099-11-05', startTime: '08:07', endTime: '08:07', originalStart: '2099-11-05T08:07:23', originalEnd: '2099-11-05T08:07:49' }
+  assert.deepEqual(validateEventSchedule(schedule), {})
+  assert.ok(validateEventSchedule({ ...schedule, originalEnd: undefined }).endTime)
+  assert.ok(validateEventSchedule({ ...schedule, date: '2099-02-30' }).date)
+})
 
 test('validação inicial e envio final compartilham limites e rejeitam campos só com espaços', () => {
   const draft = { title: ' abc ', description: ' abc ', nr: '', type: 'Evento', externalLink: '' }

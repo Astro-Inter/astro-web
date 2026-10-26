@@ -4,6 +4,7 @@ import { AddressForm, AttachExcelFileForm, HelpLink, PurpleButton } from '../../
 import WorkspaceSettingsBackButton from '../../components/workspaceSettingsBackButton'
 import WorkspaceSettingsSaveModal from '../../components/workspaceSettingsSaveModal'
 import WorkspaceImportSummary from '../../components/workspaceImportSummary'
+import ActionLoading from '../../components/actionLoading'
 import { useWorkspaceImport } from '../../hooks/useWorkspaceImport'
 import { useWorkspaceAddresses } from '../../hooks/useWorkspaceAddresses'
 import type { WorkspaceUnitAddress } from '../../types/address'
@@ -22,7 +23,7 @@ function WorkspaceSpreadsheetSettingsPage() {
   const spreadsheet = useWorkspaceImport()
   const navigate = useNavigate()
   const [confirmation, setConfirmation] = useState<WorkspaceUnitAddress[] | null>(null)
-  return <main data-track-page={true} className="attach-excel-page workspace-spreadsheet-settings">
+  return <><main data-track-page={true} className="attach-excel-page workspace-spreadsheet-settings" aria-busy={spreadsheet.reading} inert={spreadsheet.reading}>
     <WorkspaceSettingsBackButton screen="backExcelModalWeb" hasChanges={Boolean(spreadsheet.file && !spreadsheet.result)} />
     {!spreadsheet.result && <>
       <AttachExcelFileForm settingsMode reading={spreadsheet.reading} readingError={spreadsheet.error} onSelectionChange={spreadsheet.reset} onContinue={async file => {
@@ -38,6 +39,8 @@ function WorkspaceSpreadsheetSettingsPage() {
     <HelpLink />
     {confirmation && (!spreadsheet.units?.length || confirmation.length > 0) && <WorkspaceSettingsSaveModal section="spreadsheet" onCancel={() => setConfirmation(null)} onSave={() => spreadsheet.save(confirmation)} onSaved={() => setConfirmation(null)} />}
   </main>
+    <ActionLoading active={spreadsheet.reading} />
+  </>
 }
 
 export default WorkspaceSpreadsheetSettingsPage

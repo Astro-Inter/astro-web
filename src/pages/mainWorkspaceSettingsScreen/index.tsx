@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AstroBrand, AstroIcon, CompactPurpleButton, HelpLink } from '../../components'
 import WorkspaceSettingsPasswordModal from '../../components/workspaceSettingsPasswordModal'
+import ActionLoading from '../../components/actionLoading'
 import SettingsTabs from '../../components/settingsTabs'
 import WorkspaceManagerTransferModal from '../../components/workspaceManagerTransferModal'
 import { useAuthentication } from '../../hooks/useAuthentication'
@@ -32,6 +33,7 @@ function MainWorkspaceSettingsScreenPage() {
   const location = useLocation()
   const [section, setSection] = useState<WorkspaceSettingsSection | null>(null)
   const [transferring, setTransferring] = useState(false)
+  const [openingSection, setOpeningSection] = useState(false)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const navigationState = location.state as WorkspaceSettingsNavigationState | null
   const from = navigationState?.from
@@ -45,7 +47,11 @@ function MainWorkspaceSettingsScreenPage() {
   function continueToSection() {
     if (!canManageWorkspace) return
     const target = sections.find(item => item.id === section)
-    if (target) navigate(`${target.path}?context=settings`, { state: { from: returnPath } })
+    if (target) {
+      setOpeningSection(true)
+      setSection(null)
+      navigate(`${target.path}?context=settings`, { state: { from: returnPath } })
+    }
   }
 
   return (
@@ -60,7 +66,6 @@ function MainWorkspaceSettingsScreenPage() {
 
         <div className="settings-tab-content">
         <h1 id="workspace-settings-title">Configurações de workspace</h1>
-        {navigationState?.savedSection && <p role="status">{sections.find(item => item.id === navigationState.savedSection)?.title}: alterações salvas.</p>}
         {canManageWorkspace && <section className="create-forms-card workspace-settings-card" aria-labelledby="workspace-settings-edit-title">
           <h2 id="workspace-settings-edit-title">Editar informações</h2>
           <div className="workspace-settings-rows">
@@ -89,6 +94,7 @@ function MainWorkspaceSettingsScreenPage() {
       </main>
 
       <HelpLink />
+      <ActionLoading active={openingSection} />
       {canManageWorkspace && section && <WorkspaceSettingsPasswordModal key={section} onCancel={closePassword} onContinue={continueToSection} section={section} />}
       {canManageWorkspace && transferring && <WorkspaceManagerTransferModal onClose={() => { setTransferring(false); triggerRef.current?.focus() }} />}
     </div>

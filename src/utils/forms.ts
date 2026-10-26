@@ -33,7 +33,8 @@ export function validateAndSanitizeForm(input: CreateFormValues, draft = false):
   }
   const errors: Record<string, string> = {}
   if ((!draft && !values.name) || values.name.length > 100) errors.name = 'Informe um nome de até 100 caracteres.'
-  if (values.description.length > 240) errors.description = 'A descrição deve ter até 240 caracteres.'
+  if (!draft && !values.description) errors.description = 'Informe a descrição do formulário.'
+  else if (values.description.length > 240) errors.description = 'A descrição deve ter até 240 caracteres.'
   if ((!draft && !values.manager) || values.manager.length > 200) errors.manager = 'Selecione um gestor válido.'
   for (const field of ['nr', 'unit'] as const) if (values[field].length > 200) errors[field] = 'Selecione uma opção válida.'
   if (values.deadline && (!/^\d{4}-\d{2}-\d{2}$/.test(values.deadline)

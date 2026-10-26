@@ -8,7 +8,7 @@ import { useWorkspaceCompany } from '../../hooks/useWorkspaceCompany'
 function WorkspaceCompanySettingsPage() {
   const company = useWorkspaceCompany()
   const [confirming, setConfirming] = useState(false)
-  return <main data-track-page={true} className="create-password-page include-company-page">
+  return <main data-track-page={true} className="create-password-page include-company-page" aria-busy={company.loading} inert={company.loading}>
     <WorkspaceSettingsBackButton screen="backCompanyModalWeb" hasChanges={company.hasChanges} />
     <header className="create-password-header"><AstroBrand /></header>
     <section className="login-card create-password-card astro-scale-90" aria-labelledby="company-information-title">

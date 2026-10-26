@@ -5,23 +5,51 @@ import { candidateForEvent } from '../utils/eventApi'
 import type { EventCollaborator } from '../types/eventCreation'
 import type { EventNrOption } from '../types/events'
 
-interface CandidatesState { key: string; collaborators: EventCollaborator[]; nrs: EventNrOption[]; loading: boolean; error: string }
-interface EventCandidatesResult extends Omit<CandidatesState, 'key'> { retry: () => void }
+interface CandidatesState { key: string; collaborators: EventCollaborator[]; error: string }
+interface NrsState { key: string; nrs: EventNrOption[]; error: string }
+interface EventCandidatesResult {
+  collaborators: EventCollaborator[]
+  nrs: EventNrOption[]
+  loading: boolean
+  nrsLoading: boolean
+  error: string
+  retry: () => void
+}
 export function useEventCandidates(nr: string): EventCandidatesResult {
   const { user } = useAuthentication()
   const uid = user?.uid
   const [attempt, setAttempt] = useState(0)
   const key = `${uid ?? ''}/${nr}/${attempt}`
-  const [state, setState] = useState<CandidatesState>({ key: '', collaborators: [], nrs: [], loading: true, error: '' })
+  const nrsKey = `${uid ?? ''}/${attempt}`
+  const [state, setState] = useState<CandidatesState>({ key: '', collaborators: [], error: '' })
+  const [catalog, setCatalog] = useState<NrsState>({ key: '', nrs: [], error: '' })
   useEffect(() => {
     const controller = new AbortController()
     if (!uid) return () => controller.abort()
-    Promise.all([listEventCandidates(nr || undefined, controller.signal), listEventNrs(controller.signal)]).then(([people, nrs]) => {
-      if (!controller.signal.aborted) setState({ key, collaborators: people.map(candidateForEvent), nrs, loading: false, error: '' })
+    listEventNrs(controller.signal).then(nrs => {
+      if (!controller.signal.aborted) setCatalog({ key: nrsKey, nrs, error: '' })
     }).catch((error: unknown) => {
-      if (!controller.signal.aborted) setState({ key, collaborators: [], nrs: [], loading: false, error: error instanceof Error ? error.message : 'Não foi possível carregar os participantes.' })
+      if (!controller.signal.aborted) setCatalog({ key: nrsKey, nrs: [], error: error instanceof Error ? error.message : 'Não foi possível carregar as NRs.' })
+    })
+    return () => controller.abort()
+  }, [uid, nrsKey])
+  useEffect(() => {
+    const controller = new AbortController()
+    if (!uid) return () => controller.abort()
+    listEventCandidates(nr || undefined, controller.signal).then(people => {
+      if (!controller.signal.aborted) setState({ key, collaborators: people.map(candidateForEvent), error: '' })
+    }).catch((error: unknown) => {
+      if (!controller.signal.aborted) setState({ key, collaborators: [], error: error instanceof Error ? error.message : 'Não foi possível carregar os participantes.' })
     })
     return () => controller.abort()
   }, [uid, nr, key])
-  return { ...(state.key === key ? state : { collaborators: [], nrs: state.nrs, loading: true, error: '' }), retry: () => setAttempt(current => current + 1) }
+  const nrsLoading = catalog.key !== nrsKey
+  return {
+    collaborators: state.key === key ? state.collaborators : [],
+    nrs: nrsLoading ? [] : catalog.nrs,
+    loading: nrsLoading || state.key !== key,
+    nrsLoading,
+    error: (nrsLoading ? '' : catalog.error) || (state.key === key ? state.error : ''),
+    retry: () => setAttempt(current => current + 1),
+  }
 }

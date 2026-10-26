@@ -1,6 +1,6 @@
 import type { RefObject } from 'react'
 import AstroIcon from '../astroIcon'
-import CompactPurpleButton from '../compactPurpleButton'
+import PurpleButton from '../purpleButton'
 import { formatResponseDate, reviewStatusLabels } from '../../utils/formReview'
 import type { FormReviewState } from '../../types/formReview'
 
@@ -19,9 +19,8 @@ interface FormReviewPanelProps {
 function FormReviewPanel({ review, recipientName, answeredCount, questionCount, actionsAvailable, availabilityMessage, titleRef, onApprove, onReject }: FormReviewPanelProps) {
   const final = review.status === 'approved' || review.status === 'rejected'
   const title = review.status === 'approved' ? 'Formulário aprovado' : review.status === 'rejected' ? 'Formulário reprovado' : 'Validação do formulário'
-  return <aside className={`form-review-decision form-review-decision--${review.status}`} aria-labelledby="review-decision-title" tabIndex={0}>
+  return <aside className={`create-forms-card form-review-decision form-review-decision--${review.status}`} aria-labelledby="review-decision-title" tabIndex={0}>
     <header className="form-review-decision-heading">
-      <span className="form-card-icon form-card-icon--purple form-review-decision-icon"><AstroIcon name={review.status === 'approved' ? 'check' : review.status === 'rejected' ? 'close' : 'document-lines'} /></span>
       <h2 id="review-decision-title" ref={titleRef} tabIndex={-1}>{title}</h2>
     </header>
     <div className="form-card-badges form-review-badges form-review-decision-status"><span className={`form-review-status form-review-status--${review.status}`}><i aria-hidden="true" />{reviewStatusLabels[review.status]}</span></div>
@@ -36,8 +35,8 @@ function FormReviewPanel({ review, recipientName, answeredCount, questionCount, 
     </> : <>
       <p className="form-review-decision-copy">{review.status === 'awaiting_response' ? 'A análise estará disponível quando o gestor concluir o envio das respostas.' : 'Confira as respostas antes de registrar sua decisão.'}</p>
       <div className="form-review-decision-actions">
-        <CompactPurpleButton type="button" disabled={!actionsAvailable} onClick={onApprove}><AstroIcon name="check" />Aprovar formulário</CompactPurpleButton>
-        <CompactPurpleButton type="button" variant="outline" disabled={!actionsAvailable} onClick={onReject}><AstroIcon name="close" />Reprovar formulário</CompactPurpleButton>
+        <PurpleButton type="button" disabled={!actionsAvailable} onClick={onApprove}><AstroIcon name="check" />Aprovar formulário</PurpleButton>
+        <PurpleButton type="button" variant="outline" disabled={!actionsAvailable} onClick={onReject}><AstroIcon name="close" />Reprovar formulário</PurpleButton>
       </div>
       {availabilityMessage && <p className="form-review-availability">{availabilityMessage}</p>}
     </>}

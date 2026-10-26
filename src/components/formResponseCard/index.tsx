@@ -11,12 +11,12 @@ function FormResponseCard({ question, number, onOpenPhoto }: FormResponseCardPro
   const files = responseFiles(question)
   const otherText = otherAnswerText(question)
   const hasAnswer = question.answer.length > 0
-  return <article className="form-response-card" aria-labelledby={`response-question-${question.id}`}>
-    <header className="form-response-question-heading">
-      <div><p className="form-response-kind">Pergunta {number}<span aria-hidden="true"> · </span>{typeLabels[question.type]}<span aria-hidden="true"> · </span>{question.required ? 'Obrigatória' : 'Opcional'}</p>
-        <h3 id={`response-question-${question.id}`}>{question.question || 'Pergunta sem título'}</h3></div>
+  return <article className="create-forms-card create-forms-question-card form-response-card" aria-labelledby={`response-question-${question.id}`}>
+    <header className="create-forms-question-header form-response-question-heading">
+      <div><h2>Pergunta {number}</h2><p className="form-response-kind">{typeLabels[question.type]}<span aria-hidden="true"> · </span>{question.required ? 'Obrigatória' : 'Opcional'}</p></div>
       {hasAnswer && <span className="form-response-filled"><AstroIcon name="check" /><span>Respondida</span></span>}
     </header>
+    <h3 className="create-forms-label" id={`response-question-${question.id}`}>{question.question || 'Pergunta sem título'}</h3>
     {!hasAnswer ? <p className="form-response-empty">Esta pergunta não foi respondida.</p>
       : question.type === 'alternativa' ? <ul className="form-response-options" aria-label="Alternativas da pergunta">
         {(question.options ?? []).map(option => <li key={option.id} className={selected.includes(option.id) ? 'is-selected' : ''}>

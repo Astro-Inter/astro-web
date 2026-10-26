@@ -1,6 +1,5 @@
 import ActionLoading from '../../components/actionLoading'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
-import FormEditorSkeleton from '../../components/formEditorSkeleton'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -14,7 +13,6 @@ import FormQuestionCard from '../../components/formQuestionCard'
 import HelpLink from '../../components/helpLink'
 import OptionsPopup from '../../components/optionsPopup'
 import PurpleButton from '../../components/purpleButton'
-import CompactPurpleButton from '../../components/compactPurpleButton'
 import { useFormEditor } from '../../hooks/useFormEditor'
 import { makeQuestion, validateAndSanitizeForm } from '../../utils/forms'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
@@ -33,12 +31,11 @@ function EditFormPage() {
   const [leaving, setLeaving] = useState(false)
   const { requestClose: finishPageExit } = useAnimatedClose(180)
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
-  const [showReloadConfirmation, setShowReloadConfirmation] = useState(false)
   const [publish, setPublish] = useState(false)
   const [validationError, setValidationError] = useState('')
   const [deadlineValid, setDeadlineValid] = useState(true)
-  const [validationDraft, setValidationDraft] = useState<boolean | null>(null)
-  const fieldErrors = validationDraft === null ? {} : validateAndSanitizeForm(values, validationDraft).errors
+  const [validationAttempt, setValidationAttempt] = useState<{ values: typeof values; draft: boolean } | null>(null)
+  const fieldErrors = validationAttempt?.values === values ? validateAndSanitizeForm(values, validationAttempt.draft).errors : {}
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
 
@@ -140,7 +137,7 @@ function EditFormPage() {
   function confirmSave(publishing = false) {
     if (loading || loadError || saving || locked || leaving) return
     if (removingQuestionIdsRef.current.size) { setValidationError('Aguarde a remoção da pergunta antes de salvar.'); return }
-    setValidationDraft(detail?.status === 'RASCUNHO' && !publishing)
+    setValidationAttempt({ values, draft: detail?.status === 'RASCUNHO' && !publishing })
     if (!deadlineValid) return
     const validation = validateAndSanitizeForm(values, detail?.status === 'RASCUNHO' && !publishing)
     if (validation.errors.questions) notify(validation.errors.questions, 'error')
@@ -151,6 +148,8 @@ function EditFormPage() {
     setPublish(publishing)
     setShowSaveConfirmation(true)
   }
+
+  if (loading) return <div className="create-forms-page astro-scale-90" aria-busy="true"><ActionLoading /></div>
 
   return (
     <div className={`create-forms-page edit-forms-page astro-scale-90${leaving ? ' create-forms-page--leaving' : ''}`}>
@@ -174,16 +173,8 @@ function EditFormPage() {
       <main data-track-page={true} className="create-forms-main edit-forms-main">
         <h1>Editar formulário</h1>
         {loadError && <div role="alert"><p>{loadError}</p><button type="button" onClick={retry}>Tentar novamente</button></div>}
-        <div className="forms-editor-navigation">
-        <CompactPurpleButton auto variant="outline" disabled={saving || leaving} onClick={() => {
-          if (loading || loadError || locked) navigate('/mainFormScreen')
-          else setShowBackConfirmation(true)
-        }}><AstroIcon name="back" />Voltar aos formulários</CompactPurpleButton>
-        {!loadError && <CompactPurpleButton auto variant="outline" disabled={loading || saving || leaving} onClick={() => setShowReloadConfirmation(true)}><AstroIcon name="reload" />Recarregar formulário</CompactPurpleButton>}
-        </div>
-        {loading && <FormEditorSkeleton editing />}
         {locked && <p role="status">Este formulário está concluído ou já recebeu respostas e está disponível somente para consulta.</p>}
-        <ActionLoading active={saving} />
+        <ActionLoading active={loading || options.managersLoading || saving} />
         <form hidden={loading} data-track-submit={BUTTONS.comuns.salvar_alteracoes} noValidate onSubmit={(event) => {
           event.preventDefault()
           confirmSave()
@@ -248,13 +239,6 @@ function EditFormPage() {
       />, document.body)}
 
       {showAddQuestion && <AddFormQuestionModal onCancel={() => setShowAddQuestion(false)} onChoose={addQuestion} />}
-      {showReloadConfirmation && <ConfirmationModal
-        backdrop="dimmed" preservePageScroll confirmLabel="Recarregar"
-        title="Recarregar este formulário?"
-        description="As alterações não salvas serão descartadas e os dados salvos serão carregados novamente."
-        onCancel={() => setShowReloadConfirmation(false)} onConfirm={() => null}
-        onConfirmed={() => { setShowReloadConfirmation(false); setValidationError(''); retry() }}
-      />}
       {showBackConfirmation && <ConfirmationModal trackingName={DIALOG_NAMES.descartar_alteracoes_formulario}
         backdrop="dimmed"
         preservePageScroll
