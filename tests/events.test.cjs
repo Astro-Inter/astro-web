@@ -193,3 +193,20 @@ test('contratos mobile usam rotas próprias e evidências multipart sem Content-
   assert.equal(calls[2].body.getAll('files')[0].name, 'certificado.pdf')
   await assert.rejects(api.requestEventCompletion('42', Array(4).fill(new File(['x'], 'x.txt'))), /até três/)
 })
+
+
+test('edição bloqueia durante uma turma em andamento, incluindo o início e liberando no término', () => {
+  const start = new Date(event.eventClasses[0].startDate).getTime()
+  const end = new Date(event.eventClasses[0].endDate).getTime()
+  assert.equal(utils.eventEditUnavailableReason(event, start - 1), '')
+  assert.match(utils.eventEditUnavailableReason(event, start), /em andamento.*não pode ser editado/)
+  assert.match(utils.eventEditUnavailableReason(event, end - 1), /em andamento/)
+  assert.equal(utils.eventEditUnavailableReason(event, end), '')
+  assert.match(utils.eventEditUnavailableReason({ ...event, canEdit: false }, end), /não tem permissão/)
+  assert.match(utils.eventEditUnavailableReason({ ...event, canEdit: false }, start), /em andamento/)
+  assert.match(utils.eventEditUnavailableReason({ ...event, canEdit: false, status: 'CANCELADO' }, start), /não tem permissão/)
+  const nextClass = { ...event.eventClasses[0], startDate: '2099-11-10T08:00:00', endDate: '2099-11-10T09:00:00' }
+  const multiple = { ...event, eventClasses: [...event.eventClasses, nextClass] }
+  assert.equal(utils.eventEditUnavailableReason(multiple, end + 1), '')
+  assert.match(utils.eventEditUnavailableReason(multiple, new Date(nextClass.startDate).getTime()), /em andamento/)
+})
