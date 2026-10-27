@@ -88,7 +88,7 @@ test('seleção e grupos recebem a mesma foto do colaborador sem trocar a identi
   await act(async () => root.render(React.createElement(Groups, { distributionVersion: 0, collaborators: [photoPerson], groups: value.groups, assignments: value.assignments, onAddGroup() {}, onAssign() {}, onBack() {}, onContinue() {}, onRandom() {}, onRemoveGroup() {}, onReset() {} })))
   assert.equal(document.querySelector('.event-create-person-chip .event-create-avatar img').getAttribute('src'), photoPerson.profilePhotoUrl)
   assert.ok(document.querySelector('.event-create-random-trigger .astro-icon--dice'))
-  assert.match(document.querySelector('.event-create-random-trigger .astro-icon--dice').getAttribute('src'), /^\/icons\/dice\.svg\?v=/)
+  assert.match(document.querySelector('.event-create-random-trigger .astro-icon--dice').getAttribute('src'), /^\/icons\/diceFigma\.svg\?v=/)
   const GroupPeople = env.load('src/components/eventGroupCollaboratorsModal/index.tsx').default
   await act(async () => root.render(React.createElement(GroupPeople, { collaborators: [photoPerson], groupName: 'Turma API', participantIds: ['11'], onClose() {} })))
   assert.equal(document.querySelector('tbody .event-create-avatar img').getAttribute('src'), photoPerson.profilePhotoUrl)

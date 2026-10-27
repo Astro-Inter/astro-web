@@ -202,3 +202,5 @@ sendo aplicadas.
 Cada dia exibe no máximo três indicadores no calendário mensal e nos meses
 da visão anual. A visão semanal e a busca continuam usando todos os eventos.
 O botão Distribuir aleatoriamente usa um ícone de dado.
+
+O ícone de distribuição usa o SVG original do componente [Cube](https://www.figma.com/design/qdCrRXAVuiNhNkBuim95zz/Astro-2%C2%B0-ano?node-id=1011-648), da página Icons do Figma Astro, preservado em `public/icons/diceFigma.svg`.
