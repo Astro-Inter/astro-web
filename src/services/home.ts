@@ -9,6 +9,14 @@ export class HomeApiError extends Error {
   }
 }
 
+function homeProfilePhotoUrl(value: unknown): string | null {
+  if (typeof value !== 'string' || !value.trim()) return null
+  try {
+    const url = new URL(value.trim())
+    return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? value.trim() : null
+  } catch { return null }
+}
+
 function toWorkspaceHome(value: unknown): WorkspaceHome {
   const data = value as HomeResponse | null
   const stats = data?.estatisticas
@@ -22,7 +30,7 @@ function toWorkspaceHome(value: unknown): WorkspaceHome {
   }
   const percentage = (count: number): number => stats.quantidade_requisitos === 0 ? 0 : count / stats.quantidade_requisitos * 100
   return {
-    userName: data.nome_usuario.trim(), referenceDate: stats.data_referencia,
+    userName: data.nome_usuario.trim(), profilePhotoUrl: homeProfilePhotoUrl(data.profilePhotoUrl), referenceDate: stats.data_referencia,
     complianceOverview: {
       overallPercentage: stats.percentual_conformidade_geral,
       totalRequirements: stats.quantidade_requisitos,

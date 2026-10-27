@@ -18,8 +18,8 @@ function environment(profile) {
     const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'")
     const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
     new Function('require', 'module', 'exports', code)(name => {
-      if (name === '../../hooks/useAccountProfile') return { useAccountProfile: () => profile }
-      if (name === '../../hooks/useWorkspaceHome') return { useWorkspaceHome: () => ({ data: { userName: 'Ana Silva', summaryStats: [] }, loading: false, error: '' }) }
+      if (name === '../../hooks/useAccountProfile') throw new Error('A home não deve consultar a conta separadamente')
+      if (name === '../../hooks/useWorkspaceHome') return { useWorkspaceHome: () => ({ data: profile.data ? { userName: profile.data.name, profilePhotoUrl: profile.data.photoUrl ?? null, summaryStats: [] } : null, loading: profile.loading, error: profile.error ?? '' }) }
       if (name === '../../components') return Object.fromEntries(['AppSidebar', 'ComplianceOverviewCard', 'QuickActionCard', 'SummaryStatCard'].map(name => [name, () => null]))
       if (name === '../truncatedText') return { __esModule: true, default: ({ children }) => children }
       if (!name.startsWith('.')) return require(name)
@@ -39,7 +39,7 @@ async function withDom(run) {
   try { await run(root, dom) } finally { await act(async () => root.unmount()); dom.window.close(); Object.assign(global, previous) }
 }
 
-test('home usa foto da conta, remove a central de notificações e permite navegar pelo perfil', () => withDom(async (root, dom) => {
+test('home usa foto do workspace sem consultar a conta, remove a central de notificações e permite navegar pelo perfil', () => withDom(async (root, dom) => {
   const profile = { data: { name: 'Ana Silva', photoUrl: 'https://images.example.test/ana.jpg' }, loading: false }
   const Page = environment(profile).load('src/pages/mainHomeScreen/index.tsx').default
   await act(async () => root.render(React.createElement(MemoryRouter, { initialEntries: ['/mainHomeScreen'] }, React.createElement(Routes, null,
@@ -57,7 +57,7 @@ test('home usa foto da conta, remove a central de notificações e permite naveg
 test('avatar trata carregamento, ausência de foto, falha de imagem e nova foto', () => withDom(async (root, dom) => {
   const profile = { data: null, loading: true }
   const Profile = environment(profile).load('src/components/homeProfileLink/index.tsx').default
-  const render = () => root.render(React.createElement(MemoryRouter, null, React.createElement(Profile, { profile: profile.data, loading: profile.loading, error: profile.error, nameFallback: 'Ana Silva' })))
+  const render = () => root.render(React.createElement(MemoryRouter, null, React.createElement(Profile, { name: profile.data?.name || 'Ana Silva', photoUrl: profile.data?.photoUrl, loading: profile.loading, error: profile.error })))
   await act(async () => render())
   assert.equal(document.querySelector('a').getAttribute('aria-busy'), 'true')
   assert.ok(document.querySelector('.home-profile-skeleton'))

@@ -14,11 +14,13 @@ export interface HomeStatisticsResponse {
 
 export interface HomeResponse {
   nome_usuario: string
+  profilePhotoUrl?: string | null
   estatisticas: HomeStatisticsResponse
 }
 
 export interface WorkspaceHome {
   userName: string
+  profilePhotoUrl: string | null
   referenceDate: string
   complianceOverview: ComplianceOverview
   summaryStats: SummaryStat[]

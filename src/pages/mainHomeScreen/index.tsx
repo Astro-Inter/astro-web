@@ -3,13 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { AppSidebar, ComplianceOverviewCard, QuickActionCard, SummaryStatCard } from '../../components'
 import { quickActions } from '../../data/home'
 import { useWorkspaceHome } from '../../hooks/useWorkspaceHome'
-import { useAccountProfile } from '../../hooks/useAccountProfile'
 import HomeProfileLink from '../../components/homeProfileLink'
 import HomeDashboardSkeleton from '../../components/homeDashboardSkeleton'
 
 function MainHomeScreenPage() {
   const navigate = useNavigate()
-  const profile = useAccountProfile()
   const { data, loading, error, retry } = useWorkspaceHome()
 
   return (
@@ -22,7 +20,7 @@ function MainHomeScreenPage() {
               <h1 id="home-title">{data ? `Bem-vindo, ${data.userName}!` : 'Bem-vindo!'}</h1>
               <p>Administre acessos, acompanhe a atuação e gerencie os responsáveis por cada função no seu sistema.</p>
             </div>
-            <HomeProfileLink profile={profile.data} loading={profile.loading} error={profile.error} nameFallback={data?.userName} />
+            <HomeProfileLink name={data?.userName ?? ''} photoUrl={data?.profilePhotoUrl} loading={loading} error={error} />
           </header>
 
           <section aria-labelledby="home-dashboards-title" aria-busy={loading} className="home-section">
