@@ -87,6 +87,8 @@ test('seleção e grupos recebem a mesma foto do colaborador sem trocar a identi
   assert.match(document.querySelector('tbody').textContent, /Ana API/)
   await act(async () => root.render(React.createElement(Groups, { distributionVersion: 0, collaborators: [photoPerson], groups: value.groups, assignments: value.assignments, onAddGroup() {}, onAssign() {}, onBack() {}, onContinue() {}, onRandom() {}, onRemoveGroup() {}, onReset() {} })))
   assert.equal(document.querySelector('.event-create-person-chip .event-create-avatar img').getAttribute('src'), photoPerson.profilePhotoUrl)
+  assert.ok(document.querySelector('.event-create-random-trigger .astro-icon--dice'))
+  assert.match(document.querySelector('.event-create-random-trigger .astro-icon--dice').getAttribute('src'), /^\/icons\/dice\.svg\?v=/)
   const GroupPeople = env.load('src/components/eventGroupCollaboratorsModal/index.tsx').default
   await act(async () => root.render(React.createElement(GroupPeople, { collaborators: [photoPerson], groupName: 'Turma API', participantIds: ['11'], onClose() {} })))
   assert.equal(document.querySelector('tbody .event-create-avatar img').getAttribute('src'), photoPerson.profilePhotoUrl)
@@ -412,7 +414,7 @@ test('calendário carrega dados da API, protege ações por permissão e envia j
   const today = new Date(), iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
   let reason, cancelRequest = deferred()
   const row = { id: '42:90:' + iso, eventId: '42', category: 'event', title: 'Treinamento API', date: iso, startTime: '08:00', endTime: '12:00', status: 'ATIVO' }
-  const result = { events: [row], loading: false, error: '', retry() {}, retryDetails() {}, details: { data: { canEdit: false, canCancel: false }, loading: false, error: '' }, save() {}, cancel: async (_id, text) => { reason = text; return cancelRequest.promise } }
+  const result = { events: [row], loading: false, error: '', retry() {}, retryDetails() {}, details: { data: { canEdit: false, canCancel: false, status: 'ATIVO', eventClasses: [] }, loading: false, error: '' }, save() {}, cancel: async (_id, text) => { reason = text; return cancelRequest.promise } }
   const context = { user: { uid: 'gestor' } }
   const env = environment({ '../../hooks/useAuthentication': { useAuthentication: () => context }, '../../hooks/useEvents': { useEvents: () => result, detailedCalendarEvent: entry => ({ ...entry, configuration: value }) } })
   const Page = env.load('src/pages/mainEventScreen/index.tsx').default
@@ -429,7 +431,7 @@ test('calendário carrega dados da API, protege ações por permissão e envia j
   assert.equal(document.getElementById('event-cancellation-reason'), null)
   assert.equal(reason, undefined)
   await click('Cancelar', document.querySelector('[role=dialog]'))
-  result.details.data = { canEdit: true, canCancel: true }; await act(async () => render())
+  result.details.data = { canEdit: true, canCancel: true, status: 'ATIVO', eventClasses: [] }; await act(async () => render())
   await act(async () => eventButton.click())
   await click('Inativar')
   const input = document.getElementById('event-cancellation-reason')
@@ -616,7 +618,7 @@ test('menu não consulta detalhes; cada opção abre seu próprio skeleton e val
     assert.match(document.querySelector('[role=alert]').textContent, /Falha ao carregar/)
     await click('Tentar novamente')
     assert.equal(retries, ['Ver informações', 'Editar', 'Inativar'].indexOf(label) + 1)
-    result.details = { data: { canEdit: false, canCancel: false }, loading: false, error: '' }
+    result.details = { data: { canEdit: false, canCancel: false, status: 'ATIVO', eventClasses: [] }, loading: false, error: '' }
     await act(async () => render())
     if (label === 'Ver informações') assert.match(document.querySelector('[role=dialog]').textContent, /Treinamento API/)
     else {
@@ -626,4 +628,34 @@ test('menu não consulta detalhes; cada opção abre seu próprio skeleton e val
     }
     assert.equal(mutations, 0)
   }
+}))
+
+
+test('calendário limita cada dia a três marcadores e mantém todos os eventos na semana', async () => withDom(async root => {
+  const Calendar = environment().load('src/components/eventCalendar/index.tsx').default
+  const entries = Array.from({ length: 6 }, (_, index) => ({ id: String(index), title: 'Evento ' + index, date: '2026-10-23', category: 'event', startTime: '08:00', endTime: '08:30' }))
+  const props = { month: new Date(2026, 9, 23), events: entries, selectedEventId: null, onMonthChange() {}, onOpenOptions() {} }
+  for (const view of ['month', 'year', 'week']) {
+    await act(async () => root.render(React.createElement(Calendar, { ...props, view })))
+    assert.equal(document.querySelectorAll('button.event-calendar-item').length, view === 'week' ? 6 : 3)
+  }
+  await act(async () => root.render(React.createElement(Calendar, { ...props, events: entries.slice(0, 2), view: 'month' })))
+  assert.equal(document.querySelectorAll('button.event-calendar-item').length, 2)
+}))
+
+test('editar evento em andamento explica o bloqueio e não abre o formulário nem envia alterações', async () => withDom(async root => {
+  const today = new Date(), iso = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0')
+  const row = { id: '42:90:' + iso, eventId: '42', title: 'Evento em andamento', date: iso, category: 'event', startTime: '00:00', endTime: '23:59', status: 'ATIVO' }
+  let mutations = 0
+  const data = { canEdit: true, status: 'ATIVO', eventClasses: [{ startDate: new Date(Date.now() - 60000).toISOString(), endDate: new Date(Date.now() + 60000).toISOString() }] }
+  const result = { events: [row], loading: false, error: '', retry() {}, retryDetails() {}, details: { data, loading: false, error: '' }, save() { mutations++ } }
+  const env = environment({ '../../hooks/useEvents': { useEvents: () => result, detailedCalendarEvent: entry => ({ ...entry, configuration: value }) } })
+  const Page = env.load('src/pages/mainEventScreen/index.tsx').default
+  await act(async () => root.render(React.createElement(MemoryRouter, null, React.createElement(Page))))
+  await act(async () => document.querySelector('.event-calendar-item--event').click())
+  await click('Editar')
+  assert.match(document.querySelector('[role=alert]').textContent, /em andamento.*não pode ser editado/)
+  assert.equal(document.querySelector('#event-create-title'), null)
+  assert.equal(document.querySelector('[role=dialog] .astro-action').disabled, true)
+  assert.equal(mutations, 0)
 }))

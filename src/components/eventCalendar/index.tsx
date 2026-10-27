@@ -146,7 +146,7 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
                 {weekdays.map((day, dayIndex) => <span className="event-year-weekday" key={dayIndex}>{day.slice(0, 1)}</span>)}
                 {calendarDays(date).map(day => <div className={`event-year-day${day.inCurrentMonth ? '' : ' event-year-day--outside'}`} key={day.date}>
                   {loading && day.inCurrentMonth ? <span className="api-skeleton event-year-skeleton-day" /> : day.inCurrentMonth ? day.day : ''}
-                  {day.inCurrentMonth && <div className="event-year-day-events">{loading ? day.day % 3 === 2 && <span className="api-skeleton event-calendar-skeleton-marker" /> : (eventsByDate.get(day.date) ?? []).map(event => eventItem(event, true))}</div>}
+                  {day.inCurrentMonth && <div className="event-year-day-events">{loading ? day.day % 3 === 2 && <span className="api-skeleton event-calendar-skeleton-marker" /> : (eventsByDate.get(day.date) ?? []).slice(0, 3).map(event => eventItem(event, true))}</div>}
                 </div>)}
               </div>
             </section>
@@ -164,7 +164,7 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
                       {loading ? day.inCurrentMonth && <>
                         <span className={`api-skeleton event-calendar-skeleton-item${presence.exiting ? ' event-loading-exit' : ''}`} />
                         {day.day % 3 === 0 && <span className={`api-skeleton event-calendar-skeleton-item event-calendar-skeleton-item--short${presence.exiting ? ' event-loading-exit' : ''}`} />}
-                      </> : (eventsByDate.get(day.date) ?? []).map(event => eventItem(event))}
+                      </> : (eventsByDate.get(day.date) ?? []).slice(0, 3).map(event => eventItem(event))}
                     </div>
                   </td>
                 ))}
