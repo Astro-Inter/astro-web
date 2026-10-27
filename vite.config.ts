@@ -2,13 +2,15 @@ import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_')
   const apiBaseUrl = env.VITE_API_URL?.trim().replace(/\/+$/, '')
   const passwordResetTarget = env.VITE_PASSWORD_RESET_API_URL?.trim().replace(/\/+$/, '')
   const dashboardTarget = env.VITE_DASHBOARD_API_PROXY_URL?.trim() || env.VITE_DASHBOARD_API_URL?.trim() || 'https://astro-dashboard-api.app-4str0.workers.dev'
   return {
     plugins: [react()],
+    // Mantém os assets de dependências vinculadas dentro da raiz servida no desenvolvimento.
+    resolve: { preserveSymlinks: command === 'serve' },
     worker: { format: 'es' },
     // O leitor é importado ao continuar com a planilha. Prepará-lo ao iniciar
     // evita que a descoberta tardia de dependências recarregue o cadastro.
