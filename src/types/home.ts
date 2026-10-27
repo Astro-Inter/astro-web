@@ -1,6 +1,6 @@
 export type ComplianceStatus = 'compliant' | 'expiring' | 'expired' | 'pending'
 
-export interface HomeStatisticsResponse {
+export interface LegacyHomeStatisticsResponse {
   quantidade_unidades: number
   quantidade_colaboradores: number
   quantidade_requisitos: number
@@ -12,10 +12,28 @@ export interface HomeStatisticsResponse {
   data_referencia: string
 }
 
-export interface HomeResponse {
+export interface LegacyHomeResponse {
   nome_usuario: string
   profilePhotoUrl?: string | null
-  estatisticas: HomeStatisticsResponse
+  estatisticas: LegacyHomeStatisticsResponse
+}
+
+export interface HomeStatisticsResponse {
+  unitCount: number
+  collaboratorCount: number
+  requirementCount: number
+  compliantCount: number
+  expiringSoonCount: number
+  expiredCount: number
+  pendingCount: number
+  overallCompliancePercentage: number
+  referenceDate: string
+}
+
+export interface HomeResponse {
+  userName: string
+  statistics: HomeStatisticsResponse
+  profilePhotoUrl?: string | null
 }
 
 export interface WorkspaceHome {

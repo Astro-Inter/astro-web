@@ -130,3 +130,19 @@ test('foto vem da resposta da home; ausência ou URL inválida não impede os in
   assert.equal((await api.loadWorkspaceHome()).profilePhotoUrl, url)
   assert.equal(requests, 1)
 })
+
+
+test('aceita o contrato camelCase da home e mantém os mesmos indicadores do formato anterior', async () => {
+  global.fetch = async () => respond()
+  const legacy = await api.loadWorkspaceHome()
+  global.fetch = async () => new Response(JSON.stringify({ success: true, data: {
+    userName: ' Gestor do workspace ', profilePhotoUrl: 'https://images.example.test/profile.jpg',
+    statistics: { unitCount: 4, collaboratorCount: 248, requirementCount: 20,
+      compliantCount: 12, expiringSoonCount: 3, expiredCount: 1, pendingCount: 4,
+      overallCompliancePercentage: 60.25, referenceDate: '2026-10-12' },
+  } }))
+  const current = await api.loadWorkspaceHome()
+  assert.deepEqual(current, { ...legacy, profilePhotoUrl: 'https://images.example.test/profile.jpg' })
+  global.fetch = async () => new Response(JSON.stringify({ success: true, data: { userName: 'Gestor', statistics: { unitCount: 4 } } }))
+  await assert.rejects(api.loadWorkspaceHome(), /dados inválidos/)
+})

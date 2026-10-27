@@ -49,9 +49,21 @@ O resumo da conta continua existindo para a tela Minha conta.
 
 O serviço do web normaliza campos ausentes, null ou URLs inválidas para null.
 Aceita somente HTTP/HTTPS sem credenciais e preserva a URL assinada original.
-Isso permite publicar a API primeiro; enquanto a API antiga ainda estiver
+O web deve ser publicado antes da API que passa a retornar camelCase; enquanto a API antiga ainda estiver
 respondendo sem o campo, o web mostra as iniciais sem buscar a conta por fora.
 
 Os testes da home conferem a foto na resposta do workspace e impedem uso do
 hook de conta pela página. Também validam que respostas sem foto, formatos
 inválidos e protocolos não permitidos não impedem os indicadores.
+
+
+## Compatibilidade de nomes
+
+A API da PR #76 deixa de usar JsonProperty nos DTOs do workspace e publica
+userName/statistics com indicadores em camelCase. services/home.ts aceita
+esse contrato e o legado nome_usuario/estatisticas, com tipagem separada e
+as mesmas validações. Os testes comparam todos os indicadores dos dois
+formatos e rejeitam respostas novas incompletas.
+
+Ordem de publicação: este web compatível primeiro, depois a API #76. Não há
+mudança de contratos de conta, cargos ou home mobile nesta demanda.
