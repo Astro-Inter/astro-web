@@ -3,6 +3,13 @@ import type { CalendarEvent, CalendarView, CreateEventRequest, EventCalendarResp
 import { calendarDays, weekDays } from './events'
 import { validateEventInformation } from './eventInformationValidation'
 
+export function eventEditUnavailableReason(event: EventResponse, now = Date.now()): string {
+  if (event.status === 'ATIVO' && event.eventClasses.some(group => new Date(group.startDate).getTime() <= now && now < new Date(group.endDate).getTime())) {
+    return 'Este evento está em andamento e não pode ser editado enquanto estiver acontecendo.'
+  }
+  return event.canEdit ? '' : 'Você não tem permissão para editar este evento.'
+}
+
 export function eventCalendarRange(date: Date, view: CalendarView): { startDate: string; endDate: string } {
   const days = view === 'week' ? weekDays(date) : calendarDays(date)
   const year = date.getFullYear()

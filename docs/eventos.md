@@ -190,3 +190,17 @@ a seleção de colaboradores. Nenhum evento foi salvo nesse teste.
 O seletor de eventos inclui COLABORADOR, GESTOR e GESTOR_WORKSPACE ativos e elegíveis para a NR no mesmo workspace. O criador permanece excluído, tanto na consulta quanto na gravação, conforme a regra confirmada. A permissão `canManage` refere-se à edição do cadastro da pessoa e não restringe sua participação em eventos. `useEventCandidates` mantém todos os candidatos retornados por `/events/eligible-candidates`; o backend continua responsável por elegibilidade e escopo.
 
 Outras seleções mantêm suas finalidades: conformidades incluem os três perfis e a própria conta; promoção a gestor oferece somente colaboradores ativos que ainda não são gestores, excluindo o próprio responsável do workspace.
+
+## Ajustes de edição e calendário
+
+Ao solicitar a edição, o painel informa que o evento não pode ser editado
+quando uma turma de um evento ativo está em andamento. O bloqueio considera
+o início inclusivo e o término exclusivo de cada turma e é conferido novamente
+ao salvar. Fora desse intervalo, as permissões retornadas pela API continuam
+sendo aplicadas.
+
+Cada dia exibe no máximo três indicadores no calendário mensal e nos meses
+da visão anual. A visão semanal e a busca continuam usando todos os eventos.
+O botão Distribuir aleatoriamente usa um ícone de dado.
+
+O ícone de distribuição usa o SVG original do componente [Cube](https://www.figma.com/design/qdCrRXAVuiNhNkBuim95zz/Astro-2%C2%B0-ano?node-id=1011-648), da página Icons do Figma Astro, preservado em `public/icons/diceFigma.svg`.
