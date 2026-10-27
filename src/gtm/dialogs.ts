@@ -374,7 +374,6 @@ export const DIALOG_NAMES = {
   "informacoes_gestor": "informacoes_gestor",
   "informacoes_nr": "informacoes_nr",
   "instrucoes_importacao_conformidades": "instrucoes_importacao_conformidades",
-  "notificacoes": "notificacoes",
   "nrs_cargo": "nrs_cargo",
   "nrs_unidade": "nrs_unidade",
   "organizar_equipes_evento": "organizar_equipes_evento",

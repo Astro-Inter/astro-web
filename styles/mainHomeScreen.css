@@ -24,15 +24,17 @@
 .main-home-screen .position-main { height: auto; min-height: 100dvh; overflow: visible; }
 .main-home-screen .home-content { display: flex; flex-direction: column; gap: var(--home-gap); }
 
-/* Cabeçalho padrão das telas principais, com o sino à direita: centralizado na
-   altura do cabeçalho e com o desenho alinhado à borda direita dos cards. */
+/* Cabeçalho da home com acesso à própria conta. */
 .main-home-screen .home-heading { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; margin-bottom: 0; }
 .home-heading-copy { flex: 1; min-width: 0; }
 
-.notification-button { display: grid; flex: none; place-items: center; width: calc(3.1rem * var(--astro-scale)); height: calc(3.1rem * var(--astro-scale)); margin-right: 0; padding: 0; border: 0; border-radius: var(--astro-control-radius); background: transparent; cursor: pointer; }
-.notification-button .astro-icon { width: var(--astro-heading-font-size); height: var(--astro-heading-font-size); object-fit: contain; transition: filter 220ms ease; }
-.notification-button:is(:hover, [aria-expanded="true"]) .astro-icon { filter: brightness(0.85); }
-.notification-button:focus-visible { outline: none; box-shadow: inset 0 0 0 1px var(--astro-focus-border); }
+.home-profile-link { display: grid; flex: none; place-items: center; position: relative; width: calc(3.5rem * var(--astro-scale)); height: calc(3.5rem * var(--astro-scale)); border: 0; border-radius: 50%; overflow: hidden; color: var(--astro-text); background: var(--position-surface); text-decoration: none; transition: filter 180ms ease; }
+.home-profile-link:hover { filter: brightness(1.1); }
+.home-profile-link:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 4px; }
+.home-profile-link .collaborator-identity, .home-profile-link .manager-avatar { width: 100%; height: 100%; margin: 0; border-radius: inherit; }
+.home-profile-link { --account-avatar-font-size: var(--astro-subtitle-font-size); }
+.home-profile-link .astro-icon { width: 60%; height: 60%; object-fit: contain; }
+.home-profile-skeleton { position: absolute; inset: 0; border-radius: inherit; }
 
 .home-section { display: flex; flex-direction: column; gap: var(--home-section-gap); }
 .home-section > h2 { margin: 0; color: var(--astro-text); font-size: calc(1.625rem * var(--astro-scale)); font-weight: 600; letter-spacing: -0.02em; line-height: 1.3; }
@@ -161,11 +163,14 @@ a.summary-stat-link:focus-visible { outline: none; background: var(--home-action
   .main-home-screen .home-content { --home-card-padding-inline: 1.35rem; --home-card-padding-block: 1.35rem; --home-grid-gap: 1rem; }
   .home-quick-actions { grid-template-columns: 1fr; }
   .main-home-screen .home-heading { align-items: flex-start; }
-  .notification-button { width: 2.75rem; height: 2.75rem; }
+  .home-profile-link { width: 2.75rem; height: 2.75rem; }
   .quick-action-button.astro-action { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .notification-button .astro-icon, .summary-stat-link { transition: none; }
+  .home-profile-link, .summary-stat-link { transition: none; }
   .home-skeleton, .home-dashboards--ready { animation: none; }
 }
+
+.home-profile-access { display: flex; flex: none; flex-direction: column; align-items: center; gap: .35rem; }
+.home-profile-error { max-width: 6rem; color: var(--astro-text); font-size: .75rem; line-height: 1.3; text-align: center; }

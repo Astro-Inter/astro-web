@@ -111,3 +111,38 @@ test('erro 500 real da API informa falha no servidor em vez da mensagem genéric
   }), { status: 500 })
   await assert.rejects(api.loadWorkspaceHome(), /O servidor não conseguiu carregar os indicadores do workspace \(erro 500\)/)
 })
+
+
+test('foto vem da resposta da home; ausência ou URL inválida não impede os indicadores', async () => {
+  for (const value of [undefined, null, '', 123, 'javascript:alert(1)', 'data:image/png;base64,AAA', 'https://', 'https://user:secret@example.test/photo.jpg']) {
+    global.fetch = async () => new Response(JSON.stringify({ success: true, data: { nome_usuario: 'Ana Silva', estatisticas: statistics, profilePhotoUrl: value } }))
+    const home = await api.loadWorkspaceHome()
+    assert.equal(home.profilePhotoUrl, null)
+    assert.equal(home.summaryStats[0].value, statistics.quantidade_unidades)
+  }
+  const url = 'https://images.example.test/avatar.jpg?signature=123'
+  let requests = 0
+  global.fetch = async endpoint => {
+    requests++
+    assert.equal(endpoint, 'https://api.example.test/home/workspace')
+    return new Response(JSON.stringify({ success: true, data: { nome_usuario: 'Ana Silva', estatisticas: statistics, profilePhotoUrl: url } }))
+  }
+  assert.equal((await api.loadWorkspaceHome()).profilePhotoUrl, url)
+  assert.equal(requests, 1)
+})
+
+
+test('aceita o contrato camelCase da home e mantém os mesmos indicadores do formato anterior', async () => {
+  global.fetch = async () => respond()
+  const legacy = await api.loadWorkspaceHome()
+  global.fetch = async () => new Response(JSON.stringify({ success: true, data: {
+    userName: ' Gestor do workspace ', profilePhotoUrl: 'https://images.example.test/profile.jpg',
+    statistics: { unitCount: 4, collaboratorCount: 248, requirementCount: 20,
+      compliantCount: 12, expiringSoonCount: 3, expiredCount: 1, pendingCount: 4,
+      overallCompliancePercentage: 60.25, referenceDate: '2026-10-12' },
+  } }))
+  const current = await api.loadWorkspaceHome()
+  assert.deepEqual(current, { ...legacy, profilePhotoUrl: 'https://images.example.test/profile.jpg' })
+  global.fetch = async () => new Response(JSON.stringify({ success: true, data: { userName: 'Gestor', statistics: { unitCount: 4 } } }))
+  await assert.rejects(api.loadWorkspaceHome(), /dados inválidos/)
+})

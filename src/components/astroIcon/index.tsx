@@ -46,7 +46,6 @@ type AstroIconName =
   | 'distribution'
   | 'dice'
   | 'reload'
-  | 'bell'
   | 'person-plus'
   | 'document-lines'
   | 'warning-circle'
@@ -99,7 +98,6 @@ const iconFiles: Record<AstroIconName, { file: string; width: number; height: nu
   warning: { file: 'warning.svg', width: 24, height: 24 },
   distribution: { file: 'distribution.svg', width: 24, height: 24 },
   dice: { file: 'diceFigma.svg', width: 20, height: 22 },
-  bell: { file: 'bell.svg', width: 24, height: 24 },
   'person-plus': { file: 'personPlus.svg', width: 24, height: 24 },
   'document-lines': { file: 'documentLines.svg', width: 24, height: 24 },
   'warning-circle': { file: 'warningCircle.svg', width: 24, height: 24 },

@@ -1,16 +1,14 @@
 import { BUTTONS } from '../../gtm/buttons'
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AppSidebar, ComplianceOverviewCard, NotificationButton, NotificationModal, QuickActionCard, SummaryStatCard } from '../../components'
+import { AppSidebar, ComplianceOverviewCard, QuickActionCard, SummaryStatCard } from '../../components'
 import { quickActions } from '../../data/home'
 import { useWorkspaceHome } from '../../hooks/useWorkspaceHome'
-import { mockNotifications } from '../../data/notifications'
+import HomeProfileLink from '../../components/homeProfileLink'
 import HomeDashboardSkeleton from '../../components/homeDashboardSkeleton'
 
 function MainHomeScreenPage() {
   const navigate = useNavigate()
   const { data, loading, error, retry } = useWorkspaceHome()
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
 
   return (
     <div className="main-position-screen main-home-screen">
@@ -22,7 +20,7 @@ function MainHomeScreenPage() {
               <h1 id="home-title">{data ? `Bem-vindo, ${data.userName}!` : 'Bem-vindo!'}</h1>
               <p>Administre acessos, acompanhe a atuação e gerencie os responsáveis por cada função no seu sistema.</p>
             </div>
-            <NotificationButton expanded={notificationsOpen} onClick={() => setNotificationsOpen(true)} />
+            <HomeProfileLink name={data?.userName ?? ''} photoUrl={data?.profilePhotoUrl} loading={loading} error={error} />
           </header>
 
           <section aria-labelledby="home-dashboards-title" aria-busy={loading} className="home-section">
@@ -50,7 +48,6 @@ function MainHomeScreenPage() {
           </section>
         </section>
       </main>
-      {notificationsOpen && <NotificationModal notifications={mockNotifications} onClose={() => setNotificationsOpen(false)} />}
     </div>
   )
 }

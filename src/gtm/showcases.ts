@@ -20,18 +20,6 @@ export const SHOWCASES = {
       }
     }
   },
-  "home": {
-    "dialog": {
-      "notificacoes": {
-        "name": "notificacoes",
-        "items": {
-          "pendenciaTreinamento": "pendencia_de_treinamento",
-          "eventoAgendado": "evento_agendado",
-          "conformidade": "conformidade"
-        }
-      }
-    }
-  },
   "gestores": {
     "principal": {
       "tabela": {
@@ -92,7 +80,6 @@ export const SHOWCASE_NAMES = {
   "lista_formularios": "lista_formularios",
   "lista_gestores": "lista_gestores",
   "lista_unidades": "lista_unidades",
-  "notificacoes": "notificacoes",
   "sidebar": "sidebar"
 } as const
 
@@ -102,4 +89,3 @@ export const SIDEBAR_ITEMS: Record<string, string> = {
   '/mainFormScreen': 'formularios', '/mainEventScreen': 'eventos', '/mainWorkspaceSettingsScreen': 'configuracoes',
   '/mainAccountScreen': 'conta',
 }
-export const NOTIFICATION_ITEMS = { training: 'pendencia_de_treinamento', event: 'evento_agendado', compliance: 'conformidade' } as const

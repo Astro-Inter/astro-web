@@ -1,6 +1,6 @@
 import { firebaseAuth } from './firebase'
 import { getSystemApiBaseUrl } from './systemApi'
-import type { HomeResponse, HomeStatisticsResponse, WorkspaceHome } from '../types/home'
+import type { HomeResponse, LegacyHomeResponse, LegacyHomeStatisticsResponse, WorkspaceHome } from '../types/home'
 
 export class HomeApiError extends Error {
   constructor(message: string, options?: ErrorOptions) {
@@ -9,12 +9,31 @@ export class HomeApiError extends Error {
   }
 }
 
+function homeProfilePhotoUrl(value: unknown): string | null {
+  if (typeof value !== 'string' || !value.trim()) return null
+  try {
+    const url = new URL(value.trim())
+    return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? value.trim() : null
+  } catch { return null }
+}
+
 function toWorkspaceHome(value: unknown): WorkspaceHome {
-  const data = value as HomeResponse | null
-  const stats = data?.estatisticas
-  const counts: (keyof HomeStatisticsResponse)[] = ['quantidade_unidades', 'quantidade_colaboradores', 'quantidade_requisitos',
+  const data = value as Partial<HomeResponse & LegacyHomeResponse> | null
+  const userName = data?.userName ?? data?.nome_usuario
+  const stats = data?.statistics ? {
+    quantidade_unidades: data.statistics.unitCount,
+    quantidade_colaboradores: data.statistics.collaboratorCount,
+    quantidade_requisitos: data.statistics.requirementCount,
+    quantidade_conformes: data.statistics.compliantCount,
+    quantidade_proximos_vencimento: data.statistics.expiringSoonCount,
+    quantidade_vencidos: data.statistics.expiredCount,
+    quantidade_pendentes: data.statistics.pendingCount,
+    percentual_conformidade_geral: data.statistics.overallCompliancePercentage,
+    data_referencia: data.statistics.referenceDate,
+  } : data?.estatisticas
+  const counts: (keyof LegacyHomeStatisticsResponse)[] = ['quantidade_unidades', 'quantidade_colaboradores', 'quantidade_requisitos',
     'quantidade_conformes', 'quantidade_proximos_vencimento', 'quantidade_vencidos', 'quantidade_pendentes']
-  if (!data || typeof data.nome_usuario !== 'string' || !data.nome_usuario.trim() || !stats
+  if (!data || typeof userName !== 'string' || !userName.trim() || !stats
     || counts.some((key) => !Number.isSafeInteger(stats[key]) || Number(stats[key]) < 0)
     || !Number.isFinite(stats.percentual_conformidade_geral) || stats.percentual_conformidade_geral < 0 || stats.percentual_conformidade_geral > 100
     || typeof stats.data_referencia !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(stats.data_referencia)) {
@@ -22,7 +41,7 @@ function toWorkspaceHome(value: unknown): WorkspaceHome {
   }
   const percentage = (count: number): number => stats.quantidade_requisitos === 0 ? 0 : count / stats.quantidade_requisitos * 100
   return {
-    userName: data.nome_usuario.trim(), referenceDate: stats.data_referencia,
+    userName: userName.trim(), profilePhotoUrl: homeProfilePhotoUrl(data.profilePhotoUrl), referenceDate: stats.data_referencia,
     complianceOverview: {
       overallPercentage: stats.percentual_conformidade_geral,
       totalRequirements: stats.quantidade_requisitos,

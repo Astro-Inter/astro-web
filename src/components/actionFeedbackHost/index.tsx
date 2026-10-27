@@ -19,7 +19,7 @@ function Notice({ id, message, tone }: NoticeProps) {
   return <div className="astro-action-notice astro-scale-90" data-leaving={leaving} data-tone={tone}
     onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
     onFocus={() => setPaused(true)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false) }}>
-    <span aria-hidden="true" className={`notification-item-icon notification-item-icon--${tone === 'error' ? 'error' : 'green'}`}><AstroIcon name={tone === 'error' ? 'warning-circle' : 'check'} /></span>
+    <span aria-hidden="true" className="astro-action-notice-icon"><AstroIcon name={tone === 'error' ? 'warning-circle' : 'check'} /></span>
     <p role={tone === 'error' ? 'alert' : 'status'} aria-live={tone === 'error' ? 'assertive' : 'polite'} aria-atomic="true">{message}</p>
     <button aria-label="Fechar notificação" onClick={() => setLeaving(true)} type="button"><AstroIcon name="close" /></button>
   </div>

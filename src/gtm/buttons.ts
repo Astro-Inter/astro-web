@@ -56,7 +56,7 @@ export const BUTTONS = {
     "ia": "ia",
     "dashboard": "dashboard",
     "voltar": "voltar",
-    "notificacao": "notificacao"
+    "conta": "conta"
   },
   "gestores": {
     "primario": {
@@ -212,7 +212,6 @@ export const BUTTONS = {
     "modalidade": "modalidade",
     "modelo": "modelo",
     "mostrar_senha": "mostrar_senha",
-    "notificacao": "notificacao",
     "nova_conversa": "nova_conversa",
     "nr": "nr",
     "ocultar_senha": "ocultar_senha",
