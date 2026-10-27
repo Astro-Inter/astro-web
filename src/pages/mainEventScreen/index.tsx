@@ -1,3 +1,4 @@
+import { eventEditUnavailableReason } from '../../utils/eventApi'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
@@ -112,8 +113,10 @@ function EventScreenContent() {
   const actionEvent = eventAction && actionData ? detailedCalendarEvent(eventAction.event, actionData) : eventAction?.event
   const actionLoading = useExitPresence(true, Boolean(eventAction && details.loading))
   const actionReady = !!eventAction && !actionLoading.present && !details.error && !!details.data
-  const permissionError = actionReady && ((eventAction.action === 'edit' && !actionData?.canEdit) || (eventAction.action === 'inactivate' && !actionData?.canCancel))
-    ? 'Você não tem permissão para realizar esta ação neste evento.' : ''
+  const permissionError = actionReady && actionData
+    ? eventAction.action === 'edit' ? eventEditUnavailableReason(actionData)
+      : eventAction.action === 'inactivate' && !actionData.canCancel ? 'Você não tem permissão para realizar esta ação neste evento.' : ''
+    : ''
   const informationEvent = actionReady && eventAction?.action === 'information' ? actionEvent : null
   const pendingInactivation = actionReady && !permissionError && eventAction?.action === 'inactivate' ? actionEvent : null
   const editor = creationEditor ?? (actionReady && !permissionError && eventAction?.action === 'edit' && actionEvent
@@ -150,7 +153,10 @@ function EventScreenContent() {
 
   async function saveEvent(value: EventConfiguration): Promise<void> {
     if (!editor) return
-    if (editor.mode === 'edit' && !details.data?.canEdit) throw new Error('Você não tem permissão para editar este evento.')
+    if (editor.mode === 'edit') {
+      const reason = details.data ? eventEditUnavailableReason(details.data) : 'Não foi possível carregar os dados do evento.'
+      if (reason) throw new Error(reason)
+    }
     const existing = editor.mode === 'edit' ? editor.event : null
     const saved = await save(value, existing?.eventId ?? existing?.id)
     const eventId = String(saved.id)
