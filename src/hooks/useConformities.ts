@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuthentication } from './useAuthentication'
+import { listUnits } from '../services/units'
+import { listUnitConformities, getUnitConformity, saveUnitConformity, changeUnitConformityApplicability } from '../services/unitConformities'
+import type { Unit } from '../types/unit'
+import type { ConformityType } from '../types/conformity'
 import { listCollaborators } from '../services/collaborators'
 import { changeConformityApplicability, createConformity, getConformity, importConformities, listConformities, listConformityNrs, updateConformity } from '../services/conformities'
 import type { Collaborator } from '../types/collaborator'
 import type { ConformityDetails, ConformityFormValues, ConformityImportResult, ConformityNrOption } from '../types/conformity'
 
 interface LoadState<T> { key: string; data: T; loading: boolean; error: string }
-interface ConformityOptions { employees: Collaborator[]; nrs: ConformityNrOption[] }
+interface ConformityOptions { employees: Collaborator[]; units: Unit[]; nrs: ConformityNrOption[] }
 type MutationResult<T> = { error: null; data: T } | { error: string; data: null }
 interface ConformitiesResult {
   conformities: ConformityDetails[]
@@ -22,10 +26,10 @@ interface ConformitiesResult {
   changeApplicability: (id: string, applicable: boolean) => Promise<MutationResult<ConformityDetails>>
   importFile: (file: File) => Promise<MutationResult<ConformityImportResult>>
 }
-const emptyOptions: ConformityOptions = { employees: [], nrs: [] }
+const emptyOptions: ConformityOptions = { employees: [], units: [], nrs: [] }
 function message(error: unknown): string { return error instanceof Error ? error.message : 'Não foi possível concluir a operação. Tente novamente.' }
 
-export function useConformities(conformityId?: string, needsOptions = false, needsEmployees = false): ConformitiesResult {
+export function useConformities(conformityId?: string, needsOptions = false, needsEmployees = false, type: ConformityType = 'COLABORADOR'): ConformitiesResult {
   const { user } = useAuthentication()
   const uid = user?.uid
   const [list, setList] = useState<LoadState<ConformityDetails[]>>({ key: '', data: [], loading: true, error: '' })
@@ -35,9 +39,9 @@ export function useConformities(conformityId?: string, needsOptions = false, nee
   const [mutation, setMutation] = useState({ uid: '', saving: false })
   const mutationController = useRef<AbortController | null>(null)
   const session = useRef<string | undefined>(undefined)
-  const listKey = `${uid ?? ''}/${retries.list}`
-  const detailsKey = `${uid ?? ''}/${conformityId ?? ''}/${retries.details}`
-  const optionsKey = `${uid ?? ''}/${needsEmployees}/${retries.options}`
+  const listKey = `${type}/${uid ?? ''}/${retries.list}`
+  const detailsKey = `${type}/${uid ?? ''}/${conformityId ?? ''}/${retries.details}`
+  const optionsKey = `${type}/${uid ?? ''}/${needsEmployees}/${retries.options}`
 
   useEffect(() => {
     session.current = uid
@@ -51,35 +55,37 @@ export function useConformities(conformityId?: string, needsOptions = false, nee
   useEffect(() => {
     const controller = new AbortController()
     if (!uid) return () => controller.abort()
-    listConformities(controller.signal).then(data => {
+    const load = type === 'UNIDADE' ? listUnitConformities : listConformities
+    load(controller.signal).then(data => {
       if (!controller.signal.aborted) setList({ key: listKey, data, loading: false, error: '' })
     }).catch((error: unknown) => {
       if (!controller.signal.aborted) setList({ key: listKey, data: [], loading: false, error: message(error) })
     })
     return () => controller.abort()
-  }, [uid, listKey])
+  }, [uid, listKey, type])
 
   useEffect(() => {
     const controller = new AbortController()
     if (!uid || !conformityId) return () => controller.abort()
-    getConformity(conformityId, controller.signal).then(data => {
+    const load = type === 'UNIDADE' ? getUnitConformity : getConformity
+    load(conformityId, controller.signal).then(data => {
       if (!controller.signal.aborted) setDetails({ key: detailsKey, data, loading: false, error: '' })
     }).catch((error: unknown) => {
       if (!controller.signal.aborted) setDetails({ key: detailsKey, data: null, loading: false, error: message(error) })
     })
     return () => controller.abort()
-  }, [uid, conformityId, detailsKey])
+  }, [uid, conformityId, detailsKey, type])
 
   useEffect(() => {
     const controller = new AbortController()
     if (!uid || !needsOptions) return () => controller.abort()
-    Promise.all([listConformityNrs(controller.signal), needsEmployees ? listCollaborators(controller.signal) : Promise.resolve([])]).then(([nrs, employees]) => {
-      if (!controller.signal.aborted) setOptions({ key: optionsKey, data: { nrs, employees: employees.filter(employee => employee.status === 'ATIVO') }, loading: false, error: '' })
+    Promise.all([listConformityNrs(controller.signal), needsEmployees && type === 'COLABORADOR' ? listCollaborators(controller.signal) : Promise.resolve([]), needsEmployees && type === 'UNIDADE' ? listUnits(controller.signal) : Promise.resolve([])]).then(([nrs, employees, units]) => {
+      if (!controller.signal.aborted) setOptions({ key: optionsKey, data: { nrs, units: units.filter(unit => unit.active), employees: employees.filter(employee => employee.status === 'ATIVO') }, loading: false, error: '' })
     }).catch((error: unknown) => {
       if (!controller.signal.aborted) setOptions({ key: optionsKey, data: emptyOptions, loading: false, error: message(error) })
     })
     return () => controller.abort()
-  }, [uid, needsOptions, needsEmployees, optionsKey])
+  }, [uid, needsOptions, needsEmployees, optionsKey, type])
 
   async function mutate<T>(operation: (signal: AbortSignal) => Promise<T>): Promise<MutationResult<T>> {
     if (!uid) return { error: 'Entre na sua conta para gerenciar as conformidades.', data: null }
@@ -109,8 +115,8 @@ export function useConformities(conformityId?: string, needsOptions = false, nee
     retry: () => setRetries(current => ({ ...current, list: current.list + 1 })),
     retryDetails: () => setRetries(current => ({ ...current, details: current.details + 1 })),
     retryOptions: () => setRetries(current => ({ ...current, options: current.options + 1 })),
-    save: (values, id) => mutate(signal => id ? updateConformity(id, values, signal) : createConformity(values, signal)),
-    changeApplicability: (id, applicable) => mutate(signal => changeConformityApplicability(id, applicable, signal)),
+    save: (values, id) => mutate(signal => type === 'UNIDADE' ? saveUnitConformity(values, id, signal) : id ? updateConformity(id, values, signal) : createConformity(values, signal)),
+    changeApplicability: (id, applicable) => mutate(signal => type === 'UNIDADE' ? changeUnitConformityApplicability(id, applicable, signal) : changeConformityApplicability(id, applicable, signal)),
     importFile: file => mutate(signal => importConformities(file, signal)),
   }
 }

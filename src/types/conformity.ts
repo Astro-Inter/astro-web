@@ -1,4 +1,5 @@
-export type ConformityOrigin = 'Evento' | 'Manual'
+export type ConformityType = 'COLABORADOR' | 'UNIDADE'
+export type ConformityOrigin = 'Evento' | 'Manual' | 'Formulário'
 
 export type ConformityStatus = 'valid' | 'expired' | 'no-expiry'
 
@@ -12,6 +13,9 @@ export interface Conformity {
 }
 
 export interface ConformityDetails extends Conformity {
+  type?: ConformityType
+  unitId?: number
+  formResponseId?: string | null
   employeeEmail: string
   nrId: number
   nrTitle: string
@@ -30,7 +34,7 @@ export interface ConformityResponse {
   nrId: number
   nrTitle: string
   expiresAt: string | null
-  origin: 'MANUAL' | 'EVENTO'
+  origin: 'MANUAL' | 'EVENTO' | 'FORMULARIO'
   applicable: boolean
   eventCompletionId: number | null
   status: 'Vencida' | 'Válida' | 'Sem validade'

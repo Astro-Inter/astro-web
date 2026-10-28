@@ -13,6 +13,8 @@ import PurpleButton from '../purpleButton'
 import ToolbarSelect from '../toolbarSelect'
 
 interface ConformityFormModalProps {
+  showAvatar?: boolean
+  subjectLabel?: string
   dimmed?: boolean
   employee?: { name: string; email: string }
   employees: readonly { id: string; name: string }[]
@@ -27,7 +29,7 @@ interface ConformityFormModalProps {
   open?: boolean
 }
 
-function ConformityFormModal({ dimmed = false, employee, employees, initialValues, nrs, onClose, onDismissRequest, onSubmit, loading = false, loadError = '', onRetry, open = true }: ConformityFormModalProps) {
+function ConformityFormModal({ showAvatar = true, subjectLabel = 'Colaborador', dimmed = false, employee, employees, initialValues, nrs, onClose, onDismissRequest, onSubmit, loading = false, loadError = '', onRetry, open = true }: ConformityFormModalProps) {
   const editing = Boolean(employee)
   const [values, setValues] = useState<ConformityFormValues>(initialValues ?? { employeeId: '', nr: '', expiresAt: '' })
   const [errors, setErrors] = useState<ConformityValidationErrors>({})
@@ -37,7 +39,7 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
   const submittingRef = useRef(false)
   const unavailable = loading || Boolean(loadError) || submitting
   const employeeOptions = [
-    { value: '', label: 'Selecione o colaborador', tone: 'muted' as const },
+    { value: '', label: `Selecione ${subjectLabel.toLocaleLowerCase('pt-BR')}`, tone: 'muted' as const },
     ...employees.map((item) => ({ value: item.id, label: item.name })),
   ]
   const nrOptions = [
@@ -54,6 +56,7 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
     event.preventDefault()
     if (unavailable || submittingRef.current) return
     const nextErrors = validateConformity(values, editing ? [initialValues?.employeeId ?? ''] : employees.map((item) => item.id), nrs, dateValid)
+    if (nextErrors.employeeId) nextErrors.employeeId = `Selecione ${subjectLabel.toLocaleLowerCase('pt-BR')}.`
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
@@ -81,7 +84,7 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
       {(dismiss) => <form data-track-submit={editing ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.adicionar} aria-busy={loading || submitting} autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
         {employee && (
           <div className="account-profile-header conformity-form-employee">
-            <div className="account-profile-photo"><span aria-hidden="true" className={loading ? 'api-skeleton account-skeleton-photo' : 'manager-avatar manager-avatar--large'}>{!loading && getInitials(employee.name)}</span></div>
+            {showAvatar && <div className="account-profile-photo"><span aria-hidden="true" className={loading ? 'api-skeleton account-skeleton-photo' : 'manager-avatar manager-avatar--large'}>{!loading && getInitials(employee.name)}</span></div>}
             <div className="account-profile-identity"><h3><span className={loading ? 'api-skeleton skeleton-copy' : undefined}>{employee.name}</span></h3><p><span className={loading ? 'api-skeleton skeleton-copy' : undefined}>{employee.email}</span></p></div>
           </div>
         )}
@@ -91,8 +94,8 @@ function ConformityFormModal({ dimmed = false, employee, employees, initialValue
           <div className="position-dialog-row conformity-form-row">
             {!employee && (
               <div className="position-dialog-field">
-                <label htmlFor="conformity-form-employee">Colaborador</label>
-                <ToolbarSelect trackingAction={BUTTONS.comuns.selecionar_opcao} className={selectClassName('employeeId')} id="conformity-form-employee" error={errors.employeeId} label="Colaborador" onValueChange={(employeeId) => update('employeeId', employeeId)} options={employeeOptions} value={values.employeeId} />
+                <label htmlFor="conformity-form-employee">{subjectLabel}</label>
+                <ToolbarSelect trackingAction={BUTTONS.comuns.selecionar_opcao} className={selectClassName('employeeId')} id="conformity-form-employee" error={errors.employeeId} label={subjectLabel} onValueChange={(employeeId) => update('employeeId', employeeId)} options={employeeOptions} value={values.employeeId} />
                 {errors.employeeId && <p className="login-field-error" id="conformity-form-employee-error" role="alert">{errors.employeeId}</p>}
               </div>
             )}

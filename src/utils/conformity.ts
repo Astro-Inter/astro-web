@@ -8,6 +8,7 @@ export const emptyConformityFilters: ConformityFilters = { nr: '', origin: '', f
 export const conformityOriginLabels: Record<ConformityResponse['origin'], ConformityOrigin> = {
   EVENTO: 'Evento',
   MANUAL: 'Manual',
+  FORMULARIO: 'Formulário',
 }
 
 export function isConformityOrigin(value: string): value is ConformityOrigin {
