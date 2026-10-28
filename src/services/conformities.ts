@@ -11,7 +11,7 @@ export class ConformitiesApiError extends Error {
   }
 }
 
-async function requestConformities<T>(path: string, method = 'GET', payload?: object, signal?: AbortSignal): Promise<T> {
+export async function requestConformities<T>(path: string, method = 'GET', payload?: object, signal?: AbortSignal): Promise<T> {
   try {
     const user = firebaseAuth.currentUser
     if (!user) throw new ConformitiesApiError('Entre na sua conta para gerenciar as conformidades.')
@@ -43,11 +43,11 @@ async function requestConformities<T>(path: string, method = 'GET', payload?: ob
 function positiveId(value: number): boolean { return Number.isSafeInteger(value) && value > 0 }
 function conformityPath(id: string): string {
   if (!/^[1-9]\d*$/.test(id) || !positiveId(Number(id))) throw new ConformitiesApiError('Identificador da conformidade inválido.')
-  return `/conformities/${id}`
+  return `/conformities/collaborators/${id}`
 }
 
 const statuses: Record<ConformityResponse['status'], ConformityStatus> = { 'Válida': 'valid', 'Vencida': 'expired', 'Sem validade': 'no-expiry' }
-function toConformity(row: ConformityResponse): ConformityDetails {
+export function toConformity(row: ConformityResponse): ConformityDetails {
   if (!row || !positiveId(row.id) || !positiveId(row.collaboratorId) || !positiveId(row.nrId)
     || typeof row.collaboratorName !== 'string' || typeof row.collaboratorEmail !== 'string' || typeof row.nrTitle !== 'string'
     || (row.expiresAt != null && (typeof row.expiresAt !== 'string' || !isConformityDate(row.expiresAt)))
@@ -62,14 +62,14 @@ function toConformity(row: ConformityResponse): ConformityDetails {
     status: statuses[row.status], profilePhotoUrl: row.profilePhotoUrl && /^https?:\/\//i.test(row.profilePhotoUrl) ? row.profilePhotoUrl : null, avatarInitials: row.avatarInitials || null }
 }
 
-function conformityPayload(values: ConformityFormValues, editing = false): UpdateConformityRequest {
+export function conformityPayload(values: ConformityFormValues, editing = false): UpdateConformityRequest {
   const error = validateConformityRequest(values, editing)
   if (error) throw new ConformitiesApiError(error)
   return { nrId: Number(values.nr.slice(3)), expiresAt: values.expiresAt || null }
 }
 
 export async function listConformities(signal?: AbortSignal): Promise<ConformityDetails[]> {
-  const data = await requestConformities<ConformityResponse[]>('/conformities', 'GET', undefined, signal)
+  const data = await requestConformities<ConformityResponse[]>('/conformities/collaborators', 'GET', undefined, signal)
   if (!Array.isArray(data)) throw new ConformitiesApiError('A API retornou uma lista de conformidades inválida.')
   return data.map(toConformity)
 }
@@ -80,7 +80,7 @@ export async function getConformity(id: string, signal?: AbortSignal): Promise<C
 
 export async function createConformity(values: ConformityFormValues, signal?: AbortSignal): Promise<ConformityDetails> {
   const payload: CreateConformityRequest = { ...conformityPayload(values), collaboratorId: Number(values.employeeId) }
-  return toConformity(await requestConformities<ConformityResponse>('/conformities', 'POST', payload, signal))
+  return toConformity(await requestConformities<ConformityResponse>('/conformities/collaborators', 'POST', payload, signal))
 }
 
 export async function updateConformity(id: string, values: ConformityFormValues, signal?: AbortSignal): Promise<ConformityDetails> {
@@ -97,7 +97,7 @@ export async function importConformities(file: File, signal?: AbortSignal): Prom
   if (!validation.valid) throw new ConformitiesApiError(validation.message)
   const payload = new FormData()
   payload.append('file', file)
-  const data = await requestConformities<ConformityImportResult>('/conformities/import', 'POST', payload, signal)
+  const data = await requestConformities<ConformityImportResult>('/conformities/collaborators/import', 'POST', payload, signal)
   if (!data || [data.processed, data.inserted, data.updated, data.rejected].some(value => !Number.isSafeInteger(value) || value < 0)
     || !Array.isArray(data.rejectedRows) || data.rejectedRows.some(row => !row || !positiveId(row.row) || typeof row.reason !== 'string' || typeof row.cpf !== 'string' || typeof row.nr !== 'string')) {
     throw new ConformitiesApiError('A API retornou um resultado de importação inválido.')

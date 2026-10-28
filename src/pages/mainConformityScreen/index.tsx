@@ -9,7 +9,7 @@ import CollaboratorIdentity from '../../components/collaboratorIdentity'
 import type { DataTableColumn } from '../../components/dataTable'
 import { useActionsMenu } from '../../hooks'
 import { useConformities } from '../../hooks/useConformities'
-import type { ConformityDetails as Conformity, ConformityFilters, ConformityFormValues } from '../../types/conformity'
+import type { ConformityDetails as Conformity, ConformityFilters, ConformityFormValues, ConformityType } from '../../types/conformity'
 import { conformityStatusLabels, emptyConformityFilters, formatConformityDate, matchesConformityFilters } from '../../utils/conformity'
 import { iconAsset } from '../../utils/iconAsset'
 
@@ -29,12 +29,15 @@ function MainConformityScreenPage() {
   const filterTriggerRef = useRef<HTMLButtonElement>(null)
   const focusAfterRemoveRef = useRef<string | null>(null)
   const savedTimerRef = useRef<number | null>(null)
+  const [type, setType] = useState<ConformityType>('COLABORADOR')
+  const isUnit = type === 'UNIDADE'
+  const subjectLabel = isUnit ? 'Unidade' : 'Colaborador'
   const [filters, setFilters] = useState<ConformityFilters & { search: string }>({ ...emptyConformityFilters, search: '' })
   const [addFlow, setAddFlow] = useState(closedAddFlow)
   const [filterOpen, setFilterOpen] = useState(false)
   const [dialog, setDialog] = useState<ConformityDialogState | null>(null)
   const detailId = dialog && (dialog.kind === 'edit' || dialog.kind === 'confirm-edit') ? dialog.conformity.id : undefined
-  const api = useConformities(detailId, addFlow.manualOpen || Boolean(detailId), addFlow.manualOpen)
+  const api = useConformities(detailId, addFlow.manualOpen || Boolean(detailId), addFlow.manualOpen, type)
   const { conformities } = api
   const nrOptions = api.options.data.nrs.map(row => `NR ${row.code}`)
   const filterNrOptions = [...new Set([...nrOptions, ...conformities.map(row => row.nr)])].sort((a, b) => Number(a.slice(3)) - Number(b.slice(3)))
@@ -77,7 +80,7 @@ function MainConformityScreenPage() {
 
   function checkDuplicate(values: ConformityFormValues, conformityId?: string): string | null {
     return conformities.some((conformity) => conformity.id !== conformityId && conformity.employeeId === values.employeeId && conformity.nr === values.nr)
-      ? 'Esse colaborador já possui conformidade nessa NR.'
+      ? `Já existe conformidade nessa NR para ${isUnit ? 'essa unidade' : 'esse colaborador'}.`
       : null
   }
 
@@ -118,7 +121,7 @@ function MainConformityScreenPage() {
   }
 
   const columns: DataTableColumn<Conformity>[] = [
-    { id: 'employee', label: 'Colaborador', width: '23%', rowHeader: true, render: (conformity) => <CollaboratorIdentity name={conformity.employeeName} photoUrl={conformity.profilePhotoUrl} initials={conformity.avatarInitials} /> },
+    { id: 'employee', label: subjectLabel, width: '23%', rowHeader: true, render: (conformity) => isUnit ? <TruncatedText>{conformity.employeeName}</TruncatedText> : <CollaboratorIdentity name={conformity.employeeName} photoUrl={conformity.profilePhotoUrl} initials={conformity.avatarInitials} /> },
     { id: 'nr', label: 'NR', width: '11%', render: (conformity) => <TruncatedText>{conformity.nr}</TruncatedText> },
     { id: 'expiresAt', label: 'Data de validade', width: '20.5%', render: (conformity) => <TruncatedText>{formatConformityDate(conformity.expiresAt)}</TruncatedText> },
     { id: 'origin', label: 'Origem', width: '13%', render: (conformity) => <TruncatedText>{conformity.origin}</TruncatedText> },
@@ -158,20 +161,32 @@ function MainConformityScreenPage() {
         <section aria-labelledby="conformities-title" className="position-content astro-scale-90">
           <header className="position-heading">
             <h1 id="conformities-title">Conformidades</h1>
-            <p>Acompanhe a situação de conformidade dos colaboradores em relação às NRs. Cada linha representa um colaborador e uma NR.</p>
+            <p>Acompanhe a situação de conformidade {isUnit ? 'das unidades' : 'dos colaboradores'} em relação às NRs. Cada linha representa {isUnit ? 'uma unidade' : 'um colaborador'} e uma NR.</p>
           </header>
 
+          <div aria-label="Tipo de conformidade" className="conformity-tabs" role="tablist">
+            {(['COLABORADOR', 'UNIDADE'] as const).map((value, index) => <button key={value} id={`conformity-tab-${value}`} role="tab" aria-selected={type === value} aria-controls="conformity-panel" tabIndex={type === value ? 0 : -1} type="button"
+              onKeyDown={(event) => {
+                if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+                event.preventDefault()
+                const next = event.key === 'Home' ? 'COLABORADOR' : event.key === 'End' ? 'UNIDADE' : index === 0 ? 'UNIDADE' : 'COLABORADOR'
+                setType(next); setFilters({ ...emptyConformityFilters, search: '' }); actions.close(undefined, false)
+                document.getElementById(`conformity-tab-${next}`)?.focus()
+              }}
+              onClick={() => { setType(value); setFilters({ ...emptyConformityFilters, search: '' }); actions.close(undefined, false) }}>{value === 'UNIDADE' ? 'Unidades' : 'Colaboradores'}</button>)}
+          </div>
+          <div id="conformity-panel" role="tabpanel" aria-labelledby={`conformity-tab-${type}`}>
           <div aria-label="Ações e filtros das conformidades" className="position-toolbar" role="group">
-            <CompactPurpleButton data-track-action={BUTTONS.comuns.adicionar} aria-haspopup="dialog" onClick={(event) => { addOriginRef.current = event.currentTarget; setAddFlow({ ...closedAddFlow, importOpen: true }) }} type="button">
+            <CompactPurpleButton data-track-action={BUTTONS.comuns.adicionar} aria-haspopup="dialog" onClick={(event) => { addOriginRef.current = event.currentTarget; setAddFlow({ ...closedAddFlow, importOpen: !isUnit, manualOpen: isUnit }) }} type="button">
               <AstroIcon name="plus" />
               Adicionar conformidade
             </CompactPurpleButton>
 
             <ToolbarSearch
-              label="Buscar colaboradores"
+              label={isUnit ? 'Buscar unidades' : 'Buscar colaboradores'}
               onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
               onClear={() => setFilters((current) => ({ ...current, search: '' }))}
-              placeholder="Buscar colaboradores..."
+              placeholder={isUnit ? 'Buscar unidades...' : 'Buscar colaboradores...'}
               value={filters.search}
             />
 
@@ -184,6 +199,7 @@ function MainConformityScreenPage() {
           </div>
 
           {api.error ? <div className="position-dialog-form-error" role="alert"><p>{api.error}</p><button className="astro-modal-cancel" onClick={api.retry} type="button">Tentar novamente</button></div> : <DataTable trackingName={SHOWCASE_NAMES.lista_conformidades} ariaLabel="Conformidades" columns={columns} emptyMessage="Nenhuma conformidade encontrada para esses filtros." getRowClassName={(conformity) => conformity.id === savedConformityId ? 'astro-data-table-row--saved' : undefined} getRowKey={(conformity) => conformity.id} rows={visibleConformities} loading={api.loading} />}
+          </div>
         </section>
         {openConformity && createPortal(
           <OptionsPopup trackingName={DIALOG_NAMES.acoes_conformidade}
@@ -215,17 +231,19 @@ function MainConformityScreenPage() {
       )}
       {addFlow.manualOpen && (
         <ConformityFormModal
-          employees={api.options.data.employees}
+          subjectLabel={subjectLabel}
+          employees={isUnit ? api.options.data.units : api.options.data.employees}
           loading={api.options.loading}
           loadError={api.options.error}
           onRetry={api.retryOptions}
           nrs={nrOptions}
-          onClose={() => setAddFlow((current) => ({ ...current, manualOpen: false }))}
+          onClose={() => isUnit ? closeAddFlow() : setAddFlow((current) => ({ ...current, manualOpen: false }))}
           onSubmit={addConformity}
         />
       )}
       {filterOpen && (
         <ConformityFilterModal
+          type={type}
           filters={filters}
           nrs={filterNrOptions}
           onApply={(nextFilters) => setFilters((current) => ({ ...current, ...nextFilters }))}
@@ -239,6 +257,8 @@ function MainConformityScreenPage() {
         <ConformityFormModal
           dimmed={editForm.dimmed}
           employee={{ name: editingConformity.employeeName, email: editingConformity.employeeEmail }}
+          showAvatar={!isUnit}
+          subjectLabel={subjectLabel}
           employees={[]}
           initialValues={{ employeeId: editingConformity.employeeId, nr: editingConformity.nr, expiresAt: editingConformity.expiresAt ?? '' }}
           key={`${dialog.conformity.id}/${api.details.loading}`}
@@ -274,7 +294,7 @@ function MainConformityScreenPage() {
             return error
           }}
           onConfirmed={closeDialog}
-          title="Deseja salvar as alterações da conformidade deste colaborador?"
+          title={`Deseja salvar as alterações da conformidade ${isUnit ? 'desta unidade' : 'deste colaborador'}?`}
         />
       )}
       {dialog?.kind === 'remove' && (

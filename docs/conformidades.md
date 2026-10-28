@@ -2,16 +2,16 @@
 
 A rota `/mainConformityScreen` utiliza dados reais do escopo autorizado pelo backend. A autenticação segue a sessão Firebase existente, com `Authorization: Bearer <token>`, e a URL segue `VITE_API_URL` e o proxy de desenvolvimento já configurados.
 
-Contrato consultado: [OpenAPI da API Astro](https://astro-api-h2hx.onrender.com/v3/api-docs).
+Referência original: [OpenAPI da API Astro](https://astro-api-h2hx.onrender.com/v3/api-docs). Os caminhos com `/collaborators` abaixo pertencem à alteração local da SCRUM-657 e ainda não foram publicados.
 
 | Ação | Endpoint |
 | --- | --- |
-| Listar | `GET /conformities` |
-| Consultar antes de editar | `GET /conformities/{conformityId}` |
-| Adicionar manualmente | `POST /conformities` |
-| Editar | `PUT /conformities/{conformityId}` |
-| Tornar não aplicável | `PATCH /conformities/{conformityId}/applicability` |
-| Importar Excel | `POST /conformities/import` |
+| Listar | `GET /conformities/collaborators` |
+| Consultar antes de editar | `GET /conformities/collaborators/{conformityId}` |
+| Adicionar manualmente | `POST /conformities/collaborators` |
+| Editar | `PUT /conformities/collaborators/{conformityId}` |
+| Tornar não aplicável | `PATCH /conformities/collaborators/{conformityId}/applicability` |
+| Importar Excel | `POST /conformities/collaborators/import` |
 
 As opções de cadastro vêm de `GET /collaborators` (apenas `ATIVO`) e `GET /nrs`. A edição de histórico usa nome e email do detalhe da conformidade, sem exigir que o colaborador ainda conste nas opções de cadastro.
 

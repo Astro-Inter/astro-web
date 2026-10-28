@@ -22,6 +22,7 @@ function loadTs(filename) {
   return module.exports
 }
 const api = loadTs('src/services/conformities.ts')
+const unitsApi = loadTs('src/services/unitConformities.ts')
 const validation = loadTs('src/utils/conformity.ts')
 const originalFetch = global.fetch
 afterEach(() => { global.fetch = originalFetch; auth.currentUser = user })
@@ -31,6 +32,30 @@ const values = { employeeId: '7', nr: 'NR 10', expiresAt: '' }
 const imported = { processed: 3, inserted: 1, updated: 1, rejected: 1, rejectedRows: [{ row: 4, cpf: '00123456789', nr: '10', reason: 'Data inválida.' }] }
 const file = () => new File(['excel'], 'conformidades.xlsx')
 function respond(data, status = 200) { return new Response(JSON.stringify({ success: true, data }), { status }) }
+
+test('conformidades de unidades usam rotas próprias, preservam evidência e enviam unitId', async () => {
+  const unitRow = { id: 9, type: 'UNIDADE', unitId: 2, unitName: 'Filial', nrId: 1, nrTitle: 'NR 1', expiresAt: '2028-10-27', origin: 'FORMULARIO', applicable: true, formResponseId: 'form-657', status: 'Válida' }
+  const calls = []
+  global.fetch = async (url, init) => { calls.push({ url, ...init }); return respond(init.method === 'GET' && new URL(url).pathname.endsWith('/units') ? [unitRow] : unitRow) }
+  const rows = await unitsApi.listUnitConformities()
+  assert.equal(rows[0].employeeName, 'Filial')
+  assert.equal(rows[0].type, 'UNIDADE')
+  assert.equal(rows[0].formResponseId, 'form-657')
+  assert.equal(rows[0].origin, 'Formulário')
+  await unitsApi.getUnitConformity('9')
+  await unitsApi.saveUnitConformity({ employeeId: '2', nr: 'NR 1', expiresAt: '' })
+  await unitsApi.saveUnitConformity({ employeeId: '2', nr: 'NR 1', expiresAt: '' }, '9')
+  await unitsApi.changeUnitConformityApplicability('9', false)
+  assert.deepEqual(calls.map(call => [call.method, new URL(call.url).pathname]), [['GET', '/conformities/units'], ['GET', '/conformities/units/9'], ['POST', '/conformities/units'], ['PUT', '/conformities/units/9'], ['PATCH', '/conformities/units/9/applicability']])
+  assert.deepEqual(JSON.parse(calls[2].body), { unitId: 2, nrId: 1, expiresAt: null })
+  assert.deepEqual(JSON.parse(calls[3].body), { nrId: 1, expiresAt: null })
+})
+
+test('conformidade de unidade rejeita tipo inconsistente e identificadores inválidos', async () => {
+  global.fetch = async () => respond([{ type: 'COLABORADOR' }])
+  await assert.rejects(unitsApi.listUnitConformities(), /dados inválidos/)
+  await assert.rejects(unitsApi.getUnitConformity('../9'), /Identificador/)
+})
 
 test('conecta os seis endpoints de conformidades e o catálogo de NRs com Bearer e DTOs do Swagger', async () => {
   const calls = [], responses = [[row], row, { ...row, origin: 'MANUAL', eventCompletionId: null }, row, { ...row, applicable: false }, imported, [{ code: 10, title: row.nrTitle }]]
@@ -48,8 +73,8 @@ test('conecta os seis endpoints de conformidades e o catálogo de NRs com Bearer
   assert.deepEqual(await api.importConformities(file()), imported)
   assert.deepEqual(await api.listConformityNrs(), [{ code: 10, title: row.nrTitle }])
   assert.deepEqual(calls.map(c => [c.method, new URL(c.url).pathname]), [
-    ['GET', '/conformities'], ['GET', '/conformities/42'], ['POST', '/conformities'], ['PUT', '/conformities/42'],
-    ['PATCH', '/conformities/42/applicability'], ['POST', '/conformities/import'], ['GET', '/nrs'],
+    ['GET', '/conformities/collaborators'], ['GET', '/conformities/collaborators/42'], ['POST', '/conformities/collaborators'], ['PUT', '/conformities/collaborators/42'],
+    ['PATCH', '/conformities/collaborators/42/applicability'], ['POST', '/conformities/collaborators/import'], ['GET', '/nrs'],
   ])
   for (const call of calls) {
     assert.equal(call.headers.Authorization, 'Bearer firebase-token')

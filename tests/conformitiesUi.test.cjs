@@ -69,6 +69,17 @@ test('filtro oferece apenas Evento e Manual e aplica a origem selecionada', asyn
   } finally { await env.close() }
 })
 
+test('filtro de unidades oferece Manual e Formulário e aplica a origem', async () => {
+  let applied
+  const env = await setup('conformityFilterModal', { type: 'UNIDADE', filters: { nr: '', origin: '', from: '', to: '' }, nrs: ['NR 1'], onClose() {}, onApply(filters) { applied = filters } })
+  try {
+    assert.deepEqual([...env.document.getElementById('conformity-filter-origin').options].map(option => option.value), ['', 'Manual', 'Formulário'])
+    await env.select('conformity-filter-origin', 'Formulário')
+    await env.submit()
+    assert.equal(applied.origin, 'Formulário')
+  } finally { await env.close() }
+})
+
 test('formulário aguarda a API, bloqueia envio duplo e mantém os campos após erro acessível', async () => {
   const pending = deferred()
   let calls = 0

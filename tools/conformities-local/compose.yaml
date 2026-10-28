@@ -1,0 +1,56 @@
+name: astro657
+services:
+  postgres:
+    image: postgres:17
+    container_name: astro657-postgres
+    ports: ["127.0.0.1:54657:5432"]
+    environment:
+      POSTGRES_DB: astro657
+      POSTGRES_USER: astro_local
+      POSTGRES_PASSWORD: astro657_local_only
+      TZ: America/Sao_Paulo
+    command: ["postgres", "-c", "timezone=America/Sao_Paulo"]
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+  mongo:
+    image: mongo:7
+    container_name: astro657-mongo
+    ports: ["127.0.0.1:27657:27017"]
+    volumes: ["mongo-data:/data/db"]
+  redis:
+    image: redis:7-alpine
+    container_name: astro657-redis
+    ports: ["127.0.0.1:63657:6379"]
+  auth:
+    image: node:24-alpine
+    container_name: astro657-auth
+    working_dir: /state
+    ports: ["127.0.0.1:9167:9167", "127.0.0.1:4467:4467", "127.0.0.1:4567:4567"]
+    volumes:
+      - "${FIREBASE_NODE_MODULES}:/opt/node_modules:ro"
+      - "./firebase.docker.json:/config/firebase.json:ro"
+      - "../../.backup/conformidades-local:/state"
+    command: ["node", "/opt/node_modules/firebase-tools/lib/bin/firebase.js", "emulators:start", "--only", "auth", "--project", "demo-astro657", "--config", "/config/firebase.json", "--import", "/state/auth-state", "--export-on-exit", "/state/auth-state"]
+  api:
+    image: eclipse-temurin:21-jre
+    container_name: astro657-api
+    working_dir: /app
+    ports: ["127.0.0.1:8067:8067"]
+    volumes:
+      - "${ASTRO_API_JAR}:/app/app.jar:ro"
+    environment:
+      FIREBASE_AUTH_EMULATOR_HOST: astro657-auth:9167
+      WORKSPACE_ACCESS_TOKEN_PREFIX: "astro657:workspace:"
+      ACCESS_TOKEN_PREFIX: "astro657:access:"
+      TZ: America/Sao_Paulo
+    command: ["java", "-Xmx384m", "-jar", "/app/app.jar", "--spring.profiles.active=conformity-local", "--spring.config.import=", "--spring.jpa.hibernate.ddl-auto=none", "--server.address=0.0.0.0", "--spring.datasource.url=jdbc:postgresql://astro657-postgres:5432/astro657", "--spring.mongodb.uri=mongodb://astro657-mongo:27017", "--spring.data.redis.host=astro657-redis", "--spring.data.redis.port=6379"]
+volumes:
+  postgres-data:
+    name: astro657-postgres-data
+    external: true
+  mongo-data:
+    name: astro657-mongo-data
+    external: true
+networks:
+  default:
+    name: astro657-local
+    external: true

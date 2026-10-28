@@ -2,25 +2,26 @@ import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useState, type FormEvent } from 'react'
 import type { ConformityFilters } from '../../types'
+import type { ConformityType } from '../../types/conformity'
 import { conformityOriginLabels, emptyConformityFilters, isConformityOrigin, validateConformityFilters, type ConformityFilterErrors } from '../../utils/conformity'
 import AppModal from '../appModal'
 import FormDatePicker from '../formDatePicker'
 import PurpleButton from '../purpleButton'
 import ToolbarSelect from '../toolbarSelect'
 
-const originOptions = [
-  { value: '', label: 'Selecione a origem', tone: 'muted' as const },
-  ...Object.values(conformityOriginLabels).map(label => ({ value: label, label })),
-]
-
 interface ConformityFilterModalProps {
+  type?: ConformityType
   filters: ConformityFilters
   nrs: readonly string[]
   onApply: (filters: ConformityFilters) => void
   onClose: () => void
 }
 
-function ConformityFilterModal({ filters, nrs, onApply, onClose }: ConformityFilterModalProps) {
+function ConformityFilterModal({ type = 'COLABORADOR', filters, nrs, onApply, onClose }: ConformityFilterModalProps) {
+  const originOptions = [
+    { value: '', label: 'Selecione a origem', tone: 'muted' as const },
+    ...Object.entries(conformityOriginLabels).filter(([origin]) => type === 'UNIDADE' ? origin !== 'EVENTO' : origin !== 'FORMULARIO').map(([, label]) => ({ value: label, label })),
+  ]
   const [values, setValues] = useState<ConformityFilters>(filters)
   const [validDates, setValidDates] = useState({ from: true, to: true })
   const [errors, setErrors] = useState<ConformityFilterErrors>({})

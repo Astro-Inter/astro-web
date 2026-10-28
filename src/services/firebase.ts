@@ -1,6 +1,6 @@
 import { getApp, getApps, initializeApp } from 'firebase/app'
 import type { FirebaseOptions } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
+import { connectAuthEmulator, getAuth } from 'firebase/auth'
 
 const firebaseEnvironment = {
   VITE_FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -33,3 +33,9 @@ export const firebaseApp = getApps().some((app) => app.name === '[DEFAULT]')
   : initializeApp(firebaseConfig)
 
 export const firebaseAuth = getAuth(firebaseApp)
+
+if (import.meta.env.DEV && import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_URL) {
+  const emulator = new URL(import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_URL)
+  if (emulator.hostname !== '127.0.0.1' && emulator.hostname !== 'localhost') throw new Error('O emulador de autenticação deve ser local.')
+  connectAuthEmulator(firebaseAuth, emulator.origin)
+}
