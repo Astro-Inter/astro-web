@@ -5,6 +5,8 @@ Branch dos três repositórios: `feat/SCRUM-657-conformidades-unidades`.
 
 As views de listagem são `vw_conformidade_colaborador` (`07_vw_conformidade_colaborador.sql`) e `vw_conformidade_unidade` (`09_vw_conformidade_unidade.sql`), ambas no singular. API, testes e documentação usam esses nomes.
 
+Estas ferramentas documentam o protótipo já preparado neste PC. O perfil `conformity-local`, `LocalFirebaseConfig.java` e suas propriedades existem apenas no checkout experimental local da API e não são distribuídos na PR da API. Os comandos abaixo dependem desses arquivos locais e do JAR compilado com eles; não bastam para inicializar um clone limpo. A API publicada mantém a configuração Firebase normal do projeto.
+
 As rotas de colaboradores foram posteriormente padronizadas em `/conformities/collaborators`: GET/POST na base, GET/PUT em `/{id}`, PATCH em `/{id}/applicability` e POST multipart em `/import`. As rotas de unidades permanecem em `/conformities/units`. O caminho antigo `/conformities` foi substituído; o web local usa os novos caminhos.
 
 O PostgreSQL desta tarefa foi instalado vazio usando os scripts locais alterados do repositório de banco. Não é uma cópia do banco publicado. Nenhuma migração foi executada no banco atual. As PRs desta tarefa contêm apenas as alterações de conformidades.
@@ -51,7 +53,7 @@ O WEB usa `.env.conformity-local`, sem substituir `.env` ou `.env.local`; `Start
 
 Hibernate não cria nem modifica tabelas (`ddl-auto=none`); o schema é responsabilidade dos scripts oficiais. A validação global do Hibernate encontrou uma divergência preexistente entre `usuario.cpf CHAR(11)` no SQL e String/VARCHAR no mapeamento Java, por isso o perfil local não usa `validate`. As constraints novas e os fluxos desta tarefa são verificados diretamente no PostgreSQL.
 
-Para recriar em outro PC, instale dependências dos três projetos, compile a API e inicie os serviços. O script Start.ps1 copia `.env.example` para `.env.conformity-local`, sempre usando o projeto demo e o emulador. Execute `node tools/conformities-local/initialize.cjs` apenas com a base `astro657` vazia; ele recusa bases já inicializadas e não remove dados. Depois exporte as contas do emulador com `firebase emulators:export .backup/conformidades-local/auth-state --project demo-astro657 --config tools/conformities-local/firebase.json`.
+No protótipo já preparado, o script Start.ps1 copia `.env.example` para `.env.conformity-local`, sempre usando o projeto demo e o emulador. A inicialização depende das configurações experimentais locais da API descritas acima. Execute `node tools/conformities-local/initialize.cjs` apenas com a base `astro657` vazia; ele recusa bases já inicializadas e não remove dados. Depois exporte as contas do emulador com `firebase emulators:export .backup/conformidades-local/auth-state --project demo-astro657 --config tools/conformities-local/firebase.json`.
 
 Verificação integrada, sempre contra localhost:
 
