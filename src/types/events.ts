@@ -12,6 +12,8 @@ interface CalendarEventBase {
   eventNumber?: number
   inactive?: boolean
   status?: EventStatus
+  eventPeriod?: { startDate: string; endDate: string }
+  eventPeriods?: readonly { startDate: string; endDate: string }[]
 }
 
 export type CalendarEvent = CalendarEventBase & (

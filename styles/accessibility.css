@@ -66,9 +66,10 @@ html[data-astro-contrast='true'] .a11y-settings { --a11y-range-active: #ffe16b; 
 .a11y-reading-guide { position: fixed; z-index: 2147483647; left: 0; right: 0; width: 100vw; height: 32px; margin: 0; padding: 0; border: 0; border-top: 2px solid #d4b4ff; border-bottom: 2px solid #d4b4ff; border-radius: 0; background: rgb(193 145 255 / 9%); pointer-events: none; overflow: visible; }
 /* O guia é visual; nunca bloqueia cliques ou a seleção de texto. */
 .a11y-reading-guide:popover-open { pointer-events: none; }
-.astro-toolbar-search { position: relative; }
+.astro-toolbar-search { position: relative; padding-inline: var(--astro-control-padding-inline); }
 .astro-toolbar-search > input { width: 0; flex: 1; min-width: 0; }
-.astro-toolbar-search-voice { display: grid; place-items: center; flex: none; width: 2rem; height: 2rem; padding: .25rem; border: 0; border-radius: .35rem; color: var(--astro-text); background: transparent; cursor: pointer; }
+.astro-toolbar-search-voice { display: grid; place-items: center; flex: none; width: var(--astro-search-icon-size); height: var(--astro-control-icon-hit-size); margin: 0; padding: 0; border: 0; border-radius: .35rem; color: var(--astro-text); background: transparent; cursor: pointer; }
+.astro-toolbar-search-voice svg { display: block; width: var(--astro-search-voice-size); height: var(--astro-search-voice-size); }
 .astro-toolbar-search-voice:hover { color: var(--astro-placeholder); }
 .astro-toolbar-search-voice:disabled { opacity: .45; cursor: not-allowed; }
 .astro-toolbar-search--listening { box-shadow: inset 0 0 0 2px #c154ff; }
@@ -107,7 +108,7 @@ html:root:has(#vlibras-app-root[data-astro-open='false']) body .vlibras--hover i
 }
 
 /* Fonte e reflow aplicados também aos dialogs, tabelas e conteúdo dinâmico. */
-html[data-astro-dyslexic='true'] :where(body, input, textarea, button, select, option, h1, h2, h3, h4, h5, h6, p, span, a, label, th, td, legend, output, li, strong, small) { font-family: 'OpenDyslexic', Arial, sans-serif !important; letter-spacing: .035em; word-spacing: .06em; }
+html[data-astro-dyslexic='true'] :where(body, input, textarea, button, select, option, h1, h2, h3, h4, h5, h6, p, span, a, label, th, td, legend, output, li, strong, small, svg text) { font-family: 'OpenDyslexic', Arial, sans-serif !important; letter-spacing: .035em; word-spacing: .06em; }
 html[data-astro-text-size]:not([data-astro-text-size='100']) :where(.position-toolbar, .position-toolbar-selects, .astro-modal-actions, .account-main-actions, .account-transfer-actions) { flex-wrap: wrap; }
 html[data-astro-text-size]:not([data-astro-text-size='100']) :where(.astro-action, .app-navigation-link) { height: auto; white-space: normal; line-height: 1.35; }
 html[data-astro-text-size]:not([data-astro-text-size='100']) .app-sidebar { overflow-y: auto; }
@@ -175,3 +176,54 @@ html[data-astro-reduced-motion='true'] *, html[data-astro-reduced-motion='true']
   .a11y-actions { flex-direction: column; }
   .a11y-face-panel { top: .5rem; right: .5rem; width: calc(100% - 1rem); }
 }
+
+/* Conteúdo criado dinamicamente usa as mesmas preferências da conta. */
+.form-card-color-name { display: none; }
+:is(html[data-astro-text-size]:not([data-astro-text-size='100']), html[data-astro-dyslexic='true']) :is(.form-card-icon-choice > span:last-child, .dashboard-artwork-choice > span, .dashboard-card-link) {
+  white-space: normal; overflow-wrap: anywhere; min-width: 0;
+}
+:is(html[data-astro-text-size]:not([data-astro-text-size='100']), html[data-astro-dyslexic='true']) .main-form-screen {
+  height: auto; min-height: 100dvh; overflow: visible;
+}
+:is(html[data-astro-text-size]:not([data-astro-text-size='100']), html[data-astro-dyslexic='true']) .main-form-screen :is(.position-main, .position-content) {
+  height: auto; max-height: none; overflow: visible;
+}
+html[data-astro-contrast='true'] :is(.analytics-page, .astro-modal) {
+  --analytics-surface: var(--a11y-surface); --analytics-muted: var(--a11y-muted); --analytics-line: #aaa;
+  --astro-popup-background: var(--a11y-surface);
+}
+html[data-astro-contrast='true'] :is(.form-card, .dashboard-card, .card-appearance-preview, .analytics-editor-preview, .analytics-indicator-guide, .analytics-chart-tooltip, .astro-tooltip-surface, .astro-truncated-tooltip, .form-card-icon-choice, .dashboard-artwork-choice) {
+  color: var(--astro-text) !important; background: var(--a11y-surface) !important; border: 1px solid var(--astro-input-focus-border);
+}
+html[data-astro-contrast='true'] :is(.form-card-appearance-option, .dashboard-artwork-option) > input:checked + span {
+  outline: 3px solid var(--astro-focus-border); outline-offset: 2px;
+}
+html[data-astro-contrast='true'] :is(.form-card-appearance-option, .dashboard-artwork-option):hover > span:not(.form-card-color-choice, .form-card-color-name) { background: var(--a11y-selected) !important; }
+html[data-astro-contrast='true'] :is(.dashboard-card-category, .dashboard-card-description, .dashboard-card-footer, .card-appearance-preview > div > span, .analytics-preview-placeholder p) { color: var(--a11y-muted) !important; }
+:is(html[data-astro-contrast='true'], html[data-astro-vision]:not([data-astro-vision='default'])) .form-card-color-options > label { flex-direction: column; align-items: center; gap: var(--astro-field-gap); }
+:is(html[data-astro-contrast='true'], html[data-astro-vision]:not([data-astro-vision='default'])) .form-card-color-name { display: block; font-size: var(--astro-control-font-size); color: var(--astro-text); }
+html[data-astro-vision]:not([data-astro-vision='default']) .form-card-status--pending i { background: var(--a11y-warning); }
+html[data-astro-vision]:not([data-astro-vision='default']) .form-card-status--completed i { background: var(--a11y-success); }
+html[data-astro-vision]:not([data-astro-vision='default']) .form-card-status--draft i { background: var(--a11y-accent); }
+html:is([data-astro-vision='protanopia'], [data-astro-vision='protanomalia'], [data-astro-vision='deuteranopia'], [data-astro-vision='deuteranomalia']) {
+  --analytics-series-1: #56b4e9; --analytics-series-2: #e69f00; --analytics-series-3: #f0e442; --analytics-series-4: #cc79a7;
+  --analytics-series-5: #fff; --analytics-series-6: #009e73; --analytics-series-7: #d55e00; --analytics-series-outline: #fff;
+}
+html:is([data-astro-vision='tritanopia'], [data-astro-vision='tritanomalia']) {
+  --analytics-series-1: #5ad9cf; --analytics-series-2: #ff829b; --analytics-series-3: #fff; --analytics-series-4: #c4aaaa;
+  --analytics-series-5: #8bbaba; --analytics-series-6: #edced3; --analytics-series-7: #bbb; --analytics-series-outline: #fff;
+}
+html[data-astro-vision='acromatopsia'] {
+  --analytics-series-1: #fff; --analytics-series-2: #eee; --analytics-series-3: #ddd; --analytics-series-4: #c8c8c8;
+  --analytics-series-5: #b4b4b4; --analytics-series-6: #a0a0a0; --analytics-series-7: #8c8c8c; --analytics-series-outline: #fff;
+}
+html[data-astro-contrast='true']:is([data-astro-vision='default'], :not([data-astro-vision])) {
+  --analytics-series-1: #fff; --analytics-series-2: #ffe16b; --analytics-series-3: #7de4ff; --analytics-series-4: #ffb0dc;
+  --analytics-series-5: #a8ffbf; --analytics-series-6: #c7b9ff; --analytics-series-7: #ffbc83; --analytics-series-outline: #fff;
+}
+
+html[data-astro-contrast='true'] .dashboard-art-accent { fill: #ffe16b; }
+html[data-astro-contrast='true'] :is(.dashboard-art-line, .dashboard-art-muted) { stroke: #ffe16b; }
+html[data-astro-contrast='true'] .dashboard-art-muted-fill { fill: #fff; }
+html[data-astro-contrast='true'] .dashboard-art-ring { stroke: #aaa; }
+html[data-astro-contrast='true'] :is(.dashboard-art-board, .dashboard-art-panel) { fill: #202020; }

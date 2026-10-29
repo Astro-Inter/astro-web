@@ -33,7 +33,7 @@ function ToolbarSearch({ id, label, className = '', onClear, value, ...inputProp
         </button>
       )}
       <button aria-label={voice.listening ? 'Parar pesquisa por voz' : `Pesquisar por voz: ${label}`} aria-pressed={voice.listening} className="astro-toolbar-search-voice" disabled={!voice.supported || inputProps.disabled || inputProps.readOnly} onClick={voice.toggle} onKeyDown={event => { if (event.key === 'Escape') voice.stop() }} title={voice.supported ? 'Pesquisar por voz (usa o microfone)' : 'Pesquisa por voz indisponível neste navegador'} type="button">
-        <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="9" y="3" width="6" height="12" rx="3" /><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8" /></svg>
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.32"><rect x="9" y="3" width="6" height="12" rx="3" /><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8" /></svg>
       </button>
       {voice.message && <span className="sr-only" role="status">{voice.message}</span>}
       {voice.error && <span className="astro-toolbar-voice-error" role="alert">{voice.error}</span>}

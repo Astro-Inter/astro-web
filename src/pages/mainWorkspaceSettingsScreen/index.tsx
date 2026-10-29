@@ -6,7 +6,6 @@ import { AstroBrand, AstroIcon, CompactPurpleButton, HelpLink } from '../../comp
 import WorkspaceSettingsPasswordModal from '../../components/workspaceSettingsPasswordModal'
 import ActionLoading from '../../components/actionLoading'
 import SettingsTabs from '../../components/settingsTabs'
-import WorkspaceManagerTransferModal from '../../components/workspaceManagerTransferModal'
 import { useAuthentication } from '../../hooks/useAuthentication'
 import { hasWorkspaceAccess } from '../../utils/accessControl'
 import type { WorkspaceSettingsNavigationState, WorkspaceSettingsSection } from '../../types/workspaceSettings'
@@ -32,7 +31,6 @@ function MainWorkspaceSettingsScreenPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [section, setSection] = useState<WorkspaceSettingsSection | null>(null)
-  const [transferring, setTransferring] = useState(false)
   const [openingSection, setOpeningSection] = useState(false)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const navigationState = location.state as WorkspaceSettingsNavigationState | null
@@ -80,12 +78,6 @@ function MainWorkspaceSettingsScreenPage() {
             ))}
           </div>
         </section>}
-        {canManageWorkspace && <section className="create-forms-card workspace-settings-card" aria-labelledby="workspace-transfer-title">
-          <h2 id="workspace-transfer-title">Transferência de cargo do gestor do workspace</h2>
-          <div className="workspace-settings-row"><p>Escolha outro gestor ativo para assumir a responsabilidade pelo workspace.</p>
-            <CompactPurpleButton type="button" aria-haspopup="dialog" onClick={event => { triggerRef.current = event.currentTarget; setTransferring(true) }}>Substituir</CompactPurpleButton>
-          </div>
-        </section>}
         <section className="create-forms-card a11y-workspace-card" aria-labelledby="workspace-accessibility-title">
           <h2 id="workspace-accessibility-title" tabIndex={-1}>Acessibilidade</h2>
           <AccessibilitySettings />
@@ -96,7 +88,6 @@ function MainWorkspaceSettingsScreenPage() {
       <HelpLink />
       <ActionLoading active={openingSection} />
       {canManageWorkspace && section && <WorkspaceSettingsPasswordModal key={section} onCancel={closePassword} onContinue={continueToSection} section={section} />}
-      {canManageWorkspace && transferring && <WorkspaceManagerTransferModal onClose={() => { setTransferring(false); triggerRef.current?.focus() }} />}
     </div>
   )
 }

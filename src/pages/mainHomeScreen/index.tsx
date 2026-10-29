@@ -1,6 +1,6 @@
 import { BUTTONS } from '../../gtm/buttons'
 import { useNavigate } from 'react-router-dom'
-import { AppSidebar, ComplianceOverviewCard, QuickActionCard, SummaryStatCard } from '../../components'
+import { AppSidebar, QuickActionCard } from '../../components'
 import { quickActions } from '../../data/home'
 import { useWorkspaceHome } from '../../hooks/useWorkspaceHome'
 import HomeProfileLink from '../../components/homeProfileLink'
@@ -25,16 +25,9 @@ function MainHomeScreenPage() {
 
           <section aria-labelledby="home-dashboards-title" aria-busy={loading} className="home-section">
             <h2 id="home-dashboards-title">Dashboards</h2>
-            {loading && <HomeDashboardSkeleton onViewDashboards={() => navigate('/mainDashboardsScreen')} />}
+            {(loading || data) && <HomeDashboardSkeleton loading={loading} data={data} onViewDashboards={() => navigate('/mainDashboardsScreen')} />}
             {error && <div className="home-card home-api-feedback"><p role="alert">{error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} className="astro-action" onClick={retry} type="button">Tentar novamente</button></div>}
-            {data && <>
-              <div className="home-dashboards home-dashboards--ready">
-                <ComplianceOverviewCard overview={data.complianceOverview} onViewDashboards={() => navigate('/mainDashboardsScreen')} />
-                <div className="home-summary">
-                  {data.summaryStats.map((stat) => <SummaryStatCard key={stat.id} stat={stat} />)}
-                </div>
-              </div>
-            </>}
+
           </section>
 
           <section aria-labelledby="home-quick-actions-title" className="home-section">

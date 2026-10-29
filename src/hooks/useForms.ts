@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuthentication } from './useAuthentication'
 import { deleteForm, listForms } from '../services/forms'
 import { formSummary } from '../utils/formApi'
-import type { FormStatus, FormSummary } from '../types/forms'
+import { saveFormCardAppearance } from '../services/formCardAppearance'
+import type { FormCardAppearance, FormStatus, FormSummary } from '../types/forms'
 
 interface FormsState { key: string; rows: FormSummary[]; totalPages: number; totalElements: number; loading: boolean; error: string }
-interface FormsResult extends Omit<FormsState, 'key'> { retry: () => void; remove: (id: string) => Promise<void> }
+interface FormsResult extends Omit<FormsState, 'key'> { retry: () => void; remove: (id: string) => Promise<void>; saveAppearance: (id: string, appearance: FormCardAppearance) => Promise<void> }
 export function useForms(search: string, status: FormStatus | '', page: number, size: number): FormsResult {
   const { user } = useAuthentication()
   const uid = user?.uid
@@ -30,6 +31,16 @@ export function useForms(search: string, status: FormStatus | '', page: number, 
   return {
     ...(state.key === key ? state : { rows: [], totalPages: 0, totalElements: 0, loading: true, error: '' }),
     retry: () => setAttempt(value => value + 1),
+    saveAppearance: async (id, appearance) => {
+      if (mutation.current) throw new Error('Aguarde a alteração em andamento.')
+      const controller = new AbortController()
+      mutation.current = controller
+      try {
+        const saved = await saveFormCardAppearance(id, appearance, controller.signal)
+        controller.signal.throwIfAborted()
+        setState(current => ({ ...current, rows: current.rows.map(row => row.id === id ? saved : row) }))
+      } finally { if (mutation.current === controller) mutation.current = null }
+    },
     remove: async id => {
       if (mutation.current) throw new Error('Aguarde a exclusão em andamento.')
       const controller = new AbortController()

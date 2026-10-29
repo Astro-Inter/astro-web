@@ -203,7 +203,7 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
   return <div className="event-create-step event-create-groups" ref={groupsRef}>
     <p className="event-create-description">Arraste os colaboradores para onde devem ser distribuídos.{editing ? ' Turmas futuras podem ser adicionadas ou removidas. Participantes de turmas iniciadas não podem ser movimentados.' : ''}</p>
     <div className="event-create-group-tools">
-      {!editing && <PurpleButton data-track-action={BUTTONS.comuns.distribuir_aleatoriamente} className="event-create-random-trigger" onClick={onRandom} type="button"><AstroIcon name="dice" />Distribuir aleatoriamente</PurpleButton>}
+      <PurpleButton data-track-action={BUTTONS.comuns.distribuir_aleatoriamente} className="event-create-random-trigger" disabled={editing && collaborators.every(person => lockedGroupIds.includes(assignments[person.id]))} onClick={onRandom} type="button"><AstroIcon name="dice" />Distribuir aleatoriamente</PurpleButton>
       <ToolbarSearch label="Buscar colaboradores para distribuir" onChange={event => setSearch(event.target.value)} onClear={() => setSearch('')} placeholder="Buscar colaboradores..." value={search} />
     </div>
     <div

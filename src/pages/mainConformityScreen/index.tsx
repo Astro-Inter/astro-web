@@ -4,7 +4,7 @@ import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AppSidebar, AstroChat, AstroIcon, CompactPurpleButton, ConfirmationModal, ConformityFilterModal, ConformityFormModal, DataTable, ImportConformityModal, OptionsPopup, ToolbarSearch, TruncatedText } from '../../components'
+import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, ConformityFilterModal, ConformityFormModal, DataTable, ImportConformityModal, OptionsPopup, ToolbarSearch, TruncatedText } from '../../components'
 import CollaboratorIdentity from '../../components/collaboratorIdentity'
 import type { DataTableColumn } from '../../components/dataTable'
 import { useActionsMenu } from '../../hooks'
@@ -217,7 +217,6 @@ function MainConformityScreenPage() {
           />,
           document.body,
         )}
-        <AstroChat />
       </main>
 
       {addFlow.importOpen && (

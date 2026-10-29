@@ -195,18 +195,50 @@ test('contratos mobile usam rotas próprias e evidências multipart sem Content-
 })
 
 
-test('edição bloqueia durante uma turma em andamento, incluindo o início e liberando no término', () => {
+test('edição bloqueia durante a turma e mantém somente consulta após o prazo', () => {
   const start = new Date(event.eventClasses[0].startDate).getTime()
   const end = new Date(event.eventClasses[0].endDate).getTime()
   assert.equal(utils.eventEditUnavailableReason(event, start - 1), '')
   assert.match(utils.eventEditUnavailableReason(event, start), /em andamento.*não pode ser editado/)
   assert.match(utils.eventEditUnavailableReason(event, end - 1), /em andamento/)
-  assert.equal(utils.eventEditUnavailableReason(event, end), '')
-  assert.match(utils.eventEditUnavailableReason({ ...event, canEdit: false }, end), /não tem permissão/)
+  assert.match(utils.eventEditUnavailableReason(event, end), /prazo.*encerrado/)
+  assert.match(utils.eventEditUnavailableReason({ ...event, canEdit: false }, end), /prazo.*encerrado/)
   assert.match(utils.eventEditUnavailableReason({ ...event, canEdit: false }, start), /em andamento/)
-  assert.match(utils.eventEditUnavailableReason({ ...event, canEdit: false, status: 'CANCELADO' }, start), /não tem permissão/)
+  assert.match(utils.eventEditUnavailableReason({ ...event, canEdit: false, status: 'CANCELADO' }, start), /inativado/)
   const nextClass = { ...event.eventClasses[0], startDate: '2099-11-10T08:00:00', endDate: '2099-11-10T09:00:00' }
   const multiple = { ...event, eventClasses: [...event.eventClasses, nextClass] }
   assert.equal(utils.eventEditUnavailableReason(multiple, end + 1), '')
   assert.match(utils.eventEditUnavailableReason(multiple, new Date(nextClass.startDate).getTime()), /em andamento/)
+})
+
+test('calendário mantém os períodos reais das turmas e reconhece andamento nas viradas de dia', () => {
+  const calendarUtils = load('src/utils/events.ts')
+  const rows = [{ ...calendar, startDate: '2099-11-05T23:00:23', endDate: '2099-11-06T01:00:49' },
+    { ...calendar, eventClassId: 91, startDate: '2099-11-10T08:00:00', endDate: '2099-11-10T09:00:00' }]
+  const entries = utils.calendarFromApi(rows, '2099-11-01T00:00:00', '2099-11-30T23:59:59')
+  const start = new Date(rows[0].startDate).getTime(), end = new Date(rows[0].endDate).getTime()
+  for (const entry of entries) {
+    assert.equal(calendarUtils.calendarEventInProgress(entry, start - 1), false)
+    assert.equal(calendarUtils.calendarEventInProgress(entry, start), true)
+    assert.equal(calendarUtils.calendarEventInProgress(entry, end - 1), true)
+    assert.equal(calendarUtils.calendarEventInProgress(entry, end), false)
+    assert.equal(calendarUtils.calendarEventInProgress({ ...entry, inactive: true, status: 'CANCELADO' }, start), false)
+    assert.equal(calendarUtils.calendarEventInProgress({ ...entry, status: 'CONCLUIDO' }, start), false)
+  }
+})
+
+test('histórico fica somente para consulta por status ou prazo, preservando turmas futuras', () => {
+  const calendarUtils = load('src/utils/events.ts')
+  const now = new Date('2099-11-07T12:00:00').getTime()
+  const rows = [{ ...calendar, startDate: '2099-11-05T08:00:00', endDate: '2099-11-05T10:00:00' },
+    { ...calendar, eventClassId: 91, startDate: '2099-11-10T08:00:00', endDate: '2099-11-10T10:00:00' }]
+  const entries = utils.calendarFromApi(rows, '2099-11-01T00:00:00', '2099-11-30T23:59:59')
+  assert.match(calendarUtils.calendarEventReadOnlyReason(entries[0], now), /Prazo encerrado/)
+  assert.equal(calendarUtils.calendarEventReadOnlyReason(entries[1], now), '')
+  assert.match(calendarUtils.calendarEventReadOnlyReason({ ...entries[1], status: 'CONCLUIDO' }, now), /concluído/)
+  assert.equal(calendarUtils.calendarEventReadOnlyReason({ id: 'today', category: 'today', date: '2099-11-07', title: 'Dia atual' }, now), '')
+  for (const check of [utils.eventEditUnavailableReason, utils.eventCancelUnavailableReason]) {
+    assert.match(check({ ...event, eventClasses: [{ ...event.eventClasses[0], ...rows[0] }] }, now), /prazo.*encerrado/)
+    assert.match(check({ ...event, status: 'CONCLUIDO' }, now), /concluído/)
+  }
 })

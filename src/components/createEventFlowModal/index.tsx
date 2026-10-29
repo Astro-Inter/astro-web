@@ -111,9 +111,15 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode
   }, [step])
 
   function distributeRandomly(count: number) {
-    if (mode === 'edit') return
-    const nextGroups = Array.from({ length: count }, (_, index) => ({ id: `group-${index + 1}`, name: `Grupo ${index + 1}` }))
-    const shuffled = [...selectedIds]
+    if (!distributionCounts.includes(count)) return
+    const lockedGroups = groups.filter(group => lockedGroupIds.includes(group.id))
+    const editableGroups = groups.filter(group => !lockedGroupIds.includes(group.id))
+    const nextGroups = mode === 'edit' && !initialValue?.permissions ? [...groups] : mode === 'edit'
+      ? [...lockedGroups, ...Array.from({ length: count - lockedGroups.length }, (_, index) => editableGroups[index] ?? { id: `new-${crypto.randomUUID()}`, name: `Grupo ${groups.length + index + 1}` })]
+      : Array.from({ length: count }, (_, index) => ({ id: `group-${index + 1}`, name: `Grupo ${index + 1}` }))
+    const destinations = nextGroups.filter(group => !lockedGroupIds.includes(group.id))
+    if (!destinations.length) return
+    const shuffled = selectedIds.filter(id => !lockedParticipantIds.includes(id))
     for (let index = shuffled.length - 1; index > 0; index--) {
       const other = Math.floor(Math.random() * (index + 1))
       const current = shuffled[index]
@@ -123,11 +129,18 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode
     setRandomOpen(false)
     animatePopupChange(() => {
       setGroups(nextGroups)
-      setSchedules({})
-      setAssignments(Object.fromEntries(shuffled.map((id, index) => [id, nextGroups[index % count].id])))
+      setSchedules(mode === 'edit' ? Object.fromEntries(Object.entries(schedules).filter(([id]) => nextGroups.some(group => group.id === id))) : {})
+      setAssignments({
+        ...Object.fromEntries(Object.entries(assignments).filter(([id]) => lockedParticipantIds.includes(id))),
+        ...Object.fromEntries(shuffled.map((id, index) => [id, destinations[index % destinations.length].id])),
+      })
       setDistributionVersion(current => current + 1)
     })
   }
+
+  const distributionCounts = mode === 'edit' && !initialValue?.permissions
+    ? (groups.length > lockedGroupIds.length ? [groups.length] : [])
+    : Array.from({ length: Math.max(8, groups.length) }, (_, index) => index + 1).filter(count => count >= 2 && count > lockedGroupIds.length)
 
   function resetGroups() {
     if (mode === 'edit') return
@@ -163,7 +176,7 @@ function CreateEventFlowModal({ onClose, onSubmit, initialValue, managerId, mode
       </div>}
     </AppModal>
     {collaboratorGroup && <EventGroupCollaboratorsModal collaborators={collaborators} groupName={collaboratorGroup.name} participantIds={collaboratorGroup.ids} onClose={() => setCollaboratorGroup(null)} />}
-    {randomOpen && <EventGroupDistributionModal onDismissRequest={() => setRandomClosing(true)} onCancel={() => setRandomOpen(false)} onContinue={distributeRandomly} />}
+    {randomOpen && <EventGroupDistributionModal allowedCounts={distributionCounts} onDismissRequest={() => setRandomClosing(true)} onCancel={() => setRandomOpen(false)} onContinue={distributeRandomly} />}
     {pendingSave && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_alteracoes_evento}
       className="event-save-modal"
       confirmCloseDelay={60}

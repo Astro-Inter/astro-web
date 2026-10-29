@@ -116,15 +116,62 @@ test('títulos, descrições e ações fixas permanecem visíveis enquanto somen
   }
 })
 
-test('convite mantém título, descrição e botões visíveis durante a consulta de candidatos', () => {
+test('promoção mantém título e botões visíveis durante a consulta de candidatos', () => {
   const document = dom(React.createElement(InviteManagerDialog, { candidates: [], loading: true, error: '', saving: false, onClose() {}, onRetry() {}, onInvite: async () => null }))
-  assert.equal(document.querySelector('.astro-modal-title').textContent, 'Convidar gestor')
-  assert.match(document.querySelector('.astro-modal-description').textContent, /Selecione um colaborador ativo/)
-  assert.equal(document.querySelector('.astro-modal-description .api-skeleton'), null)
+  assert.equal(document.querySelector('.astro-modal-title').textContent, 'Promover a gestor')
+  assert.equal(document.querySelector('.astro-modal-description'), null)
   const buttons = [...document.querySelectorAll('.astro-modal-actions button')]
-  assert.deepEqual(buttons.map(button => button.textContent), ['Cancelar', 'Convidar'])
+  assert.deepEqual(buttons.map(button => button.textContent), ['Cancelar', 'Promover a gestor'])
   assert.equal(buttons[0].disabled, false)
   assert.equal(buttons[1].disabled, true)
   assert.ok(buttons.every(button => !button.classList.contains('api-skeleton')))
   assert.equal(document.querySelectorAll('.api-skeleton-control').length, 2)
+})
+
+
+test('indicadores da Home animam a saída dos placeholders preservando cards, títulos e ações', async () => {
+  const { createRoot } = require('react-dom/client')
+  for (const reduced of [false, true]) {
+    const browser = new JSDOM('<!doctype html><div id="root"></div>')
+    browser.window.matchMedia = () => ({ matches: reduced })
+    const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+    Object.assign(global, { window: browser.window, document: browser.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+    const root = createRoot(document.getElementById('root'))
+    const data = {
+      complianceOverview: { overallPercentage: 40, totalRequirements: 10, slices: [{ status: 'compliant', label: 'Conformes', percentage: 40 }] },
+      summaryStats: [
+        { id: 'units', label: 'Unidades', value: 4, icon: 'building', path: '/mainUnitScreen' },
+        { id: 'collaborators', label: 'Colaboradores', value: 130, icon: 'collaborators', path: '/mainEmployeerScreen' },
+      ],
+    }
+    const render = props => root.render(React.createElement(MemoryRouter, null, React.createElement(HomeDashboardSkeleton, props)))
+    try {
+      await React.act(async () => render({ loading: true }))
+      const cards = [...document.querySelectorAll('.home-card')]
+      const heading = document.querySelector('h3')
+      const action = document.querySelector('button')
+      await React.act(async () => render({ loading: false, data }))
+      assert.deepEqual([...document.querySelectorAll('.home-card')], cards)
+      assert.equal(document.querySelector('h3'), heading)
+      assert.equal(document.querySelector('button'), action)
+      if (!reduced) {
+        assert.equal(document.querySelectorAll('.home-data-skeleton--exiting').length, 3)
+        assert.equal(document.querySelector('.home-data-ready'), null)
+      }
+      await React.act(async () => new Promise(resolve => setTimeout(resolve, reduced ? 10 : 200)))
+      assert.equal(document.querySelector('.home-skeleton'), null)
+      assert.equal(document.querySelectorAll('.home-data-ready').length, 3)
+      assert.deepEqual([...document.querySelectorAll('.summary-stat-value')].map(node => node.textContent), ['4', '130'])
+      await React.act(async () => render({ loading: false, data: { ...data, summaryStats: [{ ...data.summaryStats[0], value: 5 }, data.summaryStats[1]] } }))
+      assert.equal(document.querySelector('.summary-stat-value').textContent, '5')
+      assert.equal(document.querySelector('.home-card'), cards[0])
+      await React.act(async () => render({ loading: true }))
+      assert.equal(document.querySelectorAll('.home-data-skeleton').length, 3)
+      assert.equal(document.querySelector('.home-data-ready'), null)
+    } finally {
+      await React.act(async () => root.unmount())
+      browser.window.close()
+      Object.assign(global, previous)
+    }
+  }
 })

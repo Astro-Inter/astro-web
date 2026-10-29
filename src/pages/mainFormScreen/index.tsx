@@ -8,10 +8,12 @@ import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, OptionsPopup, ToolbarSearch, ToolbarSelect } from '../../components'
 import FormCard from '../../components/formCard'
+import FormCardAppearanceModal from '../../components/formCardAppearanceModal'
 import { formStatusLabels } from '../../data/forms'
 import { useForms } from '../../hooks/useForms'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { useAnimatedResults } from '../../hooks/useAnimatedResults'
+import { useExitPresence } from '../../hooks/useExitPresence'
 import type { FormStatus, FormSummary } from '../../types/forms'
 
 const statusOptions = [
@@ -26,12 +28,13 @@ function MainFormScreenPage() {
   const [openId, setOpenId] = useState<string | null>(null)
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [pendingDeletion, setPendingDeletion] = useState<FormSummary | null>(null)
+  const [appearanceForm, setAppearanceForm] = useState<FormSummary | null>(null)
   const setFeedback = useActionFeedback(() => {
     const state: unknown = location.state
     return state && typeof state === 'object' && 'message' in state && typeof state.message === 'string' ? state.message : ''
   })
   const [pageSize, setPageSize] = useState(4)
-  const { rows: forms, totalPages, totalElements, loading, error, retry, remove } = useForms(filters.search, filters.status, filters.page, pageSize)
+  const { rows: forms, totalPages, totalElements, loading, error, retry, remove, saveAppearance } = useForms(filters.search, filters.status, filters.page, pageSize)
   const contentRef = useRef<HTMLElement | null>(null)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const panelRef = useRef<HTMLDivElement | null>(null)
@@ -107,7 +110,8 @@ function MainFormScreenPage() {
   const pageCount = Math.max(1, totalPages)
   const page = filters.page
   if (!loading && !error && page > pageCount) setFilters(current => ({ ...current, page: pageCount }))
-  const results = useAnimatedResults(forms, forms.map(form => form.id).join(','), page, `${filters.search}|${filters.status}|${pageSize}`)
+  const skeleton = useExitPresence(pageSize, loading)
+  const results = useAnimatedResults(forms, `${loading ? 'loading' : 'ready'}:${JSON.stringify(forms.map(form => [form.id, form.name, form.icon, form.color]))}`, page, `${filters.search}|${filters.status}|${pageSize}`, true, loading)
   const selected = forms.find(form => form.id === openId)
 
   return (
@@ -124,9 +128,9 @@ function MainFormScreenPage() {
             <ToolbarSearch label="Buscar formulários" placeholder="Buscar formulários..." value={filters.search} onChange={event => setFilters(current => ({ ...current, search: event.target.value.slice(0, 240), page: 1 }))} onClear={() => setFilters(current => ({ ...current, search: '', page: 1 }))} />
             <div className="position-toolbar-selects"><ToolbarSelect searchable={false} className="forms-status-filter" trackingAction={BUTTONS.comuns.status} label="Filtrar por status" options={statusOptions} value={filters.status} onValueChange={status => setFilters(current => ({ ...current, status: status as FormStatus | '', page: 1 }))} /></div>
           </div>
-          {loading && <ApiContentSkeleton label="Carregando formulários" variant="cards" cardCount={pageSize} />}
-          {error && <div role="alert"><p>{error}</p><button onClick={retry} type="button">Tentar novamente</button></div>}
-          <div hidden={loading || !!error} data-track-showcase={SHOWCASE_NAMES.lista_formularios} aria-busy={loading || results.exiting} className={`forms-grid${results.changed ? ' forms-grid--animated' : ''}${results.direction ? ` forms-grid--${results.direction}` : ''}${results.exiting ? ' forms-grid--exiting' : ''}`} key={results.signature}>
+          {skeleton.present && <ApiContentSkeleton label="Carregando formulários" variant="cards" cardCount={skeleton.value} className={skeleton.exiting ? 'forms-skeleton--exiting' : ''} />}
+          {!skeleton.present && error && <div role="alert"><p>{error}</p><button onClick={retry} type="button">Tentar novamente</button></div>}
+          <div hidden={skeleton.present || !!error} data-track-showcase={SHOWCASE_NAMES.lista_formularios} aria-busy={loading || skeleton.present || results.exiting} className={`forms-grid${results.changed ? ' forms-grid--animated' : ''}${results.direction ? ` forms-grid--${results.direction}` : ''}${results.exiting ? ' forms-grid--exiting' : ''}`} key={results.signature}>
             {results.items.map(form => <FormCard key={form.id} form={form} menuOpen={openId === form.id} onOpenMenu={event => {
               const trigger = event.currentTarget
               const open = () => { triggerRef.current = trigger; setMenuPosition(null); setOpenId(form.id) }
@@ -135,7 +139,7 @@ function MainFormScreenPage() {
               else open()
             }} />)}
           </div>
-          {!loading && !error && results.items.length === 0 && <p className="forms-empty" role="status">Nenhum formulário encontrado para esses filtros.</p>}
+          {!skeleton.present && !error && results.items.length === 0 && <p className="forms-empty" role="status">Nenhum formulário encontrado para esses filtros.</p>}
           <footer className="forms-pagination">
             <span aria-live="polite">Página {page} de {pageCount}{!loading && !error ? ` · ${totalElements} formulários` : ''}</span>
             <nav aria-label="Paginação dos formulários">
@@ -149,10 +153,12 @@ function MainFormScreenPage() {
       {selected && createPortal(<OptionsPopup trackingName={DIALOG_NAMES.acoes_formulario} ariaLabel={`Opções para ${selected.name}`} closing={closing} id={`form-options-${selected.id}`} panelRef={panelRef} onClose={() => closeMenu()} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} items={[
         { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', tone: 'muted', separatorAfter: true, onSelect: () => closeMenu() },
         { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: selected.status === 'completed' ? 'Consultar' : 'Editar', separatorAfter: true, onSelect: () => closeMenu(() => navigate(`/editForms?id=${encodeURIComponent(selected.id)}`)) },
+        { id: 'appearance', label: 'Personalizar card', disabled: selected.status === 'completed', separatorAfter: true, onSelect: () => closeMenu(() => setAppearanceForm(selected), false) },
         ...(selected.status === 'completed' ? [{ id: 'responses', label: 'Ver respostas', separatorAfter: true,
           onSelect: () => closeMenu(() => navigate(`/mainFormScreen/responses?id=${encodeURIComponent(selected.id)}`)) }] : []),
         { trackingAction: BUTTONS.comuns.excluir, id: 'delete', label: 'Excluir', disabled: selected.status === 'completed', tone: 'danger', onSelect: () => closeMenu(() => setPendingDeletion(selected)) },
       ]} />, document.body)}
+      {appearanceForm && <FormCardAppearanceModal name={appearanceForm.name} initial={appearanceForm} onSave={async appearance => { await saveAppearance(appearanceForm.id, appearance); setFeedback('Aparência do card atualizada.') }} onClose={() => { setAppearanceForm(null); requestAnimationFrame(() => triggerRef.current?.isConnected && triggerRef.current.focus()) }} />}
       {pendingDeletion && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_exclusao_formulario} backdrop="dimmed" preservePageScroll className="forms-deletion-modal" confirmLabel="Excluir" progressLabel="Excluindo formulário..." tone="danger" title="Tem certeza de que deseja excluir este formulário?" icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={() => setPendingDeletion(null)} onConfirm={async () => {
         await remove(pendingDeletion.id)
         return null

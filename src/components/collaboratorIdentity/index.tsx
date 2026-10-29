@@ -15,7 +15,7 @@ function CollaboratorIdentity({ name, photoUrl, initials, large = false }: Colla
   return <span className={`manager-identity collaborator-identity${large ? ' collaborator-identity--large' : ''}`}>
     <span aria-hidden="true" className={`manager-avatar${large ? ' manager-avatar--large' : ''}`}>
       {photoUrl && photoUrl !== failedUrl
-        ? <><img alt="" data-loading={loadedUrl !== photoUrl} onLoad={() => setLoadedUrl(photoUrl)} onError={() => setFailedUrl(photoUrl)} src={photoUrl} />{loadedUrl !== photoUrl && <span className="api-skeleton api-loading-photo" />}</>
+        ? <><img alt="" width={40} height={40} data-loading={loadedUrl !== photoUrl} onLoad={() => setLoadedUrl(photoUrl)} onError={() => setFailedUrl(photoUrl)} src={photoUrl} />{loadedUrl !== photoUrl && <span className="api-skeleton api-loading-photo" />}</>
         : initials || getInitials(name)}
     </span>
     {!large && <TruncatedText>{name}</TruncatedText>}

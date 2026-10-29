@@ -18,7 +18,7 @@
 .api-skeleton-action { width: min(45%, var(--astro-compact-action-width, 15rem)); height: var(--astro-action-height, 3.5rem); }
 .api-loading-card .api-skeleton { background-image: var(--api-skeleton-background); background-color: transparent; }
 .api-card-title { width: 65%; height: 1.3em; }
-.api-card-description { width: 85%; height: 2.7em; }
+.api-card-description { width: 85%; height: 1.35em; }
 .api-loading-card .api-card-badge { width: min(45%, calc(7rem * var(--astro-scale))); min-height: calc(1.2 * var(--astro-control-font-size) + 1.3rem * var(--astro-scale)); }
 .main-form-screen .position-content > .api-loading { flex: none; }
 .api-skeleton-table-avatar { flex: none; width: calc(2.5rem * var(--astro-scale, 1)); height: calc(2.5rem * var(--astro-scale, 1)); border-radius: 50%; }

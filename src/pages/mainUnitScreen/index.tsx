@@ -5,7 +5,7 @@ import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AppSidebar, AstroChat, AstroIcon, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, OptionsPopup, RegulatoryStandardsDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroIcon, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, OptionsPopup, RegulatoryStandardsDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
 import type { DataTableColumn } from '../../components/dataTable'
 import { useUnits } from '../../hooks/useUnits'
 import { useUnitNrRecommendations } from '../../hooks/useUnitNrRecommendations'
@@ -189,7 +189,6 @@ function MainUnitScreenPage() {
             recommendationText="Recomendado para esta unidade."
           />
         )}
-        <AstroChat />
       </main>
 
       {nrs.unit && nrs.pendingIds !== null && (

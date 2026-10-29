@@ -1,13 +1,23 @@
 import type { EventCollaborator, EventConfiguration, EventGroupSchedule } from '../types/eventCreation'
 import type { CalendarEvent, CalendarView, CreateEventRequest, EventCalendarResponse, EventCandidateResponse, EventResponse, UpdateEventRequest } from '../types/events'
-import { calendarDays, weekDays } from './events'
+import { calendarDays, weekDays, eventPeriodsInProgress } from './events'
 import { validateEventInformation } from './eventInformationValidation'
 
+function eventTimeRestriction(event: EventResponse, action: 'editado' | 'inativado', now: number): string {
+  if (event.status === 'CANCELADO') return 'Este evento foi inativado e está disponível apenas para consulta.'
+  if (event.status === 'CONCLUIDO') return 'Este evento foi concluído e está disponível apenas para consulta.'
+  if (event.status !== 'ATIVO') return ''
+  if (eventPeriodsInProgress(event.eventClasses, now)) return `Este evento está em andamento e não pode ser ${action} enquanto estiver acontecendo.`
+  if (event.eventClasses.length && event.eventClasses.every(group => new Date(group.endDate).getTime() <= now)) return 'O prazo deste evento foi encerrado. Ele está disponível apenas para consulta.'
+  return ''
+}
+
 export function eventEditUnavailableReason(event: EventResponse, now = Date.now()): string {
-  if (event.status === 'ATIVO' && event.eventClasses.some(group => new Date(group.startDate).getTime() <= now && now < new Date(group.endDate).getTime())) {
-    return 'Este evento está em andamento e não pode ser editado enquanto estiver acontecendo.'
-  }
-  return event.canEdit ? '' : 'Você não tem permissão para editar este evento.'
+  return eventTimeRestriction(event, 'editado', now) || (event.canEdit ? '' : 'Você não tem permissão para editar este evento.')
+}
+
+export function eventCancelUnavailableReason(event: EventResponse, now = Date.now()): string {
+  return eventTimeRestriction(event, 'inativado', now) || (event.canCancel ? '' : 'Você não tem permissão para inativar este evento.')
 }
 
 export function eventCalendarRange(date: Date, view: CalendarView): { startDate: string; endDate: string } {
@@ -41,6 +51,12 @@ export function eventConfiguration(data: EventResponse): EventConfiguration {
 
 // Uma turma pode atravessar dias e as bordas do período exibido.
 export function calendarFromApi(rows: readonly EventCalendarResponse[], startDate: string, endDate: string): CalendarEvent[] {
+  const periods = new Map<number, { startDate: string; endDate: string }[]>()
+  for (const row of rows) {
+    const entries = periods.get(row.eventId) ?? []
+    entries.push({ startDate: row.startDate, endDate: row.endDate })
+    periods.set(row.eventId, entries)
+  }
   return rows.flatMap(row => {
     const start = row.startDate.slice(0, 10) < startDate.slice(0, 10) ? startDate.slice(0, 10) : row.startDate.slice(0, 10)
     const end = row.endDate.slice(0, 10) > endDate.slice(0, 10) ? endDate.slice(0, 10) : row.endDate.slice(0, 10)
@@ -49,7 +65,7 @@ export function calendarFromApi(rows: readonly EventCalendarResponse[], startDat
     while (localDate(day) <= end) {
       const date = localDate(day)
       entries.push({ id: `${row.eventId}:${row.eventClassId}:${date}`, eventId: String(row.eventId), title: row.eventTitle, category: 'event', date,
-        startTime: date === row.startDate.slice(0, 10) ? row.startDate.slice(11, 16) : '00:00', endTime: date === row.endDate.slice(0, 10) ? row.endDate.slice(11, 16) : '23:59', inactive: row.status === 'CANCELADO', status: row.status })
+        startTime: date === row.startDate.slice(0, 10) ? row.startDate.slice(11, 16) : '00:00', endTime: date === row.endDate.slice(0, 10) ? row.endDate.slice(11, 16) : '23:59', inactive: row.status === 'CANCELADO', status: row.status, eventPeriod: { startDate: row.startDate, endDate: row.endDate }, eventPeriods: periods.get(row.eventId) })
       day.setDate(day.getDate() + 1)
     }
     return entries

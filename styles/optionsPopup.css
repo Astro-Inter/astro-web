@@ -32,6 +32,10 @@
   transition: color 220ms ease;
 }
 
+:is(#dashboard-card-options, .astro-options-popup[id^="form-options-"], .astro-options-popup[id^="event-options-"]) {
+  width: min(calc(16rem * var(--astro-popup-zoom)), calc(100vw - 1rem));
+}
+
 .astro-options-popup-item--danger { color: #eb6264; }
 .astro-options-popup-item { min-width: 0; }
 .astro-options-popup-item .astro-truncated-text { width: 100%; cursor: inherit; }

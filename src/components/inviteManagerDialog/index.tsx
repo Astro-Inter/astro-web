@@ -60,9 +60,8 @@ function InviteManagerDialog({ candidates, loading, error, saving, onRetry, onCl
   }
 
   return (
-    <AppModal trackingName={DIALOG_NAMES.convidar_gestor} className="position-dialog invite-manager-dialog" dismissible={!saving && !submitting} onClose={onClose} title="Convidar gestor">
+    <AppModal trackingName={DIALOG_NAMES.convidar_gestor} className="position-dialog invite-manager-dialog" dismissible={!saving && !submitting} onClose={onClose} title="Promover a gestor">
       {(dismiss) => <form data-track-submit={BUTTONS.comuns.convidar} aria-busy={saving || submitting} autoComplete="off" noValidate onSubmit={(event) => { void handleSubmit(event, dismiss) }}>
-        <p className="astro-modal-description">Selecione um colaborador ativo para promovê-lo a gestor, preservando sua conta.</p>
         {loading && <ApiContentSkeleton className="dialog-row-skeleton" label="Carregando colaboradores ativos" fields={2} actions={0} />}
         {error && <div className="position-api-feedback"><p role="alert">{error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} onClick={onRetry} type="button">Tentar novamente</button></div>}
         {!loading && !error && candidates.length === 0 && <p role="status">Nenhum colaborador ativo disponível para promoção.</p>}
@@ -106,7 +105,7 @@ function InviteManagerDialog({ candidates, loading, error, saving, onRetry, onCl
 
         <div className="astro-modal-actions">
           <button data-track-action={BUTTONS.comuns.cancelar} className="astro-modal-cancel" disabled={saving || submitting} onClick={dismiss} type="button">Cancelar</button>
-          <PurpleButton data-track-action={BUTTONS.comuns.convidar} disabled={locked || candidates.length === 0} type="submit">Convidar</PurpleButton>
+          <PurpleButton data-track-action={BUTTONS.comuns.convidar} disabled={locked || candidates.length === 0} type="submit">Promover a gestor</PurpleButton>
         </div>
       </form>}
     </AppModal>

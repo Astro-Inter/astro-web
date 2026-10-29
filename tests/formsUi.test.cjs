@@ -13,7 +13,7 @@ const detail = { id, status: 'RASCUNHO', managerId: 8, nrCode: null, unitId: nul
 const options = { managers: [{ value: '8', label: 'Ana da API' }], nrs: [{ value: '6', label: 'NR 6' }], units: [{ value: '3', label: 'Unidade da API' }], currentManagerId: '7', managersError: '' }
 function deferred() { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no }); return { promise, resolve, reject } }
 function Modal({ children, title, onClose }) { return React.createElement('section', { role: 'dialog', 'aria-label': title }, typeof children === 'function' ? children(onClose) : children) }
-function environment({ development = true } = {}) {
+function environment({ development = true, realResults = false } = {}) {
   const cache = new Map(), calls = [], context = { user: { uid: 'gestor', accountType: 'GESTOR_WORKSPACE' } }
   const services = {
     getFormOptions: async () => options, getFormRecipients: async () => options, getForm: async () => structuredClone(detail), createForm: async () => structuredClone(detail),
@@ -28,11 +28,11 @@ function environment({ development = true } = {}) {
     const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'").replaceAll('import.meta.env.DEV', String(development))
     const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
     new Function('require', 'module', 'exports', code)(name => {
-      if (name === '../services/forms') return tracked
+      if (name === '../services/forms' || name === './forms') return tracked
       if (name === './useAuthentication') return { useAuthentication: () => context }
       if (name === '../appModal') return { __esModule: true, default: Modal }
       if (name === '../../hooks/useAnimatedClose') return { useAnimatedClose: () => ({ closing: false, requestClose: done => done() }) }
-      if (name === '../../hooks/useAnimatedResults') return { useAnimatedResults: (items, signature) => ({ items, signature, exiting: false }) }
+      if (name === '../../hooks/useAnimatedResults' && !realResults) return { useAnimatedResults: (items, signature) => ({ items, signature, exiting: false }) }
       if (name === '../../hooks/useQuestionReorder') return { useQuestionReorder: values => ({ renderedQuestions: values.questions }) }
       if (name === '../../components') return Object.fromEntries(['AppSidebar', 'AstroBrand', 'AstroIcon', 'CompactPurpleButton', 'ConfirmationModal', 'OptionsPopup', 'ToolbarSearch', 'ToolbarSelect'].map(component => [component,
         component === 'AppSidebar' || component === 'AstroBrand' ? () => null : load(`src/components/${component[0].toLowerCase()}${component.slice(1)}/index.tsx`).default]))
@@ -70,6 +70,27 @@ async function click(label, within = document) {
   await act(async () => button.click())
 }
 const waitForList = async () => act(async () => { await new Promise(resolve => setTimeout(resolve, 280)) })
+
+test('entrada mantém quatro skeletons até terminar a saída e revela os quatro cards sem intervalo vazio', async () => withDom(async root => {
+  window.matchMedia = () => ({ matches: false })
+  const env = environment({ realResults: true }), pending = deferred()
+  env.services.listForms = () => pending.promise
+  const Page = env.load('src/pages/mainFormScreen/index.tsx').default
+  await mount(root, Page, '/mainFormScreen'); await waitForList()
+  assert.equal(document.querySelectorAll('.api-loading-card').length, 4)
+  const rows = Array.from({ length: 4 }, (_, index) => ({ id: `550e8400-e29b-41d4-a716-44665544000${index}`, title: `Formulário ${index + 1}`, description: 'Descrição do formulário', status: 'PENDENTE', questionCount: 3 }))
+  await act(async () => pending.resolve({ items: rows, page: 0, size: 4, totalPages: 1, totalElements: 4 }))
+  assert.equal(document.querySelectorAll('.forms-skeleton--exiting .api-loading-card').length, 4)
+  assert.equal(document.querySelector('.forms-empty'), null)
+  assert.equal(document.querySelector('[data-track-showcase]').hidden, true)
+  await act(async () => new Promise(resolve => setTimeout(resolve, 200)))
+  assert.equal(document.querySelector('.api-loading--cards'), null)
+  const grid = document.querySelector('[data-track-showcase]')
+  assert.equal(grid.hidden, false)
+  assert.equal(grid.querySelectorAll('.form-card').length, 4)
+  assert.equal(grid.classList.contains('forms-grid--exiting'), false)
+  assert.equal(document.querySelector('.forms-empty'), null)
+}))
 
 test('criação associa validação ao nome e gestor sem enviar formulário inválido', async () => withDom(async root => {
   const env = environment(), Page = env.load('src/pages/createForm/index.tsx').default
@@ -167,6 +188,42 @@ test('formulário respondido fica somente para consulta; falha de consulta ofere
   assert.equal(document.querySelector('fieldset').disabled, true)
 }))
 
+test('card salva na API, mantém prévia em falhas e bloqueia edição depois de respondido', async () => withDom(async root => {
+  const env = environment(), Page = env.load('src/pages/mainFormScreen/index.tsx').default
+  let current = structuredClone(detail)
+  const metadata = env.load('src/utils/cardTitleMetadata.ts')
+  env.services.getForm = async () => structuredClone(current)
+  env.services.listForms = async (_search, _status, page, size) => ({ items: [{ id, title: current.title, description: current.description, status: current.status, questionCount: 1 }], page, size, totalPages: 1, totalElements: 1 })
+  env.services.updateForm = async (_id, values) => { current = { ...current, title: metadata.encodeFormCardTitle(values.name, values.appearance) }; return structuredClone(current) }
+  await mount(root, Page, '/mainFormScreen'); await waitForList()
+  await click('Opções para Inspeção API'); await click('Personalizar card')
+  let dialog = document.querySelector('[role="dialog"]')
+  assert.equal(dialog.querySelectorAll('[name="form-card-icon"]').length, 10)
+  assert.equal(dialog.querySelectorAll('[name="form-card-color"]').length, 10)
+  await act(async () => { dialog.querySelector('[value="security"]').click(); dialog.querySelector('[value="teal"]').click() })
+  await click('Cancelar', dialog)
+  assert.equal(env.calls.some(call => call.name === 'updateForm'), false)
+  await click('Opções para Inspeção API'); await click('Personalizar card')
+  dialog = document.querySelector('[role="dialog"]')
+  await act(async () => { dialog.querySelector('[value="calendar"]').click(); dialog.querySelector('[value="orange"]').click() })
+  const save = env.services.updateForm
+  env.services.updateForm = async () => { throw new Error('Falha na API') }
+  await click('Salvar alterações', dialog)
+  assert.ok(document.querySelector('[role="dialog"]'))
+  assert.equal(document.querySelector('.form-card .form-card-icon--orange'), null)
+  env.services.updateForm = save
+  await click('Salvar alterações', dialog)
+  assert.equal(document.querySelector('[role="dialog"]'), null)
+  assert.ok(document.querySelector('.form-card .form-card-icon--orange .astro-icon--calendar'))
+  assert.match(current.title, /\[ac1:f:/)
+  assert.doesNotMatch(document.querySelector('.form-card').textContent, /ac1/)
+  await act(async () => root.render(null))
+  current.status = 'CONCLUIDO'
+  await mount(root, Page, '/mainFormScreen'); await waitForList()
+  assert.ok(document.querySelector('.form-card .form-card-icon--orange .astro-icon--calendar'))
+  await click('Opções para Inspeção API')
+  assert.equal(document.querySelector('[aria-label="Personalizar card"]').getAttribute('aria-disabled'), 'true')
+}))
 test('lista usa paginação da API e exclusão aguarda confirmação; erro mantém card', async () => withDom(async root => {
   const env = environment(), Page = env.load('src/pages/mainFormScreen/index.tsx').default, pending = deferred()
   await mount(root, Page, '/mainFormScreen'); await waitForList()

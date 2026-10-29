@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FaceDetector } from '../types/faceNavigation'
 import { createFaceLandmarker, requestFaceCamera } from '../services/faceNavigation'
-import { faceDwellMoved, faceDwellProgress, faceInteractiveTarget, moveFaceCursor, stableFaceSamples, type FacePoint } from '../utils/faceNavigation'
+import { faceDwellMoved, faceDwellProgress, faceInteractiveTarget, faceScrollTarget, moveFaceCursor, stableFaceSamples, type FacePoint } from '../utils/faceNavigation'
 import { matchesAccessibilityShortcut } from '../utils/accessibilityShortcuts'
 
 type FaceStatus = 'idle' | 'starting' | 'calibrating' | 'active' | 'paused' | 'error'
@@ -150,7 +150,7 @@ export function useFaceNavigation() {
                 const edge = pausedRef.current ? 0 : y < bounds.top + 26 ? -1 : y > bounds.bottom - 26 ? 1 : 0
                 if (edge !== edgeDirection) { edgeDirection = edge; edgeSince = now }
                 const scrolling = edge !== 0
-                if (scrolling && now - edgeSince >= 600) (dialog ?? window).scrollBy({ top: edge * 7 * Math.min(100, elapsedMs) / 50, behavior: 'instant' })
+                if (scrolling && now - edgeSince >= 600) faceScrollTarget(x, y, edge, dialog).scrollBy({ top: edge * 7 * Math.min(100, elapsedMs) / 50, behavior: 'instant' })
                 const candidate = scrolling ? null : faceInteractiveTarget(x, y, dialog)
                 const target = pausedRef.current && !candidate?.hasAttribute('data-face-resume') ? null : candidate
                 if (target !== targetRef.current) {

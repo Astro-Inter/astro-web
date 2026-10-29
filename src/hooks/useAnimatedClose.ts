@@ -8,7 +8,7 @@ export function useAnimatedClose(duration: number | PopupMotionKind = 'popover')
 
   const requestClose = useCallback((onFinished: () => void) => {
     if (closingRef.current) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if ((window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.astroReducedMotion === 'true')) {
       onFinished()
       return
     }

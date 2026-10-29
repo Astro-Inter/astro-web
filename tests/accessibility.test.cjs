@@ -372,3 +372,75 @@ test('permissão de câmera que chega depois de cancelar fecha todas as trilhas 
   await assert.rejects(pending, { name: 'AbortError' })
   assert.equal(stopped, 2)
 })
+const { JSDOM } = require('jsdom')
+
+test('mira facial seleciona as opções visíveis de ícone e cor sem ativar controles bloqueados', () => {
+  const dom = new JSDOM('<dialog open><fieldset><label><input type="radio" name="icon"><span>Calendário</span></label><label><input type="radio" name="icon"><span>Equipe</span></label></fieldset></dialog><button>Fora</button>')
+  global.document = dom.window.document
+  const dialog = document.querySelector('dialog'), labels = [...document.querySelectorAll('label')]
+  let hit = labels[1].querySelector('span')
+  document.elementFromPoint = () => hit
+  assert.equal(face.faceInteractiveTarget(10, 10, dialog), labels[1])
+  face.faceInteractiveTarget(10, 10, dialog).click()
+  assert.equal(labels[1].control.checked, true)
+  dialog.querySelector('fieldset').disabled = true
+  assert.equal(face.faceInteractiveTarget(10, 10, dialog), null)
+  dialog.querySelector('fieldset').disabled = false
+  labels[1].setAttribute('inert', '')
+  assert.equal(face.faceInteractiveTarget(10, 10, dialog), null)
+  hit = document.querySelector('button')
+  assert.equal(face.faceInteractiveTarget(10, 10, dialog), null)
+  assert.equal(face.faceInteractiveTarget(10, 10, null), hit)
+  dom.window.close()
+})
+
+test('reduzir movimento da conta e do sistema remove a animação de exclusão', () => {
+  const dom = new JSDOM('<div id="row"></div>')
+  global.document = dom.window.document
+  global.window = dom.window
+  let osReduced = false, animated = 0, finished = 0
+  window.matchMedia = () => ({ matches: osReduced })
+  const row = document.querySelector('#row')
+  row.animate = () => { animated++; return {} }
+  const { animateRemoval } = load('utils/animateRemoval.ts')
+  document.documentElement.dataset.astroReducedMotion = 'true'
+  animateRemoval(row, () => finished++)
+  assert.equal(animated, 0); assert.equal(finished, 1)
+  document.documentElement.dataset.astroReducedMotion = 'false'
+  osReduced = true
+  animateRemoval(row, () => finished++)
+  assert.equal(animated, 0); assert.equal(finished, 2)
+  osReduced = false
+  animateRemoval(row, () => finished++)
+  assert.equal(animated, 1); assert.equal(finished, 2)
+  dom.window.close()
+})
+
+test('reduzir movimento na conta elimina a espera de saída ao trocar resultados', () => {
+  global.document = { documentElement: { dataset: { astroReducedMotion: 'true' } } }
+  const delays = []
+  global.window = { matchMedia: () => ({ matches: false }), setTimeout: (_callback, delay) => { delays.push(delay); return 1 }, clearTimeout() {} }
+  const env = hookEnvironment('hooks/useAnimatedResults.ts', 'useAnimatedResults', {})
+  env.render(['Antes'], 'antes')
+  env.render(['Depois'], 'depois')
+  assert.deepEqual(delays, [0])
+  document.documentElement.dataset.astroReducedMotion = 'false'
+  env.render(['Outro'], 'outro')
+  assert.deepEqual(delays, [0, 180])
+  env.unmount()
+})
+
+test('mira facial rola o conteúdo interno do editor mesmo com rodapé fixo', () => {
+  const dom = new JSDOM('<dialog open><section style="overflow-y:auto"><button>Campo</button></section><footer><button>Salvar</button></footer></dialog>')
+  global.document = dom.window.document; global.window = dom.window
+  const dialog = document.querySelector('dialog'), section = document.querySelector('section')
+  Object.defineProperties(section, { clientHeight: { value: 200 }, scrollHeight: { value: 600 } })
+  section.getBoundingClientRect = () => ({ left: 20, right: 400, top: 100, bottom: 300, width: 380, height: 200 })
+  document.elementFromPoint = () => document.querySelector('footer button')
+  assert.equal(face.faceScrollTarget(100, 360, 1, dialog), section)
+  section.scrollTop = 400
+  assert.equal(face.faceScrollTarget(100, 360, 1, dialog), dialog)
+  assert.equal(face.faceScrollTarget(100, 360, -1, dialog), section)
+  assert.equal(face.faceScrollTarget(500, 360, -1, dialog), dialog)
+  dom.window.close()
+})

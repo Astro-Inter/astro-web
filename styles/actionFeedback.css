@@ -1,8 +1,8 @@
-.astro-action-notices { position: fixed; inset: 1.5rem 1.5rem auto auto; display: grid; gap: .75rem; margin: 0; padding: 0; border: 0; width: min(26rem, calc(100vw - 3rem)); overflow: visible; background: transparent; pointer-events: none; }
+.astro-action-notices { position: fixed; inset: 1.5rem 1.5rem auto auto; display: grid; gap: .75rem; margin: 0; padding: 0; border: 0; width: min(24rem, calc(100vw - 3rem)); overflow: visible; background: transparent; pointer-events: none; }
 .astro-action-notices:not(:popover-open) { display: none; }
 .astro-action-notice {
   margin: 0; box-sizing: border-box; width: 100%; pointer-events: auto;
-  display: flex; align-items: center; gap: calc(1rem * var(--astro-scale)); padding: calc(1.2rem * var(--astro-scale)) calc(1.5rem * var(--astro-scale));
+  display: flex; align-items: center; gap: calc(.75rem * var(--astro-scale)); padding: calc(.95rem * var(--astro-scale)) calc(1.25rem * var(--astro-scale));
   border: 1px solid rgb(169 149 236 / 40%); border-radius: .625rem;
   background: var(--astro-popup-background); color: var(--astro-text, #f8f7fc);
   box-shadow: none; font-family: "Montserrat", sans-serif;
@@ -31,3 +31,9 @@
 
 .astro-action-notice-icon { border-radius: var(--astro-control-radius); background: var(--astro-quinary-green); }
 .astro-action-notice[data-tone="error"] .astro-action-notice-icon { background: var(--astro-primary-error); }
+
+.astro-action-notice[data-tone="success"] { border-color: #bcb3c7; background: #d0c9da; color: #211b40; }
+.astro-action-notice[data-tone="success"] button .astro-icon { filter: grayscale(1) brightness(.32); transition: filter 180ms ease; }
+.astro-action-notice[data-tone="success"] button:hover { filter: none; }
+.astro-action-notice[data-tone="success"] button:is(:hover, :focus-visible) .astro-icon { filter: grayscale(1) brightness(.28); }
+.astro-action-notice[data-tone="success"] button:focus-visible { outline-color: #573d93; }

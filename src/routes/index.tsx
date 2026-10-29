@@ -1,7 +1,5 @@
 import { Route, Routes, useLocation, type Location } from 'react-router-dom'
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, useTransition } from 'react'
-import ApiContentSkeleton from '../components/apiContentSkeleton'
-import AppSidebar from '../components/appSidebar'
 import PrivateRoute from '../components/privateRoute'
 import GuestRoute from '../components/guestRoute'
 import { useAuthentication } from '../hooks/useAuthentication'
@@ -9,7 +7,8 @@ import LoadingScreenPage from '../pages/loadingScreen'
 import RouteErrorBoundary from '../components/routeErrorBoundary'
 
 const MainHomeScreenPage = lazy(() => import('../pages/mainHomeScreen'))
-const MainDashboardsScreenPage = lazy(() => import('../pages/mainDashboardsScreen'))
+const loadDashboards = () => import('../pages/mainDashboardsScreen')
+const MainDashboardsScreenPage = lazy(loadDashboards)
 const AccessKeyVerifiedPage = lazy(() => import('../pages/accessKeyVerified'))
 const loadAttachExcelFile = () => import('../pages/attachExcelFile')
 const AttachExcelFilePage = lazy(loadAttachExcelFile)
@@ -60,7 +59,11 @@ const PaymentMethodPage = lazy(loadPaymentMethod)
 const SetAddressPage = lazy(loadSetAddress)
 const WorkspaceCreatedPage = lazy(() => import('../pages/workspaceCreated'))
 
+const mainScreenPaths = new Set(['/mainHomeScreen', '/mainManagerScreen', '/mainEmployeerScreen', '/mainUnitScreen', '/mainConformityScreen', '/mainPositionScreen', '/mainFormScreen', '/mainEventScreen'])
+
 const settingsRouteLoaders: Record<string, () => Promise<unknown>> = {
+  '/mainDashboardsScreen': loadDashboards,
+  '/mainHomeScreen': () => import('../pages/mainHomeScreen'),
   '/mainWorkspaceSettingsScreen': loadWorkspaceSettings,
   '/mainAccountScreen': loadAccountSettings,
   '/': () => import('../pages/login'),
@@ -82,6 +85,8 @@ function isSettingsLocation(location: Location): boolean {
     || (['/includeCompanyInformation', '/attachExcelFile', '/setAddress', '/paymentMethod'].includes(location.pathname)
       && new URLSearchParams(location.search).get('context') === 'settings')
 }
+
+const homeDestinations = new Set(['/mainHomeScreen', '/mainDashboardsScreen', '/mainAccountScreen'])
 
 function AppRoutes() {
   const location = useLocation()
@@ -112,6 +117,42 @@ function AppRoutes() {
         setDisplayedLocation(location)
       })
       return
+    }
+    if (homeDestinations.has(location.pathname) && homeDestinations.has(displayedLocation.pathname)) {
+      let cancelled = false
+      let animation: Animation | undefined
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+        || document.documentElement.dataset.astroReducedMotion === 'true'
+      const switchPage = async () => {
+        if (cancelled) return
+        const content = routeRef.current?.querySelector<HTMLElement>('.position-content, .create-forms-main')
+        if (!reduced && content?.animate) {
+          animation = content.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 100, easing: 'ease-in', fill: 'forwards' })
+          await animation.finished.catch(() => undefined)
+        }
+        if (!cancelled) startTransition(() => setDisplayedLocation(location))
+      }
+      const ready = settingsRouteLoaders[location.pathname]?.() ?? Promise.resolve()
+      void ready.then(switchPage, switchPage)
+      return () => { cancelled = true; animation?.cancel() }
+    }
+    if (mainScreenPaths.has(location.pathname) && mainScreenPaths.has(displayedLocation.pathname)) {
+      let cancelled = false
+      let animation: Animation | undefined
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+        || document.documentElement.dataset.astroReducedMotion === 'true'
+      const ready = settingsRouteLoaders[location.pathname]?.() ?? Promise.resolve()
+      const switchContent = async () => {
+        if (cancelled) return
+        const content = routeRef.current?.querySelector<HTMLElement>('.position-content')
+        if (!reduced && content?.animate) {
+          animation = content.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 100, easing: 'ease-in', fill: 'forwards' })
+          await animation.finished.catch(() => undefined)
+        }
+        if (!cancelled) startTransition(() => setDisplayedLocation(location))
+      }
+      void ready.then(switchContent, switchContent)
+      return () => { cancelled = true; animation?.cancel() }
     }
     if (!isSettingsLocation(location) && !isSettingsLocation(displayedLocation)) {
       startTransition(() => setDisplayedLocation(location))
@@ -199,9 +240,9 @@ function AppRoutes() {
   }, [displayedLocation.key])
 
   return (
+    <Suspense fallback={null}>
     <RouteErrorBoundary key={renderedLocation.key}>
-    <Suspense fallback={<div className="main-position-screen">{status === 'ready' && user && <AppSidebar />}<main className="position-main" id="conteudo-principal"><div className="position-content astro-scale-90"><ApiContentSkeleton label="Carregando conteúdo" variant="cards" cardCount={2} /></div></main></div>}>
-    <div data-track-route={renderedLocation.pathname} data-track-search={renderedLocation.search} data-track-visit={renderedLocation.key} className={`astro-route-transition${tabChange ? ' astro-route-transition--tab-change' : ''}${tabChange && tabFallback ? ' astro-route-transition--tab-fallback' : ''}${isSettingsLocation(renderedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={renderedLocation.key} ref={routeRef}>
+    <div data-track-route={renderedLocation.pathname} data-track-search={renderedLocation.search} data-track-visit={renderedLocation.key} className={`astro-route-transition${homeDestinations.has(renderedLocation.pathname) ? ' astro-route-transition--home-destination' : ''}${tabChange ? ' astro-route-transition--tab-change' : ''}${tabChange && tabFallback ? ' astro-route-transition--tab-fallback' : ''}${isSettingsLocation(renderedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={renderedLocation.key} ref={routeRef}>
       <Routes location={renderedLocation}>
         <Route element={<RouteContent />}>
           <Route path="/forgotPassword" element={<ForgotPasswordPage />} />
@@ -255,8 +296,8 @@ function AppRoutes() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>
-    </Suspense>
     </RouteErrorBoundary>
+    </Suspense>
   )
 }
 
