@@ -1,3 +1,5 @@
+import type { CalendarEvent } from '../types/events'
+
 export interface CalendarDay {
   date: string
   day: number
@@ -64,4 +66,31 @@ export function monthLabel(month: Date): string {
 export function eventDateLabel(date: string): string {
   const [year, month, day] = date.split('-').map(Number)
   return new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(year, month - 1, day))
+}
+
+export function calendarEventPeriods(event: CalendarEvent): readonly { startDate: string; endDate: string }[] {
+  if (event.category === 'today') return []
+  if (event.eventPeriods?.length) return event.eventPeriods
+  if (event.configuration) return Object.values(event.configuration.schedules).map(schedule => ({
+    startDate: schedule.originalStart ?? `${schedule.date}T${schedule.startTime}`,
+    endDate: schedule.originalEnd ?? `${schedule.endDate || schedule.date}T${schedule.endTime}`,
+  }))
+  return [{ startDate: `${event.date}T${event.startTime}`, endDate: `${event.date}T${event.endTime}` }]
+}
+
+export function eventPeriodsInProgress(periods: readonly { startDate: string; endDate: string }[], now = Date.now()): boolean {
+  return periods.some(period => new Date(period.startDate).getTime() <= now && now < new Date(period.endDate).getTime())
+}
+
+export function calendarEventInProgress(event: CalendarEvent, now = Date.now()): boolean {
+  return event.category !== 'today' && !event.inactive && (!event.status || event.status === 'ATIVO') && eventPeriodsInProgress(calendarEventPeriods(event), now)
+}
+
+export function calendarEventReadOnlyReason(event: CalendarEvent, now = Date.now()): string {
+  if (event.category === 'today') return ''
+  if (event.inactive || event.status === 'CANCELADO') return 'Evento inativado. Disponível apenas para consulta.'
+  if (event.status === 'CONCLUIDO') return 'Evento concluído. Disponível apenas para consulta.'
+  if (calendarEventInProgress(event, now)) return 'Em andamento. Edição e inativação indisponíveis.'
+  if (new Date(event.eventPeriod?.endDate ?? `${event.date}T${event.endTime}`).getTime() <= now) return 'Prazo encerrado. Disponível apenas para consulta.'
+  return ''
 }

@@ -3,6 +3,9 @@ import type { CollaboratorFormValues, CollaboratorStatus } from '../types/collab
 export const collaboratorStatusLabels: Record<CollaboratorStatus, string> = {
   PRE_CADASTRADO: 'Pré-cadastrado', ATIVO: 'Ativo', DESATIVADO: 'Desativado',
 }
+export const collaboratorStatusNoticeLabels: Record<CollaboratorStatus, string> = {
+  PRE_CADASTRADO: 'pré-cadastrado(a)', ATIVO: 'ativo(a)', DESATIVADO: 'desativado(a)',
+}
 export const collaboratorModalityLabels = { HIBRIDO: 'Híbrido', REMOTO: 'Remoto', PRESENCIAL: 'Presencial' }
 export type CollaboratorValidationErrors = Partial<Record<keyof CollaboratorFormValues, string>>
 

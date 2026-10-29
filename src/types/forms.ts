@@ -20,9 +20,13 @@ export interface CreateFormValues {
   unit: string
   deadline: string
   questions: FormQuestion[]
+  appearance?: FormCardAppearance
 }
 
 export type FormStatus = 'pending' | 'completed' | 'draft'
+export type FormCardIcon = 'document' | 'calendar' | 'feedback' | 'person-outline' | 'security' | 'check' | 'building' | 'collaborators' | 'position' | 'clock'
+export type FormCardColor = 'purple' | 'pink' | 'blue' | 'green' | 'teal' | 'indigo' | 'orange' | 'rose' | 'violet' | 'slate'
+export interface FormCardAppearance { icon: FormCardIcon; color: FormCardColor }
 
 export interface FormSummary {
   id: string
@@ -30,8 +34,8 @@ export interface FormSummary {
   description: string
   questionCount: number
   status: FormStatus
-  icon: 'document' | 'calendar' | 'feedback' | 'person-outline'
-  color: 'purple' | 'pink' | 'blue' | 'green'
+  icon: FormCardIcon
+  color: FormCardColor
 }
 
 export type FormApiStatus = 'RASCUNHO' | 'PENDENTE' | 'CONCLUIDO'
@@ -75,6 +79,7 @@ export interface FormDetailsResponse {
   senderManagerId: number
   managerId: number | null
   title: string | null
+  appearance?: FormCardAppearance
   description: string | null
   nrCode: number | null
   unitId: number | null
@@ -87,6 +92,7 @@ export interface FormDetailsResponse {
 }
 export interface FormSummaryResponse {
   id: string; title: string | null; description: string | null; questionCount: number; status: FormApiStatus
+  appearance?: FormCardAppearance
 }
 export interface FormsPageResponse {
   items: FormSummaryResponse[]; page: number; size: number; totalElements: number; totalPages: number

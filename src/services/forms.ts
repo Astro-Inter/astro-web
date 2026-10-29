@@ -2,6 +2,7 @@ import { firebaseAuth } from './firebase'
 import { getSystemApiBaseUrl } from './systemApi'
 import { listUnitNrOptions, listUnits } from './units'
 import { formApiStatuses, formRequest, isFormId, isFormReferenceId } from '../utils/formApi'
+import { decodeFormCardTitle } from '../utils/cardTitleMetadata'
 import type { CreateFormValues, FormDetailsResponse, FormEditorOptions, FormManagerOptions, FormRecipientsResponse, FormsPageResponse, FormStatus, FormSummaryResponse } from '../types/forms'
 
 export class FormsApiError extends Error {
@@ -70,7 +71,8 @@ export function parseFormDetails(row: FormDetailsResponse): FormDetailsResponse 
     || new Set(row.questions.map(q => q.id)).size !== row.questions.length) {
     throw new FormsApiError('A API retornou detalhes inválidos para o formulário.')
   }
-  return row
+  const title = decodeFormCardTitle(row.title)
+  return { ...row, title: row.title === null ? null : title.title, ...(title.appearance ? { appearance: title.appearance } : {}) }
 }
 
 export async function listForms(search: string, status: FormStatus | '', page: number, size: number, signal?: AbortSignal): Promise<FormsPageResponse> {
@@ -84,7 +86,7 @@ export async function listForms(search: string, status: FormStatus | '', page: n
     || data.page !== page || data.size !== size || !Number.isSafeInteger(data.totalElements) || data.totalElements < 0
     || !Number.isSafeInteger(data.totalPages) || data.totalPages !== Math.ceil(data.totalElements / size)
     || data.items.length > size) throw new FormsApiError('A API retornou uma lista de formulários inválida.')
-  return data
+  return { ...data, items: data.items.map(row => { const title = decodeFormCardTitle(row.title); return { ...row, title: title.title, appearance: title.appearance } }) }
 }
 export async function getForm(id: string, signal?: AbortSignal): Promise<FormDetailsResponse> {
   return parseFormDetails(await requestForms<FormDetailsResponse>(formPath(id), 'GET', undefined, signal))

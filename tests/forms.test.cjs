@@ -188,3 +188,49 @@ test('descrição é obrigatória fora do rascunho e espaços não contam como c
   }
   assert.doesNotThrow(() => utils.formRequest(utils.formValues(form), 'PENDENTE'))
 })
+
+test('marcador do card persiste no título e fica oculto na lista e nos campos de edição', async () => {
+  const appearanceApi = load('src/services/formCardAppearance.ts')
+  const metadata = load('src/utils/cardTitleMetadata.ts')
+  let stored = structuredClone(form)
+  const calls = []
+  global.fetch = async (_url, init) => {
+    calls.push(init)
+    if (init.method === 'PUT') stored = { ...stored, ...JSON.parse(init.body), questions: stored.questions }
+    return response(stored)
+  }
+  const selected = { icon: 'calendar', color: 'orange' }
+  const card = await appearanceApi.saveFormCardAppearance(id, selected)
+  assert.match(stored.title, /\[ac1:f:/)
+  assert.equal(card.name, 'Inspeção')
+  assert.equal(card.icon, 'calendar'); assert.equal(card.color, 'orange')
+  assert.deepEqual(JSON.parse(calls[1].body).questions.map(q => q.id), [1, 2, 3, 4])
+  const loaded = await api.getForm(id)
+  assert.equal(loaded.title, 'Inspeção')
+  const values = utils.formValues(loaded)
+  assert.equal(values.name, 'Inspeção')
+  assert.deepEqual(values.appearance, selected)
+  await api.updateForm(id, { ...values, name: 'Inspeção revisada' }, loaded)
+  assert.deepEqual(metadata.decodeFormCardTitle(stored.title), { title: 'Inspeção revisada', appearance: selected })
+  assert.equal(stored.title.match(/\[ac1:/g).length, 1)
+  const completed = utils.formSummary({ ...stored, status: 'CONCLUIDO', questionCount: 4 })
+  assert.equal(completed.icon, 'calendar'); assert.equal(completed.color, 'orange')
+  stored.status = 'CONCLUIDO'
+  const count = calls.filter(call => call.method === 'PUT').length
+  await assert.rejects(appearanceApi.saveFormCardAppearance(id, { icon: 'clock', color: 'blue' }), /recebeu respostas/)
+  assert.equal(calls.filter(call => call.method === 'PUT').length, count)
+})
+
+test('marcadores ausentes, inválidos ou de outra versão usam o padrão e não aparecem no nome', () => {
+  const metadata = load('src/utils/cardTitleMetadata.ts')
+  for (const title of ['Inspeção', 'Inspeção [ac1:f:99:3]', 'Inspeção [ac2:f:0:0]', 'Inspeção [ac1:f:invalido]']) {
+    const card = utils.formSummary({ ...form, title, questionCount: 4 })
+    assert.equal(card.name, 'Inspeção'); assert.equal(card.icon, 'document'); assert.equal(card.color, 'blue')
+  }
+  for (const title of ['Equipe', 'Equipe [ac1:d:99]', 'Equipe [ac2:d:0]']) assert.equal(metadata.decodeDashboardCardTitle(title).artwork, undefined)
+  const selected = { icon: 'calendar', color: 'orange' }
+  const limit = metadata.formCardTitleLimit(selected)
+  const values = { ...utils.formValues(form), name: 'A'.repeat(limit), appearance: selected }
+  assert.equal(utils.formRequest(values, 'RASCUNHO').title.length, 100)
+  assert.throws(() => utils.formRequest({ ...values, name: values.name + 'A' }, 'RASCUNHO'), /Informe um nome/)
+})

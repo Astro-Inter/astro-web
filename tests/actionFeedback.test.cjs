@@ -318,3 +318,223 @@ test('impedimento de ativação gera aviso temporário sem erro inline, mantém 
     assert.equal(document.querySelector('.astro-action-notice [role=alert]').textContent, message)
   } finally { await React.act(async () => root.unmount()); dom.window.close(); Object.assign(global, previous) }
 })
+
+
+test('rotas suspensas não inserem carregamento genérico antes do carregamento próprio da tela', async () => {
+  const { MemoryRouter } = require('react-router-dom')
+  for (const [pathname, page, authenticated] of [['/mainHomeScreen', 'mainHomeScreen', true], ['/mainEventScreen', 'mainEventScreen', true], ['/createForms', 'createForm', true], ['/', 'login', false]]) {
+    const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
+    const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+    Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+    window.scrollTo = () => {}
+    let ready = false, resolve
+    const pending = new Promise(yes => { resolve = yes })
+    function DeferredPage() { if (!ready) throw pending; return React.createElement('h1', null, `Destino ${pathname}`) }
+    const authentication = { useAuthentication: () => ({ status: 'ready', user: authenticated ? { uid: 'workspace-manager', accountType: 'GESTOR_WORKSPACE' } : null, error: '' }) }
+    const env = environment({ '../hooks/useAuthentication': authentication, '../../hooks/useAuthentication': authentication, '../../hooks/useSessionRecovery': { useSessionRecovery: () => ({ pending: false, error: '', retry() {}, returnToLogin() {} }) }, [`../pages/${page}`]: { __esModule: true, default: DeferredPage } })
+    const PageRoutes = env.load('src/routes/index.tsx').default
+    const root = createRoot(document.getElementById('root'))
+    try {
+      await React.act(async () => root.render(React.createElement(MemoryRouter, { initialEntries: [pathname] }, React.createElement(PageRoutes))))
+      assert.equal(document.querySelector('.route-loading'), null, pathname)
+      assert.equal(document.querySelector('.login-loading-spinner'), null, pathname)
+      assert.equal(document.querySelector('.api-loading-cards'), null)
+      assert.equal(document.querySelector('.app-sidebar'), null)
+      await React.act(async () => { ready = true; resolve() })
+      assert.equal(document.querySelector('.route-loading'), null)
+      assert.equal(document.querySelector('h1').textContent, `Destino ${pathname}`)
+    } finally { await React.act(async () => root.unmount()); dom.window.close(); Object.assign(global, previous) }
+  }
+})
+
+
+test('troca para rota ainda suspensa mantém a tela anterior até o carregamento próprio do destino', async () => {
+  const { MemoryRouter, useNavigate } = require('react-router-dom')
+  const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
+  const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+  Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+  window.scrollTo = () => {}
+  let ready = false, resolve
+  const pending = new Promise(yes => { resolve = yes })
+  function Home() { const navigate = useNavigate(); return React.createElement('section', { id: 'previous-screen' }, React.createElement('h1', null, 'Home'), React.createElement('button', { onClick: () => navigate('/mainEventScreen') }, 'Ir para eventos')) }
+  function Events() { if (!ready) throw pending; return React.createElement('section', { id: 'destination-loading', 'aria-busy': true }, React.createElement('h1', null, 'Eventos'), React.createElement('p', null, 'Carregamento próprio dos eventos')) }
+  const authentication = { useAuthentication: () => ({ status: 'ready', user: { uid: 'manager', accountType: 'GESTOR_WORKSPACE' }, error: '' }) }
+  const env = environment({ '../hooks/useAuthentication': authentication, '../../hooks/useAuthentication': authentication, '../../hooks/useSessionRecovery': { useSessionRecovery: () => ({ pending: false, error: '', retry() {}, returnToLogin() {} }) }, '../pages/mainHomeScreen': { __esModule: true, default: Home }, '../pages/mainEventScreen': { __esModule: true, default: Events } })
+  const PageRoutes = env.load('src/routes/index.tsx').default, root = createRoot(document.getElementById('root'))
+  try {
+    await React.act(async () => root.render(React.createElement(MemoryRouter, { initialEntries: ['/mainHomeScreen'] }, React.createElement(PageRoutes))))
+    const before = document.getElementById('previous-screen')
+    assert.ok(before)
+    await React.act(async () => document.querySelector('button').click())
+    assert.equal(document.getElementById('previous-screen'), before)
+    assert.equal(document.querySelector('.route-loading'), null)
+    assert.equal(document.querySelector('.api-loading-cards'), null)
+    assert.equal(document.querySelector('.login-loading-spinner'), null)
+    await React.act(async () => { ready = true; resolve() })
+    assert.equal(document.getElementById('previous-screen'), null)
+    assert.ok(document.getElementById('destination-loading'))
+    assert.equal(document.querySelector('h1').textContent, 'Eventos')
+    assert.ok(document.querySelector('.astro-route-content--workspace #destination-loading'))
+  } finally { await React.act(async () => root.unmount()); dom.window.close(); Object.assign(global, previous) }
+})
+
+
+test('estrutura das telas principais fica fora do fade sem alterar entrada de login, formulários ou planeta', async () => {
+  const { MemoryRouter, Routes, Route } = require('react-router-dom')
+  const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
+  const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+  Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+  const env = environment(), Content = env.load('src/components/routeContent/index.tsx').default
+  const root = createRoot(document.getElementById('root'))
+  try {
+    for (const [pathname, workspace] of [['/mainHomeScreen', true], ['/mainEventScreen', true], ['/mainPositionScreen', true], ['/mainAccountScreen', true], ['/admin/nrs/pending/123', true], ['/', false], ['/createForms', false], ['/loadingScreen', false]]) {
+      await React.act(async () => root.render(React.createElement(MemoryRouter, { key: pathname, initialEntries: [pathname] }, React.createElement(Routes, null, React.createElement(Route, { element: React.createElement(Content) }, React.createElement(Route, { path: '*', element: React.createElement('div', { 'aria-busy': true }, 'Conteúdo da tela') }))))))
+      assert.equal(document.querySelector('.astro-route-content').classList.contains('astro-route-content--workspace'), workspace, pathname)
+    }
+  } finally { await React.act(async () => root.unmount()); dom.window.close(); Object.assign(global, previous) }
+})
+
+
+test('IA aparece somente nas oito páginas com menu lateral, nunca nos fluxos independentes', async () => {
+  const { MemoryRouter } = require('react-router-dom')
+  const dom = new JSDOM('<!doctype html><div id="root"></div>')
+  const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+  Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+  const env = environment({
+    './components/actionFeedbackHost': { __esModule: true, default: () => null },
+    './gtm/Tracking': { __esModule: true, default: () => null },
+    './routes': { __esModule: true, default: () => null },
+    './components/astroChat': { __esModule: true, default: () => React.createElement('button', { id: 'chat' }, 'Astro') },
+    './hooks/useAuthentication': { useAuthentication: () => ({ status: 'ready', user: { uid: 'gestor', accountType: 'workspace-manager' } }) },
+    './utils/accessControl': { canAccessPage: () => true },
+    './hooks/usePageTitle': { usePageTitle() {} },
+  })
+  const App = env.load('src/app.tsx').default
+  const root = createRoot(document.getElementById('root'))
+  try {
+    const allowed = ['mainHomeScreen', 'mainManagerScreen', 'mainEmployeerScreen', 'mainPositionScreen', 'mainFormScreen', 'mainEventScreen', 'mainUnitScreen', 'mainConformityScreen']
+    const blocked = ['mainWorkspaceSettingsScreen', 'mainAccountScreen', 'createForms', 'editForms', 'mainFormScreen/responses', 'mainDashboardsScreen', 'includeCompanyInformation?context=settings', 'attachExcelFile?context=settings', 'setAddress?context=settings', 'paymentMethod?context=settings', 'loadingScreen', 'forgotPassword']
+    for (const [paths, visible] of [[allowed, true], [blocked, false]]) {
+      for (const route of paths) {
+        await React.act(async () => root.render(React.createElement(MemoryRouter, { key: route, initialEntries: ['/' + route] }, React.createElement(App))))
+        assert.equal(document.querySelector('#chat').closest('[hidden]') === null, visible, route)
+      }
+    }
+  } finally {
+    await React.act(async () => root.unmount())
+    dom.window.close()
+    Object.assign(global, previous)
+  }
+})
+
+
+test('Home e Colaboradores aguardam a saída somente do conteúdo antes de montar o destino', async () => {
+  const { MemoryRouter, useNavigate } = require('react-router-dom')
+  for (const reduced of [false, true]) {
+    const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
+    const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+    Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+    window.scrollTo = () => {}
+    window.matchMedia = () => ({ matches: reduced })
+    const exits = []
+    dom.window.HTMLElement.prototype.animate = function (frames, options) {
+      let finish
+      const finished = new Promise(resolve => { finish = resolve })
+      const animation = { finished, cancel() {} }
+      exits.push({ element: this, frames, options, finish })
+      return animation
+    }
+    function Screen({ title, destination }) {
+      const navigate = useNavigate()
+      return React.createElement('div', { className: 'main-position-screen' },
+        React.createElement('aside', null, 'Menu'),
+        React.createElement('main', null, React.createElement('section', { className: 'position-content' },
+          React.createElement('h1', null, title),
+          React.createElement('button', { onClick: () => navigate(destination) }, 'Trocar tela'))))
+    }
+    const authentication = { useAuthentication: () => ({ status: 'ready', user: { uid: 'manager', accountType: 'GESTOR_WORKSPACE' }, error: '' }) }
+    const env = environment({
+      '../hooks/useAuthentication': authentication, '../../hooks/useAuthentication': authentication,
+      '../../hooks/useSessionRecovery': { useSessionRecovery: () => ({ pending: false, error: '', retry() {}, returnToLogin() {} }) },
+      '../pages/mainHomeScreen': { __esModule: true, default: () => React.createElement(Screen, { title: 'Home', destination: '/mainEmployeerScreen' }) },
+      '../pages/mainEmployeerScreen': { __esModule: true, default: () => React.createElement(Screen, { title: 'Colaboradores', destination: '/mainHomeScreen' }) },
+    })
+    const PageRoutes = env.load('src/routes/index.tsx').default
+    const root = createRoot(document.getElementById('root'))
+    try {
+      await React.act(async () => root.render(React.createElement(MemoryRouter, { initialEntries: ['/mainHomeScreen'] }, React.createElement(PageRoutes))))
+      for (const [source, destination] of [['Home', 'Colaboradores'], ['Colaboradores', 'Home']]) {
+        const sidebar = document.querySelector('aside')
+        const content = document.querySelector('.position-content')
+        const count = exits.length
+        await React.act(async () => document.querySelector('button').click())
+        if (!reduced) {
+          assert.equal(document.querySelector('h1').textContent, source)
+          assert.equal(document.querySelector('aside'), sidebar)
+          assert.equal(exits.length, count + 1)
+          assert.equal(exits.at(-1).element, content)
+          assert.deepEqual(exits.at(-1).frames, [{ opacity: 1 }, { opacity: 0 }])
+          await React.act(async () => exits.at(-1).finish())
+        } else assert.equal(exits.length, 0)
+        assert.equal(document.querySelector('h1').textContent, destination)
+        assert.ok(document.querySelector('.astro-route-content--workspace .position-content'))
+        assert.equal(document.querySelector('.route-loading'), null)
+      }
+    } finally {
+      await React.act(async () => root.unmount())
+      dom.window.close()
+      Object.assign(global, previous)
+    }
+  }
+})
+
+test('Home, dashboards e perfil aguardam a saída e entram sem carregando de navegação', async () => {
+  const { MemoryRouter, useNavigate } = require('react-router-dom')
+  for (const reduced of [false, true]) {
+    const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
+    const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+    Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+    window.scrollTo = () => {}
+    window.matchMedia = () => ({ matches: reduced })
+    const exits = []
+    dom.window.HTMLElement.prototype.animate = function () {
+      let finish
+      const finished = new Promise(resolve => { finish = resolve })
+      exits.push({ element: this, finish })
+      return { finished, cancel() {} }
+    }
+    function Screen({ title, destination, home = false }) {
+      const navigate = useNavigate()
+      return React.createElement('main', { className: home ? 'position-content' : 'create-forms-main' }, React.createElement('h1', null, title), React.createElement('button', { onClick: () => navigate(destination) }, 'Continuar'))
+    }
+    const authentication = { useAuthentication: () => ({ status: 'ready', user: { uid: 'manager', accountType: 'GESTOR_WORKSPACE' }, error: '' }) }
+    const env = environment({
+      '../hooks/useAuthentication': authentication, '../../hooks/useAuthentication': authentication,
+      '../../hooks/useSessionRecovery': { useSessionRecovery: () => ({ pending: false, error: '', retry() {}, returnToLogin() {} }) },
+      '../pages/mainHomeScreen': { __esModule: true, default: () => React.createElement(Screen, { title: 'Home', destination: '/mainDashboardsScreen', home: true }) },
+      '../pages/mainDashboardsScreen': { __esModule: true, default: () => React.createElement(Screen, { title: 'Dashboards', destination: '/mainAccountScreen' }) },
+      '../pages/mainAccountScreen': { __esModule: true, default: () => React.createElement(Screen, { title: 'Perfil', destination: '/mainHomeScreen' }) },
+    })
+    const PageRoutes = env.load('src/routes/index.tsx').default
+    const feedback = env.load('src/utils/actionFeedback.ts')
+    const root = createRoot(document.getElementById('root'))
+    try {
+      await React.act(async () => root.render(React.createElement(MemoryRouter, { initialEntries: ['/mainHomeScreen'] }, React.createElement(PageRoutes))))
+      for (const [source, target] of [['Home', 'Dashboards'], ['Dashboards', 'Perfil'], ['Perfil', 'Home']]) {
+        await React.act(async () => document.querySelector('button').click())
+        if (!reduced) {
+          assert.equal(document.querySelector('h1').textContent, source)
+          assert.equal(feedback.getActionFeedback().pending, 0)
+          await React.act(async () => exits.at(-1).finish())
+        }
+        assert.equal(document.querySelector('h1').textContent, target)
+        assert.equal(feedback.getActionFeedback().pending, 0)
+        assert.ok(document.querySelector('.astro-route-transition--home-destination'))
+      }
+    } finally {
+      await React.act(async () => root.unmount())
+      assert.equal(feedback.getActionFeedback().pending, 0)
+      dom.window.close(); Object.assign(global, previous)
+    }
+  }
+})

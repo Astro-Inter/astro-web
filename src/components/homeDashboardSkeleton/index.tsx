@@ -1,36 +1,25 @@
-import CompactPurpleButton from '../compactPurpleButton'
+import ComplianceOverviewCard from '../complianceOverviewCard'
 import SummaryStatCard from '../summaryStatCard'
+import type { WorkspaceHome, SummaryStat } from '../../types/home'
 
-function HomeDashboardSkeleton({ onViewDashboards }: { onViewDashboards?: () => void }) {
+interface HomeDashboardSkeletonProps {
+  onViewDashboards?: () => void
+  data?: WorkspaceHome | null
+  loading?: boolean
+}
+
+const pendingStats: SummaryStat[] = [
+  { id: 'units', label: 'Unidades', value: 0, icon: 'building', path: '/mainUnitScreen' },
+  { id: 'collaborators', label: 'Colaboradores', value: 0, icon: 'collaborators', path: '/mainEmployeerScreen' },
+]
+
+function HomeDashboardSkeleton({ onViewDashboards, data, loading = true }: HomeDashboardSkeletonProps) {
   return <>
-    <p className="sr-only" role="status">Carregando os indicadores do workspace.</p>
-    <div className="home-dashboards home-dashboards--loading">
-      <div className="home-card compliance-overview">
-        <div className="compliance-overview-header">
-          <div>
-            <h3>Visão geral de conformidade</h3>
-            <p>Status de requisitos e treinamentos de toda empresa</p>
-          </div>
-          <CompactPurpleButton className="compliance-overview-action" disabled={!onViewDashboards} onClick={onViewDashboards}>Ver dashboards</CompactPurpleButton>
-        </div>
-        <div aria-hidden="true" className="compliance-overview-body">
-          <div className="compliance-donut home-skeleton-donut">
-            <div className="compliance-donut-center">
-              <strong className="home-skeleton home-skeleton-number" />
-              <span className="home-skeleton home-skeleton-center-label" />
-            </div>
-          </div>
-          <ul className="compliance-legend">
-            {['compliant', 'expiring', 'expired', 'pending'].map(status => <li key={status}>
-              <span className="home-skeleton compliance-legend-dot" />
-              <span className="home-skeleton home-skeleton-label" />
-            </li>)}
-          </ul>
-        </div>
-      </div>
+    {loading && <p className="sr-only" role="status">Carregando os indicadores do workspace.</p>}
+    <div className="home-dashboards">
+      <ComplianceOverviewCard loading={loading} overview={data?.complianceOverview} onViewDashboards={onViewDashboards} />
       <div className="home-summary">
-        <SummaryStatCard loading stat={{ id: 'units', label: 'Unidades', value: 0, icon: 'building', path: '/mainUnitScreen' }} />
-        <SummaryStatCard loading stat={{ id: 'collaborators', label: 'Colaboradores', value: 0, icon: 'collaborators', path: '/mainEmployeerScreen' }} />
+        {(data?.summaryStats ?? pendingStats).map(stat => <SummaryStatCard key={stat.id} loading={loading} stat={stat} />)}
       </div>
     </div>
   </>

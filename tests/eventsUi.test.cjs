@@ -88,7 +88,7 @@ test('seleção e grupos recebem a mesma foto do colaborador sem trocar a identi
   await act(async () => root.render(React.createElement(Groups, { distributionVersion: 0, collaborators: [photoPerson], groups: value.groups, assignments: value.assignments, onAddGroup() {}, onAssign() {}, onBack() {}, onContinue() {}, onRandom() {}, onRemoveGroup() {}, onReset() {} })))
   assert.equal(document.querySelector('.event-create-person-chip .event-create-avatar img').getAttribute('src'), photoPerson.profilePhotoUrl)
   assert.ok(document.querySelector('.event-create-random-trigger .astro-icon--dice'))
-  assert.match(document.querySelector('.event-create-random-trigger .astro-icon--dice').getAttribute('src'), /^\/icons\/diceFigma\.svg\?v=/)
+  assert.match(document.querySelector('.event-create-random-trigger .astro-icon--dice').getAttribute('src'), /^\/icons\/dicePairBold\.svg\?v=/)
   const GroupPeople = env.load('src/components/eventGroupCollaboratorsModal/index.tsx').default
   await act(async () => root.render(React.createElement(GroupPeople, { collaborators: [photoPerson], groupName: 'Turma API', participantIds: ['11'], onClose() {} })))
   assert.equal(document.querySelector('tbody .event-create-avatar img').getAttribute('src'), photoPerson.profilePhotoUrl)
@@ -390,6 +390,40 @@ test('edição confirma e aguarda PATCH; falha mantém confirmação aberta e su
   assert.equal(closes, 1)
 }))
 
+test('edição distribui aleatoriamente sem alterar turma iniciada nem horários das turmas mantidas', async () => withDom(async root => {
+  const people = [person, { ...person, id: '12', name: 'Bruna' }, { ...person, id: '13', name: 'Carlos' }]
+  const original = structuredClone(value)
+  original.selectedIds = people.map(row => row.id)
+  original.collaborators = people
+  original.groups = [{ id: '90', name: 'Turma iniciada' }, { id: '91', name: 'Turma futura' }, { id: '92', name: 'Outra turma' }]
+  original.assignments = { 11: '90', 12: '91', 13: '92' }
+  original.schedules = { 90: { date: '2020-01-01', startTime: '08:00', endTime: '12:00' }, 91: value.schedules['90'], 92: value.schedules['90'] }
+  original.permissions.lockedGroupIds = ['90']
+  let submitted, available
+  const env = environment({
+    '../../hooks/useEventCandidates': { useEventCandidates: () => ({ ...candidates, collaborators: people }) },
+    '../eventGroupDistributionModal': { __esModule: true, default: ({ onContinue, allowedCounts }) => {
+      available = allowedCounts
+      return React.createElement('button', { onClick: () => onContinue(2) }, 'Distribuir em dois grupos')
+    } },
+  })
+  const Flow = env.load('src/components/createEventFlowModal/index.tsx').default
+  await act(async () => root.render(React.createElement(Flow, { initialValue: original, mode: 'edit', managerId: '7', onClose() {}, onSubmit: async result => { submitted = result } })))
+  await click('Continuar'); await click('Continuar')
+  const trigger = document.querySelector('.event-create-random-trigger')
+  assert.equal(trigger.disabled, false)
+  await click('Distribuir aleatoriamente')
+  assert.ok(available.includes(2)); assert.ok(!available.includes(1))
+  await click('Distribuir em dois grupos')
+  await click('Continuar'); await click('Continuar'); await click('Continuar')
+  await click('Salvar alterações'); await click('Salvar')
+  assert.ok(submitted)
+  assert.deepEqual(submitted.groups, original.groups.slice(0, 2))
+  assert.deepEqual(submitted.assignments, { 11: '90', 12: '91', 13: '91' })
+  assert.deepEqual(submitted.schedules, { 90: original.schedules['90'], 91: original.schedules['91'] })
+  assert.deepEqual(original.assignments, { 11: '90', 12: '91', 13: '92' })
+}))
+
 test('salvar evento usa a API e mantém a notificação global após fechar o formulário', async () => withDom(async root => {
   let saves = 0, request = deferred()
   const result = { events: [], loading: false, error: '', retry() {}, details: { data: null, loading: false, error: '' }, retryDetails() {}, save: async (configuration, id) => {
@@ -413,7 +447,7 @@ test('salvar evento usa a API e mantém a notificação global após fechar o fo
 test('calendário carrega dados da API, protege ações por permissão e envia justificativa na inativação', async () => withDom(async (root, dom) => {
   const today = new Date(), iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
   let reason, cancelRequest = deferred()
-  const row = { id: '42:90:' + iso, eventId: '42', category: 'event', title: 'Treinamento API', date: iso, startTime: '08:00', endTime: '12:00', status: 'ATIVO' }
+  const row = { id: '42:90:' + iso, eventId: '42', category: 'event', title: 'Treinamento API', date: iso, startTime: '08:00', endTime: '12:00', status: 'ATIVO', eventPeriod: { startDate: '2099-11-05T08:00:00', endDate: '2099-11-05T12:00:00' }, eventPeriods: [{ startDate: '2099-11-05T08:00:00', endDate: '2099-11-05T12:00:00' }] }
   const result = { events: [row], loading: false, error: '', retry() {}, retryDetails() {}, details: { data: { canEdit: false, canCancel: false, status: 'ATIVO', eventClasses: [] }, loading: false, error: '' }, save() {}, cancel: async (_id, text) => { reason = text; return cancelRequest.promise } }
   const context = { user: { uid: 'gestor' } }
   const env = environment({ '../../hooks/useAuthentication': { useAuthentication: () => context }, '../../hooks/useEvents': { useEvents: () => result, detailedCalendarEvent: entry => ({ ...entry, configuration: value }) } })
@@ -465,7 +499,7 @@ test('skeleton faz saída antes dos dados e uma nova leitura cancela a saída an
   const render = loading => act(async () => root.render(React.createElement(Calendar, { ...props, loading })))
   await render(true)
   assert.equal(document.querySelectorAll('.event-year-month').length, 12)
-  assert.equal(document.querySelectorAll('.event-year-skeleton-day').length, 365)
+  assert.equal(document.querySelectorAll('.event-year-skeleton-day').length + document.querySelectorAll('.event-year-day--today').length, 365)
   await render(false)
   assert.ok(document.querySelector('.event-loading-exit .api-skeleton'))
   assert.equal(document.querySelector('section').getAttribute('aria-busy'), 'true')
@@ -542,6 +576,34 @@ test('chegada de dados mantém o calendário montado e navegação continua anim
 }))
 
 
+test('setas animam nos dois sentidos mesmo quando o próximo período está carregando', async () => withDom(async (root, dom) => {
+  dom.window.matchMedia = () => ({ matches: false })
+  const { useAnimatedResults } = environment().load('src/hooks/useAnimatedResults.ts')
+  function Host({ period, loading }) {
+    const items = React.useMemo(() => [{ period, loading }], [period, loading])
+    const result = useAnimatedResults(items, `${period}|${loading}`, period, 'month', true, loading, true)
+    return React.createElement('div', { 'data-exiting': result.exiting, 'data-direction': result.direction, 'data-animated': result.changed }, `${result.items[0].period}/${result.items[0].loading}`)
+  }
+  const render = (period, loading) => act(async () => root.render(React.createElement(Host, { period, loading })))
+  await render(9, false)
+  await render(10, true)
+  assert.equal(document.querySelector('[data-exiting]').getAttribute('data-exiting'), 'true')
+  assert.equal(document.querySelector('[data-direction]').getAttribute('data-direction'), 'next')
+  assert.equal(document.getElementById('root').textContent, '9/false')
+  await act(async () => new Promise(resolve => dom.window.setTimeout(resolve, 200)))
+  assert.equal(document.getElementById('root').textContent, '10/true')
+  assert.equal(document.querySelector('[data-animated]').getAttribute('data-animated'), 'true')
+  assert.equal(document.querySelector('[data-direction]').getAttribute('data-direction'), 'next')
+  await render(10, false)
+  assert.equal(document.querySelector('[data-exiting]').getAttribute('data-exiting'), 'false')
+  await act(async () => new Promise(resolve => dom.window.setTimeout(resolve, 20)))
+  await render(9, true)
+  assert.equal(document.querySelector('[data-exiting]').getAttribute('data-exiting'), 'true')
+  assert.equal(document.querySelector('[data-direction]').getAttribute('data-direction'), 'previous')
+  await act(async () => new Promise(resolve => dom.window.setTimeout(resolve, 200)))
+  assert.equal(document.getElementById('root').textContent, '9/true')
+}))
+
 test('semana preenche todos os horários e mostra os eventos durante a saída do skeleton', async () => withDom(async (root, dom) => {
   dom.window.matchMedia = () => ({ matches: false })
   const measure = dom.window.HTMLElement.prototype.getBoundingClientRect
@@ -594,7 +656,7 @@ test('semana preserva rolagem manual durante a leitura, atualizações e recarga
 
 test('menu não consulta detalhes; cada opção abre seu próprio skeleton e valida permissão antes de agir', async () => withDom(async root => {
   const today = new Date(), iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-  const row = { id: '42:90:' + iso, eventId: '42', category: 'event', title: 'Treinamento API', date: iso, startTime: '08:00', endTime: '12:00', status: 'ATIVO' }
+  const row = { id: '42:90:' + iso, eventId: '42', category: 'event', title: 'Treinamento API', date: iso, startTime: '08:00', endTime: '12:00', status: 'ATIVO', eventPeriod: { startDate: '2099-11-05T08:00:00', endDate: '2099-11-05T12:00:00' }, eventPeriods: [{ startDate: '2099-11-05T08:00:00', endDate: '2099-11-05T12:00:00' }] }
   let requestedId, retries = 0, mutations = 0
   const result = { events: [row], loading: false, error: '', retry() {}, retryDetails() { retries++ }, details: { data: null, loading: true, error: '' }, save() { mutations++ }, cancel() { mutations++ } }
   const env = environment({ '../../hooks/useEvents': { useEvents: (_month, _view, id) => { requestedId = id; return result }, detailedCalendarEvent: entry => ({ ...entry, configuration: value }) } })
@@ -631,19 +693,28 @@ test('menu não consulta detalhes; cada opção abre seu próprio skeleton e val
 }))
 
 
-test('calendário limita cada dia a três marcadores e mantém todos os eventos na semana', async () => withDom(async root => {
+test('mês permite acessar todos os eventos por dia e ano limita a três marcadores', async () => withDom(async root => {
   const Calendar = environment().load('src/components/eventCalendar/index.tsx').default
   const entries = Array.from({ length: 6 }, (_, index) => ({ id: String(index), title: 'Evento ' + index, date: '2026-10-23', category: 'event', startTime: '08:00', endTime: '08:30' }))
-  const props = { month: new Date(2026, 9, 23), events: entries, selectedEventId: null, onMonthChange() {}, onOpenOptions() {} }
+  let opened
+  const props = { month: new Date(2026, 9, 23), events: entries, selectedEventId: null, onMonthChange() {}, onOpenOptions(event) { opened = event } }
   for (const view of ['month', 'year', 'week']) {
     await act(async () => root.render(React.createElement(Calendar, { ...props, view })))
-    assert.equal(document.querySelectorAll('button.event-calendar-item').length, view === 'week' ? 6 : 3)
+    assert.equal(document.querySelectorAll('button.event-calendar-item').length, view === 'year' ? 3 : 6)
+    if (view === 'month') {
+      const region = document.querySelector('.event-calendar-day-events[role=region]')
+      assert.equal(region.tabIndex, 0)
+      assert.match(region.getAttribute('aria-label'), /23/)
+      await act(async () => region.querySelectorAll('button')[5].click())
+      assert.equal(opened.id, '5')
+    }
   }
   await act(async () => root.render(React.createElement(Calendar, { ...props, events: entries.slice(0, 2), view: 'month' })))
   assert.equal(document.querySelectorAll('button.event-calendar-item').length, 2)
+  assert.equal(document.querySelector('.event-calendar-day-events[role=region]'), null)
 }))
 
-test('editar evento em andamento explica o bloqueio e não abre o formulário nem envia alterações', async () => withDom(async root => {
+test('evento em andamento remove as ações de editar e inativar sem enviar alterações', async () => withDom(async root => {
   const today = new Date(), iso = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0')
   const row = { id: '42:90:' + iso, eventId: '42', title: 'Evento em andamento', date: iso, category: 'event', startTime: '00:00', endTime: '23:59', status: 'ATIVO' }
   let mutations = 0
@@ -653,9 +724,106 @@ test('editar evento em andamento explica o bloqueio e não abre o formulário ne
   const Page = env.load('src/pages/mainEventScreen/index.tsx').default
   await act(async () => root.render(React.createElement(MemoryRouter, null, React.createElement(Page))))
   await act(async () => document.querySelector('.event-calendar-item--event').click())
-  await click('Editar')
-  assert.match(document.querySelector('[role=alert]').textContent, /em andamento.*não pode ser editado/)
+  assert.equal(document.querySelector('.event-calendar-item--in-progress') !== null, true)
+  assert.doesNotMatch(document.querySelector('[role=menu]').textContent, /Editar|Inativar/)
+  assert.match(document.querySelector('[role=menu]').textContent, /Ver informações/)
   assert.equal(document.querySelector('#event-create-title'), null)
-  assert.equal(document.querySelector('[role=dialog] .astro-action').disabled, true)
+  assert.equal(document.querySelector('[role=dialog]'), null)
   assert.equal(mutations, 0)
+}))
+
+
+test('calendário destaca hoje antes dos eventos no mês, na semana e no ano sem consumir vaga de evento', async () => withDom(async root => {
+  const Calendar = environment().load('src/components/eventCalendar/index.tsx').default
+  const now = new Date()
+  const iso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  const events = Array.from({ length: 4 }, (_, index) => ({ id: `today-event-${index}`, category: 'event', date: iso, title: `Evento ${index + 1}`, startTime: '08:00', endTime: '09:00' }))
+  const props = { events, month: now, onMonthChange() {}, onOpenOptions() {}, selectedEventId: null }
+  for (const view of ['month', 'week', 'year']) {
+    await act(async () => root.render(React.createElement(Calendar, { ...props, view })))
+    assert.equal(document.querySelectorAll('[aria-current="date"]').length, 1, view)
+    if (view === 'month') {
+      const day = document.querySelector('.event-calendar-day--today')
+      const marker = day.querySelector('.event-calendar-item--today')
+      assert.equal(marker.tagName, 'SPAN')
+      assert.equal(marker.textContent, 'Dia atual')
+      assert.equal(marker.hasAttribute('aria-haspopup'), false)
+      assert.equal(marker.closest('.event-calendar-day-events').firstElementChild, marker)
+      assert.equal(day.querySelectorAll('.event-calendar-day-events button').length, 4)
+    } else if (view === 'week') {
+      assert.ok(document.querySelector('thead [aria-current="date"]').textContent.includes('Hoje'))
+      assert.equal(document.querySelectorAll('.event-week-cell--today').length, 24)
+    } else {
+      const day = document.querySelector('.event-year-day--today')
+      assert.ok(day.getAttribute('aria-label').startsWith('Hoje,'))
+      assert.equal(day.querySelectorAll('.event-year-day-events button').length, 3)
+    }
+  }
+  await act(async () => root.render(React.createElement(Calendar, { ...props, view: 'month', month: new Date(now.getFullYear(), now.getMonth() + 2, 15) })))
+  assert.equal(document.querySelector('[aria-current="date"]'), null)
+}))
+
+test('evento em andamento fica atenuado nas três visões e oferece somente informações', () => withDom(async root => {
+  const env = environment()
+  const Calendar = env.load('src/components/eventCalendar/index.tsx').default
+  const Options = env.load('src/components/eventOptionsModal/index.tsx').default
+  const event = { id: 'ongoing', eventId: '42', title: 'Treinamento em andamento', category: 'event', date: '2099-11-05', startTime: '08:00', endTime: '10:00', status: 'ATIVO' }
+  const start = new Date('2099-11-05T08:00:00').getTime()
+  let viewed = 0, edited = 0, cancelled = 0
+  for (const view of ['month', 'week', 'year']) {
+    await act(async () => root.render(React.createElement(Calendar, { events: [event], month: new Date(2099, 10, 5), view, now: start, onMonthChange() {}, onOpenOptions() {}, selectedEventId: null })))
+    const buttons = [...document.querySelectorAll('button')].filter(button => button.getAttribute('aria-label')?.includes(event.title))
+    assert.ok(buttons.length)
+    assert.ok(buttons.every(button => button.classList.contains('event-calendar-item--in-progress')))
+    assert.ok(buttons.every(button => /em andamento/.test(button.getAttribute('aria-label'))))
+  }
+  const renderOptions = now => root.render(React.createElement(Options, { event, now, closing: false, panelRef: { current: null }, style: {}, onClose() {}, onViewInformation: () => viewed++, onEdit: () => edited++, onInactivate: () => cancelled++ }))
+  await act(async () => renderOptions(start))
+  assert.doesNotMatch(document.body.textContent, /Editar|Inativar/)
+  await click('Ver informações')
+  assert.equal(viewed, 1); assert.equal(edited, 0); assert.equal(cancelled, 0)
+  await act(async () => renderOptions(start - 1))
+  assert.match(document.body.textContent, /Editar/)
+  assert.match(document.body.textContent, /Inativar/)
+  await act(async () => renderOptions(new Date('2099-11-05T10:00:00').getTime()))
+  assert.doesNotMatch(document.body.textContent, /Editar|Inativar/)
+}))
+
+test('relógio atualiza o bloqueio no início e no término mesmo sem sair da tela', () => withDom(async root => {
+  const { useEventClock } = environment().load('src/hooks/useEventClock.ts')
+  const originalNow = Date.now, originalTimer = window.setTimeout, originalClear = window.clearTimeout
+  let now = new Date('2099-11-05T07:59:00').getTime(), next, delay
+  const start = new Date('2099-11-05T08:00:00').getTime(), end = new Date('2099-11-05T09:00:00').getTime()
+  const events = [{ id: 'clock', category: 'event', date: '2099-11-05', title: 'Teste', startTime: '08:00', endTime: '09:00', status: 'ATIVO' }]
+  Date.now = () => now
+  window.setTimeout = (callback, ms) => { next = callback; delay = ms; return 1 }
+  window.clearTimeout = () => {}
+  function Clock() { return React.createElement('output', null, useEventClock(events)) }
+  try {
+    await act(async () => root.render(React.createElement(Clock)))
+    assert.equal(delay, 60010)
+    now = start; await act(async () => next())
+    assert.equal(Number(document.querySelector('output').textContent), start)
+    assert.equal(delay, end - start + 10)
+    now = end; await act(async () => next())
+    assert.equal(Number(document.querySelector('output').textContent), end)
+  } finally { Date.now = originalNow; window.setTimeout = originalTimer; window.clearTimeout = originalClear }
+}))
+
+test('concluídos, atrasados e inativos ficam cinza e sem ações de alteração em todas as visões', () => withDom(async root => {
+  const env = environment(), Calendar = env.load('src/components/eventCalendar/index.tsx').default, Options = env.load('src/components/eventOptionsModal/index.tsx').default
+  const now = new Date('2099-11-05T12:00:00').getTime()
+  const base = { id: 'history', eventId: '42', category: 'event', title: 'Histórico', date: '2099-11-05', startTime: '08:00', endTime: '10:00', status: 'ATIVO' }
+  for (const event of [base, { ...base, status: 'CONCLUIDO', startTime: '14:00', endTime: '16:00' }, { ...base, status: 'CANCELADO', inactive: true }, { ...base, inactive: true, startTime: '14:00', endTime: '16:00' }]) {
+    for (const view of ['month', 'week', 'year']) {
+      await act(async () => root.render(React.createElement(Calendar, { now, events: [event], month: new Date(2099, 10, 5), view, onMonthChange() {}, onOpenOptions() {}, selectedEventId: null })))
+      const buttons = [...document.querySelectorAll('button')].filter(button => button.getAttribute('aria-label')?.includes('Histórico'))
+      assert.ok(buttons.length)
+      assert.ok(buttons.every(button => button.classList.contains('event-calendar-item--read-only')))
+      assert.ok(buttons.every(button => /apenas para consulta/.test(button.title)))
+    }
+    await act(async () => root.render(React.createElement(Options, { now, event, closing: false, panelRef: { current: null }, style: {}, onClose() {}, onViewInformation() {}, onEdit() { assert.fail('Editar') }, onInactivate() { assert.fail('Inativar') } })))
+    assert.match(document.body.textContent, /Ver informações/)
+    assert.doesNotMatch(document.body.textContent, /Editar|Inativar/)
+  }
 }))

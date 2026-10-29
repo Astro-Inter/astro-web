@@ -3,6 +3,7 @@ import type { MouseEvent } from 'react'
 import AstroIcon from '../astroIcon'
 import { formStatusLabels } from '../../data/forms'
 import type { FormSummary } from '../../types/forms'
+import FormCardSymbol from '../formCardSymbol'
 
 interface FormCardProps {
   form: FormSummary
@@ -14,7 +15,7 @@ function FormCard({ form, menuOpen, onOpenMenu }: FormCardProps) {
   return (
     <article aria-labelledby={`form-title-${form.id}`} className="form-card">
       <div className="form-card-heading">
-        <span aria-hidden="true" className={`form-card-icon form-card-icon--${form.color}`}><AstroIcon name={form.icon} /></span>
+        <FormCardSymbol appearance={form} />
         <div className="form-card-copy">
           <h2 id={`form-title-${form.id}`}>{form.name}</h2>
           <p>{form.description}</p>

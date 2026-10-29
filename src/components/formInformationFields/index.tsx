@@ -5,6 +5,7 @@ import ToolbarSelect from '../toolbarSelect'
 import FormDatePicker from '../formDatePicker'
 import CompactPurpleButton from '../compactPurpleButton'
 import AstroIcon from '../astroIcon'
+import { formCardTitleLimit } from '../../utils/cardTitleMetadata'
 
 interface FormInformationFieldsProps {
   errors?: Record<string, string>
@@ -21,7 +22,7 @@ export default function FormInformationFields({ errors = {}, prefix, values, set
   const fieldError = (field: string) => errors[field] && <p className="login-field-error" id={`${prefix}-${field}-error`} role="alert">{errors[field]}</p>
   const change = (field: keyof Omit<CreateFormValues, 'questions'>, value: string) => setValues(current => ({ ...current, [field]: value }))
   return <>
-    <div className="create-forms-field"><label htmlFor={`${prefix}-name`}>Nome do formulário</label><input aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? `${prefix}-name-error` : undefined} id={`${prefix}-name`} placeholder="Digite o nome do formulário" maxLength={100} onChange={e => change('name', e.target.value)} value={values.name} />{fieldError('name')}</div>
+    <div className="create-forms-field"><label htmlFor={`${prefix}-name`}>Nome do formulário</label><input aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? `${prefix}-name-error` : undefined} id={`${prefix}-name`} placeholder="Digite o nome do formulário" maxLength={formCardTitleLimit(values.appearance)} onChange={e => change('name', e.target.value)} value={values.name} />{fieldError('name')}</div>
     <div className="create-forms-field"><label htmlFor={`${prefix}-description`}>Descrição do formulário</label><input required aria-invalid={Boolean(errors.description)} aria-describedby={errors.description ? `${prefix}-description-error` : undefined} id={`${prefix}-description`} placeholder="Digite a descrição do formulário" maxLength={240} onChange={e => change('description', e.target.value)} value={values.description} />{fieldError('description')}</div>
     <div className="create-forms-field">
       <span className="create-forms-label">Gestor destinatário</span>

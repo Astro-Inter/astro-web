@@ -75,5 +75,5 @@ export function useEvents(date: Date, view: CalendarView, selectedEventId?: stri
 }
 
 export function detailedCalendarEvent(event: CalendarEvent, detail: EventResponse): CalendarEvent {
-  return { ...event, title: detail.title, inactive: detail.status === 'CANCELADO', status: detail.status, configuration: eventConfiguration(detail) }
+  return { ...event, title: detail.title, inactive: detail.status === 'CANCELADO', status: detail.status, eventPeriods: detail.eventClasses.map(group => ({ startDate: group.startDate, endDate: group.endDate })), configuration: eventConfiguration(detail) }
 }

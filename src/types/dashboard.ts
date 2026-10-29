@@ -51,6 +51,7 @@ export interface ExplorerMetric { field: string; operation: AggregateOperation }
 export interface ExplorerQuery { dataset: string; groupBy: string; series?: string; metric: ExplorerMetric; formula?: { operator: 'add' | 'subtract' | 'multiply' | 'divide' | 'percentage'; operand: ExplorerMetric }; where: { field: string; operator: 'equals' | 'not_equals'; value: string }[] }
 export interface ExplorerResult { workspaceId: string; dataSource: 'databricks'; generatedAt: string; filters: AnalyticsFilters; chart: AnalyticsChart; cache?: AnalyticsCache }
 export interface AnalyticsWidget { id: string; datasetId: string; title: string; type: ChartKind; width: 'half' | 'full'; query?: ExplorerQuery }
-export interface DashboardConfig { filters: AnalyticsFilters; widgets: AnalyticsWidget[] }
+export type DashboardArtworkId = 'overview' | 'trends' | 'bars' | 'donut' | 'area' | 'progress' | 'comparison' | 'scatter' | 'activity' | 'metrics'
+export interface DashboardConfig { filters: AnalyticsFilters; widgets: AnalyticsWidget[]; artwork?: DashboardArtworkId }
 export interface SavedDashboard { id: string; name: string; config: DashboardConfig; version: number; createdAt: string; updatedAt: string }
 export interface DashboardDraft { name: string; config: DashboardConfig }

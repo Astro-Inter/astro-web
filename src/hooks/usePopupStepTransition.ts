@@ -14,7 +14,7 @@ export function usePopupStepTransition() {
   }, [])
 
   function animatePopupChange(update: () => void) {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if ((window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.astroReducedMotion === 'true')) {
       update()
       return
     }

@@ -14,7 +14,7 @@ import PasswordConfirmationModal from '../../components/passwordConfirmationModa
 import { useActionsMenu } from '../../hooks'
 import { useManagers } from '../../hooks/useManagers'
 import type { ManagerSummary, ManagerFormValues, ManagerInviteValues } from '../../types/manager'
-import { collaboratorStatusLabels } from '../../utils/collaborator'
+import { collaboratorStatusLabels, collaboratorStatusNoticeLabels } from '../../utils/collaborator'
 import { iconAsset } from '../../utils/iconAsset'
 
 const statusFilterOptions = [
@@ -58,7 +58,7 @@ function MainManagerScreenPage() {
   async function inviteManager(values: ManagerInviteValues): Promise<string | null> {
     const result = await api.promote(values)
     if (result.error !== null) return result.error
-    showSavedManager(result.manager.id, `${result.manager.name} promovido a gestor.`)
+    showSavedManager(result.manager.id, `${result.manager.name} promovido(a) a gestor(a).`)
     return null
   }
 
@@ -85,14 +85,14 @@ function MainManagerScreenPage() {
 
     const result = await api.save(values, managerId)
     if (result.error !== null) return result.error
-    showSavedManager(result.manager.id, `Gestor ${result.manager.name} atualizado.`)
+    showSavedManager(result.manager.id, `${result.manager.name} atualizado(a).`)
     return null
   }
 
   async function toggleStatus(manager: ManagerSummary): Promise<string | null> {
     const result = await api.changeStatus(manager.id, manager.status === 'DESATIVADO' ? 'ATIVO' : 'DESATIVADO')
     if (result.error !== null) return result.error
-    showSavedManager(result.manager.id, `Gestor ${result.manager.name} ${collaboratorStatusLabels[result.manager.status].toLowerCase()}.`)
+    showSavedManager(result.manager.id, `${result.manager.name} ${collaboratorStatusNoticeLabels[result.manager.status]}.`)
     return null
   }
 
@@ -151,7 +151,7 @@ function MainManagerScreenPage() {
           <div aria-label="Ações e filtros dos gestores" className="position-toolbar" role="group">
             <CompactPurpleButton data-track-action={BUTTONS.comuns.adicionar} disabled={api.loading || api.saving || Boolean(api.error)} onClick={(event) => { inviteOriginRef.current = event.currentTarget; api.retryCandidates(); setInviteOpen(true) }} type="button">
               <AstroIcon name="plus" />
-              Convidar gestor
+              Promover a gestor
             </CompactPurpleButton>
 
             <ToolbarSearch

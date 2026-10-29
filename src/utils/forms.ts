@@ -1,4 +1,5 @@
 import type { CreateFormValues, FormQuestion, FormQuestionKind } from '../types/forms'
+import { formCardTitleLimit } from './cardTitleMetadata'
 
 export function makeQuestion(kind: FormQuestionKind): FormQuestion {
   return {
@@ -32,7 +33,8 @@ export function validateAndSanitizeForm(input: CreateFormValues, draft = false):
     })),
   }
   const errors: Record<string, string> = {}
-  if ((!draft && !values.name) || values.name.length > 100) errors.name = 'Informe um nome de até 100 caracteres.'
+  const nameLimit = formCardTitleLimit(values.appearance)
+  if ((!draft && !values.name) || values.name.length > nameLimit) errors.name = `Informe um nome de até ${nameLimit} caracteres.`
   if (!draft && !values.description) errors.description = 'Informe a descrição do formulário.'
   else if (values.description.length > 240) errors.description = 'A descrição deve ter até 240 caracteres.'
   if ((!draft && !values.manager) || values.manager.length > 200) errors.manager = 'Selecione um gestor válido.'

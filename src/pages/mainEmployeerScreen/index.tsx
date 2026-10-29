@@ -15,7 +15,7 @@ import PasswordConfirmationModal from '../../components/passwordConfirmationModa
 import { useActionsMenu } from '../../hooks'
 import { useCollaborators } from '../../hooks/useCollaborators'
 import type { Collaborator, CollaboratorFormValues } from '../../types/collaborator'
-import { collaboratorStatusLabels } from '../../utils/collaborator'
+import { collaboratorStatusLabels, collaboratorStatusNoticeLabels } from '../../utils/collaborator'
 import { iconAsset } from '../../utils/iconAsset'
 
 const statusFilterOptions = [
@@ -60,7 +60,7 @@ function MainEmployeerScreenPage() {
   async function inviteEmployee(values: CollaboratorFormValues): Promise<string | null> {
     const result = await api.save(values)
     if (result.error !== null) return result.error
-    showSavedEmployee(result.collaborator.id, `Colaborador ${result.collaborator.name} pré-cadastrado.`)
+    showSavedEmployee(result.collaborator.id, `${result.collaborator.name} pré-cadastrado(a).`)
     return null
   }
 
@@ -88,7 +88,7 @@ function MainEmployeerScreenPage() {
 
     const result = await api.save(values, employeeId)
     if (result.error !== null) return result.error
-    showSavedEmployee(result.collaborator.id, `Colaborador ${result.collaborator.name} atualizado.`)
+    showSavedEmployee(result.collaborator.id, `${result.collaborator.name} atualizado(a).`)
     return null
   }
 
@@ -96,7 +96,7 @@ function MainEmployeerScreenPage() {
     if (employee.canManage !== true) return 'Você não tem permissão para alterar o status deste usuário.'
     const result = await api.changeStatus(employee.id, employee.status === 'DESATIVADO' ? 'ATIVO' : 'DESATIVADO')
     if (result.error !== null) return result.error
-    showSavedEmployee(result.collaborator.id, `Colaborador ${result.collaborator.name} ${collaboratorStatusLabels[result.collaborator.status].toLowerCase()}.`)
+    showSavedEmployee(result.collaborator.id, `${result.collaborator.name} ${collaboratorStatusNoticeLabels[result.collaborator.status]}.`)
     return null
   }
 

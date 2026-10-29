@@ -87,3 +87,5 @@
 }
 
 .manager-details-modal .account-details-form > .position-dialog-fields:first-child .account-details-grid { margin-top: 0; }
+
+.account-profile-photo > :is(img, .account-profile-initials) { outline: 1px solid rgb(196 189 212 / 45%); }

@@ -8,7 +8,6 @@
 .workspace-settings-content { --workspace-settings-heading-size: var(--astro-heading-font-size); }
 .workspace-settings-page { justify-content: flex-start; }
 .astro-route-transition--settings-page { --astro-text-muted: #d4cfe2; --astro-placeholder: #d4cfe2; --astro-link: #70d8ef; }
-.astro-route-transition--settings-page .help-link { position: static; align-self: center; justify-content: center; margin: 2rem auto 0; width: fit-content; }
 .astro-route-transition--settings-page .set-address-page:has(.workspace-settings-back) .set-address-content { height: auto; max-height: none; overflow: visible; }
 .workspace-payment-notice, .route-recovery section { width: min(42rem, 100%); padding: clamp(1.5rem, 4vw, 3rem); border-radius: 1rem; background: #332754; }
 .workspace-payment-notice h1, .route-recovery h1 { margin-top: 0; }

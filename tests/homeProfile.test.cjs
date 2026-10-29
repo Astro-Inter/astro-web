@@ -35,6 +35,7 @@ async function withDom(run) {
   const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/mainHomeScreen' })
   const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
   Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+  dom.window.matchMedia = () => ({ matches: false })
   const root = require('react-dom/client').createRoot(document.getElementById('root'))
   try { await run(root, dom) } finally { await act(async () => root.unmount()); dom.window.close(); Object.assign(global, previous) }
 }

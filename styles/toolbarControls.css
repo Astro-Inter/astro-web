@@ -16,6 +16,8 @@
 }
 
 .astro-toolbar-search {
+  --astro-search-icon-size: calc(1.35rem * var(--astro-scale));
+  --astro-search-voice-size: calc(1.5rem * var(--astro-scale));
   display: flex;
   flex: 1;
   align-items: center;
@@ -25,9 +27,10 @@
   padding: 0 var(--astro-control-padding-inline);
 }
 
-.astro-toolbar-search .astro-icon {
-  width: var(--astro-icon-md);
-  height: var(--astro-icon-md);
+.astro-toolbar-search > .astro-icon {
+  width: var(--astro-search-icon-size);
+  height: var(--astro-search-icon-size);
+  flex: none;
 }
 
 .astro-toolbar-search input {

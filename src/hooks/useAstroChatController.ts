@@ -257,7 +257,7 @@ export function useAstroChatController() {
         top: anchor.bottom - launcherSize,
       }, launcherSize, launcherSize))
     }
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if ((window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.astroReducedMotion === 'true')) {
       finishClose()
     } else {
       setClosing(true)

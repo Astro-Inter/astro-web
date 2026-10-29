@@ -48,7 +48,7 @@ function EventInformationModal({ draft, onCancel, onChange, onContinue, nrs, loa
     }
     onContinue()
   }}>
-    {editing && <p className="event-create-description">{detailsLocked ? 'O evento já começou. Título, descrição e link externo não podem ser alterados.' : 'Edite o título, a descrição e o link externo. A NR é definida na criação do evento.'}</p>}
+    {editing && detailsLocked && <p className="event-create-description">O evento já começou. Título, descrição e link externo não podem ser alterados.</p>}
     {loading && <ApiContentSkeleton className={`event-create-fields-skeleton${presence.exiting ? ' event-loading-exit' : ''}`} label="Carregando informações do evento..." fields={4} columns={1} actions={0} />}
     <div hidden={loading} className="event-create-fields event-loading-ready">
       <div className="event-create-field">

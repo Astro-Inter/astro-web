@@ -296,10 +296,10 @@ test('Workspace do gestor comum mostra só acessibilidade; responsável vê gest
     assert.match(markup, /id="workspace-accessibility-title"/)
     for (const control of ['Tamanho do texto', 'Alto contraste', 'Tradutor VLibras', 'Navegação facial']) assert.ok(markup.includes(control))
     assert.doesNotMatch(markup, />Tema<|>Claro</)
+    assert.doesNotMatch(markup, /workspace-transfer-title|Transferência de cargo|Substituir/)
     if (role === 'GESTOR') assert.doesNotMatch(markup, /Editar informações|Alterar informações|Alterar unidades|Alterar pagamentos|Adicionar planilha|Substituir/)
     else {
       assert.ok(markup.indexOf('Editar informações') < markup.indexOf('id="workspace-accessibility-title"'))
-      assert.match(markup, /Substituir/)
     }
   }
 })

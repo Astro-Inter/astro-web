@@ -9,33 +9,20 @@ import { usePageTitle } from './hooks/usePageTitle'
 
 const chatRoutes = new Set([
   '/mainHomeScreen',
-  '/mainDashboardsScreen',
   '/mainManagerScreen',
   '/mainEmployeerScreen',
   '/mainPositionScreen',
   '/mainFormScreen',
-  '/mainFormScreen/responses',
   '/mainEventScreen',
-  '/mainWorkspaceSettingsScreen',
-  '/mainAccountScreen',
-  '/createForms',
-  '/editForms',
-])
-
-const settingsFormRoutes = new Set([
-  '/includeCompanyInformation',
-  '/attachExcelFile',
-  '/setAddress',
-  '/paymentMethod',
+  '/mainUnitScreen',
+  '/mainConformityScreen',
 ])
 
 function App() {
   usePageTitle()
   const { user, status } = useAuthentication()
   const location = useLocation()
-  const settingsForm = settingsFormRoutes.has(location.pathname)
-    && new URLSearchParams(location.search).get('context') === 'settings'
-  const chatVisible = chatRoutes.has(location.pathname) || settingsForm
+  const chatVisible = chatRoutes.has(location.pathname)
 
   return (
     <>

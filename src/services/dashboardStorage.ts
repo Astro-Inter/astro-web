@@ -1,6 +1,8 @@
 import { firebaseAuth } from './firebase'
 import { analyticsCatalog, validAnalyticsFilters } from '../data/dashboardCatalog'
 import { isExplorerQuery } from '../data/explorer'
+import { isDashboardArtwork } from '../data/dashboardArtwork'
+import { decodeDashboardCardTitle, encodeDashboardCardTitle } from '../utils/cardTitleMetadata'
 import type { AnalyticsIdentity, AnalyticsWidget, DashboardDraft, ExplorerQuery, SavedDashboard } from '../types/dashboard'
 
 const prefix = 'astro:dashboard-views:v1:'
@@ -16,7 +18,8 @@ function cleanQuery(query: ExplorerQuery): ExplorerQuery {
     where: query.where.map(row => ({ field: row.field, operator: row.operator, value: row.value })) }
 }
 function cleanDraft(value: unknown): DashboardDraft {
-  if (!record(value) || !text(value.name) || !record(value.config) || !record(value.config.filters) || !Array.isArray(value.config.widgets) || value.config.widgets.length > 12) throw new Error('A configuração desta visão não é válida.')
+  if (!record(value) || typeof value.name !== 'string' || !text(decodeDashboardCardTitle(value.name).name) || !record(value.config) || !record(value.config.filters) || !Array.isArray(value.config.widgets) || value.config.widgets.length > 12) throw new Error('A configuração desta visão não é válida.')
+  const title = decodeDashboardCardTitle(value.name)
   const filters = { start: value.config.filters.start, end: value.config.filters.end, granularity: value.config.filters.granularity }
   if (typeof filters.start !== 'string' || typeof filters.end !== 'string' || !['dia', 'semana', 'mes', 'ano'].includes(String(filters.granularity)) || !validAnalyticsFilters(filters as DashboardDraft['config']['filters'])) throw new Error('Confira o período e a granularidade da visão.')
   const widgets: AnalyticsWidget[] = value.config.widgets.map((widget: unknown) => {
@@ -27,7 +30,9 @@ function cleanDraft(value: unknown): DashboardDraft {
     return { id: widget.id, datasetId: String(widget.datasetId), title: widget.title.trim(), type: type as AnalyticsWidget['type'], width: 'half', ...(widget.datasetId === 'custom' ? { query: cleanQuery(widget.query as ExplorerQuery) } : {}) }
   })
   if (new Set(widgets.map(widget => widget.id)).size !== widgets.length) throw new Error('Os gráficos da visão precisam ter identificadores diferentes.')
-  return { name: value.name.trim(), config: { filters: filters as DashboardDraft['config']['filters'], widgets } }
+  if (value.config.artwork !== undefined && !isDashboardArtwork(value.config.artwork)) throw new Error('Escolha uma ilustração válida para esta visão.')
+  const artwork = title.marked ? title.artwork ?? (title.name === 'Eventos' ? 'trends' : 'overview') : value.config.artwork
+  return { name: title.name, config: { filters: filters as DashboardDraft['config']['filters'], widgets, ...(isDashboardArtwork(artwork) ? { artwork } : {}) } }
 }
 function cleanSaved(value: unknown): SavedDashboard {
   if (!record(value) || typeof value.id !== 'string' || !uuid.test(value.id) || !Number.isSafeInteger(value.version) || Number(value.version) < 1 || typeof value.createdAt !== 'string' || !Number.isFinite(Date.parse(value.createdAt)) || typeof value.updatedAt !== 'string' || !Number.isFinite(Date.parse(value.updatedAt))) throw new Error('Não foi possível ler uma visão salva neste navegador.')
@@ -53,7 +58,7 @@ function read(key: string): SavedDashboard[] {
   } catch { throw new Error('As visões salvas neste navegador estão em um formato inválido. Os dados existentes foram preservados.') }
 }
 function write(key: string, items: SavedDashboard[]) {
-  const serialized = JSON.stringify({ schemaVersion: 1, items })
+  const serialized = JSON.stringify({ schemaVersion: 1, items: items.map(item => ({ ...item, name: encodeDashboardCardTitle(item.name, item.config.artwork ?? (item.name === 'Eventos' ? 'trends' : 'overview')) })) })
   if (serialized.length > maxSize) throw new Error('As visões atingiram o limite de armazenamento. Remova gráficos ou visões que não utiliza.')
   try { localStorage.setItem(key, serialized) } catch { throw new Error('Não foi possível salvar neste navegador. Confira o espaço disponível e a permissão para armazenar dados do site.') }
 }

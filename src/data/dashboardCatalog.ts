@@ -12,6 +12,16 @@ export const analyticsCatalog: readonly CatalogItem[] = [
   { id: 'eventos-gestor', label: 'Eventos por gestor', view: 'eventos', index: 4, grouping: 'Gestor', types: ['bar', 'pie'] },
 ]
 export const chartKindLabels: Record<ChartKind, string> = { bar: 'Barras', line: 'Linhas', pie: 'Pizza' }
+export const indicatorDescriptions: Record<string, string> = {
+  'colaboradores-tempo': 'Compare a quantidade de colaboradores entre as datas do período.',
+  'colaboradores-cargo': 'Acompanhe a quantidade de colaboradores de cada cargo ao longo do tempo.',
+  'colaboradores-nr': 'Compare a quantidade de colaboradores por NR do catálogo.',
+  'turmas-nr': 'Acompanhe a quantidade de turmas de cada NR ao longo do tempo.',
+  'conclusoes-nr': 'Compare as participações concluídas por NR em cada data.',
+  'eventos-nr': 'Veja quantos eventos estão vinculados a cada NR.',
+  'eventos-modo': 'Veja como os eventos se distribuem entre os modos de conclusão.',
+  'eventos-gestor': 'Compare a quantidade de eventos vinculada a cada gestor.',
+}
 export const dimensionLabels: Record<string, string> = { data: 'Data', cargo: 'Cargo', codigo_nr: 'NR do catálogo', nr_id: 'NR', gestor: 'Gestor', modo_conclusao: 'Modo de conclusão' }
 export function defaultAnalyticsFilters(): AnalyticsFilters {
   const date = new Date()

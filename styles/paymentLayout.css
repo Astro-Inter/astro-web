@@ -128,7 +128,6 @@
   }
 
   .payment-back-button {
-    position: absolute;
     top: 1.5rem;
     left: clamp(1.5rem, 5vw, 3rem);
   }
