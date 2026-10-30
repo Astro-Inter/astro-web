@@ -30,6 +30,20 @@ const details = { ...summary, cpf: '52998224725', modalidade: 'HIBRIDO', workspa
 const values = { name: ' Ana Silva ', email: ' ANA@example.com ', cpf: '529.982.247-25', roleId: '5', unitId: '8', modality: 'HIBRIDO', status: 'ATIVO' }
 function respond(data, status = 200) { return new Response(JSON.stringify({ success: true, data }), { status }) }
 
+test('reenvia a chave pelo ID com Bearer, sem aceitar destinatário ou retornar token', async () => {
+  const calls = []
+  global.fetch = async (url, init) => { calls.push({ url, ...init }); return respond(null, 202) }
+  assert.equal(await api.resendCollaboratorAccessKey('42'), undefined)
+  assert.equal(new URL(calls[0].url).pathname, '/collaborators/42/access-key/resend')
+  assert.equal(calls[0].method, 'POST')
+  assert.equal(calls[0].headers.Authorization, 'Bearer firebase-token')
+  assert.equal(calls[0].body, undefined)
+  await assert.rejects(api.resendCollaboratorAccessKey('../42'), /Identificador/)
+  assert.equal(calls.length, 1)
+  global.fetch = async () => new Response(JSON.stringify({ success: false, message: 'Redis indisponível.' }), { status: 503 })
+  await assert.rejects(api.resendCollaboratorAccessKey('42'), /Redis indisponível/)
+})
+
 test('conecta os cinco endpoints com Bearer e os DTOs do Swagger, sem UID, senha ou dados de autenticação', async () => {
   const calls = []
   const responses = [[summary], details, { ...details, status: 'PRE_CADASTRADO' }, { ...details, nome: 'Ana Souza' }, { ...details, status: 'DESATIVADO' }]

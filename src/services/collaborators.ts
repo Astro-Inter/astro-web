@@ -105,3 +105,7 @@ export async function changeCollaboratorStatus(id: string, status: 'ATIVO' | 'DE
   if (status !== 'ATIVO' && status !== 'DESATIVADO') throw new CollaboratorsApiError('Status inválido. Selecione ativo ou desativado.')
   return toDetails(await requestCollaborators<CollaboratorDetailsResponse>(`${collaboratorPath(id)}/status`, 'PATCH', { status }))
 }
+
+export async function resendCollaboratorAccessKey(id: string): Promise<void> {
+  await requestCollaborators<null>(`${collaboratorPath(id)}/access-key/resend`, 'POST')
+}

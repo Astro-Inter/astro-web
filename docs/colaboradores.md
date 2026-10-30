@@ -51,3 +51,11 @@ A API retorna `canManage` na listagem e nos detalhes. O gestor do workspace pode
 O menu mantém “Ver mais informações” para todos os registros autorizados e mostra “Editar” e “Ativar/Desativar” somente com `canManage=true`. Campo ausente equivale a somente leitura. Os formulários também respeitam a permissão atualizada dos detalhes. A API revalida a autorização em cada escrita; esconder botões não substitui a autorização do backend.
 
 Testes de renderização em `tests/collaboratorsPermissionsUi.test.cjs` cobrem os menus com e sem permissão. `tests/collaborators.test.cjs` cobre a conversão e rejeição de permissões malformadas. M05/M12/E03: comunicação permanece no serviço e no hook, preservando estados e cancelamento; M11 mantém ações por botão e navegação do menu por teclado. Auditoria integral de acessibilidade e publicação continuam fora desta alteração.
+
+## Reenvio da chave de acesso — SCRUM-673
+
+No menu de ações, “Reenviar chave de acesso” aparece somente para registros PRE_CADASTRADO com canManage=true. A ação chama POST /collaborators/{id}/access-key/resend com Bearer Firebase, sem corpo nem e-mail no cliente. A API responde 202 após enfileirar o e-mail no Redis. O feedback informa solicitação de reenvio, sem afirmar entrega. A interface bloqueia solicitações simultâneas, mantém filtros/lista/status e mostra os erros retornados pela API.
+
+Para testar com a API local em http://127.0.0.1:8080, crie o arquivo ignorado `.env.access-key-local` com `VITE_API_URL=http://127.0.0.1:8080` e inicie `npm run dev -- --mode access-key-local --host 127.0.0.1 --port 5180`. Firebase continua usando a configuração existente. O consumidor de envio permanece externo ao repositório da API.
+
+Testes focados: `node --test tests/collaborators*.test.cjs`. Incluem elegibilidade do menu, POST autenticado, validação do ID, erro do Redis, bloqueio de cliques duplicados, preservação dos dados e descarte de resposta após desmontagem.

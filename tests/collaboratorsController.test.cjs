@@ -19,6 +19,7 @@ function environment() {
     listCollaborators: async () => [person], getCollaborator: async () => person,
     createCollaborator: async () => ({ ...person, id: '43', status: 'PRE_CADASTRADO' }),
     updateCollaborator: async () => person, changeCollaboratorStatus: async () => person,
+    resendCollaboratorAccessKey: async () => undefined,
     listRoles: async () => [], listUnits: async () => [],
   }
   const trackedServices = Object.fromEntries(Object.keys(services).map(name => [name, (...args) => { calls.push({ name, args }); return services[name](...args) }]))
@@ -149,4 +150,39 @@ test('a aba de colaboradores solicita exclusão da própria conta à API', async
   const call = env.calls.find(call => call.name === 'listCollaborators')
   assert.equal(call.args[1], true)
   assert.ok(call.args[0] instanceof AbortSignal)
+})
+test('reenvio bloqueia cliques duplicados, mantém lista e permite tentar novamente após erro', async () => {
+  const env = environment(), pending = deferred()
+  env.render()
+  await flush()
+  env.services.resendCollaboratorAccessKey = () => pending.promise
+  const api = env.render(), before = api.employees
+  const resend = api.resendAccessKey('42')
+  assert.equal(env.render().saving, true)
+  assert.match(await api.resendAccessKey('42'), /Aguarde/)
+  assert.equal(env.calls.filter(call => call.name === 'resendCollaboratorAccessKey').length, 1)
+  pending.reject(new Error('Redis indisponível.'))
+  assert.equal(await resend, 'Redis indisponível.')
+  assert.equal(env.render().saving, false)
+  assert.deepEqual(env.render().employees, before)
+  env.services.resendCollaboratorAccessKey = async () => undefined
+  assert.equal(await env.render().resendAccessKey('42'), null)
+  assert.deepEqual(env.render().employees, before)
+})
+
+test('reenvio exige sessão e descarta confirmação após desmontagem', async () => {
+  const env = environment(), pending = deferred()
+  env.context.user = null
+  assert.match(await env.render().resendAccessKey('42'), /Entre na sua conta/)
+  assert.equal(env.calls.length, 0)
+  env.context.user = { uid: 'manager' }
+  env.render()
+  await flush()
+  env.services.resendCollaboratorAccessKey = () => pending.promise
+  const resend = env.render().resendAccessKey('42')
+  env.unmount()
+  const writes = env.writes
+  pending.resolve()
+  assert.match(await resend, /sessão mudou/)
+  assert.equal(env.writes, writes)
 })

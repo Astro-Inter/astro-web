@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuthentication } from './useAuthentication'
-import { changeCollaboratorStatus, createCollaborator, getCollaborator, listCollaborators, updateCollaborator } from '../services/collaborators'
+import { changeCollaboratorStatus, createCollaborator, getCollaborator, listCollaborators, resendCollaboratorAccessKey, updateCollaborator } from '../services/collaborators'
 import { listRoles } from '../services/roles'
 import { listUnits } from '../services/units'
 import type { Collaborator, CollaboratorDetails, CollaboratorFormValues, CollaboratorOptions } from '../types/collaborator'
@@ -19,6 +19,7 @@ interface CollaboratorsResult {
   retryOptions: () => void
   save: (values: CollaboratorFormValues, id?: string) => Promise<CollaboratorMutationResult>
   changeStatus: (id: string, status: 'ATIVO' | 'DESATIVADO') => Promise<CollaboratorMutationResult>
+  resendAccessKey: (id: string) => Promise<string | null>
 }
 const emptyOptions: CollaboratorOptions = { positions: [], units: [] }
 function message(error: unknown): string {
@@ -100,6 +101,23 @@ export function useCollaborators(collaboratorId?: string, needsOptions = false):
     }
   }
 
+  async function resendAccessKey(id: string): Promise<string | null> {
+    if (!uid) return 'Entre na sua conta para gerenciar os colaboradores.'
+    if (busy.current) return 'Aguarde a operação em andamento.'
+    busy.current = true
+    setMutation({ uid, saving: true })
+    try {
+      await resendCollaboratorAccessKey(id)
+      if (session.current !== uid) return 'Sua sessão mudou. Entre novamente para continuar.'
+      return null
+    } catch (error: unknown) {
+      return message(error)
+    } finally {
+      busy.current = false
+      if (session.current === uid) setMutation({ uid, saving: false })
+    }
+  }
+
   return {
     employees: list.key === listKey ? list.data : [], loading: list.key !== listKey || list.loading,
     error: list.key === listKey ? list.error : '', saving,
@@ -110,5 +128,6 @@ export function useCollaborators(collaboratorId?: string, needsOptions = false):
     retryOptions: () => setRetries((current) => ({ ...current, options: current.options + 1 })),
     save: (values, id) => mutate(() => id ? updateCollaborator(id, values) : createCollaborator(values), id),
     changeStatus: (id, status) => mutate(() => changeCollaboratorStatus(id, status), id),
+    resendAccessKey,
   }
 }
