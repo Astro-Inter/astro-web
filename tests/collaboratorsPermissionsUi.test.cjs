@@ -6,8 +6,8 @@ const ts = require('typescript')
 const React = require('react')
 const { renderToStaticMarkup } = require('react-dom/server')
 
-function renderMenu(canManage) {
-  const employee = { id: '42', name: 'Pessoa', email: 'pessoa@example.test', roleId: '5', position: 'Cargo', unitId: '8', unit: 'Sede', status: 'ATIVO', canManage }
+function renderMenu(canManage, status = 'ATIVO') {
+  const employee = { id: '42', name: 'Pessoa', email: 'pessoa@example.test', roleId: '5', position: 'Cargo', unitId: '8', unit: 'Sede', status, canManage }
   const cache = new Map()
   const empty = () => null
   const ref = { current: null }
@@ -52,4 +52,10 @@ test('permissão administrativa da API libera edição e mudança de status', ()
   assert.match(html, /aria-label="Ver mais informações"/)
   assert.match(html, /aria-label="Editar"/)
   assert.match(html, /aria-label="Desativar"/)
+})
+
+test('reenvio de chave aparece apenas para pré-cadastrados com permissão administrativa', () => {
+  assert.match(renderMenu(true, 'PRE_CADASTRADO'), /aria-label="Reenviar chave de acesso"/)
+  for (const status of ['ATIVO', 'DESATIVADO']) assert.doesNotMatch(renderMenu(true, status), /Reenviar chave de acesso/)
+  for (const permission of [false, undefined]) assert.doesNotMatch(renderMenu(permission, 'PRE_CADASTRADO'), /Reenviar chave de acesso/)
 })

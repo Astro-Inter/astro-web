@@ -100,6 +100,14 @@ function MainEmployeerScreenPage() {
     return null
   }
 
+  async function resendAccessKey(employee: Collaborator) {
+    if (employee.canManage !== true || employee.status !== 'PRE_CADASTRADO') return
+    const error = await api.resendAccessKey(employee.id)
+    if (error) setFeedback(error, 'error')
+    else setFeedback(`Reenvio da chave de acesso solicitado para ${employee.email}.`)
+    actions.triggerRef.current?.focus()
+  }
+
   function closeDetails() {
     if (dialog?.kind === 'confirm-edit') return
     setDialog(null)
@@ -186,11 +194,15 @@ function MainEmployeerScreenPage() {
               { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
               { trackingAction: BUTTONS.comuns.informacoes, id: 'view', label: 'Ver mais informações', separatorAfter: true, onSelect: () => actions.close(() => { api.retryDetails(); setDialog({ kind: 'view', employee: openEmployee }) }) },
               { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit-password', employee: openEmployee })) },
+              { trackingAction: 'reenviar_chave_acesso', id: 'resend-access-key', label: 'Reenviar chave de acesso', separatorAfter: true, disabled: api.saving, onSelect: () => actions.close(() => { void resendAccessKey(openEmployee) }) },
               { trackingAction: openEmployee.status === 'DESATIVADO'  ? BUTTONS.comuns.ativar : BUTTONS.comuns.inativar, id: 'toggle-status', label: openEmployee.status === 'DESATIVADO' ? 'Ativar' : 'Desativar', tone: openEmployee.status === 'DESATIVADO' ? 'default' : 'danger', onSelect: () => actions.close(() => {
                 if (openEmployee.status !== 'DESATIVADO') setDialog({ kind: 'deactivate', employee: openEmployee })
                 else void toggleStatus(openEmployee).then((error) => { if (error) setFeedback(error, 'error') })
               }) },
-            ] satisfies OptionsPopupItem[]).filter(item => !['edit', 'toggle-status'].includes(item.id) || openEmployee.canManage === true)}
+            ] satisfies OptionsPopupItem[]).filter(item => {
+              if (item.id === 'resend-access-key') return openEmployee.canManage === true && openEmployee.status === 'PRE_CADASTRADO'
+              return !['edit', 'toggle-status'].includes(item.id) || openEmployee.canManage === true
+            })}
             onClose={() => actions.close()}
             panelRef={actions.panelRef}
             style={actions.style}
