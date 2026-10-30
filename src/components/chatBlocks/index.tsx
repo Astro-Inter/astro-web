@@ -34,17 +34,25 @@ function Avatar({ item }: { item: Gallery['imagens'][number] }) {
   const url = safeImage(item.url)
   return <div className="chat-gallery-person">{url && !failed ? <img src={url} alt={`Foto de ${item.nome}`} referrerPolicy="no-referrer" onError={() => setFailed(true)} /> : <span aria-hidden="true">{item.nome.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase()}</span>}<strong>{item.nome}</strong></div>
 }
-const colors = ['#6848b7', '#2b8b82', '#e09152', '#7771c5', '#ad6794', '#4e93b8', '#96a649', '#b77a70', '#568790', '#72639f', '#ca8560', '#828f6b']
+const colors = ['#C4A8E0', '#8A63B1', '#B68CCC', '#641A91', '#D4C0E8', '#72529E', '#4D327A'].map((color, index) => `var(--analytics-series-${index + 1}, ${color})`)
+
+function pieSlices(data: Point[], total: number): string {
+  let offset = 0
+  return data.map((point, index) => {
+    const start = offset
+    offset += total ? point.valor / total * 100 : 0
+    return `${colors[index % colors.length]} ${start}% ${offset}%`
+  }).join(', ')
+}
 function Graphic({ chart }: { chart: Chart }) {
   const max = Math.max(1, ...chart.dados.map(p => p.valor)), total = chart.dados.reduce((n, p) => n + p.valor, 0)
-  let offset = 0
-  const slices = chart.dados.map((p, i) => { const start = offset; offset += total ? p.valor / total * 100 : 0; return `${colors[i]} ${start}% ${offset}%` }).join(', ')
+  const slices = pieSlices(chart.dados, total)
   const points = chart.dados.map((p, i) => `${chart.dados.length === 1 ? 50 : 5 + i * 90 / (chart.dados.length - 1)},${90 - p.valor / max * 75}`).join(' ')
   return <figure className="chat-data-card"><figcaption>{chart.titulo}</figcaption>
-    {chart.tipo === 'grafico_barras' && <div className="chat-bars" aria-hidden="true">{chart.dados.map((p, i) => <div key={i}><span style={{ height: `${Math.max(p.valor ? 4 : 0, p.valor / max * 100)}%`, background: colors[i] }} /></div>)}</div>}
-    {chart.tipo === 'grafico_linhas' && <svg className="chat-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="5" y1="90" x2="95" y2="90" stroke="#d9d2ed" strokeWidth="1"/><polyline points={points} fill="none" stroke="#6848b7" strokeWidth="2" vectorEffect="non-scaling-stroke" /></svg>}
+    {chart.tipo === 'grafico_barras' && <div className="chat-bars" aria-hidden="true">{chart.dados.map((p, i) => <div key={i}><span style={{ height: `${Math.max(p.valor ? 4 : 0, p.valor / max * 100)}%`, background: colors[i % colors.length] }} /></div>)}</div>}
+    {chart.tipo === 'grafico_linhas' && <svg className="chat-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="5" y1="90" x2="95" y2="90" stroke="#d9d2ed" strokeWidth="1"/><polyline points={points} fill="none" stroke="var(--analytics-series-1, #C4A8E0)" strokeWidth="2" vectorEffect="non-scaling-stroke" /></svg>}
     {chart.tipo === 'grafico_setores' && <div className="chat-pie" aria-hidden="true" style={{ background: total ? `conic-gradient(${slices})` : '#e9e5f1' }} />}
-    <ul className="chat-chart-values">{chart.dados.map((p, i) => <li key={i}><span><i style={{ background: colors[i] }} />{p.categoria}</span><strong>{p.valor}{chart.tipo === 'grafico_setores' && total ? ` (${(100 * p.valor / total).toFixed(1)}%)` : ''}</strong></li>)}</ul><small>{chart.fonte} · {chart.unidade}</small></figure>
+    <ul className="chat-chart-values">{chart.dados.map((p, i) => <li key={i}><span><i style={{ background: colors[i % colors.length] }} />{p.categoria}</span><strong>{p.valor}{chart.tipo === 'grafico_setores' && total ? ` (${(100 * p.valor / total).toFixed(1)}%)` : ''}</strong></li>)}</ul><small>{chart.fonte} · {chart.unidade}</small></figure>
 }
 export default function ChatBlocks({ blocks, fallback }: { blocks: unknown; fallback: string }) {
   const parsed = parseBlocks(blocks)
