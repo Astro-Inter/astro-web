@@ -4,6 +4,7 @@ export interface ChatMessage {
   id: string
   author: 'astro' | 'user'
   text: string
+  blocos?: unknown
 }
 
 export interface ChatSessionSummary {
@@ -28,6 +29,7 @@ export interface ChatSessionGroup {
 export interface ChatSessionMessage {
   content: string
   role: 'user' | 'assistant'
+  blocos?: unknown
 }
 
 export interface ChatSessionMessagesResponse {
@@ -41,6 +43,7 @@ export interface ChatApiResponse {
   session_id: string
   resposta: string
   agentes_chamados: string[]
+  blocos?: unknown
 }
 
 export interface ChatSessionEndResponse {

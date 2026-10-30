@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ChatMessage } from '../../types/chat'
+import ChatBlocks from '../chatBlocks'
 import AstroChatLoading from '../astroChatLoading'
 import AstroChatTransition from '../astroChatTransition'
 
@@ -32,7 +33,7 @@ function AstroChatMessages({ messages, thinkingId }: AstroChatMessagesProps) {
           {removed ? null : <div className={`astro-chat-message astro-chat-message--${message.author}`}>
             {message.author === 'astro' && <img alt="" aria-hidden="true" height="80" src={import.meta.env.BASE_URL + 'chatAvatarRobot.png'} width="80" />}
             <div className="astro-chat-message-content">
-              {thinking ? <AstroChatLoading className="astro-chat-typing" dots hideLabel label="A IA está preparando uma resposta…" /> : <p>{message.text}</p>}
+              {thinking ? <AstroChatLoading className="astro-chat-typing" dots hideLabel label="A IA está preparando uma resposta…" /> : <ChatBlocks blocks={message.blocos} fallback={message.text} />}
             </div>
           </div>}
         </AstroChatTransition>

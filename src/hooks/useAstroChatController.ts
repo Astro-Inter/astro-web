@@ -525,7 +525,7 @@ export function useAstroChatController() {
         messages: [
           ...current.messages,
           { id: pendingMessageId, author: 'user', text: trimmed },
-          { id: pendingReplyId, author: 'astro', text: response.resposta },
+          { id: pendingReplyId, author: 'astro', text: response.resposta, blocos: response.blocos },
         ],
       }))
       void loadSessions()
@@ -562,6 +562,7 @@ export function useAstroChatController() {
           id: crypto.randomUUID(),
           author: message.role === 'user' ? 'user' : 'astro',
           text: message.content,
+          blocos: message.role === 'assistant' ? message.blocos : undefined,
         })),
       }))
       if (chat.draftSessionId) {
