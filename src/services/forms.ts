@@ -2,7 +2,7 @@ import { firebaseAuth } from './firebase'
 import { getSystemApiBaseUrl } from './systemApi'
 import { listUnitNrOptions, listUnits } from './units'
 import { formApiStatuses, formRequest, isFormId, isFormReferenceId } from '../utils/formApi'
-import { decodeFormCardTitle } from '../utils/cardTitleMetadata'
+import { isFormCardAppearance } from '../data/formCardAppearance'
 import type { CreateFormValues, FormDetailsResponse, FormEditorOptions, FormManagerOptions, FormRecipientsResponse, FormsPageResponse, FormStatus, FormSummaryResponse } from '../types/forms'
 
 export class FormsApiError extends Error {
@@ -53,11 +53,12 @@ const positiveId = (id: number) => isFormReferenceId(String(id))
 const nullableText = (value: unknown) => value === null || typeof value === 'string'
 const validStatus = (value: string) => ['RASCUNHO', 'PENDENTE', 'CONCLUIDO'].includes(value)
 const validDate = (value: string | null) => value === null || (/^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value)
-const validSummary = (row: FormSummaryResponse) => row && isFormId(row.id) && nullableText(row.title) && nullableText(row.description)
+const validAppearance = (value: unknown) => value == null || isFormCardAppearance(value)
+const validSummary = (row: FormSummaryResponse) => row && validAppearance(row.appearance) && isFormId(row.id) && nullableText(row.title) && nullableText(row.description)
   && Number.isSafeInteger(row.questionCount) && row.questionCount >= 0 && row.questionCount <= 100 && validStatus(row.status)
 
 export function parseFormDetails(row: FormDetailsResponse): FormDetailsResponse {
-  if (!row || !isFormId(row.id) || !positiveId(row.workspaceId) || !positiveId(row.senderManagerId)
+  if (!row || !validAppearance(row.appearance) || !isFormId(row.id) || !positiveId(row.workspaceId) || !positiveId(row.senderManagerId)
     || [row.managerId, row.nrCode, row.unitId].some(id => id !== null && !positiveId(id))
     || !nullableText(row.title) || !nullableText(row.description) || !validStatus(row.status) || !validDate(row.dueDate)
     || typeof row.createdAt !== 'string' || typeof row.updatedAt !== 'string' || !nullableText(row.respondedAt)
@@ -71,8 +72,7 @@ export function parseFormDetails(row: FormDetailsResponse): FormDetailsResponse 
     || new Set(row.questions.map(q => q.id)).size !== row.questions.length) {
     throw new FormsApiError('A API retornou detalhes inválidos para o formulário.')
   }
-  const title = decodeFormCardTitle(row.title)
-  return { ...row, title: row.title === null ? null : title.title, ...(title.appearance ? { appearance: title.appearance } : {}) }
+  return row
 }
 
 export async function listForms(search: string, status: FormStatus | '', page: number, size: number, signal?: AbortSignal): Promise<FormsPageResponse> {
@@ -86,7 +86,7 @@ export async function listForms(search: string, status: FormStatus | '', page: n
     || data.page !== page || data.size !== size || !Number.isSafeInteger(data.totalElements) || data.totalElements < 0
     || !Number.isSafeInteger(data.totalPages) || data.totalPages !== Math.ceil(data.totalElements / size)
     || data.items.length > size) throw new FormsApiError('A API retornou uma lista de formulários inválida.')
-  return { ...data, items: data.items.map(row => { const title = decodeFormCardTitle(row.title); return { ...row, title: title.title, appearance: title.appearance } }) }
+  return data
 }
 export async function getForm(id: string, signal?: AbortSignal): Promise<FormDetailsResponse> {
   return parseFormDetails(await requestForms<FormDetailsResponse>(formPath(id), 'GET', undefined, signal))

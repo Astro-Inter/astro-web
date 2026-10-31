@@ -1,6 +1,6 @@
 import type { CreateFormValues, FormApiQuestionType, FormApiStatus, FormDetailsResponse, FormQuestion, FormRequest, FormStatus, FormSummary, FormSummaryResponse } from '../types/forms'
 import { validateAndSanitizeForm } from './forms'
-import { decodeFormCardTitle, encodeFormCardTitle } from './cardTitleMetadata'
+
 
 export const formApiStatuses: Record<FormStatus, FormApiStatus> = { draft: 'RASCUNHO', pending: 'PENDENTE', completed: 'CONCLUIDO' }
 const statuses: Record<FormApiStatus, FormStatus> = { RASCUNHO: 'draft', PENDENTE: 'pending', CONCLUIDO: 'completed' }
@@ -11,15 +11,13 @@ export const isFormId = (id: string): boolean => typeof id === 'string' && /^[0-
 export const isFormReferenceId = (id: string): boolean => /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id))
 
 export function formSummary(row: FormSummaryResponse): FormSummary {
-  const title = decodeFormCardTitle(row.title)
-  const appearance = row.appearance ?? title.appearance
-  return { id: row.id, name: title.title || 'Formulário sem título', description: row.description ?? '', questionCount: row.questionCount,
+  const appearance = row.appearance
+  return { id: row.id, name: row.title || 'Formulário sem título', description: row.description ?? '', questionCount: row.questionCount,
     status: statuses[row.status], icon: appearance?.icon ?? 'document', color: appearance?.color ?? (row.status === 'CONCLUIDO' ? 'green' : row.status === 'RASCUNHO' ? 'blue' : 'purple') }
 }
 
 export function formValues(row: FormDetailsResponse): CreateFormValues {
-  const title = decodeFormCardTitle(row.title)
-  return { name: title.title, appearance: row.appearance ?? title.appearance, description: row.description ?? '', manager: row.managerId === null ? '' : String(row.managerId),
+  return { name: row.title ?? '', appearance: row.appearance ?? undefined, description: row.description ?? '', manager: row.managerId === null ? '' : String(row.managerId),
     nr: row.nrCode === null ? '' : String(row.nrCode), unit: row.unitId === null ? '' : String(row.unitId), deadline: row.dueDate ?? '',
     questions: row.questions.map(q => ({ id: String(q.id), kind: types[q.type], title: q.question ?? '', answer: '',
       options: (q.options ?? []).map(o => ({ id: String(o.id), value: o.text, isOther: o.other })),
@@ -37,7 +35,7 @@ export function formRequest(input: CreateFormValues, status: FormApiStatus, exis
   for (const [field, label] of [['manager', 'gestor'], ['nr', 'NR'], ['unit', 'unidade']] as const) {
     if (values[field] && !isFormReferenceId(values[field])) throw new Error(`Selecione um identificador válido para ${label}.`)
   }
-  return { title: encodeFormCardTitle(values.name, values.appearance), description: values.description, managerId: values.manager ? Number(values.manager) : null,
+  return { title: values.name, ...(values.appearance ? { appearance: { icon: values.appearance.icon, color: values.appearance.color } } : {}), description: values.description, managerId: values.manager ? Number(values.manager) : null,
     nrCode: values.nr ? Number(values.nr) : null, unitId: values.unit ? Number(values.unit) : null, dueDate: values.deadline || null, status,
     questions: values.questions.map(q => {
       if (q.kind === 'nr' || q.kind === 'unit') throw new Error('Selecione NR e unidade nas informações do formulário.')

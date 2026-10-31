@@ -42,3 +42,9 @@ Rascunhos novos são salvos na API. O editor não carrega o antigo rascunho comp
 - M13 e M14: publicação e requisitos globais do histórico não foram auditados. Os commits desta integração seguem o padrão Astro Git, com datas reais; isso não comprova os requisitos globais de publicação e distribuição do histórico por quatro semanas.
 
 `tests/forms.test.cjs` cobre os seis endpoints, DTOs, autenticação, validação, preservação de IDs, vínculos e erros. `tests/formsUi.test.cjs` cobre carregamento, salvamento, publicação, rascunhos, exclusão, paginação, recuperação de erros, cancelamento e troca de sessão com React e JSDOM. As chamadas nesses testes são simuladas; operações autenticadas contra o ambiente Render precisam ser conferidas com uma conta de teste autorizada.
+
+## Aparência e nomes físicos no Mongo
+
+`POST /forms` e `PUT /forms/{id}` aceitam `appearance: { "icon": "calendar", "color": "orange" }`. Detalhes e itens da listagem retornam appearance opcional/null. Cor e ícone são validados pelo catálogo permitido. Sem appearance em uma edição, a configuração anterior é preservada. O bloqueio de alterações após respostas permanece.
+
+A coleção física passa a `formularios`, com `configuracao.icone` e `configuracao.cor`; o título tem até 100 caracteres e não contém marcadores de aparência. Referências usam sufixo `_id`, como `workspace_id`, `gestor_id`, `gestor_remetente_id`, `unidade_id` e `nr_id`. DTOs HTTP permanecem camelCase. Migrar os dados antigos antes de disponibilizar as novas versões; o procedimento está no repositório banco-de-dados, em mongo/docs/migracao-padronizacao.md.

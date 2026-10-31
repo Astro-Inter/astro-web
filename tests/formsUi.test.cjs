@@ -191,10 +191,9 @@ test('formulário respondido fica somente para consulta; falha de consulta ofere
 test('card salva na API, mantém prévia em falhas e bloqueia edição depois de respondido', async () => withDom(async root => {
   const env = environment(), Page = env.load('src/pages/mainFormScreen/index.tsx').default
   let current = structuredClone(detail)
-  const metadata = env.load('src/utils/cardTitleMetadata.ts')
   env.services.getForm = async () => structuredClone(current)
-  env.services.listForms = async (_search, _status, page, size) => ({ items: [{ id, title: current.title, description: current.description, status: current.status, questionCount: 1 }], page, size, totalPages: 1, totalElements: 1 })
-  env.services.updateForm = async (_id, values) => { current = { ...current, title: metadata.encodeFormCardTitle(values.name, values.appearance) }; return structuredClone(current) }
+  env.services.listForms = async (_search, _status, page, size) => ({ items: [{ id, title: current.title, appearance: current.appearance, description: current.description, status: current.status, questionCount: 1 }], page, size, totalPages: 1, totalElements: 1 })
+  env.services.updateForm = async (_id, values) => { current = { ...current, title: values.name, appearance: values.appearance }; return structuredClone(current) }
   await mount(root, Page, '/mainFormScreen'); await waitForList()
   await click('Opções para Inspeção API'); await click('Personalizar card')
   let dialog = document.querySelector('[role="dialog"]')
@@ -215,7 +214,7 @@ test('card salva na API, mantém prévia em falhas e bloqueia edição depois de
   await click('Salvar alterações', dialog)
   assert.equal(document.querySelector('[role="dialog"]'), null)
   assert.ok(document.querySelector('.form-card .form-card-icon--orange .astro-icon--calendar'))
-  assert.match(current.title, /\[ac1:f:/)
+  assert.equal(current.title, 'Inspeção API'); assert.deepEqual(current.appearance, { icon: 'calendar', color: 'orange' })
   assert.doesNotMatch(document.querySelector('.form-card').textContent, /ac1/)
   await act(async () => root.render(null))
   current.status = 'CONCLUIDO'
