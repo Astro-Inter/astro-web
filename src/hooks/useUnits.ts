@@ -1,3 +1,4 @@
+import { validateNrSelection } from '../utils/nrSelection'
 import { useEffect, useRef, useState } from 'react'
 import { useAuthentication } from './useAuthentication'
 import { listUnits, listUnitNrs, listUnitNrOptions, toggleUnitStatus, updateUnitNrs } from '../services/units'
@@ -97,7 +98,10 @@ export function useUnits(unitId?: string): UnitsResult {
     return mutate(async () => {
       const enabled = new Set(enabledIds)
       const options = nrs.options.map((row) => ({ ...row, ativo: enabled.has(String(row.nr)) }))
-      await updateUnitNrs(id, options.map(({ nr, ativo }) => ({ nr, ativo })))
+      const selection = options.map(({ nr, ativo }) => ({ nr, ativo }))
+      const validationError = validateNrSelection(selection)
+      if (validationError) throw new Error(validationError)
+      await updateUnitNrs(id, selection)
       if (mounted.current) setNrs((current) => current.key === nrsKey ? { ...current, options, rows: options.filter((row) => row.ativo).map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.descricao })) } : current)
     })
   }

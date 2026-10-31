@@ -1,7 +1,7 @@
 .chat-blocks  { display:grid; gap:12px; min-width:0}
 .chat-blocks p { margin:0; white-space:pre-wrap}
 .chat-data-card { margin:0; padding:14px; border:1px solid #e0dbef; border-radius:14px; background:#fff; min-width:0; color:#302a43}
-.chat-data-card figcaption,.chat-data-card h4 { font-size:14px; font-weight:700; margin:0 0 12px}
+.chat-data-card figcaption,.chat-data-card h4 { font-size:var(--chat-action-size, 0.875rem); font-weight:700; margin:0 0 12px; overflow-wrap:anywhere}
 .chat-data-card small { display:block; color:#716a82; margin-top:10px}
 .chat-bars { height:120px; display:flex; align-items:end; justify-content:space-around; border-bottom:1px solid #d9d2ed; gap:6px}
 .chat-bars div { height:100%; flex:1; display:flex; align-items:end; justify-content:center}
@@ -9,13 +9,14 @@
 .chat-line { width:100%; height:120px}
 .chat-pie { height:120px; width:120px; border-radius:50%; margin:auto}
 .chat-chart-values { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:5px}
-.chat-chart-values li { display:flex; justify-content:space-between; gap:8px; font-size:12px}
+.chat-chart-values li { display:flex; justify-content:space-between; gap:8px; font-size:var(--chat-body-size, 0.75rem); overflow-wrap:anywhere}
 .chat-chart-values i { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px}
 .chat-table-scroll { overflow-x:auto}
-.chat-data-card table { border-collapse:collapse; font-size:12px; width:100%}
+.chat-table-scroll:focus-visible { outline:2px solid #6047a0; outline-offset:-2px; border-radius:var(--astro-control-radius)}
+.chat-data-card table { border-collapse:collapse; font-size:var(--chat-body-size, 0.75rem); width:100%}
 .chat-data-card th,.chat-data-card td { text-align:left; padding:8px; border-bottom:1px solid #ebe8f1; white-space:nowrap}
 .chat-gallery { display:flex; flex-wrap:wrap; gap:12px}
-.chat-gallery-person { display:grid; justify-items:center; gap:5px; width:75px; text-align:center; font-size:11px; overflow-wrap:anywhere}
+.chat-gallery-person { display:grid; justify-items:center; gap:5px; width:75px; text-align:center; font-size:var(--chat-body-size, 0.75rem); overflow-wrap:anywhere}
 .chat-gallery-person img,.chat-gallery-person span { width:44px; height:44px; object-fit:cover; border-radius:50%; background:#eee9f8; color:#6047a0; display:grid; place-items:center; font-weight:700}
 
 

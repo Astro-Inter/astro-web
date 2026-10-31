@@ -4,6 +4,7 @@ import type { Unit } from '../types/unit'
 import type { UnitResponse, UnitNrResponse, UnitNrOptionResponse, UnitNrRequest } from '../types/unit'
 import type { WorkspaceUnitAddress } from '../types/address'
 import { workspaceUnitPayload } from '../utils/workspaceSettings'
+import { validateNrSelection } from '../utils/nrSelection'
 
 export class UnitsApiError extends Error {
   constructor(message: string, options?: ErrorOptions) {
@@ -110,7 +111,7 @@ export async function listUnitNrOptions(id: string, signal?: AbortSignal): Promi
 }
 
 export async function updateUnitNrs(id: string, nrs: UnitNrRequest[]): Promise<void> {
-  if (nrs.some((row) => !Number.isSafeInteger(row.nr) || row.nr <= 0 || typeof row.ativo !== 'boolean')
-    || new Set(nrs.map((row) => row.nr)).size !== nrs.length) throw new UnitsApiError('Seleção de NRs inválida.')
+  const error = validateNrSelection(nrs)
+  if (error) throw new UnitsApiError(error)
   await requestUnits<void>(`${unitPath(id)}/nrs`, 'POST', nrs)
 }

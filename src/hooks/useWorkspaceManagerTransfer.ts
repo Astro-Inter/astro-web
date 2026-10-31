@@ -5,6 +5,7 @@ import { transferWorkspaceManager, WorkspaceApiError } from '../services/workspa
 import { useWorkspaceQuery } from './useWorkspaceQuery'
 import { useAuthentication } from './useAuthentication'
 import { notifyAction } from '../utils/actionFeedback'
+import { validateWorkspaceManagerId } from '../utils/workspaceSettings'
 
 export function useWorkspaceManagerTransfer() {
   const query = useWorkspaceQuery(listManagers)
@@ -16,6 +17,8 @@ export function useWorkspaceManagerTransfer() {
   const managers = query.data?.filter(manager => manager.status === 'ATIVO') ?? []
   async function save(id: string): Promise<string | null> {
     if (busy.current) return 'Aguarde a transferência em andamento.'
+    const validationError = validateWorkspaceManagerId(id)
+    if (validationError) return validationError
     if (!managers.some(manager => manager.id === id)) return 'Selecione outro gestor ativo.'
     busy.current = true
     setSelectedId(id)

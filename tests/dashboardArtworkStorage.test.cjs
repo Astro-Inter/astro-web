@@ -21,6 +21,26 @@ function loadStorage() {
   return load('src/services/dashboardStorage.ts')
 }
 
+test('migra o schema antigo sem perder visões e preserva versão desconhecida sem sobrescrever dados', async () => {
+  const previous = Object.getOwnPropertyDescriptor(global, 'localStorage')
+  const entries = new Map()
+  Object.defineProperty(global, 'localStorage', { configurable: true, value: { getItem: key => entries.get(key) ?? null, setItem: (key, value) => entries.set(key, value) } })
+  try {
+    const storage = loadStorage(), identity = { userId: '1', workspaceId: '2', role: 'GESTOR_WORKSPACE' }
+    const saved = await storage.saveDashboard({ name: 'Visão preservada', config: { filters: { start: '2026-10-01', end: '2026-10-28', granularity: 'mes' }, widgets: [], artwork: 'trends' } }, null, identity)
+    const key = [...entries.keys()][0], data = JSON.parse(entries.get(key))
+    assert.equal(data._versao, 1)
+    entries.set(key, JSON.stringify({ schemaVersion: 1, items: data.items }))
+    assert.equal((await storage.loadSavedDashboards(identity))[0].id, saved.id)
+    assert.equal(JSON.parse(entries.get(key))._versao, 1)
+    assert.equal((await storage.loadSavedDashboards(identity))[0].config.artwork, 'trends')
+    const unsupported = JSON.stringify({ _versao: 99, items: data.items })
+    entries.set(key, unsupported)
+    await assert.rejects(storage.loadSavedDashboards(identity), /preservados/)
+    assert.equal(entries.get(key), unsupported)
+  } finally { if (previous) Object.defineProperty(global, 'localStorage', previous); else delete global.localStorage }
+})
+
 test('ilustração persiste por visão, aceita dados antigos e rejeita opções desconhecidas', async () => {
   const previous = Object.getOwnPropertyDescriptor(global, 'localStorage')
   const items = new Map()

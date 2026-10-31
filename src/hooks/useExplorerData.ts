@@ -2,15 +2,20 @@ import { useEffect, useRef, useState } from 'react'
 import { loadExplorerCatalog, queryExplorer } from '../services/dashboards'
 import type { AnalyticsFilters, AnalyticsWidget, ExplorerCatalog, ExplorerQuery, ExplorerResult } from '../types/dashboard'
 
-export function useExplorerCatalog() {
-  const [catalog, setCatalog] = useState<ExplorerCatalog>()
-  const [error, setError] = useState(''), [loading, setLoading] = useState(true), [attempt, setAttempt] = useState(0)
+interface ExplorerCatalogResult { catalog?: ExplorerCatalog; loading: boolean; error: string; retry: () => void }
+export function useExplorerCatalog(): ExplorerCatalogResult {
+  const [attempt, setAttempt] = useState(0)
+  const [state, setState] = useState<{ attempt: number; catalog?: ExplorerCatalog; error: string }>({ attempt: -1, error: '' })
   useEffect(() => {
-    const controller = new AbortController(); setLoading(true); setError('')
-    loadExplorerCatalog(controller.signal).then(result => { if (!controller.signal.aborted) { setCatalog(result); setLoading(false) } }).catch((failure: unknown) => { if (!controller.signal.aborted) { setError(failure instanceof Error ? failure.message : 'Não foi possível ler o catálogo.'); setLoading(false) } })
+    const controller = new AbortController()
+    void loadExplorerCatalog(controller.signal).then(catalog => {
+      if (!controller.signal.aborted) setState({ attempt, catalog, error: '' })
+    }).catch((failure: unknown) => {
+      if (!controller.signal.aborted) setState({ attempt, error: failure instanceof Error ? failure.message : 'Não foi possível ler o catálogo.' })
+    })
     return () => controller.abort()
   }, [attempt])
-  return { catalog, error, loading, retry: () => setAttempt(value => value + 1) }
+  return { catalog: state.catalog, error: state.attempt === attempt ? state.error : '', loading: state.attempt !== attempt, retry: () => setAttempt(value => value + 1) }
 }
 export function useExplorerData(widgets: AnalyticsWidget[], filters: AnalyticsFilters, workspaceId: string, attempt: number) {
   const selection = JSON.stringify(widgets.filter(widget => widget.datasetId === 'custom' && widget.query).map(widget => ({ id: widget.id, query: widget.query })))

@@ -4,6 +4,10 @@ import type { WorkspaceUnitRequest } from '../types/workspaceSettings'
 
 const states = new Set('AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' '))
 
+export function validateWorkspaceManagerId(id: string): string | null {
+  return /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id)) ? null : 'Selecione um gestor ativo.'
+}
+
 export function workspaceUnitSnapshot(unit: WorkspaceUnitAddress): string {
   return JSON.stringify({ ...unit, cep: unit.cep.replace(/\D/g, ''), source: unit.source ?? 'manual' })
 }

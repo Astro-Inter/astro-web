@@ -51,14 +51,15 @@ function read(key: string): SavedDashboard[] {
   try {
     if (raw.length > maxSize) throw new Error()
     const data: unknown = JSON.parse(raw)
-    if (!record(data) || data.schemaVersion !== 1 || !Array.isArray(data.items) || data.items.length > maxViews) throw new Error()
+    if (!record(data) || (data._versao !== 1 && !(data._versao === undefined && data.schemaVersion === 1)) || !Array.isArray(data.items) || data.items.length > maxViews) throw new Error()
     const items = data.items.map(cleanSaved)
     if (new Set(items.map(item => item.id)).size !== items.length) throw new Error()
+    if (data._versao === undefined) write(key, items)
     return items.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
   } catch { throw new Error('As visões salvas neste navegador estão em um formato inválido. Os dados existentes foram preservados.') }
 }
 function write(key: string, items: SavedDashboard[]) {
-  const serialized = JSON.stringify({ schemaVersion: 1, items: items.map(item => ({ ...item, name: encodeDashboardCardTitle(item.name, item.config.artwork ?? (item.name === 'Eventos' ? 'trends' : 'overview')) })) })
+  const serialized = JSON.stringify({ _versao: 1, items: items.map(item => ({ ...item, name: encodeDashboardCardTitle(item.name, item.config.artwork ?? (item.name === 'Eventos' ? 'trends' : 'overview')) })) })
   if (serialized.length > maxSize) throw new Error('As visões atingiram o limite de armazenamento. Remova gráficos ou visões que não utiliza.')
   try { localStorage.setItem(key, serialized) } catch { throw new Error('Não foi possível salvar neste navegador. Confira o espaço disponível e a permissão para armazenar dados do site.') }
 }

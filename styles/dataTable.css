@@ -37,7 +37,7 @@
   60% { opacity: 0.9; }
   to { opacity: 1; }
 }
-.astro-truncated-text { display: block; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.astro-truncated-text { position: relative; display: block; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .astro-truncated-text--multiline { display: -webkit-box; -webkit-box-orient: vertical; white-space: pre-line; overflow-wrap: anywhere; }
 .astro-truncated-text[data-truncated="true"] { cursor: inherit; }
 .astro-truncated-tooltip, .astro-tooltip-surface { padding: calc(0.85rem * var(--astro-scale)) calc(1rem * var(--astro-scale)); border: 0; border-radius: 0.625rem; color: #f8f7fc; background: #332754; box-shadow: 0 16px 44px rgb(0 0 0 / 22%); font-size: var(--astro-control-font-size, 0.9rem); line-height: 1.3; }

@@ -1,11 +1,9 @@
-import PurpleButton from '../purpleButton'
 import AnalyticsPreviewPlaceholder from '../analyticsPreviewPlaceholder'
+import Field from '../analyticsSkeletonField'
+import PurpleButton from '../purpleButton'
 import TruncatedText from '../truncatedText'
 
 interface AnalyticsEditorSkeletonProps { title: string }
-function Field({ label }: { label: string }) {
-  return <div className="create-forms-field analytics-editor-field"><span className="create-forms-label">{label}</span><span className="api-skeleton api-skeleton-control" /></div>
-}
 export default function AnalyticsEditorSkeleton({ title }: AnalyticsEditorSkeletonProps) {
   return <div className="analytics-editor-layout analytics-editor-layout--catalog">
     <div className="analytics-editor-form">

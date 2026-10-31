@@ -22,7 +22,7 @@ async function main() {
   await client.connect();
   for (let attempt = 0; attempt < 120; attempt++) {
     try { await fetch(base + '/conformities/units', { signal: AbortSignal.timeout(1500) }); break; }
-    catch (error) { if (attempt === 119) throw Error('A API local ainda não está disponível em 127.0.0.1:8067. Confira os logs de inicialização.'); await new Promise(resolve => setTimeout(resolve, 1000)); }
+    catch { if (attempt === 119) throw Error('A API local ainda não está disponível em 127.0.0.1:8067. Confira os logs de inicialização.'); await new Promise(resolve => setTimeout(resolve, 1000)); }
   }
   const manager=await token('gestor@astro.local'), outsider=await token('outro@astro.local');
   temporaryUnitId=Number((await client.query('INSERT INTO unidade(workspace_id,nome,ativo) VALUES(1,$1,true) RETURNING id_unidade',['Verificação automática '+crypto.randomUUID()])).rows[0].id_unidade);

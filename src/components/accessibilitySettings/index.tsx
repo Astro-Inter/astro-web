@@ -42,8 +42,8 @@ function AccessibilitySettings({ onDone }: AccessibilitySettingsProps) {
         <div className="a11y-fields">
 {toggle('highContrast', 'Alto contraste')}
         <div className="create-forms-field a11y-select-field">
-        <label htmlFor={`${idPrefix}-color-vision`}>Adaptação de cores</label>
-        <ToolbarSelect id={`${idPrefix}-color-vision`} className="create-forms-select" label="Adaptação de cores" searchable={false} value={preferences.colorVision} options={COLOR_VISION_OPTIONS} onValueChange={value => {
+        <label htmlFor={`${idPrefix}-color-vision`} id={`${idPrefix}-color-vision-label`}>Adaptação de cores</label>
+        <ToolbarSelect id={`${idPrefix}-color-vision`} labelledBy={`${idPrefix}-color-vision-label`} className="create-forms-select" label="Adaptação de cores" searchable={false} value={preferences.colorVision} options={COLOR_VISION_OPTIONS} onValueChange={value => {
           const option = COLOR_VISION_OPTIONS.find(item => item.value === value)
           if (option) update({ colorVision: option.value })
         }} />
@@ -57,8 +57,8 @@ function AccessibilitySettings({ onDone }: AccessibilitySettingsProps) {
         <div className="a11y-disclosure" data-open={preferences.libras} aria-hidden={!preferences.libras} inert={!preferences.libras}>
         <div><div className="a11y-fields">
           <div className="create-forms-field a11y-select-field">
-          <label htmlFor={`${idPrefix}-libras-position`}>Posição do tradutor</label>
-          <ToolbarSelect id={`${idPrefix}-libras-position`} className="create-forms-select" label="Posição do tradutor" searchable={false} value={preferences.librasPosition} options={[{value:'L',label:'Esquerda'},{value:'R',label:'Direita'}]} onValueChange={position => {
+          <label htmlFor={`${idPrefix}-libras-position`} id={`${idPrefix}-libras-position-label`}>Posição do tradutor</label>
+          <ToolbarSelect id={`${idPrefix}-libras-position`} labelledBy={`${idPrefix}-libras-position-label`} className="create-forms-select" label="Posição do tradutor" searchable={false} value={preferences.librasPosition} options={[{value:'L',label:'Esquerda'},{value:'R',label:'Direita'}]} onValueChange={position => {
             if (position === 'L' || position === 'R') update({ librasPosition: position })
           }} />
           </div>

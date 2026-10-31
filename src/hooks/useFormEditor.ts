@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 
 import { useAuthentication } from './useAuthentication'
 import { createForm, getForm, getFormOptions, getFormRecipients, publishForm, updateForm } from '../services/forms'
 import { emptyFormValues, formHasResponses, formValues } from '../utils/formApi'
+import { validateAndSanitizeFormForOptions } from '../utils/formEditorValidation'
 import type { CreateFormValues, FormDetailsResponse, FormEditorOptions } from '../types/forms'
 
 interface EditorState { key: string; detail: FormDetailsResponse | null; options: FormEditorOptions; error: string }
@@ -57,17 +58,15 @@ export function useFormEditor(id?: string): FormEditorResult {
     save: async (draft = false, publish = false) => {
       if (loading || state.error || locked) throw new Error('Carregue um formulário editável antes de salvar.')
       if (mutation.current) throw new Error('Aguarde a gravação em andamento.')
-      if (values.nr && !state.options.nrs.some(nr => nr.value === values.nr)) {
-        throw new Error('Selecione uma NR de empresa ou remova o vínculo antes de salvar.')
-      }
-      if (values.manager && (values.manager === state.options.currentManagerId || state.options.managersError || !state.options.managers.some(manager => manager.value === values.manager))) {
-        throw new Error('Selecione outro gestor ativo para receber o formulário.')
-      }
+      const savingDraft = !publish && (state.detail ? state.detail.status === 'RASCUNHO' : draft)
+      const validation = validateAndSanitizeFormForOptions(values, state.options, savingDraft)
+      const validationError = Object.values(validation.errors)[0]
+      if (validationError) throw new Error(validationError)
       const controller = new AbortController()
       mutation.current = controller
       setSavingKey(key)
       try {
-        let saved = id !== undefined && state.detail ? await updateForm(id, values, state.detail, controller.signal) : await createForm(values, draft, controller.signal)
+        let saved = id !== undefined && state.detail ? await updateForm(id, validation.values, state.detail, controller.signal) : await createForm(validation.values, draft, controller.signal)
         controller.signal.throwIfAborted()
         // Mantém os IDs persistidos mesmo se a publicação seguinte falhar.
         setState(current => ({ ...current, detail: saved }))

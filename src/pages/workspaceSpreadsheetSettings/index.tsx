@@ -1,23 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AddressForm, AttachExcelFileForm, HelpLink, PurpleButton } from '../../components'
+import { AttachExcelFileForm, HelpLink, PurpleButton } from '../../components'
+import ActionLoading from '../../components/actionLoading'
+import WorkspaceImportSummary from '../../components/workspaceImportSummary'
 import WorkspaceSettingsBackButton from '../../components/workspaceSettingsBackButton'
 import WorkspaceSettingsSaveModal from '../../components/workspaceSettingsSaveModal'
-import WorkspaceImportSummary from '../../components/workspaceImportSummary'
-import ActionLoading from '../../components/actionLoading'
 import { useWorkspaceImport } from '../../hooks/useWorkspaceImport'
-import { useWorkspaceAddresses } from '../../hooks/useWorkspaceAddresses'
 import type { WorkspaceUnitAddress } from '../../types/address'
-
-interface ImportAddressEditorProps {
-  units: WorkspaceUnitAddress[]
-  onComplete: (units: WorkspaceUnitAddress[]) => void
-}
-
-function ImportAddressEditor({ units, onComplete }: ImportAddressEditorProps) {
-  const addresses = useWorkspaceAddresses(units, true)
-  return <AddressForm settingsMode unitsFromSpreadsheet addresses={addresses} onComplete={onComplete} />
-}
+import ImportAddressEditor from '../../components/importAddressEditor'
 
 function WorkspaceSpreadsheetSettingsPage() {
   const spreadsheet = useWorkspaceImport()
