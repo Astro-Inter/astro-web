@@ -3,6 +3,8 @@ import type { WorkspaceAddressField, WorkspaceUnitAddress } from '../types/addre
 import type { WorkspaceRegistrationData, WorkspaceRegistrationDraft } from '../types/workspaceRegistration'
 import { validateSpreadsheetFile } from './spreadsheet'
 import { normalizeUnitName } from './workspaceUnits'
+import { isValidCnpj } from './corporateTaxId'
+import { isValidBrazilianState } from './brazilianState'
 
 export function keepRegistrationLoginCredentials(draft: WorkspaceRegistrationDraft): WorkspaceRegistrationDraft {
   return { email: draft.email.trim(), password: draft.password, company: { name: '', cnpj: '' }, units: [], file: null }
@@ -42,6 +44,7 @@ export function validateRegistrationCompanyFields(company: CompanyInformation): 
   if (!company.name.trim()) errors.name = 'Informe o nome da empresa.'
   else if (company.name.trim().length > 120) errors.name = 'O nome da empresa deve ter até 120 caracteres.'
   if (!/^\d{14}$/.test(company.cnpj.replace(/\D/g, ''))) errors.cnpj = 'Informe um CNPJ com 14 dígitos.'
+  else if (!isValidCnpj(company.cnpj)) errors.cnpj = 'Informe um CNPJ válido.'
   return errors
 }
 
@@ -57,7 +60,7 @@ export function validateRegistrationUnitFields(unit: WorkspaceUnitAddress): Part
   }
   if (!/^\d{8}$/.test(unit.cep.replace(/\D/g, ''))) errors.cep = 'Informe um CEP com 8 dígitos.'
   if (!unit.state.trim()) errors.state = 'Informe o estado.'
-  else if (unit.state.trim().length > 2) errors.state = 'Use a sigla do estado.'
+  else if (!isValidBrazilianState(unit.state)) errors.state = 'Informe uma UF brasileira válida.'
   if (!unit.number.trim()) errors.number = 'Informe o número.'
   else if (unit.number.trim().length > 12) errors.number = 'Use até 12 caracteres.'
   if (unit.complement.trim().length > 120) errors.complement = 'O complemento deve ter até 120 caracteres.'

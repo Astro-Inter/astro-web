@@ -162,17 +162,35 @@ test('retomada guarda somente o e-mail e descarta sessões inválidas ou incompa
 function draft() {
   return {
     email: ' gestor@empresa.com ', password: ' Senha123 ',
-    company: { name: ' Empresa ', cnpj: '12.345.678/0001-90' },
+    company: { name: ' Empresa ', cnpj: '12.345.678/0001-95' },
     units: [{ id: 1, name: ' Matriz ', cep: '01310-100', state: 'sp', city: 'São Paulo', neighborhood: 'Bela Vista', street: 'Avenida Paulista', number: '1000', complement: ' Sala 101 ' }],
     file: new File(['conteudo-excel'], 'colaboradores.xlsx'),
   }
 }
 
+test('CNPJ valida os dígitos verificadores e bloqueia cadastro inválido antes da API', async () => {
+  const { isValidCnpj } = loadTs(path.join(__dirname, '../src/utils/corporateTaxId.ts'))
+  const { validateRegistrationCompanyFields } = loadTs(path.join(__dirname, '../src/utils/workspaceRegistration.ts'))
+  for (const cnpj of ['11.222.333/0001-81', '04252011000110', '12.345.678/0001-95']) {
+    assert.equal(isValidCnpj(cnpj), true, cnpj)
+    assert.deepEqual(validateRegistrationCompanyFields({ name: 'Empresa', cnpj }), {})
+  }
+  let calls = 0
+  global.fetch = async () => { calls++; throw new Error('não deve acessar a API') }
+  for (const cnpj of ['23.542.345/3252-34', '11222333000180', '11222333000191', ...Array.from({ length: 10 }, (_, digit) => String(digit).repeat(14)), 'abc11222333000181']) {
+    assert.equal(isValidCnpj(cnpj), false, cnpj)
+    assert.match(validateRegistrationCompanyFields({ name: 'Empresa', cnpj }).cnpj, /CNPJ válido/)
+    await assert.rejects(registerWorkspace({ ...draft(), company: { name: 'Empresa', cnpj } }), /CNPJ válido/)
+  }
+  assert.equal(calls, 0)
+  assert.match(validateRegistrationCompanyFields({ name: 'Empresa', cnpj: '123' }).cnpj, /14 dígitos/)
+})
+
 test('monta o DTO sem máscaras, sem IDs locais e sem alterar a senha', () => {
   const data = buildWorkspaceRegistration(draft())
   assert.equal(data.email, 'gestor@empresa.com')
   assert.equal(data.password, ' Senha123 ')
-  assert.deepEqual(data.workspace, { name: 'Empresa', cnpj: '12345678000190' })
+  assert.deepEqual(data.workspace, { name: 'Empresa', cnpj: '12345678000195' })
   assert.deepEqual(data.units[0], { name: 'Matriz', cep: '01310100', state: 'SP', city: 'São Paulo', neighborhood: 'Bela Vista', street: 'Avenida Paulista', number: '1000', addressLine2: 'Sala 101' })
   const input = draft()
   input.units[0].complement = ''
@@ -223,6 +241,22 @@ test('bloqueia arquivo ausente, vazio, formato inválido e acima de 5 MB antes d
   assert.doesNotThrow(() => buildWorkspaceRegistration({ ...draft(), file: new File([new Uint8Array(5 * 1024 * 1024)], 'limite.xls') }))
 })
 
+test('cadastro exige UF brasileira válida e impede enviar endereço inválido para a API', async () => {
+  let calls = 0
+  global.fetch = async () => { calls++; throw new Error('não deve acessar a API') }
+  for (const state of ['PG', 'XX', 'S', 'São Paulo', '12']) {
+    const input = draft(); input.units[0].state = state
+    assert.match(validateRegistrationUnits(input.units), /UF brasileira válida/)
+    await assert.rejects(registerWorkspace(input), /UF brasileira válida/)
+  }
+  assert.equal(calls, 0)
+  for (const state of 'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ')) {
+    const input = draft(); input.units[0].state = ` ${state.toLowerCase()} `
+    assert.equal(validateRegistrationUnits(input.units), '')
+    assert.equal(buildWorkspaceRegistration(input).units[0].state, state)
+  }
+})
+
 test('envia POST público multipart com Blob JSON e planilha original, sem Content-Type manual', async () => {
   const input = draft()
   let calls = 0
@@ -266,7 +300,7 @@ test('trata todos os status previstos mesmo quando o servidor não retorna JSON'
 
 test('preserva mensagem e problemas de importação nos envelopes disponíveis', async () => {
   const errors = [{ row: 4, field: 'cpf', message: 'CPF inválido' }]
-  for (const envelope of [{ errors }, { data: { importErrors: errors } }, { errors: { importErrors: errors } }, { importErrors: errors }]) {
+  for (const envelope of [{ errors }, { data: errors }, { errors: [], data: errors }, { data: { importErrors: errors } }, { errors: { importErrors: errors } }, { importErrors: errors }]) {
     global.fetch = async () => Response.json({ success: false, message: 'Corrija a planilha', ...envelope }, { status: 422 })
     await assert.rejects(registerWorkspace(draft()), error => {
       assert.equal(error.message, 'Corrija a planilha')
@@ -276,6 +310,15 @@ test('preserva mensagem e problemas de importação nos envelopes disponíveis',
   }
 })
 
+test('mantém os motivos de todas as linhas da planilha sem duplicar erros entre envelopes', async () => {
+  const errors = [{ row: 2, field: 'cpf', message: 'CPF já cadastrado' }, { row: 4, field: 'email', message: 'E-mail repetido na planilha' }]
+  global.fetch = async () => Response.json({ success: false, message: 'A planilha contém linhas inválidas', errors: ['Corrija as linhas indicadas e envie novamente'], importErrors: errors, data: errors }, { status: 422 })
+  await assert.rejects(registerWorkspace(draft()), error => {
+    assert.deepEqual(error.importErrors, errors)
+    return true
+  })
+})
+
 test('trata falha de rede sem modificar o rascunho', async () => {
   const input = draft()
   global.fetch = async () => { throw new TypeError('Failed to fetch') }
@@ -283,6 +326,25 @@ test('trata falha de rede sem modificar o rascunho', async () => {
   assert.equal(input.password, ' Senha123 ')
   assert.equal(input.file.name, 'colaboradores.xlsx')
   assert.equal(input.units[0].name, ' Matriz ')
+})
+
+test('erro de validação mostra o campo e a unidade em vez de ocultar os detalhes da API', async () => {
+  for (const errors of [
+    [{ field: 'units[0].state', message: 'UF inválida' }, { field: 'workspace.cnpj', defaultMessage: 'CNPJ já cadastrado' }],
+    { 'units[0].state': ['UF inválida'], 'workspace.cnpj': 'CNPJ já cadastrado' },
+  ]) {
+    global.fetch = async () => Response.json({ success: false, message: 'Erro de validação', errors }, { status: 400 })
+    await assert.rejects(registerWorkspace(draft()), error => {
+      assert.match(error.message, /Unidade 1 · Estado: UF inválida/)
+      assert.match(error.message, /Dados da empresa · CNPJ: CNPJ já cadastrado/)
+      assert.notEqual(error.message, 'Erro de validação')
+      return true
+    })
+  }
+  global.fetch = async () => Response.json({ message: 'Erro de validação', data: [{ field: 'units[1].cep', message: 'CEP inválido' }] }, { status: 422 })
+  await assert.rejects(registerWorkspace(draft()), /Unidade 2 · CEP: CEP inválido/)
+  global.fetch = async () => Response.json({ message: 'Erro de validação' }, { status: 400 })
+  await assert.rejects(registerWorkspace(draft()), /serviço não informou qual campo.*Revise os dados/)
 })
 
 test('solicita código com o e-mail do pagamento em POST JSON e aceita 204 vazio', async () => {
@@ -434,7 +496,7 @@ test('gestor duplicado bloqueia avanço e informa as linhas reais, incluindo lin
   await assert.rejects(readSpreadsheetUnitNames(file, 'gestor@empresa.com'), /mais de uma vez.*linhas 3, 5/)
 })
 
-test('valida nome e cargo do gestor sem exigir CPF ou modalidade que a API não grava para ele', async () => {
+test('valida nome e cargo do gestor e aceita CPF e modalidade opcionais vazios', async () => {
   const header = ['nome', 'cpf', 'email', 'unidade', 'cargo', 'modalidade']
   for (const [index, field] of [[0, 'nome'], [4, 'cargo']]) {
     const row = ['Gestor', '', 'gestor@empresa.com', 'Matriz', 'Diretor', '']
@@ -450,6 +512,78 @@ test('exige todos os cabeçalhos do cadastro e bloqueia colunas ambíguas', asyn
     await assert.rejects(readSpreadsheetUnitNames(spreadsheet([header.filter(column => column !== field)]), 'gestor@empresa.com'), new RegExp(`coluna chamada "${field}"`))
     await assert.rejects(readSpreadsheetUnitNames(spreadsheet([[...header, field.toUpperCase()]]), 'gestor@empresa.com'), new RegExp(`única coluna chamada "${field}"`))
   }
+})
+
+test('valida todos os campos dos colaboradores e informa a linha real antes de avançar', async () => {
+  const header = ['nome', 'cpf', 'email', 'unidade', 'cargo', 'modalidade']
+  const manager = ['Gestor', '', 'gestor@empresa.com', 'Matriz', 'Diretor', '']
+  const person = ['Pessoa', '529.982.247-25', 'pessoa@empresa.com', 'Matriz', 'Analista', 'Híbrido']
+  for (const [column, value, message] of [
+    [0, '', /nome/], [0, 'A'.repeat(256), /nome/],
+    [1, '111.111.111-11', /CPF/], [1, '52998224724', /CPF/],
+    [2, 'email-invalido', /e-mail/], [2, '', /e-mail/],
+    [4, '', /cargo/], [4, 'A'.repeat(256), /cargo/],
+    [5, '', /modalidade/], [5, 'Inexistente', /modalidade/],
+  ]) {
+    const invalid = [...person]; invalid[column] = value
+    await assert.rejects(readSpreadsheetUnitNames(spreadsheet([header, manager, [], invalid]), 'gestor@empresa.com'), error => {
+      assert.match(error.message, /Linha 4:/)
+      assert.match(error.message, message)
+      return true
+    })
+  }
+  for (const cpf of ['529.982.247-25', '52998224725', ' 529.982.247-25 ', '529 982 247 25']) {
+    const formattedPerson = [...person]; formattedPerson[1] = cpf
+    assert.deepEqual(await readSpreadsheetUnitNames(spreadsheet([header, manager, formattedPerson]), 'gestor@empresa.com'), ['Matriz'])
+  }
+})
+
+test('bloqueia duplicação de e-mail e CPF na planilha e dados opcionais inválidos do gestor', async () => {
+  const header = ['nome', 'cpf', 'email', 'unidade', 'cargo', 'modalidade']
+  const manager = ['Gestor', '', 'gestor@empresa.com', 'Matriz', 'Diretor', '']
+  const person = ['Pessoa', '52998224725', 'pessoa@empresa.com', 'Matriz', 'Analista', 'Presencial']
+  for (const [row, message] of [
+    [['Outra', '11144477735', ' PESSOA@EMPRESA.COM ', 'Matriz', 'Analista', 'Remoto'], /e-mail duplicado.*linha 3/],
+    [['Outra', '529.982.247-25', 'outra@empresa.com', 'Matriz', 'Analista', 'Remoto'], /CPF duplicado.*linha 3/],
+  ]) await assert.rejects(readSpreadsheetUnitNames(spreadsheet([header, manager, person, row]), manager[2]), message)
+  for (const [column, value, message] of [[1, '00000000000', /Linha 2.*CPF válido/], [5, 'Inválida', /Linha 2.*modalidade/]]) {
+    const invalid = [...manager]; invalid[column] = value
+    await assert.rejects(readSpreadsheetUnitNames(spreadsheet([header, invalid]), manager[2]), message)
+  }
+  const sameCpf = [...manager]; sameCpf[1] = '529.982.247-25'
+  await assert.rejects(readSpreadsheetUnitNames(spreadsheet([header, sameCpf, person]), manager[2]), /CPF duplicado.*linha 2/)
+})
+
+test('consulta e-mails antes do cadastro e identifica linha de contas existentes em qualquer perfil', async () => {
+  const { validateRegistrationEmails } = loadTs(path.join(__dirname, '../src/services/registrationValidation.ts'))
+  const rows = ['novo', 'gestor', 'colaborador', 'admin'].map((email, index) => ({ row: index + 2, email: `${email}@empresa.com` }))
+  const calls = []
+  global.fetch = async (url, init) => {
+    calls.push({ url, ...init })
+    const { email } = JSON.parse(init.body)
+    return email.startsWith('novo') ? Response.json({ success: false, message: 'E-mail não cadastrado' }, { status: 404 })
+      : Response.json({ success: true, data: { userType: email.startsWith('gestor') ? 'GESTOR' : email.startsWith('admin') ? 'ADMIN' : 'COLABORADOR' } })
+  }
+  const errors = await validateRegistrationEmails(rows, new AbortController().signal)
+  assert.deepEqual(errors.map(error => [error.row, error.field]), [[3, 'email'], [4, 'email'], [5, 'email']])
+  assert.ok(errors.every(error => /já cadastrado/.test(error.message)))
+  assert.equal(calls.length, 4)
+  assert.ok(calls.every(call => call.url.endsWith('/verify-email') && call.method === 'POST'))
+  assert.ok(calls.every(call => !call.url.includes('add-manager-email') && !call.url.includes('register-workspace')))
+})
+
+test('falha, resposta inválida e cancelamento não confirmam disponibilidade de e-mail', async () => {
+  const { validateRegistrationEmails } = loadTs(path.join(__dirname, '../src/services/registrationValidation.ts'))
+  const rows = [{ row: 2, email: 'pessoa@empresa.com' }]
+  for (const response of [new Response('', { status: 503 }), Response.json({ success: false }), Response.json({ success: true, data: {} })]) {
+    global.fetch = async () => response
+    await assert.rejects(validateRegistrationEmails(rows, new AbortController().signal), /Não foi possível verificar os e-mails/)
+  }
+  let calls = 0
+  global.fetch = async () => { calls++; throw new Error('não deve chamar') }
+  const controller = new AbortController(); controller.abort()
+  await assert.rejects(validateRegistrationEmails(rows, controller.signal), error => error.name === 'AbortError')
+  assert.equal(calls, 0)
 })
 
 test('nova planilha preserva endereços de unidades equivalentes e remove unidades que saíram do arquivo', () => {

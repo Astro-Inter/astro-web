@@ -5,6 +5,7 @@ import { useEventCandidates } from './useEventCandidates'
 import { useEventCollaboratorPhotos } from './useEventCollaboratorPhotos'
 import { shuffleParticipants } from '../utils/eventDistribution'
 import { validateEventForApi } from '../utils/eventApi'
+import { validateEventSchedule } from '../utils/eventStepValidation'
 import { canEditEvent, startedGroupIds, validateEventEdit } from '../utils/eventEditing'
 import type { EventConfiguration, EventCreationForm, EventCreationStep, EventDraft, EventGroup, EventGroupSchedule, EventSettings } from '../types/eventCreation'
 
@@ -47,6 +48,11 @@ export function useEventCreationFlow({ initialValue, managerId, mode, onSubmit }
   function validationFor(value: EventConfiguration) {
     if (candidates.loading || candidates.error) return 'Carregue os participantes elegíveis antes de salvar.'
     if (mode === 'create' && value.draft.nr && !candidates.nrs.some(nr => String(nr.code) === value.draft.nr)) return 'Selecione uma NR destinada a colaboradores.'
+    for (const group of value.groups) {
+      if (lockedGroupIds.includes(group.id)) continue
+      const error = Object.values(validateEventSchedule(value.schedules[group.id]))[0]
+      if (error) return `${group.name}: ${error}`
+    }
     return validateEventForApi(value) ?? (mode === 'edit' && initialValue ? validateEventEdit(initialValue, value, managerId) : null)
   }
 
@@ -103,8 +109,8 @@ export function useEventCreationFlow({ initialValue, managerId, mode, onSubmit }
   }
 
   const distributionCounts = mode === 'edit' && !initialValue?.permissions
-    ? (groups.length > lockedGroupIds.length ? [groups.length] : [])
-    : Array.from({ length: Math.max(8, groups.length) }, (_, index) => index + 1).filter(count => count >= 2 && count > lockedGroupIds.length)
+    ? (groups.length > lockedGroupIds.length && groups.length <= selectedIds.length ? [groups.length] : [])
+    : Array.from({ length: Math.min(Math.max(8, groups.length), lockedGroupIds.length + selectedIds.filter(id => !lockedParticipantIds.includes(id)).length) }, (_, index) => index + 1).filter(count => count >= 1 && count > lockedGroupIds.length)
 
   function resetGroups() {
     if (mode === 'edit') return
@@ -122,6 +128,7 @@ export function useEventCreationFlow({ initialValue, managerId, mode, onSubmit }
 
   function addGroup() {
     setForm(current => {
+      if (current.groups.length >= current.selectedIds.length) return current
       const nextNumber = Math.max(current.groups.length, ...current.groups.map(group => Number(group.name.match(/\d+$/)?.[0]) || 0)) + 1
       return { ...current, groups: [...current.groups, { id: `new-${crypto.randomUUID()}`, name: `Grupo ${nextNumber}` }] }
     })

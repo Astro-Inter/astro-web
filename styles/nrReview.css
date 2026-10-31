@@ -11,7 +11,7 @@
 @media (max-width: 600px) { .nr-admin-header { padding-block: .75rem; } .nr-admin-account { gap: .5rem; padding-inline: .65rem; } .nr-admin-brand .astro-brand img { width: 7rem; } }
 @media (prefers-reduced-motion: reduce) { .nr-admin-account { transition: none; } }
 .nr-admin-header :is(a, button):focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 3px; }
-.nr-admin-session-error { margin: 1rem auto; padding-inline: 1.25rem; max-width: 70rem; color: var(--astro-primary-error); }
+.nr-admin-session-error { margin: 1rem auto; padding-inline: 1.25rem; max-width: 70rem; color: var(--astro-error-text); }
 .nr-review-container.position-content { width: min(100%, 70.3125rem); }
 .nr-review-heading h1 { max-width: 46ch; }
 .nr-review-main p { line-height: 1.7; }

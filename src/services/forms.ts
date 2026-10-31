@@ -76,7 +76,7 @@ export function parseFormDetails(row: FormDetailsResponse): FormDetailsResponse 
   return row
 }
 
-export async function listForms(search: string, status: FormStatus | '', page: number, size: number, signal?: AbortSignal): Promise<FormsPageResponse> {
+async function listFormsPage(search: string, status: FormStatus | '', page: number, size: number, signal?: AbortSignal): Promise<FormsPageResponse> {
   const validation = validateAndSanitizeFormFilters({ search, status, page, size })
   if (!validation.values) throw new FormsApiError(`Filtros ou paginação de formulários inválidos. ${Object.values(validation.errors)[0]}`)
   const filters = validation.values
@@ -89,6 +89,35 @@ export async function listForms(search: string, status: FormStatus | '', page: n
     || !Number.isSafeInteger(data.totalPages) || data.totalPages !== Math.ceil(data.totalElements / size)
     || data.items.length > size) throw new FormsApiError('A API retornou uma lista de formulários inválida.')
   return data
+}
+
+export async function listForms(search: string, status: FormStatus | '', page: number, size: number, signal?: AbortSignal): Promise<FormsPageResponse> {
+  const validation = validateAndSanitizeFormFilters({ search, status, page, size })
+  if (!validation.values) throw new FormsApiError(`Filtros ou paginação de formulários inválidos. ${Object.values(validation.errors)[0]}`)
+  if (status) return listFormsPage(search, status, page, size, signal)
+  // A API pagina por status. Compõe a página global nessa ordem sem carregar
+  // todos os formulários nem ordenar somente os quatro cards já recebidos.
+  const statuses: FormStatus[] = ['draft', 'pending', 'completed']
+  const firstPages = await Promise.all(statuses.map(value => listFormsPage(search, value, 0, size, signal)))
+  const totalElements = firstPages.reduce((total, result) => total + result.totalElements, 0)
+  const items: FormSummaryResponse[] = []
+  let offset = page * size
+  for (const [index, first] of firstPages.entries()) {
+    if (offset >= first.totalElements) { offset -= first.totalElements; continue }
+    while (offset < first.totalElements && items.length < size) {
+      signal?.throwIfAborted()
+      const bucketPage = Math.floor(offset / size)
+      const result = bucketPage === 0 ? first : await listFormsPage(search, statuses[index], bucketPage, size, signal)
+      const entries = result.items.slice(offset % size, offset % size + size - items.length)
+      if (!entries.length) throw new FormsApiError('A lista de formulários mudou. Tente novamente.')
+      items.push(...entries)
+      offset += entries.length
+    }
+    offset = 0
+    if (items.length === size) break
+  }
+  signal?.throwIfAborted()
+  return { items, page, size, totalElements, totalPages: Math.ceil(totalElements / size) }
 }
 export async function getForm(id: string, signal?: AbortSignal): Promise<FormDetailsResponse> {
   return parseFormDetails(await requestForms<FormDetailsResponse>(formPath(id), 'GET', undefined, signal))

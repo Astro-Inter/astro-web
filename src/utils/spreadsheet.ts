@@ -1,3 +1,5 @@
+import type { RegistrationSpreadsheetAnalysis } from '../types/workspaceRegistration'
+
 const MAX_SPREADSHEET_SIZE = 10 * 1024 * 1024
 
 export type SpreadsheetFileValidation =
@@ -21,10 +23,14 @@ export function validateSpreadsheetFile(file: File, maxSize = MAX_SPREADSHEET_SI
 }
 
 export async function readSpreadsheetUnitNames(file: File, managerEmail: string): Promise<string[]> {
+  return (await readRegistrationSpreadsheet(file, managerEmail)).names
+}
+
+export async function readRegistrationSpreadsheet(file: File, managerEmail: string): Promise<RegistrationSpreadsheetAnalysis> {
   const validation = validateSpreadsheetFile(file, 5 * 1024 * 1024)
   if (!validation.valid) throw new Error(validation.message)
-  const { extractSpreadsheetUnitNames } = await import('./excelUnits')
-  return extractSpreadsheetUnitNames(await file.arrayBuffer(), managerEmail)
+  const { extractRegistrationSpreadsheet } = await import('./excelUnits')
+  return extractRegistrationSpreadsheet(await file.arrayBuffer(), managerEmail)
 }
 
 export async function readImportSpreadsheetUnitNames(file: File): Promise<string[]> {

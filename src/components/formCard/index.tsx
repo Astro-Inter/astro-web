@@ -26,7 +26,7 @@ function FormCard({ form, menuOpen, onOpenMenu }: FormCardProps) {
       </div>
       <div className="form-card-badges">
         <span>{form.questionCount} perguntas</span>
-        <span className={`form-card-status form-card-status--${form.status}`}><i aria-hidden="true" />{form.status === 'completed' ? 'Respondido' : formStatusLabels[form.status]}</span>
+        <span className={`form-card-status form-card-status--${form.status}`}><i aria-hidden="true" />{formStatusLabels[form.status]}</span>
       </div>
     </article>
   )

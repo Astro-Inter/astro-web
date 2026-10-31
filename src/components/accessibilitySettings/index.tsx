@@ -13,7 +13,7 @@ function AccessibilitySettings({ onDone }: AccessibilitySettingsProps) {
   const { face, libras } = useAccessibilityRuntime()
   const idPrefix = useId()
   const [message, setMessage] = useState('')
-  const toggle = (key: keyof Pick<AccessibilityPreferences, 'dyslexicFont' | 'highContrast' | 'readingGuide' | 'reduceMotion' | 'libras'>, label: string, description?: string) =>
+  const toggle = (key: keyof Pick<AccessibilityPreferences, 'dyslexicFont' | 'highContrast' | 'readingGuide' | 'reduceMotion' | 'voiceSearch' | 'libras'>, label: string, description?: string) =>
     <div className="a11y-option">
       <span>{label}{description && <small>{description}</small>}</span>
       <ToggleSwitch label={label} checked={preferences[key]} onChange={checked => update({ [key]: checked })} />
@@ -35,6 +35,12 @@ function AccessibilitySettings({ onDone }: AccessibilitySettingsProps) {
         {toggle('dyslexicFont', 'Fonte alternativa', 'Usar OpenDyslexic para leitura.')}
         {toggle('readingGuide', 'Guia de leitura', 'Acompanha o ponteiro e o foco do teclado.')}
         {toggle('reduceMotion', 'Reduzir animações')}
+        </div>
+      </section>
+      <section className="a11y-fieldset" aria-labelledby={`${idPrefix}-search-title`}>
+        <h3 className="a11y-section-title" id={`${idPrefix}-search-title`}>Pesquisa</h3>
+        <div className="a11y-fields">
+          {toggle('voiceSearch', 'Pesquisa por voz', 'Mostrar o botão de microfone nos campos de busca.')}
         </div>
       </section>
       <section className="a11y-fieldset" aria-labelledby={`${idPrefix}-colors-title`}>
@@ -77,7 +83,7 @@ function AccessibilitySettings({ onDone }: AccessibilitySettingsProps) {
         </div>
       </section>
       <div className="a11y-notes">
-        <p className="a11y-hint">As buscas têm um botão de microfone quando o navegador oferece reconhecimento de voz. O áudio pode ser processado pelo serviço do navegador.</p>
+        <p className="a11y-hint">A pesquisa por voz depende do reconhecimento de voz do navegador. Ao ativar e usar o microfone, o áudio pode ser processado pelo serviço do navegador.</p>
         <p className="a11y-hint">Atalho: Alt + A abre este painel. Tab navega pelos controles e Escape fecha o painel.</p>
       </div>
       {message && <p role="status">{message}</p>}

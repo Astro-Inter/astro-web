@@ -244,7 +244,7 @@ test('filtros e seleção permitem recuperar a lista e selecionar somente a unid
     return React.createElement('select', { id, 'aria-label': label, value, onChange: event => onValueChange(event.target.value) }, options.map(option => React.createElement('option', { key: option.value, value: option.value }, option.label)))
   }
   const Participants = environment({ '../toolbarSelect': { __esModule: true, default: Select } }).load('src/components/eventParticipantsModal/index.tsx').default
-  const people = [{ ...person, unit: 'Unidade 1' }, { ...person, id: '12', name: 'Bruno API', unit: 'Unidade 10', modality: 'Remoto' }]
+  const people = [{ ...person, unit: 'Unidade 1' }, { ...person, id: '12', name: 'Bruno API', email: 'bruno@example.test', unit: 'Unidade 10', modality: 'Remoto' }]
   function Host() {
     const [selectedIds, onSelectionChange] = React.useState([])
     return React.createElement(Participants, { collaborators: people, nr: '6', selectedIds, onSelectionChange, onBack() {}, onContinue() {} })
@@ -256,11 +256,20 @@ test('filtros e seleção permitem recuperar a lista e selecionar somente a unid
   await act(async () => root.render(React.createElement(Host)))
   await click('Continuar')
   assert.match(document.querySelector('[role=alert]').textContent, /Selecione pelo menos um colaborador/)
-  await filter('event-create-selected', 'selected')
-  assert.match(document.body.textContent, /Nenhum colaborador selecionado/)
+  const search = async value => act(async () => {
+    const input = document.getElementById('event-create-search')
+    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(input, value)
+    input.dispatchEvent(new dom.window.Event('input', { bubbles: true }))
+  })
+  await search('ausente')
+  assert.match(document.body.textContent, /Nenhum colaborador corresponde/)
   assert.equal([...document.querySelectorAll('button')].some(button => button.textContent === 'Limpar filtros'), false)
-  await filter('event-create-selected', '')
+  await search('')
   assert.equal(document.querySelectorAll('tbody tr').length, 2)
+  await search('bruno@example.test')
+  assert.equal(document.querySelectorAll('tbody tr').length, 1)
+  assert.match(document.querySelector('tbody').textContent, /Bruno API/)
+  await search('')
   await filter('event-create-unit', 'Unidade 1')
   assert.equal(document.querySelectorAll('tbody tr').length, 1)
   assert.match(document.querySelector('tbody').textContent, /Ana API/)
@@ -270,11 +279,11 @@ test('filtros e seleção permitem recuperar a lista e selecionar somente a unid
   assert.equal(document.querySelector('input[aria-label="Selecionar Ana API"]').checked, true)
   assert.equal(document.querySelector('input[aria-label="Selecionar Bruno API"]').checked, false)
   assert.match(document.body.textContent, /1 colaborador selecionado de 2 elegíveis/)
-  await filter('event-create-selected', 'selected')
+  await search('ana')
   assert.equal(document.querySelectorAll('tbody tr').length, 1)
   await act(async () => document.querySelector('input[aria-label="Selecionar Ana API"]').click())
-  assert.match(document.body.textContent, /Nenhum colaborador selecionado/)
-  await filter('event-create-selected', '')
+  assert.equal(document.querySelector('input[aria-label="Selecionar Ana API"]').checked, false)
+  await search('')
   assert.equal(document.querySelectorAll('tbody tr').length, 2)
 }))
 
@@ -352,6 +361,65 @@ test('programação exige datas e horários válidos e aceita término no dia se
   await click('Continuar')
   assert.equal(advances, 1)
   assert.equal(document.querySelector('[role=alert]'), null)
+}))
+
+test('programação valida e remove erros durante a edição, sem clicar em continuar', async () => withDom(async root => {
+  const controls = new Map()
+  function Picker(props) {
+    controls.set(props.id, props)
+    return React.createElement('input', { id: props.id, value: props.value, readOnly: true, 'aria-invalid': !!props.error })
+  }
+  const Schedule = environment({ '../formDatePicker': { __esModule: true, default: Picker }, '../eventTimePicker': { __esModule: true, default: Picker } }).load('src/components/eventGroupScheduleModal/index.tsx').default
+  let advances = 0
+  function Host() {
+    const [schedules, setSchedules] = React.useState({})
+    return React.createElement(Schedule, { groups: value.groups, assignments: value.assignments, schedules, onChange: (id, changes) => setSchedules(current => ({ ...current, [id]: { ...(current[id] || { date: '', startTime: '', endTime: '' }), ...changes } })), onBack() {}, onContinue() { advances++ } })
+  }
+  const change = async (field, value) => act(async () => controls.get(`event-${field}-90`).onChange(value))
+  await act(async () => root.render(React.createElement(Host)))
+  assert.equal(document.querySelectorAll('[aria-invalid=true]').length, 0)
+  await change('start', '01:30'); await change('end', '00:00')
+  assert.match(controls.get('event-end-90').error, /posterior ao horário de início/)
+  assert.match(document.querySelector('[role=alert]').textContent, /posterior/)
+  await change('end', '02:00')
+  assert.equal(controls.get('event-end-90').error, undefined)
+  await change('date', '2020-01-01')
+  assert.match(controls.get('event-date-90').error, /anterior ao dia atual/)
+  await change('date', '2099-11-05'); await change('start', '10:00'); await change('end', '09:00')
+  assert.equal(controls.get('event-date-90').error, undefined)
+  assert.match(document.querySelector('[role=alert]').textContent, /posterior/)
+  await change('start', '08:00')
+  assert.equal(document.querySelector('[role=alert]'), null)
+  await change('end-date', '2099-11-04')
+  assert.match(controls.get('event-end-date-90').error, /igual ou posterior/)
+  await change('end-date', '2099-11-06')
+  await act(async () => controls.get('event-end-date-90').onValidityChange(false))
+  await click('Continuar'); assert.equal(advances, 0)
+  assert.equal(document.activeElement.id, 'event-end-date-90')
+  await act(async () => controls.get('event-end-date-90').onValidityChange(true))
+  await click('Continuar'); assert.equal(advances, 1)
+}))
+
+test('criação limita grupos manuais e aleatórios ao total de participantes, inclusive chamadas diretas', async () => withDom(async root => {
+  const env = environment()
+  const { useEventCreationFlow } = env.load('src/hooks/useEventCreationFlow.ts')
+  let flow
+  function Host() {
+    const current = useEventCreationFlow({ initialValue: { ...value, selectedIds: ['11', '12'] }, managerId: '7', mode: 'create', onSubmit: async () => {} })
+    React.useLayoutEffect(() => { flow = current }, [current])
+    return null
+  }
+  await act(async () => root.render(React.createElement(Host)))
+  assert.deepEqual(flow.distributionCounts, [1, 2])
+  await act(async () => flow.addGroup()); assert.equal(flow.groups.length, 2)
+  await act(async () => flow.addGroup()); assert.equal(flow.groups.length, 2)
+  await act(async () => flow.distributeRandomly(5)); assert.equal(flow.groups.length, 2)
+  await act(async () => flow.distributeRandomly(2))
+  assert.equal(new Set(Object.values(flow.assignments)).size, 2)
+  await act(async () => flow.updateSelection(['11']))
+  assert.deepEqual(flow.distributionCounts, [1])
+  await act(async () => flow.distributeRandomly(1))
+  assert.equal(flow.groups.length, 1); assert.deepEqual(Object.keys(flow.assignments), ['11'])
 }))
 
 test('criação percorre as etapas, aguarda a API, preserva formulário no erro e impede envio duplicado', async () => withDom(async root => {
@@ -749,7 +817,7 @@ test('evento em andamento remove as ações de editar e inativar sem enviar alte
 }))
 
 
-test('calendário destaca hoje antes dos eventos no mês, na semana e no ano sem consumir vaga de evento', async () => withDom(async root => {
+test('calendário destaca o número de hoje sem criar um evento extra nas visões mensal e anual', async () => withDom(async root => {
   const Calendar = environment().load('src/components/eventCalendar/index.tsx').default
   const now = new Date()
   const iso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
@@ -760,14 +828,15 @@ test('calendário destaca hoje antes dos eventos no mês, na semana e no ano sem
     assert.equal(document.querySelectorAll('[aria-current="date"]').length, 1, view)
     if (view === 'month') {
       const day = document.querySelector('.event-calendar-day--today')
-      const marker = day.querySelector('.event-calendar-item--today')
+      const marker = day.querySelector('.event-calendar-day-number')
       assert.equal(marker.tagName, 'SPAN')
-      assert.equal(marker.textContent, 'Dia atual')
+      assert.equal(marker.textContent, String(now.getDate()))
       assert.equal(marker.hasAttribute('aria-haspopup'), false)
-      assert.equal(marker.closest('.event-calendar-day-events').firstElementChild, marker)
+      assert.equal(day.querySelector('.event-calendar-item--today'), null)
+      assert.equal(day.querySelector('.event-calendar-day-events').firstElementChild.textContent, 'Evento 1')
       assert.equal(day.querySelectorAll('.event-calendar-day-events button').length, 4)
     } else if (view === 'week') {
-      assert.ok(document.querySelector('thead [aria-current="date"]').textContent.includes('Hoje'))
+      assert.ok(document.querySelector('thead [aria-current="date"]').textContent.includes('Dia atual'))
       assert.equal(document.querySelectorAll('.event-week-cell--today').length, 24)
     } else {
       const day = document.querySelector('.event-year-day--today')

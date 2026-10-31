@@ -6,7 +6,7 @@ import AstroChatMessages from '../astroChatMessages'
 import AstroChatSessions from '../astroChatSessions'
 import AstroChatTransition from '../astroChatTransition'
 function AstroChatView() {
-  const { chat, setChat, sessionList, setSessionList, authState, historyVisible, historySessions, viewKey, navigate, position, launcherPosition, dragging, closing, launcherRef, inputRef, messagesRef, windowRef, loadMoreSessions, retrySessions, closeChat, startDrag, moveDrag, endDrag, moveWithKeyboard, startLauncherDrag, moveLauncherDrag, endLauncherDrag, moveLauncherWithKeyboard, openChat, toggleExpanded, sendMessage, selectSession, closeSession, createDraftSession, startNewSession, chatSize, expandedChatSize, visibleMessages, suggestions } = useAstroChatController()
+  const { chat, setChat, sessionList, setSessionList, authState, historyVisible, historySessions, viewKey, navigate, position, launcherPosition, dragging, closing, launcherRef, inputRef, messagesRef, windowRef, loadMoreSessions, retrySessions, closeChat, startDrag, moveDrag, endDrag, moveWithKeyboard, startLauncherDrag, moveLauncherDrag, endLauncherDrag, moveLauncherWithKeyboard, openChat, toggleExpanded, sendMessage, selectSession, createDraftSession, startNewSession, chatSize, expandedChatSize, visibleMessages, suggestions } = useAstroChatController()
   return (
     <div className="astro-chat">
       {chat.open ? (
@@ -44,18 +44,6 @@ function AstroChatView() {
                 <span aria-hidden="true" className="astro-chat-history-icon"><span /><span /><span /></span>
               )}
             </button>
-            {!historyVisible && chat.sessionId && (chat.sessionStatus === 'ativa' || chat.sessionStatus === 'encerrando') && (
-              <button data-track-action={BUTTONS.comuns.encerrar_conversa}
-                aria-label={chat.sessionStatus === 'encerrando' ? 'Finalizar conversa' : 'Encerrar conversa'}
-                className="astro-chat-header-button astro-chat-end-session"
-                disabled={chat.busy !== 'idle'}
-                onClick={closeSession}
-                title={chat.sessionStatus === 'encerrando' ? 'Finalizar conversa' : 'Encerrar conversa'}
-                type="button"
-              >
-                <img alt="" aria-hidden="true" height="24" src={iconAsset('endSession.svg')} width="24" />
-              </button>
-            )}
             <button data-track-action={chat.expanded ? BUTTONS.comuns.recolher_chat : BUTTONS.comuns.ampliar_chat}
               aria-label={chat.expanded ? 'Recolher chat' : 'Ampliar chat'}
               className="astro-chat-header-button astro-chat-header-button--resize"
@@ -109,7 +97,7 @@ function AstroChatView() {
             {!historyVisible && <AstroChatTransition contentKey={chat.error ? `error-${chat.error}` : chat.busy}>
               {chat.error ? <p className="astro-chat-error" role="alert">{chat.error}</p>
                 : chat.busy === 'loading-history' ? <AstroChatLoading className="astro-chat-loading" label="Carregando conversa…" />
-                  : chat.busy === 'ending' ? <AstroChatLoading className="astro-chat-loading" label="Encerrando conversa…" /> : null}
+                  : null}
             </AstroChatTransition>}
           </div>
 
