@@ -1,8 +1,9 @@
+import { dashboardRequest, DashboardApiError } from './dashboards'
 import { firebaseAuth } from './firebase'
 import { analyticsCatalog, validAnalyticsFilters } from '../data/dashboardCatalog'
 import { isExplorerQuery } from '../data/explorer'
 import { isDashboardArtwork } from '../data/dashboardArtwork'
-import { decodeDashboardCardTitle, encodeDashboardCardTitle } from '../utils/cardTitleMetadata'
+import { decodeDashboardCardTitle } from '../utils/cardTitleMetadata'
 import type { AnalyticsIdentity, AnalyticsWidget, DashboardDraft, ExplorerQuery, SavedDashboard } from '../types/dashboard'
 
 const prefix = 'astro:dashboard-views:v1:'
@@ -57,43 +58,48 @@ function read(key: string): SavedDashboard[] {
     return items.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
   } catch { throw new Error('As visões salvas neste navegador estão em um formato inválido. Os dados existentes foram preservados.') }
 }
-function write(key: string, items: SavedDashboard[]) {
-  const serialized = JSON.stringify({ schemaVersion: 1, items: items.map(item => ({ ...item, name: encodeDashboardCardTitle(item.name, item.config.artwork ?? (item.name === 'Eventos' ? 'trends' : 'overview')) })) })
-  if (serialized.length > maxSize) throw new Error('As visões atingiram o limite de armazenamento. Remova gráficos ou visões que não utiliza.')
-  try { localStorage.setItem(key, serialized) } catch { throw new Error('Não foi possível salvar neste navegador. Confira o espaço disponível e a permissão para armazenar dados do site.') }
+const changed = 'astro:dashboard-configurations-changed'
+function notify() { window.dispatchEvent(new Event(changed)) }
+function validateScope(identity: AnalyticsIdentity, signal?: AbortSignal) { return scopeKey(identity, signal) }
+async function loadRemote(signal?: AbortSignal): Promise<SavedDashboard[]> {
+  const result = await dashboardRequest('/api/views', {}, signal) as { items: unknown[] }
+  if (!result || !Array.isArray(result.items)) throw new Error('Não foi possível ler as visões salvas.')
+  return result.items.map(cleanSaved)
 }
-async function change<T>(identity: AnalyticsIdentity, signal: AbortSignal | undefined, action: (items: SavedDashboard[]) => { items: SavedDashboard[]; result: T }): Promise<T> {
-  const key = scopeKey(identity, signal)
-  function apply() {
-    if (scopeKey(identity, signal) !== key) throw new Error('A sessão mudou. Reabra a visão antes de salvar.')
-    const next = action(read(key))
-    write(key, next.items)
-    return next.result
+export async function loadSavedDashboards(identity: AnalyticsIdentity, signal?: AbortSignal): Promise<SavedDashboard[]> {
+  const key = validateScope(identity, signal)
+  const remote = await loadRemote(signal)
+  const local = localStorage.getItem(`${key}:migrado`) === '1' ? [] : read(key)
+  for (const item of local) {
+    if (remote.some(row => row.id === item.id)) continue
+    if (validateScope(identity, signal) !== key) throw new Error('A sessão mudou. Reabra a página.')
+    try {
+      await dashboardRequest(`/api/views/${item.id}`, { method: 'PUT', body: JSON.stringify({ ...cleanDraft(item), version: 0 }) }, signal)
+    } catch (error) {
+      if (!(error instanceof DashboardApiError) || error.status !== 409) throw error
+    }
   }
-  return navigator.locks ? navigator.locks.request(key, { ...(signal ? { signal } : {}) }, apply) : apply()
+  if (validateScope(identity, signal) !== key) throw new Error('A sessão mudou. Reabra a página.')
+  if (!local.length) return remote
+  const imported = await loadRemote(signal)
+  if (validateScope(identity, signal) !== key) throw new Error('A sessão mudou. Reabra a página.')
+  localStorage.setItem(`${key}:migrado`, '1')
+  return imported
 }
-export async function loadSavedDashboards(identity: AnalyticsIdentity, signal?: AbortSignal): Promise<SavedDashboard[]> { return read(scopeKey(identity, signal)) }
 export async function saveDashboard(draft: DashboardDraft, existing: SavedDashboard | null, identity: AnalyticsIdentity, signal?: AbortSignal): Promise<SavedDashboard> {
-  const clean = cleanDraft(draft)
-  return change(identity, signal, items => {
-    const previous = existing ? items.find(item => item.id === existing.id) : undefined
-    if (existing && (!previous || previous.version !== existing.version)) throw new Error('Esta visão foi alterada ou excluída em outra aba. Reabra a página antes de salvar.')
-    if (!existing && items.length >= maxViews) throw new Error('Você já tem 200 visões neste navegador. Exclua uma antes de criar outra.')
-    const now = new Date().toISOString()
-    const result: SavedDashboard = { ...clean, id: previous?.id || crypto.randomUUID(), version: (previous?.version || 0) + 1, createdAt: previous?.createdAt || now, updatedAt: now }
-    return { items: [result, ...items.filter(item => item.id !== result.id)], result }
-  })
+  validateScope(identity, signal)
+  const input = cleanDraft(draft)
+  const result = cleanSaved(await dashboardRequest(`/api/views/${existing?.id ?? crypto.randomUUID()}`, { method: 'PUT', body: JSON.stringify({ ...input, version: existing?.version ?? 0 }) }, signal))
+  notify()
+  return result
 }
 export async function removeDashboard(item: SavedDashboard, identity: AnalyticsIdentity, signal?: AbortSignal): Promise<void> {
-  return change(identity, signal, items => {
-    const previous = items.find(saved => saved.id === item.id)
-    if (!previous || previous.version !== item.version) throw new Error('Esta visão foi alterada ou excluída em outra aba. Reabra a página antes de excluir.')
-    return { items: items.filter(saved => saved.id !== item.id), result: undefined }
-  })
+  validateScope(identity, signal)
+  await dashboardRequest(`/api/views/${item.id}?version=${item.version}`, { method: 'DELETE' }, signal)
+  notify()
 }
-export function subscribeSavedDashboards(identity: AnalyticsIdentity, onChange: () => void) {
-  const key = scopeKey(identity)
-  const listener = (event: StorageEvent) => { if ((event.key === key || event.key === null) && event.storageArea === localStorage) onChange() }
-  window.addEventListener('storage', listener)
-  return () => window.removeEventListener('storage', listener)
+export function subscribeSavedDashboards(_identity: AnalyticsIdentity, onChange: () => void) {
+  window.addEventListener(changed, onChange)
+  window.addEventListener('focus', onChange)
+  return () => { window.removeEventListener(changed, onChange); window.removeEventListener('focus', onChange) }
 }
