@@ -14,7 +14,7 @@ A tela `/mainDashboardsScreen` usa a sessão Firebase existente e confirma o usu
 - IDs, datas e textos oferecem contagem. Soma, média, menor e maior valor aparecem nos campos numéricos compatíveis, incluindo medidas derivadas como **Dias até a validação**. O catálogo informa quando o campo é calculado e qual data recebe o filtro do período.
 - A prévia consulta dados reais ao clicar em **Gerar prévia**; alterar a configuração oculta a prévia anterior. **Atualizar prévia** consulta a fonte sem usar o cache anterior.
 - Arraste pelo controle de cada gráfico ou use as setas para mudar a ordem.
-- **Salvar visão** guarda nome, filtros, layout e receitas de cálculo no `localStorage` deste navegador, separados por conta e workspace. Cada visão salva aparece como uma aba com seu próprio nome; o seletor “Minhas visões” foi removido.
+- **Salvar visão** guarda nome, filtros, layout e receitas de cálculo no Mongo pela API de dashboards, separados por conta e workspace. Cada visão salva aparece como uma aba com seu próprio nome; o seletor “Minhas visões” foi removido.
 - A tela tem somente **Voltar para a Home** como navegação externa, sem sidebar nem aviso de workspace.
 - Em gráficos de linhas e barras, passe o mouse ou toque no gráfico: data/categoria e quantidades aparecem em uma dica flutuante junto ao ponto. As setas esquerda/direita consultam os pontos quando o gráfico está focado.
 - Em gráficos estreitos, as datas do eixo usam ano abreviado para evitar sobreposição; a dica mantém a data completa.
@@ -32,7 +32,7 @@ O frontend não envia IDs para escolher outro workspace. Abrir uma visão consul
 
 A API pode reutilizar resultados por até **90 segundos**, com cache separado por usuário, workspace, acesso atual e consulta. A autorização continua sendo verificada em cada chamada. A data da consulta original é preservada e a tela indica quando recebeu dados em cache. **Atualizar dados** ignora o cache e busca a fonte novamente.
 
-O cache fica na memória do Worker e pode ser perdido em reinícios ou entre instâncias; acelera hits, sem garantir que toda abertura será instantânea. Somente as configurações das visões são persistidas em localStorage; resultados analíticos, credenciais e tokens não são gravados pelo serviço de dashboards.
+O cache fica na memória do Worker e pode ser perdido em reinícios ou entre instâncias; acelera hits, sem garantir que toda abertura será instantânea. Somente as configurações das visões são persistidas no Mongo; resultados analíticos, credenciais e tokens não são gravados pelo serviço de dashboards.
 
 ## Desenvolvimento
 
@@ -49,7 +49,7 @@ O `.env` do frontend contém apenas configuração pública. Credenciais Databri
 
 ## Publicação posterior
 
-A API precisa publicar as rotas `/api/dashboard-catalog`, `/api/explorer/catalog` e `/api/explorer/query` e permitir a origem exata do web em `CORS_ALLOWED_ORIGINS`. O CORS também permite `X-Dashboard-Refresh`. Não há rotas de persistência de visões nem migração para configurações de dashboards. Em produção o frontend usa diretamente `VITE_DASHBOARD_API_URL`, sem o proxy Vite.
+A API precisa publicar as rotas `/api/dashboard-catalog`, `/api/explorer/catalog` e `/api/explorer/query` e permitir a origem exata do web em `CORS_ALLOWED_ORIGINS`. O CORS também permite `X-Dashboard-Refresh`. As rotas /api/views persistem as configurações e o web importa as visões locais antigas. Em produção o frontend usa diretamente `VITE_DASHBOARD_API_URL`, sem o proxy Vite.
 
 Os indicadores prontos estão em `src/data/dashboardCatalog.ts`. As bases e os campos do editor de cálculos vêm de `/api/explorer/catalog`, definidos e autorizados no servidor. O frontend configura o cálculo; a API monta a consulta com operações e parâmetros permitidos. O editor não aceita SQL livre, joins arbitrários nem fórmulas entre bases diferentes.
 
@@ -60,3 +60,7 @@ Esta é uma extensão da tela existente. A referência visual continua em `style
 `styles/analytics.css` e os gráficos usam a paleta solicitada: `#641A91`, `#8A63B1`, `#C4A8E0`, `#4D327A`, `#72529E`, `#B68CCC`, `#D4C0E8`, com neutros para texto e fundos. Abas, filtros, indicadores, editor inline com prévia SVG, controles de exploração e estados de carregamento/erro são componentes locais. As variáveis `--analytics-*` e o destaque `--astro-orb-accent` são definidos no escopo da tela; não alteram o tema das demais rotas.
 
 O código existente já combina tokens com cores e medidas locais. A nova tela também mantém valores locais para superfícies secundárias, bordas, estados e cartões; esta documentação não representa uma auditoria visual de todo o produto.
+
+## Configuração persistida pela API
+
+As visões passam a ser lidas e salvas em GET /api/views, PUT /api/views/{id} e DELETE /api/views/{id}?version=N na astro-dashboard-api. O Mongo usa configuracoes_paineis e campos em português; estilo fica separado do nome. A configuração continua pessoal por usuário e workspace. Version zero cria e a versão atual edita/exclui; 409 exige recarregar. O navegador importa os registros antigos uma vez, conserva uma cópia e deixa de gravar marcadores no nome. A API precisa dos secrets MONGODB_URI e MONGODB_DATABASE antes da publicação do web. Resultados analíticos continuam no Databricks.

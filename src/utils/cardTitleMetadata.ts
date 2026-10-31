@@ -1,5 +1,4 @@
-import { dashboardArtworks, isDashboardArtwork } from '../data/dashboardArtwork'
-import type { DashboardArtworkId } from '../types/dashboard'
+import { dashboardArtworks } from '../data/dashboardArtwork'
 
 const suffix = /\s*\[ac(\d+):([fd]):([^\]\r\n]{0,80})\]\s*$/
 function splitTitle(value: string) {
@@ -13,8 +12,4 @@ export function decodeDashboardCardTitle(value: string) {
   const match = parts.code?.match(/^\d$/)
   const artwork = parts.version === '1' && parts.kind === 'd' && match ? dashboardArtworks[Number(parts.code)]?.id : undefined
   return { name: parts.title, artwork, marked: parts.marked }
-}
-export function encodeDashboardCardTitle(name: string, artwork: DashboardArtworkId): string {
-  if (!isDashboardArtwork(artwork)) throw new Error('Escolha uma ilustração válida.')
-  return `${splitTitle(name).title} [ac1:d:${dashboardArtworks.findIndex(option => option.id === artwork)}]`
 }
