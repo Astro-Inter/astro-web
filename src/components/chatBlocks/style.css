@@ -22,3 +22,11 @@
 html[data-astro-contrast='true'] .chat-data-card { color: var(--astro-text); background: var(--a11y-surface); border-color: var(--astro-input-focus-border); }
 html[data-astro-contrast='true'] .chat-data-card small { color: var(--a11y-muted); }
 html[data-astro-contrast='true'] .chat-gallery-person span { color: var(--astro-text); background: var(--a11y-field); }
+
+.chat-user-card-body { display: flex; flex-wrap: wrap; align-items: start; gap: 1rem; }
+.chat-user-card dl { flex: 1; min-width: 0; margin: 0; }
+.chat-user-card dl > div { display: flex; flex-wrap: wrap; gap: .4rem; padding: .4rem 0; border-bottom: 1px solid currentColor; }
+.chat-user-card dt { font-weight: 600; }
+.chat-user-card dd { margin: 0; overflow-wrap: anywhere; }
+.chat-user-compliance { display: grid; gap: .5rem; margin-top: 1rem; }
+.chat-user-compliance meter { width: 100%; height: 1rem; }

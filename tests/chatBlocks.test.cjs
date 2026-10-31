@@ -32,3 +32,17 @@ test('galeria usa iniciais e não carrega URLs externas não confiáveis', () =>
   const html = renderToStaticMarkup(React.createElement(ChatBlocks, { blocks, fallback: 'alternativa' }))
   assert.match(html, /AL/); assert.doesNotMatch(html, /evil.example/)
 })
+const tableWithPhoto = { tipo: 'tabela', versao: 1, titulo: 'Pessoas', colunas: [{ chave: 'foto', titulo: 'Foto' }, { chave: 'nome', titulo: 'Nome' }], linhas: [{ foto: { tipo: 'imagem', descricao: 'Foto de Ana Lima', url: 'https://evil.example/foto' }, nome: 'Ana Lima' }], pagina: 1, total_paginas: 1, total: 1 }
+test('foto identificada na linha é exibida com alternativa segura', () => {
+  const html = renderToStaticMarkup(React.createElement(ChatBlocks, { blocks: [tableWithPhoto], fallback: 'alternativa' }))
+  assert.match(html, /Ana Lima/); assert.match(html, /AL/); assert.doesNotMatch(html, /evil.example/)
+  assert.equal(parseBlocks([{ ...tableWithPhoto, linhas: [{ foto: { tipo: 'script', url: null, descricao: 'x' }, nome: 'Ana' }] }]), null)
+})
+const userCard = { tipo: 'ficha_usuario', versao: 1, titulo: 'Ficha do usuário', nome: 'Ana Lima', email: 'ana@example.com', cargo: 'Técnica', unidade: 'Matriz', perfil: null, situacao: null, foto: { tipo: 'imagem', descricao: 'Foto de Ana Lima', url: null }, conformidade: { percentual: 50, vigentes: 1, total: 2, data_referencia: '2026-10-30', criterio: 'NRs vigentes / NRs aplicáveis retornadas' } }
+test('ficha mostra campos e conformidade cadastral sem inventar dados', () => {
+  const html = renderToStaticMarkup(React.createElement(ChatBlocks, { blocks: [userCard], fallback: 'alternativa' }))
+  assert.match(html, /Ana Lima/); assert.match(html, /50%/); assert.match(html, /1 de 2/)
+  assert.equal(parseBlocks([{ ...userCard, conformidade: { ...userCard.conformidade, percentual: 100 } }]), null)
+  const empty = { ...userCard, conformidade: { ...userCard.conformidade, percentual: null, total: 0, vigentes: 0 } }
+  assert.match(renderToStaticMarkup(React.createElement(ChatBlocks, { blocks: [empty], fallback: 'alternativa' })), /Sem NRs aplicáveis/)
+})

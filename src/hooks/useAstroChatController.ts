@@ -499,6 +499,13 @@ export function useAstroChatController() {
       if (chat.sessionId && chat.sessionStatus === 'encerrada') await startChatSession(chat.sessionId, controller.signal)
       const response = await sendChatMessage(trimmed, chat.sessionId, controller.signal)
       if (controller.signal.aborted) return
+      const blockText = Array.isArray(response.blocos)
+        ? response.blocos.flatMap((block: unknown) => {
+            if (typeof block !== 'object' || block === null || !('tipo' in block) || !('conteudo' in block)) return []
+            return block.tipo === 'texto' && typeof block.conteudo === 'string' ? [block.conteudo] : []
+          }).join('\n\n')
+        : ''
+      const answer = response.resposta || blockText || 'Não foi possível exibir esta resposta.'
       const now = new Date().toISOString()
       setOptimisticSessions((current) => {
         const previous = current.find((session) => session.session_id === chat.draftSessionId || session.session_id === response.session_id)
@@ -506,7 +513,7 @@ export function useAstroChatController() {
         const saved: ChatSessionSummary = {
           session_id: response.session_id,
           title: chat.draftSessionId || !previous?.title ? trimmed : previous.title,
-          last_message_preview: response.resposta,
+          last_message_preview: answer,
           created_at: previous?.created_at ?? now,
           updated_at: now,
           status: 'ativa',
@@ -525,7 +532,7 @@ export function useAstroChatController() {
         messages: [
           ...current.messages,
           { id: pendingMessageId, author: 'user', text: trimmed },
-          { id: pendingReplyId, author: 'astro', text: response.resposta, blocos: response.blocos },
+          { id: pendingReplyId, author: 'astro', text: answer, blocos: response.blocos },
         ],
       }))
       void loadSessions()
