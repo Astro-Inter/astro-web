@@ -9,7 +9,7 @@ const { JSDOM } = require('jsdom')
 const originalFetch = global.fetch
 afterEach(() => { global.fetch = originalFetch })
 
-function environment() {
+function environment(overrides = {}) {
   const cache = new Map(), navigations = []
   const auth = { currentUser: { getIdToken: async () => 'firebase-token' } }
   let refreshed = 0, reauthenticated = 0
@@ -21,6 +21,7 @@ function environment() {
       .replaceAll('import.meta.env.DEV', 'false').replaceAll('import.meta.env.BASE_URL', "'/'")
     const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
     new Function('require', 'module', 'exports', code)(name => {
+      if (Object.hasOwn(overrides, name)) return overrides[name]
       if (name === './firebase') return { firebaseAuth: auth }
       if (name === '../services/identityConfirmation') return { confirmarIdentidadeDoUsuario: async () => { reauthenticated++ }, isCurrentAuthenticatedUser: () => true }
       if (name === '../toolbarSelect') return { __esModule: true, default: ({ id, value, options, onValueChange }) => React.createElement('select', { id, value, onChange: event => onValueChange(event.target.value) }, options.map(option => React.createElement('option', { key: option.value, value: option.value }, option.label))) }
@@ -140,6 +141,126 @@ async function withDOM(run) {
   const root = require('react-dom/client').createRoot(document.getElementById('root'))
   try { await run(root, environment()) } finally { await act(async () => root.unmount()); Object.assign(global, previous); dom.window.close() }
 }
+
+test('cadastro valida o CNPJ ao continuar, foca o campo e só avança depois de corrigir', async () => withDOM(async (root, env) => {
+  const Form = env.load('src/components/companyInformationForm/index.tsx').default
+  const advances = []
+  await act(async () => root.render(React.createElement(Form, { initialCompany: { name: 'Empresa', cnpj: '23.542.345/3252-34' }, onContinue: value => advances.push(value) })))
+  await act(async () => document.querySelector('button[type="submit"]').click())
+  const input = document.getElementById('company-cnpj')
+  assert.equal(advances.length, 0)
+  assert.equal(document.activeElement, input)
+  assert.equal(input.getAttribute('aria-invalid'), 'true')
+  assert.equal(input.getAttribute('aria-describedby'), 'company-cnpj-error')
+  assert.match(document.querySelector('[role="alert"]').textContent, /CNPJ válido/)
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, '11.222.333/0001-81')
+    input.dispatchEvent(new window.Event('input', { bubbles: true }))
+  })
+  await act(async () => document.querySelector('button[type="submit"]').click())
+  assert.equal(document.querySelector('[role="alert"]'), null)
+  assert.deepEqual(advances, [{ name: 'Empresa', cnpj: '11.222.333/0001-81' }])
+}))
+
+test('endereço bloqueia UF inválida no campo antes de finalizar e libera após corrigir', async () => withDOM(async (root, env) => {
+  global.fetch = async () => Response.json({ uf: 'SP', localidade: 'São Paulo', bairro: 'Centro', logradouro: 'Rua Exemplo' })
+  const Form = env.load('src/components/addressForm/index.tsx').default
+  const { useWorkspaceAddresses } = env.load('src/hooks/useWorkspaceAddresses.ts')
+  const completions = []
+  function Harness() {
+    const addresses = useWorkspaceAddresses([{ ...address, state: 'PG' }])
+    return React.createElement(Form, { addresses, onComplete: units => completions.push(units) })
+  }
+  await act(async () => root.render(React.createElement(Harness)))
+  await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
+  assert.equal(completions.length, 0)
+  const input = document.getElementById('unit-state')
+  assert.equal(input.getAttribute('aria-invalid'), 'true')
+  assert.match(document.getElementById('unit-state-error').textContent, /UF brasileira válida/)
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, 'SP')
+    input.dispatchEvent(new window.Event('input', { bubbles: true }))
+  })
+  await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
+  assert.equal(document.getElementById('unit-state-error'), null)
+  assert.equal(completions.length, 1)
+  assert.equal(completions[0][0].state, 'SP')
+}))
+
+test('finalizar verifica CEP de todas as unidades e mantém erro no campo até corrigir', async () => withDOM(async (root, env) => {
+  const Form = env.load('src/components/addressForm/index.tsx').default
+  const { useWorkspaceAddresses } = env.load('src/hooks/useWorkspaceAddresses.ts')
+  const completions = [], calls = []
+  let addresses
+  global.fetch = async url => {
+    calls.push(url)
+    return Response.json(url.includes('/54532523/') ? { erro: true } : { uf: 'SP', localidade: 'São Paulo', bairro: 'Centro', logradouro: 'Rua Exemplo' })
+  }
+  function Harness() {
+    const currentAddresses = useWorkspaceAddresses([
+      { ...address, cep: '01310-100' },
+      { ...address, id: 13, name: 'Outra unidade', cep: '54532-523' },
+    ])
+    React.useEffect(() => { addresses = currentAddresses }, [currentAddresses])
+    return React.createElement(Form, { addresses: currentAddresses, onComplete: units => completions.push(units) })
+  }
+  await act(async () => root.render(React.createElement(Harness)))
+  const submit = () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
+  await act(async () => submit())
+  assert.equal(completions.length, 0)
+  assert.equal(addresses.activeUnit.id, 13)
+  assert.equal(document.getElementById('unit-cep').getAttribute('aria-invalid'), 'true')
+  assert.match(document.getElementById('unit-cep-error').textContent, /CEP não encontrado/)
+  assert.equal(calls.length, 2)
+  await act(async () => {
+    const input = document.getElementById('unit-cep')
+    Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set.call(input, '01310-100')
+    input.dispatchEvent(new window.Event('input', { bubbles: true }))
+  })
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 400)) })
+  await act(async () => submit())
+  assert.equal(document.getElementById('unit-cep-error'), null)
+  assert.equal(completions.length, 1)
+  assert.equal(calls.length, 4, 'CEPs iguais são consultados só uma vez na finalização')
+}))
+
+test('falha na consulta de CEP bloqueia avanço, encerra loading e permite tentar novamente', async () => withDOM(async (root, env) => {
+  let validation, release
+  function Harness() { validation = env.load('src/hooks/useRegistrationPostalValidation.ts').useRegistrationPostalValidation(); return null }
+  await act(async () => root.render(React.createElement(Harness)))
+  global.fetch = () => new Promise(resolve => { release = () => resolve(new Response('', { status: 503 })) })
+  let pending
+  await act(async () => { pending = validation.validate([address]) })
+  assert.equal(validation.validating, true)
+  assert.equal(await validation.validate([address]), null, 'não duplica consultas em andamento')
+  await act(async () => release())
+  const errors = await pending
+  assert.match(errors[address.id], /Não foi possível validar o CEP/)
+  assert.equal(validation.validating, false)
+  global.fetch = async () => Response.json({ uf: 'SP', localidade: 'São Paulo' })
+  await act(async () => assert.deepEqual(await validation.validate([address]), {}))
+}))
+
+test('falha do cadastro apresenta linha, campo e motivo com orientação para reenviar o Excel', async () => withDOM(async root => {
+  const paths = []
+  const env = environment({
+    'react-router-dom': { useNavigate: () => path => paths.push(path), Navigate: () => null },
+    '../../hooks/useWorkspaceRegistration': { useWorkspaceRegistration: () => ({
+      draft: { email: 'gestor@empresa.com', password: 'Senha123', company: { name: 'Empresa' }, file: {}, units: [{}] },
+      verifiedEmail: 'gestor@empresa.com', status: 'error', error: 'A planilha contém linhas inválidas', failureStatus: 422,
+      importErrors: [{ row: 2, field: 'cpf', message: 'CPF já cadastrado' }, { row: 4, field: 'email', message: 'E-mail repetido na planilha' }],
+      submit: () => {}, result: null,
+    }) },
+  })
+  const Page = env.load('src/pages/registerWorkspaceLoading/index.tsx').default
+  await act(async () => root.render(React.createElement(Page)))
+  const rows = [...document.querySelectorAll('ul[role=alert] li')].map(item => item.textContent)
+  assert.match(rows[0], /Linha 2 · CPF:.*CPF já cadastrado/)
+  assert.match(rows[1], /Linha 4 · E-mail:.*E-mail repetido na planilha/)
+  assert.match(document.body.textContent, /Corrija esses campos no Excel.*anexar o arquivo corrigido/)
+  await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Planilha').click())
+  assert.deepEqual(paths, ['/attachExcelFile'])
+}))
 
 test('empresa carrega dados reais, preserva formulário após erro e navega só após salvar', async () => withDOM(async (root, env) => {
   let writes = 0
@@ -426,4 +547,67 @@ test('dialog não reabre enquanto a navegação mantém a tela anterior montada 
   await act(async () => render(true))
   assert.equal(document.querySelector('dialog').open, true)
   assert.equal(opened, 2)
+}))
+
+test('selecionar Excel valida imediatamente com loading, bloqueia erro e só navega no Continuar', async () => withDOM(async root => {
+  let draft = { company: { name: 'Empresa' }, units: [], email: 'gestor@empresa.com', file: null }
+  const navigations = [], notices = []
+  let registeredEmails = []
+  const env = environment({
+    'react-router-dom': { useNavigate: () => path => navigations.push(path), useSearchParams: () => [new URLSearchParams()], Navigate: () => null },
+    '../../hooks/useWorkspaceRegistration': { useWorkspaceRegistration: () => ({ draft, updateDraft: changes => { draft = { ...draft, ...changes } } }) },
+    '../../hooks/useActionFeedback': { useActionFeedback: () => (...args) => notices.push(args) },
+    '../services/registrationValidation': { validateRegistrationEmails: async () => registeredEmails },
+    '../workspaceSpreadsheetSettings': { __esModule: true, default: () => null },
+    '../spreadsheetExplanationModal': { __esModule: true, default: () => null },
+    '../../components/loginLoadingOverlay': { __esModule: true, default: () => React.createElement('div', { role: 'status' }, 'Carregando') },
+  })
+  const Page = env.load('src/pages/attachExcelFile/index.tsx').default
+  await act(async () => root.render(React.createElement(Page)))
+  const { utils, write } = require('xlsx')
+  function makeFile(cpf) {
+    const book = utils.book_new()
+    utils.book_append_sheet(book, utils.aoa_to_sheet([
+      ['nome', 'cpf', 'email', 'unidade', 'cargo', 'modalidade'],
+      ['Gestor', '', draft.email, 'Matriz', 'Diretor', ''],
+      ['Pessoa', cpf, 'pessoa@empresa.com', 'Matriz', 'Analista', 'Remoto'],
+    ]), 'Equipe')
+    return new File([write(book, { type: 'array', bookType: 'xlsx' })], 'equipe.xlsx')
+  }
+  async function select(file) {
+    const input = document.querySelector('input[type=file]')
+    Object.defineProperty(input, 'files', { configurable: true, value: [file] })
+    await act(async () => input.dispatchEvent(new window.Event('change', { bubbles: true })))
+  }
+  await select(makeFile('11111111111'))
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 40)) })
+  assert.match(document.querySelector('[role=alert]').textContent, /Linha 3: informe um CPF válido/)
+  assert.deepEqual(navigations, [])
+  assert.deepEqual(notices, [])
+  registeredEmails = [{ row: 3, field: 'email', message: 'E-mail já cadastrado. Use outro e-mail para esta pessoa.' }]
+  await select(makeFile('52998224725'))
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 40)) })
+  assert.match(document.querySelector('[role=alert]').textContent, /Linha 3 · E-mail: E-mail já cadastrado/)
+  assert.deepEqual(navigations, [])
+  await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 40)) })
+  assert.deepEqual(navigations, [], 'Continuar não avança enquanto existe e-mail já cadastrado')
+  assert.deepEqual(notices, [])
+  registeredEmails = []
+  const validFile = makeFile('52998224725')
+  const realRead = validFile.arrayBuffer.bind(validFile)
+  let release, reads = 0
+  validFile.arrayBuffer = () => { reads++; return new Promise(resolve => { release = async () => resolve(await realRead()) }) }
+  await select(validFile)
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 20)) })
+  assert.match(document.querySelector('[role=status]').textContent, /Carregando/)
+  assert.equal(document.querySelector('button[type=submit]').disabled, true)
+  assert.equal(document.querySelector('[role=alert]'), null)
+  await act(async () => release())
+  assert.equal(document.querySelector('[role=status]'), null)
+  assert.deepEqual(notices, [['Planilha validada com sucesso.', 'success']])
+  assert.deepEqual(navigations, [])
+  await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
+  assert.deepEqual(navigations, ['/setAddress'])
+  assert.equal(reads, 1, 'Continuar reutiliza a validação do mesmo arquivo')
 }))

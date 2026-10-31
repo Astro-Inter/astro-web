@@ -9,6 +9,7 @@ import EventCollaboratorAvatar from '../eventCollaboratorAvatar'
 import EventCheckbox from '../eventCheckbox'
 import PurpleButton from '../purpleButton'
 import ToolbarSelect from '../toolbarSelect'
+import ToolbarSearch from '../toolbarSearch'
 import DataTableSkeleton from '../dataTableSkeleton'
 import ApiContentSkeleton from '../apiContentSkeleton'
 
@@ -43,22 +44,20 @@ function EventParticipantsModal({ nr, collaborators: people, loading: requestedL
   const [attempted, setAttempted] = useState(false)
   const selectionRef = useRef<HTMLDivElement>(null)
   const errorId = useId()
-  const [filters, setFilters] = useState({ selected: '', unit: '', position: '', modality: '' })
+  const [filters, setFilters] = useState({ search: '', unit: '', position: '', modality: '' })
   const collaborators = useMemo(() => people.filter(person =>
-    (!filters.selected || selectedIds.includes(person.id) === (filters.selected === 'selected'))
+    (!filters.search || `${person.name} ${person.email}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').includes(filters.search.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR')))
     && (!filters.unit || person.unit === filters.unit)
     && (!filters.position || person.position === filters.position)
     && (!filters.modality || person.modality === filters.modality),
-  ), [filters, selectedIds, people])
+  ), [filters, people])
   const visibleIds = collaborators.filter(person => !lockedParticipantIds.includes(person.id)).map(person => person.id)
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every(id => selectedIds.includes(id))
   const selectedCount = people.filter(person => selectedIds.includes(person.id)).length
   const selectionError = attempted && !blocked ? validateEventParticipants(selectedIds, people.map(person => person.id)) : undefined
   const emptyMessage = people.length === 0
     ? nr ? `Nenhum colaborador elegível para a NR ${nr}. Confira se essa NR está associada aos cargos dos colaboradores.` : 'Nenhum colaborador elegível disponível neste workspace.'
-    : filters.selected === 'selected' && selectedCount === 0
-      ? 'Nenhum colaborador selecionado. Altere o filtro de seleção para escolher os participantes.'
-      : 'Nenhum colaborador corresponde aos filtros aplicados.'
+    : 'Nenhum colaborador corresponde aos filtros aplicados.'
 
   function toggleSelection(person: EventCollaborator) {
     if (blocked || selectionLocked || lockedParticipantIds.includes(person.id)) return
@@ -78,7 +77,7 @@ function EventParticipantsModal({ nr, collaborators: people, loading: requestedL
     <p className="event-create-description">Selecione os colaboradores que participarão do evento{nr ? ` da NR ${nr}` : ''}.{lockedParticipantIds.length > 0 ? ' Participantes de turmas que já começaram estão bloqueados.' : ''}</p>
     {loading && <ApiContentSkeleton className={`event-participants-filters-skeleton${presence.exiting ? ' event-loading-exit' : ''}`} label="Carregando filtros dos participantes..." fields={4} actions={0} />}
     <div hidden={loading} className="event-create-filters event-loading-ready">
-      <div className="event-create-field"><label htmlFor="event-create-selected" id="event-create-selected-label">Selecionado</label><ToolbarSelect trackingAction={BUTTONS.comuns.selecionar_opcao} escapeOverflow disabled={blocked} className="event-create-select" id="event-create-selected" label="Filtrar por seleção" onValueChange={selected => setFilters(current => ({ ...current, selected }))} options={[{ value: '', label: 'Todos', tone: 'muted' }, { value: 'selected', label: 'Selecionados' }, { value: 'unselected', label: 'Não selecionados' }]} searchable={false} value={filters.selected} labelledBy="event-create-selected-label" /></div>
+      <div className="event-create-field"><label htmlFor="event-create-search">Pesquisa</label><ToolbarSearch disabled={blocked} id="event-create-search" label="Pesquisar colaboradores" placeholder="Buscar colaboradores..." onChange={event => setFilters(current => ({ ...current, search: event.target.value }))} onClear={() => setFilters(current => ({ ...current, search: '' }))} value={filters.search} /></div>
       <div className="event-create-field"><label htmlFor="event-create-unit" id="event-create-unit-label">Unidade</label><ToolbarSelect trackingAction={BUTTONS.comuns.unidade} escapeOverflow disabled={blocked} className="event-create-select" id="event-create-unit" label="Filtrar por unidade" onValueChange={unit => setFilters(current => ({ ...current, unit }))} options={selectOptions(people.map(person => person.unit))} searchable={false} value={filters.unit} labelledBy="event-create-unit-label" /></div>
       <div className="event-create-field"><label htmlFor="event-create-position" id="event-create-position-label">Cargo</label><ToolbarSelect trackingAction={BUTTONS.comuns.cargo} escapeOverflow disabled={blocked} className="event-create-select" id="event-create-position" label="Filtrar por cargo" onValueChange={position => setFilters(current => ({ ...current, position }))} options={selectOptions(people.map(person => person.position))} searchable={false} value={filters.position} labelledBy="event-create-position-label" /></div>
       <div className="event-create-field"><label htmlFor="event-create-modality" id="event-create-modality-label">Modalidade</label><ToolbarSelect trackingAction={BUTTONS.comuns.modalidade} escapeOverflow disabled={blocked} className="event-create-select" id="event-create-modality" label="Filtrar por modalidade" onValueChange={modality => setFilters(current => ({ ...current, modality }))} options={selectOptions(people.map(person => person.modality))} searchable={false} value={filters.modality} labelledBy="event-create-modality-label" /></div>

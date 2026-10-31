@@ -80,7 +80,10 @@ function contrast(a, b) {
 test('tokens de texto, campos, erros e botões mantêm contraste AA nos fundos compartilhados', () => {
   const css = fs.readFileSync('styles/global.css', 'utf8')
   const token = name => css.match(new RegExp(`--astro-${name}:\\s*(#[a-f0-9]{6})`, 'i'))[1]
-  for (const foreground of ['text', 'text-muted', 'placeholder', 'primary-error']) {
+  const loginCss = fs.readFileSync('styles/login.css', 'utf8')
+  assert.match(loginCss, /\.login-field-error\s*\{[^}]*\bcolor:\s*var\(--astro-error-text\)/)
+  assert.match(loginCss, /input\[aria-invalid="true"\][^{]*\{\s*border-color:\s*var\(--astro-primary-error\)/)
+  for (const foreground of ['text', 'text-muted', 'placeholder', 'error-text']) {
     for (const background of ['background', 'popup-background', 'field']) {
       assert.ok(contrast(token(foreground), token(background)) >= 4.5, `${foreground} / ${background}`)
     }
@@ -96,8 +99,9 @@ test('tokens de texto, campos, erros e botões mantêm contraste AA nos fundos c
   const outsideDay = calendarCss.match(/\.event-calendar-day--outside \.event-calendar-day-number\s*\{\s*color:\s*(#[a-f0-9]{6})/i)[1]
   assert.ok(contrast(outsideDay, '#211b40') >= 4.5, 'dias fora do mês')
   const optionsCss = fs.readFileSync('styles/optionsPopup.css', 'utf8')
-  assert.match(optionsCss, /\.astro-options-popup-item--danger\s*\{\s*color:\s*var\(--astro-primary-error\)/)
-  assert.ok(contrast('#ffb0b0', token('popup-background')) >= 4.5, 'excluir com foco')
+  assert.match(optionsCss, /\.astro-options-popup-item--danger\s*\{\s*color:\s*var\(--astro-error-text\)/)
+  const dangerFocus = optionsCss.match(/\.astro-options-popup-item--danger:focus-visible\s*\{\s*color:\s*(#[a-f0-9]{6})/i)[1]
+  assert.ok(contrast(dangerFocus, token('popup-background')) >= 4.5, 'excluir com foco')
   const calendarColors = [...calendarCss.matchAll(/\.event-calendar-item--(?:color-\d|today)\s*\{\s*background:\s*(#[a-f0-9]{6})/gi)]
   assert.equal(calendarColors.length, 5)
   for (const [, background] of calendarColors) assert.ok(contrast('#ffffff', background) >= 4.5, `evento ${background}`)

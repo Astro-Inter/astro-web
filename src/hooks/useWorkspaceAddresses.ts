@@ -2,12 +2,14 @@ import { useCallback, useState } from 'react'
 import type { PostalAddress, WorkspaceAddressField, WorkspaceAddressState, WorkspaceUnitAddress } from '../types/address'
 import { usePostalCodeLookup } from './usePostalCodeLookup'
 import { mergePostalAddress } from '../utils/workspaceUnits'
+import { useRegistrationPostalValidation } from './useRegistrationPostalValidation'
 
 function emptyUnit(id: number): WorkspaceUnitAddress {
   return { id, name: '', cep: '', state: '', city: '', neighborhood: '', street: '', number: '', complement: '', source: 'manual' }
 }
 
 export function useWorkspaceAddresses(initialUnits?: WorkspaceUnitAddress[], lockInitialUnits = false) {
+  const postalValidation = useRegistrationPostalValidation()
   const [address, setAddress] = useState<WorkspaceAddressState>({
     units: initialUnits?.length ? initialUnits.map(unit => ({ ...unit, source: unit.source ?? (lockInitialUnits ? 'spreadsheet' : 'manual') })) : initialUnits ? [emptyUnit(1)] : [emptyUnit(1), emptyUnit(2)],
     activeId: initialUnits?.[0]?.id ?? 1,
@@ -78,5 +80,6 @@ export function useWorkspaceAddresses(initialUnits?: WorkspaceUnitAddress[], loc
     setAddress(current => ({ ...current, units: current.units.map(unit => unit.id === localId ? { ...saved, id: localId } : unit) }))
   }
 
-  return { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit, selectUnit, postalCode, applySavedUnit }
+  return { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit, selectUnit, postalCode, applySavedUnit,
+    validatingPostalCodes: postalValidation.validating, validatePostalCodes: postalValidation.validate }
 }

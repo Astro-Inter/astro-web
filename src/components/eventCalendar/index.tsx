@@ -39,7 +39,6 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
   const clock = useEventClock(events, suppliedNow === undefined)
   const now = suppliedNow ?? clock
   const today = useCurrentCalendarDate()
-  const currentDayMarker: CalendarEvent = { id: `calendar-today-${today}`, category: 'today', date: today, title: 'Dia atual' }
   const presence = useExitPresence(true, requestedLoading)
   const loading = presence.present
   const contentLoading = view === 'week' ? requestedLoading : loading
@@ -130,7 +129,7 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
         if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) preserveWeekPosition()
       }}>
         {view === 'week' ? <table aria-hidden={contentLoading || undefined} className="event-week-table">
-          <thead><tr><th scope="col">Horário</th>{days.map((day, index) => <th key={day.date} scope="col" className={day.date === today ? 'event-week-day--today' : undefined} aria-current={day.date === today ? 'date' : undefined}>{weekdays[index]} <span className="event-week-day-number">{day.day}{day.date === today && <small className="event-current-day-label">Hoje</small>}</span></th>)}</tr></thead>
+          <thead><tr><th scope="col">Horário</th>{days.map((day, index) => <th key={day.date} scope="col" className={day.date === today ? 'event-week-day--today' : undefined} aria-current={day.date === today ? 'date' : undefined}><span className="event-week-day-name">{weekdays[index]}</span><span className={`event-week-day-number event-calendar-day-heading${day.date === today ? ' event-calendar-day-heading--today' : ''}`}><span className="event-calendar-day-number">{day.day}</span>{day.date === today && <span className="event-calendar-current-label">Dia atual</span>}</span></th>)}</tr></thead>
           <tbody>{hours.map(hour => <tr key={hour}>
             <th scope="row">{String(hour).padStart(2, '0')}:00</th>
             {days.map((day, dayIndex) => {
@@ -155,7 +154,7 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
               <div className="event-year-days">
                 {weekdays.map((day, dayIndex) => <span className="event-year-weekday" key={dayIndex}>{day.slice(0, 1)}</span>)}
                 {calendarDays(date).map(day => <div className={`event-year-day${day.inCurrentMonth ? '' : ' event-year-day--outside'}${day.inCurrentMonth && day.date === today ? ' event-year-day--today' : ''}`} aria-current={day.inCurrentMonth && day.date === today ? 'date' : undefined} aria-label={day.inCurrentMonth && day.date === today ? `Hoje, ${eventDateLabel(day.date)}` : undefined} key={day.date}>
-                  {loading && day.inCurrentMonth && day.date !== today ? <span className="api-skeleton event-year-skeleton-day" /> : day.inCurrentMonth ? day.day : ''}
+                  <span className="event-year-day-number">{loading && day.inCurrentMonth && day.date !== today ? <span className="api-skeleton event-year-skeleton-day" /> : day.inCurrentMonth ? day.day : ''}</span>
                   {day.inCurrentMonth && <div className="event-year-day-events">{loading ? day.day % 3 === 2 && <span className="api-skeleton event-calendar-skeleton-marker" /> : (eventsByDate.get(day.date) ?? []).slice(0, 3).map(event => eventItem(event, true))}</div>}
                 </div>)}
               </div>
@@ -169,9 +168,8 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
               <tr key={week[0].date}>
                 {week.map(day => (
                   <td className={`${day.inCurrentMonth ? '' : 'event-calendar-day--outside'}${(eventsByDate.get(day.date)?.length ?? 0) > 1 ? ' event-calendar-day--stacked' : ''}${day.date === today ? ' event-calendar-day--today' : ''}`} aria-current={day.date === today ? 'date' : undefined} key={day.date}>
-                    <span className="event-calendar-day-number">{day.day}</span>
-                    <div className="event-calendar-day-events" role={(eventsByDate.get(day.date)?.length ?? 0) + Number(day.date === today) > 3 ? 'region' : undefined} aria-label={(eventsByDate.get(day.date)?.length ?? 0) + Number(day.date === today) > 3 ? `Eventos de ${eventDateLabel(day.date)}` : undefined} tabIndex={(eventsByDate.get(day.date)?.length ?? 0) + Number(day.date === today) > 3 ? 0 : undefined}>
-                      {day.date === today && eventItem(currentDayMarker)}
+                    <div className={`event-calendar-day-heading${day.date === today ? ' event-calendar-day-heading--today' : ''}`}><span className="event-calendar-day-number">{day.day}</span>{day.date === today && <span className="event-calendar-current-label">Dia atual</span>}</div>
+                    <div className="event-calendar-day-events" role={(eventsByDate.get(day.date)?.length ?? 0) > 3 ? 'region' : undefined} aria-label={(eventsByDate.get(day.date)?.length ?? 0) > 3 ? `Eventos de ${eventDateLabel(day.date)}` : undefined} tabIndex={(eventsByDate.get(day.date)?.length ?? 0) > 3 ? 0 : undefined}>
                       {loading ? day.inCurrentMonth && <>
                         <span className={`api-skeleton event-calendar-skeleton-item${presence.exiting ? ' event-loading-exit' : ''}`} />
                         {day.day % 3 === 0 && <span className={`api-skeleton event-calendar-skeleton-item event-calendar-skeleton-item--short${presence.exiting ? ' event-loading-exit' : ''}`} />}

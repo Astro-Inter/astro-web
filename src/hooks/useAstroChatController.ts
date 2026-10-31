@@ -4,7 +4,7 @@ import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerE
 import { useNavigate } from 'react-router-dom'
 import { useAuthentication } from './useAuthentication'
 import { useDragPosition } from './useDragPosition'
-import { ChatApiError, endChatSession, getChatSessionMessages, listChatSessions, sendChatMessage, startChatSession } from '../services/chat'
+import { ChatApiError, getChatSessionMessages, listChatSessions, sendChatMessage, startChatSession } from '../services/chat'
 import type { ChatMessage, ChatSessionStatus, ChatSessionSummary } from '../types/chat'
 interface ChatState {
   open: boolean
@@ -18,7 +18,7 @@ interface ChatState {
   draftSessionId: string | null
   sessionStatus: ChatSessionStatus | null
   openingSessionId: string | null
-  busy: 'idle' | 'sending' | 'loading-history' | 'ending'
+  busy: 'idle' | 'sending' | 'loading-history'
   error: string
 }
 
@@ -497,7 +497,7 @@ export function useAstroChatController() {
 
     const pendingMessageId = crypto.randomUUID()
     const pendingReplyId = crypto.randomUUID()
-    setChat((current) => ({ ...current, busy: 'sending', pendingMessage: trimmed, pendingMessageId, pendingReplyId, error: '' }))
+    setChat((current) => ({ ...current, draft: '', busy: 'sending', pendingMessage: trimmed, pendingMessageId, pendingReplyId, error: '' }))
     try {
       if (chat.sessionId && chat.sessionStatus === 'encerrada') await startChatSession(chat.sessionId, controller.signal)
       const response = await sendChatMessage(trimmed, chat.sessionId, controller.signal)
@@ -535,7 +535,7 @@ export function useAstroChatController() {
       inputRef.current?.focus()
     } catch (error: unknown) {
       if (controller.signal.aborted) return
-      setChat((current) => ({ ...current, busy: 'idle', pendingMessage: '', error: error instanceof Error ? error.message : 'Não foi possível enviar sua mensagem.' }))
+      setChat((current) => ({ ...current, draft: current.draft || text, busy: 'idle', pendingMessage: '', error: error instanceof Error ? error.message : 'Não foi possível enviar sua mensagem.' }))
     } finally {
       if (operationControllerRef.current === controller) operationControllerRef.current = null
     }
@@ -580,24 +580,6 @@ export function useAstroChatController() {
     }
   }
 
-  async function closeSession() {
-    if (!chat.sessionId || chat.busy !== 'idle' || !authState.authenticated || operationControllerRef.current) return
-    const controller = new AbortController()
-    operationControllerRef.current = controller
-    setChat((current) => ({ ...current, busy: 'ending', error: '' }))
-    try {
-      const response = await endChatSession(chat.sessionId, controller.signal)
-      if (controller.signal.aborted) return
-      setChat((current) => ({ ...current, busy: 'idle', sessionStatus: response.status, error: '' }))
-      await loadSessions()
-    } catch (error: unknown) {
-      if (controller.signal.aborted) return
-      setChat((current) => ({ ...current, busy: 'idle', error: error instanceof Error ? error.message : 'Não foi possível encerrar esta conversa.' }))
-    } finally {
-      if (operationControllerRef.current === controller) operationControllerRef.current = null
-    }
-  }
-
   function createDraftSession(resetConversation: boolean) {
     const draftSessionId = `local:${crypto.randomUUID()}`
     const now = new Date().toISOString()
@@ -624,5 +606,5 @@ export function useAstroChatController() {
       { id: chat.pendingReplyId, author: 'astro', text: '' }]
     : chat.messages
 
-  return { chat, setChat, sessionList, setSessionList, authState, historyVisible, historySessions, viewKey, navigate, position, launcherPosition, dragging, closing, launcherRef, inputRef, messagesRef, windowRef, loadMoreSessions, retrySessions, closeChat, startDrag, moveDrag, endDrag, moveWithKeyboard, startLauncherDrag, moveLauncherDrag, endLauncherDrag, moveLauncherWithKeyboard, openChat, toggleExpanded, sendMessage, selectSession, closeSession, createDraftSession, startNewSession, chatSize, expandedChatSize, visibleMessages, suggestions }
+  return { chat, setChat, sessionList, setSessionList, authState, historyVisible, historySessions, viewKey, navigate, position, launcherPosition, dragging, closing, launcherRef, inputRef, messagesRef, windowRef, loadMoreSessions, retrySessions, closeChat, startDrag, moveDrag, endDrag, moveWithKeyboard, startLauncherDrag, moveLauncherDrag, endLauncherDrag, moveLauncherWithKeyboard, openChat, toggleExpanded, sendMessage, selectSession, createDraftSession, startNewSession, chatSize, expandedChatSize, visibleMessages, suggestions }
 }

@@ -152,11 +152,12 @@ function MainFormScreenPage() {
       </main>
       {selected && createPortal(<OptionsPopup trackingName={DIALOG_NAMES.acoes_formulario} ariaLabel={`Opções para ${selected.name}`} closing={closing} id={`form-options-${selected.id}`} panelRef={panelRef} onClose={() => closeMenu()} style={{ top: menuPosition?.top ?? 0, left: menuPosition?.left ?? 0, visibility: menuPosition ? 'visible' : 'hidden' }} items={[
         { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', tone: 'muted', separatorAfter: true, onSelect: () => closeMenu() },
-        { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: selected.status === 'completed' ? 'Consultar' : 'Editar', separatorAfter: true, onSelect: () => closeMenu(() => navigate(`/editForms?id=${encodeURIComponent(selected.id)}`)) },
-        { id: 'appearance', label: 'Personalizar card', disabled: selected.status === 'completed', separatorAfter: true, onSelect: () => closeMenu(() => setAppearanceForm(selected), false) },
-        ...(selected.status === 'completed' ? [{ id: 'responses', label: 'Ver respostas', separatorAfter: true,
-          onSelect: () => closeMenu(() => navigate(`/mainFormScreen/responses?id=${encodeURIComponent(selected.id)}`)) }] : []),
-        { trackingAction: BUTTONS.comuns.excluir, id: 'delete', label: 'Excluir', disabled: selected.status === 'completed', tone: 'danger', onSelect: () => closeMenu(() => setPendingDeletion(selected)) },
+        ...(selected.status === 'completed' ? [{ id: 'responses', label: 'Ver respostas',
+          onSelect: () => closeMenu(() => navigate(`/mainFormScreen/responses?id=${encodeURIComponent(selected.id)}`)) }] : [
+          { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => closeMenu(() => navigate(`/editForms?id=${encodeURIComponent(selected.id)}`)) },
+          { id: 'appearance', label: 'Personalizar card', separatorAfter: true, onSelect: () => closeMenu(() => setAppearanceForm(selected), false) },
+          { trackingAction: BUTTONS.comuns.excluir, id: 'delete', label: 'Excluir', tone: 'danger' as const, onSelect: () => closeMenu(() => setPendingDeletion(selected)) },
+        ]),
       ]} />, document.body)}
       {appearanceForm && <FormCardAppearanceModal name={appearanceForm.name} initial={appearanceForm} onSave={async appearance => { await saveAppearance(appearanceForm.id, appearance); setFeedback('Aparência do card atualizada.') }} onClose={() => { setAppearanceForm(null); requestAnimationFrame(() => triggerRef.current?.isConnected && triggerRef.current.focus()) }} />}
       {pendingDeletion && <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_exclusao_formulario} backdrop="dimmed" preservePageScroll className="forms-deletion-modal" confirmLabel="Excluir" progressLabel="Excluindo formulário..." tone="danger" title="Tem certeza de que deseja excluir este formulário?" icon={<span aria-hidden="true" className="position-deactivation-icon"><AstroIcon name="warning" /></span>} onCancel={() => setPendingDeletion(null)} onConfirm={async () => {

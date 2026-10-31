@@ -28,6 +28,7 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
   for (const field of Object.keys(unitErrors[activeUnit.id] ?? {}) as WorkspaceAddressField[]) {
     if (!unitErrors[activeUnit.id]?.[field]) continue
     if (currentValidation[field]) errors[field] = currentValidation[field]
+    else if (field === 'cep') errors.cep = unitErrors[activeUnit.id].cep
     else if (field === 'name' && address.units.some(unit => unit.id !== activeUnit.id && normalizeUnitName(unit.name) === normalizeUnitName(activeUnit.name))) errors.name = unitErrors[activeUnit.id].name
   }
   const [hasChangedUnit, setHasChangedUnit] = useState(false)
@@ -50,9 +51,9 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
         <p>Informe o endereço de cada unidade para que<br className="set-address-desktop-break" /> possamos identificar sua localização.</p>
       </header>
 
-      <form data-track-submit={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.finalizar_workspace} ref={formRef} className="set-address-form" noValidate onSubmit={(event) => {
+      <form data-track-submit={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.finalizar_workspace} ref={formRef} className="set-address-form" noValidate onSubmit={async (event) => {
         event.preventDefault()
-        if (postalCode.status === 'loading') return
+        if (postalCode.status === 'loading' || addresses.validatingPostalCodes) return
         const nextErrors: typeof unitErrors = {}
         const names = new Set<string>()
         for (const unit of address.units) {
@@ -67,6 +68,20 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
           if (invalidUnit.id !== activeUnit.id) changeUnit(() => addresses.selectUnit(invalidUnit.id))
           requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>('input[aria-invalid="true"]')?.focus())
           return
+        }
+        if (!settingsMode) {
+          const postalErrors = await addresses.validatePostalCodes(address.units)
+          if (!postalErrors) return
+          const invalidPostalUnit = address.units.find(unit => postalErrors[unit.id])
+          if (invalidPostalUnit) {
+            for (const unit of address.units) {
+              if (postalErrors[unit.id]) nextErrors[unit.id].cep = postalErrors[unit.id]
+            }
+            setUnitErrors({ ...nextErrors })
+            if (invalidPostalUnit.id !== activeUnit.id) changeUnit(() => addresses.selectUnit(invalidPostalUnit.id))
+            requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>('#unit-cep')?.focus())
+            return
+          }
         }
         onComplete(address.units)
       }}>
@@ -145,7 +160,7 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
           <AstroIcon name="plus" />
           Adicionar outra sede
         </PurpleButton>
-        <PurpleButton data-track-action={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.finalizar_workspace} className="set-address-finish" disabled={postalCode.status === 'loading'} type="submit">{settingsMode ? 'Salvar alterações' : 'Finalizar workspace'}</PurpleButton>
+        <PurpleButton data-track-action={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.finalizar_workspace} className="set-address-finish" disabled={postalCode.status === 'loading' || addresses.validatingPostalCodes} type="submit">{settingsMode ? 'Salvar alterações' : 'Finalizar workspace'}</PurpleButton>
       </form>
     </section>
   )

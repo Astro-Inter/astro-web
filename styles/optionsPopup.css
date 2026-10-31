@@ -36,7 +36,7 @@
   width: min(calc(16rem * var(--astro-popup-zoom)), calc(100vw - 1rem));
 }
 
-.astro-options-popup-item--danger { color: var(--astro-primary-error); }
+.astro-options-popup-item--danger { color: var(--astro-error-text); }
 .astro-options-popup-item { min-width: 0; }
 .astro-options-popup-item .astro-truncated-text { width: 100%; cursor: inherit; }
 .astro-options-popup-item--muted { color: #bcbacc; }
@@ -47,7 +47,7 @@
 .astro-options-popup-item:hover,
 .astro-options-popup-item:focus-visible { color: #c4bdd4; background: transparent; outline: none; }
 .astro-options-popup-item--danger:hover,
-.astro-options-popup-item--danger:focus-visible { color: #ffb0b0; }
+.astro-options-popup-item--danger:focus-visible { color: #ef777a; }
 .astro-options-popup-item--muted:hover,
 .astro-options-popup-item--muted:focus-visible { color: #9f9bad; }
 

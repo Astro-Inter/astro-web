@@ -166,7 +166,7 @@
 
 .login-field-error {
   margin: 0;
-  color: var(--astro-primary-error);
+  color: var(--astro-error-text);
   font-size: var(--astro-label-font-size);
   font-weight: 400;
   line-height: 1.2;
@@ -219,7 +219,7 @@
   cursor: pointer;
   transform: translateY(-50%);
 }
-.login-email-clear--invalid { color: var(--astro-primary-error); }
+.login-email-clear--invalid { color: var(--astro-error-text); }
 .login-email-clear:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
 .login-email-error-icon {
   width: calc(var(--astro-icon-md) * .85);
@@ -234,7 +234,7 @@
 
 .login-authentication-error {
   margin: calc(-0.5 * var(--astro-field-gap)) 0 0;
-  color: var(--astro-primary-error);
+  color: var(--astro-error-text);
   font-size: var(--astro-label-font-size);
   font-weight: 400;
   line-height: 1.2;

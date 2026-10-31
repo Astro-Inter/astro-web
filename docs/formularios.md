@@ -16,6 +16,8 @@ As telas /mainFormScreen, /createForms e /editForms?id={UUID} usam a API princip
 
 Os DTOs usam title, description, managerId, nrCode, unitId, dueDate, status e questions. A interface converte draft, pending e completed para RASCUNHO, PENDENTE e CONCLUIDO. Campos de texto, opção, foto e data correspondem aos tipos de pergunta. NR e unidade são vínculos do formulário. Campos opcionais vazios são enviados como null, permitindo remover vínculos e prazo; respostas, remetente, workspace e datas de auditoria não são enviados.
 
+Sem filtro de status, a listagem consulta os estados Rascunho, Pendente e Respondido nessa ordem e compõe as páginas sem carregar todos os formulários. Os totais consideram os três estados. O valor enviado à API para filtrar respondidos é `CONCLUIDO`. A busca e o cancelamento de consultas anteriores são mantidos. No menu de um formulário respondido, as ações são **Cancelar** e **Ver respostas**; editar, personalizar e excluir aparecem nos demais estados.
+
 Perguntas aceitam até 140 caracteres. Alternativas aceitam até 100 itens de 80 caracteres, com no máximo uma opção Outros. Fotos aceitam até 10 arquivos nos limites configurados para o formulário: 5, 10, 20, 50 ou 100 MB. Esses endpoints não fazem upload de respostas.
 
 O seletor pesquisável de destinatários aceita GESTOR e GESTOR_WORKSPACE. A resposta contém currentManagerId e itens com ID, nome e unidade. A própria conta é excluída pelo servidor e novamente filtrada no web. Não há entrada manual de IDs. Erro de consulta mantém o conteúdo e permite nova tentativa.

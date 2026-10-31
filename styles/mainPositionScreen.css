@@ -71,7 +71,7 @@
 .position-dialog-field input:focus { --astro-autofill-focus-shadow: 0 0 0 1px rgb(47 46 50 / 22%); border-color: var(--astro-input-focus-border); box-shadow: 0 0 0 1px rgb(47 46 50 / 22%); outline: none; }
 .position-dialog-field input[aria-invalid="true"] { border-color: var(--astro-primary-error); }
 .position-dialog-field input[aria-invalid="true"]:focus { --astro-autofill-focus-shadow: 0 0 transparent; border-color: #cf3e3e; box-shadow: none; }
-.position-dialog-field [role="alert"], .position-dialog-form-error { color: var(--astro-primary-error); font-size: var(--astro-label-font-size); line-height: 1.2; }
+.position-dialog-field [role="alert"], .position-dialog-form-error { color: var(--astro-error-text); font-size: var(--astro-label-font-size); line-height: 1.2; }
 .position-dialog-form-error { margin: 1rem 0 0; }
 .position-dialog-select { width: 100%; min-width: 0; height: var(--astro-control-height); }
 .position-dialog-select .astro-toolbar-select-trigger { height: var(--astro-control-height); }

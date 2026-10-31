@@ -35,7 +35,11 @@ function CompanyInformationForm({ onContinue, settingsMode = false, initialCompa
         event.preventDefault()
         const nextErrors = settingsMode ? validateWorkspaceCompany(company) : validateRegistrationCompanyFields(company)
         setErrors(nextErrors)
-        if (!Object.keys(nextErrors).length) onContinue(company)
+        if (Object.keys(nextErrors).length) {
+          event.currentTarget.querySelector<HTMLInputElement>(nextErrors.name ? '#company-name' : '#company-cnpj')?.focus()
+          return
+        }
+        onContinue(company)
       }}>
         <FormField
             autoComplete="organization"

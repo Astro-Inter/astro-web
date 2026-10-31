@@ -222,7 +222,7 @@ test('card salva na API, mantém prévia em falhas e bloqueia edição depois de
   await mount(root, Page, '/mainFormScreen'); await waitForList()
   assert.ok(document.querySelector('.form-card .form-card-icon--orange .astro-icon--calendar'))
   await click('Opções para Inspeção API')
-  assert.equal(document.querySelector('[aria-label="Personalizar card"]').getAttribute('aria-disabled'), 'true')
+  assert.equal(document.querySelector('[aria-label="Personalizar card"]'), null)
 }))
 test('lista usa paginação da API e exclusão aguarda confirmação; erro mantém card', async () => withDom(async root => {
   const env = environment(), Page = env.load('src/pages/mainFormScreen/index.tsx').default, pending = deferred()
@@ -413,15 +413,14 @@ test('produção não oferece prévia nem análise de formulário ainda pendente
   assert.equal(document.querySelector('a[href*="preview=1"]'), null)
 }))
 
-test('desenvolvimento abre respostas reais pelo menu de um formulário concluído e preserva o bloqueio de exclusão', async () => withDom(async root => {
+test('respondidos oferecem apenas cancelar e ver respostas, sem edição, personalização ou exclusão', async () => withDom(async root => {
   const env = environment(), Page = env.load('src/pages/mainFormScreen/index.tsx').default
   env.services.listForms = async (_search, _status, page, size) => ({ items: [{ id, title: 'Inspeção API', description: 'Dados reais', status: 'CONCLUIDO', questionCount: 1 }], page, size, totalPages: 1, totalElements: 1 })
   await mount(root, Page, '/mainFormScreen'); await waitForList()
   assert.equal(document.querySelector('.form-card').querySelectorAll('button').length, 1)
   await click('Opções para Inspeção API')
   const menu = document.querySelector('[role="menu"]')
-  assert.ok(menu.querySelector('[aria-label="Consultar"]'))
-  assert.equal(menu.querySelector('[aria-label="Excluir"]').getAttribute('aria-disabled'), 'true')
+  assert.deepEqual([...menu.querySelectorAll('[role="menuitem"]')].map(item => item.getAttribute('aria-label')), ['Cancelar', 'Ver respostas'])
   assert.doesNotMatch(menu.textContent, /prévia/)
   await click('Ver respostas', menu)
   assert.equal(document.getElementById('location').textContent, `/mainFormScreen/responses?id=${id}`)

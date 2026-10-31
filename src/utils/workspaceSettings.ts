@@ -1,8 +1,7 @@
 import type { CompanyInformation } from '../types/company'
 import type { WorkspaceAddressField, WorkspaceUnitAddress } from '../types/address'
 import type { WorkspaceUnitRequest } from '../types/workspaceSettings'
-
-const states = new Set('AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' '))
+import { isValidBrazilianState } from './brazilianState'
 
 export function validateWorkspaceManagerId(id: string): string | null {
   return /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id)) ? null : 'Selecione um gestor ativo.'
@@ -25,7 +24,7 @@ export function validateWorkspaceUnit(unit: WorkspaceUnitAddress): Partial<Recor
     if (unit[field].trim().length < 2 || unit[field].trim().length > 255) errors[field] = 'Use entre 2 e 255 caracteres.'
   }
   if (!/^\d{8}$/.test(unit.cep.replace(/[\s-]/g, ''))) errors.cep = 'Informe um CEP com 8 dígitos.'
-  if (!states.has(unit.state.trim().toUpperCase())) errors.state = 'Selecione uma UF brasileira válida.'
+  if (!isValidBrazilianState(unit.state)) errors.state = 'Selecione uma UF brasileira válida.'
   if (!unit.number.trim() || unit.number.trim().length > 30) errors.number = 'Informe o número com até 30 caracteres.'
   if (unit.complement.trim().length > 255) errors.complement = 'Use até 255 caracteres.'
   return errors
