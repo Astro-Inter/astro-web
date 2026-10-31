@@ -28,7 +28,7 @@ function environment({ development = true, realResults = false } = {}) {
     const source = fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'").replaceAll('import.meta.env.DEV', String(development))
     const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
     new Function('require', 'module', 'exports', code)(name => {
-      if (name === '../services/forms' || name === './forms') return tracked
+      if (name.startsWith('.') && path.resolve(path.dirname(filename), name) === path.resolve('src/services/forms')) return tracked
       if (name === './useAuthentication') return { useAuthentication: () => context }
       if (name === '../appModal') return { __esModule: true, default: Modal }
       if (name === '../../hooks/useAnimatedClose') return { useAnimatedClose: () => ({ closing: false, requestClose: done => done() }) }
@@ -71,19 +71,20 @@ async function click(label, within = document) {
 }
 const waitForList = async () => act(async () => { await new Promise(resolve => setTimeout(resolve, 280)) })
 
-test('entrada mantém quatro skeletons até terminar a saída e revela os quatro cards sem intervalo vazio', async () => withDom(async root => {
+test('entrada mantém quatro skeletons até terminar a saída e revela os quatro cards sem intervalo vazio', async t => withDom(async root => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
   window.matchMedia = () => ({ matches: false })
   const env = environment({ realResults: true }), pending = deferred()
   env.services.listForms = () => pending.promise
   const Page = env.load('src/pages/mainFormScreen/index.tsx').default
-  await mount(root, Page, '/mainFormScreen'); await waitForList()
+  await mount(root, Page, '/mainFormScreen'); await act(async () => t.mock.timers.tick(280))
   assert.equal(document.querySelectorAll('.api-loading-card').length, 4)
   const rows = Array.from({ length: 4 }, (_, index) => ({ id: `550e8400-e29b-41d4-a716-44665544000${index}`, title: `Formulário ${index + 1}`, description: 'Descrição do formulário', status: 'PENDENTE', questionCount: 3 }))
   await act(async () => pending.resolve({ items: rows, page: 0, size: 4, totalPages: 1, totalElements: 4 }))
   assert.equal(document.querySelectorAll('.forms-skeleton--exiting .api-loading-card').length, 4)
   assert.equal(document.querySelector('.forms-empty'), null)
   assert.equal(document.querySelector('[data-track-showcase]').hidden, true)
-  await act(async () => new Promise(resolve => setTimeout(resolve, 200)))
+  await act(async () => t.mock.timers.tick(200))
   assert.equal(document.querySelector('.api-loading--cards'), null)
   const grid = document.querySelector('[data-track-showcase]')
   assert.equal(grid.hidden, false)
@@ -446,3 +447,37 @@ for (const [page, route, title] of [
     assert.ok(document.querySelector('.create-forms-card'))
   }))
 }
+
+
+test('valida e normaliza o formulário antes do serviço, preservando rascunho e exigindo conteúdo na publicação', async () => withDom(async root => {
+  const env = environment(), hook = env.load('src/hooks/useFormEditor.ts').useFormEditor
+  let current
+  function Probe() { current = hook(id); return null }
+  await act(async () => root.render(React.createElement(Probe)))
+  const valid = structuredClone(current.values)
+  for (const [changes, message] of [[{ manager: '7' }, /outro gestor/], [{ nr: '99' }, /NR de empresa/], [{ unit: 'inválida' }, /identificador válido/]]) {
+    await act(async () => current.setValues({ ...valid, ...changes }))
+    await assert.rejects(current.save(), message)
+  }
+  assert.equal(env.calls.filter(call => call.name === 'updateForm').length, 0)
+  await act(async () => current.setValues({ ...valid, description: '' }))
+  await assert.rejects(current.save(false, true), /descrição/)
+  assert.equal(env.calls.filter(call => ['updateForm', 'publishForm'].includes(call.name)).length, 0)
+  await act(async () => { await current.save() })
+  assert.equal(env.calls.filter(call => call.name === 'updateForm').length, 1)
+  await act(async () => current.setValues({ ...valid, name: '  Inspeção limpa  ', manager: ' 8 ', nr: ' 6 ' }))
+  await act(async () => { await current.save() })
+  const sent = env.calls.filter(call => call.name === 'updateForm').at(-1).args[1]
+  assert.equal(sent.name, 'Inspeção limpa'); assert.equal(sent.manager, '8'); assert.equal(sent.nr, '6')
+}))
+
+test('filtros inválidos são recusados antes de chamar o serviço da lista', async () => withDom(async root => {
+  const env = environment(), hook = env.load('src/hooks/useForms.ts').useForms
+  let current
+  function Probe() { current = hook('x'.repeat(241), '', 1, 4); return null }
+  await act(async () => root.render(React.createElement(Probe)))
+  await waitForList()
+  assert.equal(current.loading, false)
+  assert.match(current.error, /240 caracteres/)
+  assert.equal(env.calls.filter(call => call.name === 'listForms').length, 0)
+}))

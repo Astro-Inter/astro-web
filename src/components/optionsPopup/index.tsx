@@ -1,6 +1,7 @@
 import { useEffect, useRef, type CSSProperties, type KeyboardEvent, type RefObject } from 'react'
-import TruncatedText from '../truncatedText'
-import { useExitPresence } from '../../hooks/useExitPresence'
+import OptionLabel from '../optionsPopupLabel'
+import { restoreFocus } from '../../utils/restoreFocus'
+
 
 export interface OptionsPopupItem {
   trackingAction?: string
@@ -25,19 +26,22 @@ interface OptionsPopupProps {
   loading?: boolean
 }
 
-function OptionLabel({ label, loading = false }: { label: string; loading?: boolean }) {
-  const presence = useExitPresence(true, loading)
-  return presence.present
-    ? <span aria-hidden="true" className={`api-skeleton skeleton-copy astro-options-popup-skeleton${presence.exiting ? ' event-loading-exit' : ''}`}>{label}</span>
-    : <span className="event-loading-ready"><TruncatedText focusParent nativeEllipsis>{label}</TruncatedText></span>
-}
-
 function OptionsPopup({ trackingName, ariaLabel, closing = false, id, items, onClose, panelRef, style, loading = false }: OptionsPopupProps) {
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   useEffect(() => {
-    if (style.visibility !== 'hidden') itemRefs.current[0]?.focus({ preventScroll: true })
-  }, [style.visibility])
+    const opener = document.activeElement
+    const panel = panelRef.current
+    return () => {
+      queueMicrotask(() => {
+        if (!panel?.isConnected) restoreFocus(opener instanceof window.HTMLElement ? opener : null, panel)
+      })
+    }
+  }, [panelRef])
+
+  useEffect(() => {
+    if (style.visibility !== 'hidden') itemRefs.current.find(item => item && item.getAttribute('aria-disabled') !== 'true')?.focus({ preventScroll: true })
+  }, [panelRef, style.visibility])
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (items.length === 0 || closing) return
@@ -62,7 +66,7 @@ function OptionsPopup({ trackingName, ariaLabel, closing = false, id, items, onC
   }
 
   return (
-    <div data-track-dialog={trackingName} aria-busy={loading || undefined} aria-label={ariaLabel} className={`astro-options-popup${closing ? ' astro-options-popup--closing' : ''}`} id={id} onKeyDown={handleKeyDown} ref={panelRef} role="menu" style={style}>
+    <div data-track-dialog={trackingName} aria-busy={loading || undefined} aria-label={ariaLabel} className={`astro-options-popup${closing ? ' astro-options-popup--closing' : ''}`} id={id} tabIndex={-1} onKeyDown={handleKeyDown} ref={panelRef} role="menu" style={style}>
       {items.map((item, index) => (
         <button data-track-action={item.trackingAction}
           aria-label={item.label}

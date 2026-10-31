@@ -543,8 +543,10 @@ html[data-astro-reduced-motion='true'] :is(.dashboard-gallery-grid, .analytics-d
   .dashboard-card { padding: 1.25rem; }
   .dashboard-card-header { gap: .75rem; }
   .dashboard-card-art { width: 3.5rem; }
-  .dashboard-card-footer { gap: .5rem; }
-  .dashboard-card-link { white-space: normal; }
+  .dashboard-card-footer { gap: .5rem; flex-wrap: wrap; }
+  .dashboard-card-link { max-width: 100%; white-space: normal; }
+  .dashboard-card-link-label { min-width: 0; overflow-wrap: anywhere; }
+  .dashboard-gallery-page { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
   .analytics-filters fieldset > .astro-action { flex: 1 1 calc(100% - var(--astro-control-height) - var(--create-forms-stack-gap)); min-width: 0; width: auto; }
 }
 

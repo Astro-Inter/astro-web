@@ -1,3 +1,4 @@
+import { validateAndSanitizeExplorerQuery } from '../utils/dashboardQuery'
 import { firebaseAuth } from './firebase'
 import type { AnalyticsDashboard, AnalyticsFilters, AnalyticsIdentity, AnalyticsView, ExplorerCatalog, ExplorerQuery, ExplorerResult } from '../types/dashboard'
 
@@ -64,7 +65,9 @@ export async function loadExplorerCatalog(signal?: AbortSignal): Promise<Explore
   return result
 }
 export async function queryExplorer(query: ExplorerQuery, filters: AnalyticsFilters, workspaceId: string, signal?: AbortSignal, refresh = false): Promise<ExplorerResult> {
-  const result = await dashboardRequest('/api/explorer/query', { method: 'POST', body: JSON.stringify({ query, filters }), headers: refresh ? { 'X-Dashboard-Refresh': '1' } : {} }, signal) as ExplorerResult
+  const validation = validateAndSanitizeExplorerQuery(query)
+  if (!validation.values) throw new DashboardApiError(Object.values(validation.errors)[0])
+  const result = await dashboardRequest('/api/explorer/query', { method: 'POST', body: JSON.stringify({ query: validation.values, filters }), headers: refresh ? { 'X-Dashboard-Refresh': '1' } : {} }, signal) as ExplorerResult
   const chart = result?.chart
   if (!result || result.workspaceId !== workspaceId || result.dataSource !== 'databricks' || !Number.isFinite(Date.parse(result.generatedAt)) || !result.filters || JSON.stringify(result.filters) !== JSON.stringify({ start: filters.start, end: filters.end, granularity: filters.granularity }) || !chart || !Array.isArray(chart.dimensions) || !chart.dimensions.length || typeof chart.measure !== 'string' || !Array.isArray(chart.rows) || chart.rows.some(row => !row || typeof row !== 'object' || typeof row[chart.measure] !== 'number' || !Number.isFinite(row[chart.measure]) || Math.abs(Number(row[chart.measure])) > Number.MAX_SAFE_INTEGER || chart.dimensions.some(field => !['string', 'number'].includes(typeof row[field])))) throw new DashboardApiError('O cálculo retornou dados incompatíveis com esta visão.')
   return result

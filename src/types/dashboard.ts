@@ -48,7 +48,7 @@ export interface ExplorerField { id: string; label: string; kind: 'identifier' |
 export interface ExplorerDataset { id: string; label: string; description: string; source: string; dateField: string; dateDescription: string; fields: ExplorerField[] }
 export interface ExplorerCatalog { version: string; datasets: ExplorerDataset[] }
 export interface ExplorerMetric { field: string; operation: AggregateOperation }
-export interface ExplorerQuery { dataset: string; groupBy: string; series?: string; metric: ExplorerMetric; formula?: { operator: 'add' | 'subtract' | 'multiply' | 'divide' | 'percentage'; operand: ExplorerMetric }; where: { field: string; operator: 'equals' | 'not_equals'; value: string }[] }
+export interface ExplorerQuery { dataset: string; groupBy: string; series?: string; metric: ExplorerMetric; formula?: { operator: 'add' | 'subtract' | 'multiply' | 'divide' | 'percentage'; operand: ExplorerMetric }; where: { id?: string; field: string; operator: 'equals' | 'not_equals'; value: string }[] }
 export interface ExplorerResult { workspaceId: string; dataSource: 'databricks'; generatedAt: string; filters: AnalyticsFilters; chart: AnalyticsChart; cache?: AnalyticsCache }
 export interface AnalyticsWidget { id: string; datasetId: string; title: string; type: ChartKind; width: 'half' | 'full'; query?: ExplorerQuery }
 export type DashboardArtworkId = 'overview' | 'trends' | 'bars' | 'donut' | 'area' | 'progress' | 'comparison' | 'scatter' | 'activity' | 'metrics'

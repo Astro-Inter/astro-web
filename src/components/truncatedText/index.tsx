@@ -198,7 +198,6 @@ function TruncatedText({ children, truncate = true, focusParent = false, nativeE
 
   return <>
     <span
-      aria-label={children}
       aria-describedby={truncated && tooltipMounted ? tooltipId : undefined}
       tabIndex={truncated && !focusParent ? 0 : undefined}
       className={`astro-truncated-text${truncate && maxLines > 1 ? ' astro-truncated-text--multiline' : ''}`}
@@ -214,7 +213,7 @@ function TruncatedText({ children, truncate = true, focusParent = false, nativeE
         const focusTarget = focusParent ? elementRef.current?.closest('button') : elementRef.current
         if (document.activeElement !== focusTarget) hideTooltip()
       }}
-    >{nativeEllipsis || maxLines > 1 ? children : <>{displayText}{truncated ? '...' : ''}</>}</span>
+    >{nativeEllipsis || maxLines > 1 || !truncated ? children : <><span aria-hidden="true">{displayText}...</span><span className="sr-only">{children}</span></>}</span>
     {tooltip}
   </>
 }

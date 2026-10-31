@@ -22,3 +22,7 @@ export interface AccessibilityContextValue {
   openPanel: () => void
   closePanel: () => void
 }
+export interface LibrasWidgetSnapshot extends Record<string, unknown> {
+  _versao: 1
+  state: Record<string, unknown> & { isOpen: boolean }
+}

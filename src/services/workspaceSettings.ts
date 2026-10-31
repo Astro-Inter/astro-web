@@ -1,6 +1,6 @@
 import { firebaseAuth } from './firebase'
 import { getSystemApiBaseUrl } from './systemApi'
-import { validateWorkspaceCompany, workspaceUnitPayload } from '../utils/workspaceSettings'
+import { validateWorkspaceCompany, validateWorkspaceManagerId, workspaceUnitPayload } from '../utils/workspaceSettings'
 import { validateSpreadsheetFile } from '../utils/spreadsheet'
 import type { CompanyInformation } from '../types/company'
 import type { WorkspaceUnitAddress } from '../types/address'
@@ -94,7 +94,8 @@ export async function importWorkspace(file: File, units: WorkspaceUnitAddress[],
 }
 
 export async function transferWorkspaceManager(id: string, signal?: AbortSignal): Promise<WorkspaceManagerTransferResult> {
-  if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))) throw new WorkspaceApiError('Selecione um gestor ativo.')
+  const error = validateWorkspaceManagerId(id)
+  if (error) throw new WorkspaceApiError(error)
   const result = await requestWorkspace<WorkspaceManagerTransferResult>('/workspace/manager-transfer', 'POST', { newManagerId: Number(id) }, signal)
   if (!result || [result.workspaceId, result.previousManagerId, result.newManagerId].some(value => !Number.isSafeInteger(value) || value <= 0)) {
     throw new WorkspaceApiError('A transferência respondeu sem confirmação válida. Atualize sua sessão antes de tentar novamente.')

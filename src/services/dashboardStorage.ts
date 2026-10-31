@@ -52,7 +52,7 @@ function read(key: string): SavedDashboard[] {
   try {
     if (raw.length > maxSize) throw new Error()
     const data: unknown = JSON.parse(raw)
-    if (!record(data) || data.schemaVersion !== 1 || !Array.isArray(data.items) || data.items.length > maxViews) throw new Error()
+    if (!record(data) || (data._versao !== 1 && !(data._versao === undefined && data.schemaVersion === 1)) || !Array.isArray(data.items) || data.items.length > maxViews) throw new Error()
     const items = data.items.map(cleanSaved)
     if (new Set(items.map(item => item.id)).size !== items.length) throw new Error()
     return items.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))

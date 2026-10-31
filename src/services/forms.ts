@@ -3,6 +3,7 @@ import { getSystemApiBaseUrl } from './systemApi'
 import { listUnitNrOptions, listUnits } from './units'
 import { formApiStatuses, formRequest, isFormId, isFormReferenceId } from '../utils/formApi'
 import { isFormCardAppearance } from '../data/formCardAppearance'
+import { validateAndSanitizeFormFilters } from '../utils/formFilters'
 import type { CreateFormValues, FormDetailsResponse, FormEditorOptions, FormManagerOptions, FormRecipientsResponse, FormsPageResponse, FormStatus, FormSummaryResponse } from '../types/forms'
 
 export class FormsApiError extends Error {
@@ -76,11 +77,12 @@ export function parseFormDetails(row: FormDetailsResponse): FormDetailsResponse 
 }
 
 export async function listForms(search: string, status: FormStatus | '', page: number, size: number, signal?: AbortSignal): Promise<FormsPageResponse> {
-  if (search.trim().length > 240 || (status && !(status in formApiStatuses)) || !Number.isSafeInteger(page) || page < 0
-    || !Number.isSafeInteger(size) || size < 1 || size > 100) throw new FormsApiError('Filtros ou paginação de formulários inválidos.')
-  const query = new URLSearchParams({ page: String(page), size: String(size) })
-  if (search.trim()) query.set('search', search.trim())
-  if (status) query.set('status', formApiStatuses[status])
+  const validation = validateAndSanitizeFormFilters({ search, status, page, size })
+  if (!validation.values) throw new FormsApiError(`Filtros ou paginação de formulários inválidos. ${Object.values(validation.errors)[0]}`)
+  const filters = validation.values
+  const query = new URLSearchParams({ page: String(filters.page), size: String(filters.size) })
+  if (filters.search) query.set('search', filters.search)
+  if (filters.status) query.set('status', formApiStatuses[filters.status])
   const data = await requestForms<FormsPageResponse>(`/forms?${query}`, 'GET', undefined, signal)
   if (!data || !Array.isArray(data.items) || data.items.some(row => !validSummary(row))
     || data.page !== page || data.size !== size || !Number.isSafeInteger(data.totalElements) || data.totalElements < 0

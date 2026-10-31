@@ -2,6 +2,8 @@ import { firebaseAuth } from './firebase'
 import { getSystemApiBaseUrl } from './systemApi'
 import { listRoles, listRoleNrOptions } from './roles'
 import { eventRequest } from '../utils/eventApi'
+import { validateEventCancellation } from '../utils/eventCancellation'
+import { validateEventCompletionFiles } from '../utils/eventCompletionValidation'
 import type { EventConfiguration } from '../types/eventCreation'
 import type { CollaboratorEventDetailsResponse, CollaboratorEventResponse, EventCalendarResponse, EventCandidateResponse, EventCompletionResponse, EventNrOption, EventResponse } from '../types/events'
 
@@ -79,9 +81,9 @@ export async function updateEvent(id: string, value: EventConfiguration, signal?
   return detail(await requestEvents<EventResponse>(idPath(id), 'PATCH', eventRequest(value, true), signal))
 }
 export async function cancelEvent(id: string, reason: string, signal?: AbortSignal): Promise<EventResponse> {
-  const normalized = reason.trim()
-  if (normalized.length < 3 || normalized.length > 1000) throw new EventsApiError('Informe uma justificativa de 3 a 1000 caracteres.')
-  return detail(await requestEvents<EventResponse>(`${idPath(id)}/cancellation`, 'PATCH', { reason: normalized }, signal))
+  const validation = validateEventCancellation(reason)
+  if (!validation.values) throw new EventsApiError(validation.errors.reason!)
+  return detail(await requestEvents<EventResponse>(`${idPath(id)}/cancellation`, 'PATCH', validation.values, signal))
 }
 export async function listEventCandidates(nrId?: string, signal?: AbortSignal): Promise<EventCandidateResponse[]> {
   if (nrId && (!/^[1-9]\d*$/.test(nrId) || !validId(Number(nrId)))) throw new EventsApiError('Identificador da NR inválido.')
@@ -122,7 +124,8 @@ export async function getCollaboratorEvent(id: string, signal?: AbortSignal): Pr
   return requestEvents<CollaboratorEventDetailsResponse>(`/events/collaborator/${id}`, 'GET', undefined, signal)
 }
 export async function requestEventCompletion(id: string, files: readonly File[], signal?: AbortSignal): Promise<EventCompletionResponse> {
-  if (files.length > 3 || files.some(file => file.size > 50 * 1024 * 1024)) throw new EventsApiError('Envie até três arquivos de no máximo 50 MB cada.')
+  const validationError = validateEventCompletionFiles(files)
+  if (validationError) throw new EventsApiError(validationError)
   const payload = new FormData()
   files.forEach(file => payload.append('files', file))
   return requestEvents<EventCompletionResponse>(`${idPath(id)}/completion`, 'POST', payload, signal)

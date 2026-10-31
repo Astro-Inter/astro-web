@@ -54,8 +54,8 @@ export default function PendingNrListPage() {
         <span className="nr-review-filter-label" aria-hidden="true">Buscar norma</span>
         <ToolbarSearch id="nr-search" label="Buscar por número ou nome" value={filters.search} onChange={event => filter('search', event.target.value)} onClear={() => filter('search', '')} placeholder="Número ou nome da NR..." />
       </div>
-      <div className="nr-review-filter-field"><label htmlFor="nr-usability">Usabilidade</label><ToolbarSelect id="nr-usability" label="Usabilidade" value={filters.usability} onValueChange={value => filter('usability', value)} options={nrUsabilityFilterOptions} searchable={false} closeOnPageScroll={false} /></div>
-      <div className="nr-review-filter-field"><label htmlFor="nr-revoked">Revogação</label><ToolbarSelect id="nr-revoked" label="Revogação" value={filters.revoked} onValueChange={value => filter('revoked', value)} options={nrRevocationFilterOptions} searchable={false} closeOnPageScroll={false} /></div>
+      <div className="nr-review-filter-field"><label htmlFor="nr-usability" id="nr-usability-label">Usabilidade</label><ToolbarSelect id="nr-usability" label="Usabilidade" value={filters.usability} onValueChange={value => filter('usability', value)} options={nrUsabilityFilterOptions} searchable={false} closeOnPageScroll={false} labelledBy="nr-usability-label" /></div>
+      <div className="nr-review-filter-field"><label htmlFor="nr-revoked" id="nr-revoked-label">Revogação</label><ToolbarSelect id="nr-revoked" label="Revogação" value={filters.revoked} onValueChange={value => filter('revoked', value)} options={nrRevocationFilterOptions} searchable={false} closeOnPageScroll={false} labelledBy="nr-revoked-label" /></div>
       <button className="nr-review-clear" type="button" onClick={() => setFilters(initialFilters)}><AstroIcon name="reload" />Limpar filtros</button>
     </section>
     {error ? <NrLoadError title="Não foi possível carregar as NRs pendentes" message={error} onRetry={retry} /> : <>

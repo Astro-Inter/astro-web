@@ -19,7 +19,7 @@ interface WorkspaceCodeFormProps {
 function WorkspaceCodeForm({ onVerify, status, message }: WorkspaceCodeFormProps) {
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''))
   const inputRefs = useRef<Array<HTMLInputElement | null>>([])
-  const submittedCodeRef = useRef('')
+  const [submittedCode, setSubmittedCode] = useState('')
   const [error, setError] = useState('')
   const pending = status === 'loading' || status === 'success'
 
@@ -61,10 +61,10 @@ function WorkspaceCodeForm({ onVerify, status, message }: WorkspaceCodeFormProps
     const code = digits.join('')
     const validationError = validateWorkspaceAccessKey(code)
     setError(validationError)
-    if (!validationError) { submittedCodeRef.current = code; void onVerify(code) }
+    if (!validationError) { setSubmittedCode(code); void onVerify(code) }
   }
 
-  const apiError = status === 'error' && submittedCodeRef.current === digits.join('') ? message : ''
+  const apiError = status === 'error' && submittedCode === digits.join('') ? message : ''
 
   return (
     <>

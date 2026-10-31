@@ -1,6 +1,21 @@
 /* Preferências opcionais. O padrão preserva o tema original do Astro. */
 .a11y-skip-link { position: fixed; z-index: 2147483647; top: .75rem; left: .75rem; padding: .85rem 1.1rem; border-radius: .5rem; color: #211b40; background: #fff; transform: translateY(-200%); }
 .a11y-skip-link:focus { transform: none; outline: 3px solid #a26bea; outline-offset: 3px; }
+
+/* A busca é um controle composto: o foco acompanha a borda arredondada externa. */
+.astro-toolbar-search:has(> input:focus-visible) { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; }
+.astro-toolbar-search > input:focus-visible,
+html[data-astro-contrast='true'] .astro-toolbar-search > input:focus-visible { outline: none !important; }
+html[data-astro-contrast='true'] .astro-toolbar-search:has(> input:focus-visible) { outline: 3px solid #ffe16b !important; outline-offset: 3px !important; }
+
+/* Títulos continuam legíveis com fonte ampliada em telas estreitas. */
+:where(h1, h2, h3, h4, h5, h6) { overflow-wrap: anywhere; }
+
+/* O foco por teclado permanece visível mesmo quando o campo usa borda própria. */
+:where(input:not([type='hidden']), textarea, select, summary):focus-visible {
+  outline: 2px solid var(--astro-focus-border) !important;
+  outline-offset: -2px !important;
+}
 .a11y-panel.astro-modal { --astro-modal-width: 38rem; max-height: min(90dvh, 55rem); overflow-y: auto; }
 .a11y-settings { --a11y-label-color: #d3cfdd; --a11y-description-color: #c4bdd4; --a11y-range-active: var(--a11y-accent, #a794ed); }
 .a11y-settings .a11y-intro { margin: 0; font-size: var(--astro-label-font-size); line-height: 1.5; color: var(--a11y-description-color); }
