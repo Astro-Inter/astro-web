@@ -20,6 +20,7 @@ interface ToolbarSelectProps {
   id?: string
   label: string
   onValueChange: (value: string) => void
+  labelledBy?: string
   options: readonly ToolbarSelectOption[]
   searchable?: boolean
   maxVisibleRows?: number
@@ -27,7 +28,7 @@ interface ToolbarSelectProps {
   value: string
 }
 
-function ToolbarSelect({ trackingAction, id, label, options, className = '', closeOnPageScroll = true, disabled = false, error, escapeOverflow = false, onValueChange, searchable = true, maxVisibleRows = 4, preferredPlacement = 'auto', value }: ToolbarSelectProps) {
+function ToolbarSelect({ trackingAction, id, label, labelledBy, options, className = '', closeOnPageScroll = true, disabled = false, error, escapeOverflow = false, onValueChange, searchable = true, maxVisibleRows = 4, preferredPlacement = 'auto', value }: ToolbarSelectProps) {
   const generatedId = useId()
   const selectId = id ?? generatedId
   const listId = `${selectId}-options`
@@ -117,6 +118,7 @@ function ToolbarSelect({ trackingAction, id, label, options, className = '', clo
   }
 
   function handleOptionsKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (!open || closing || event.defaultPrevented) return
     const currentIndex = optionRefs.current.findIndex((option) => option === document.activeElement)
     let nextIndex: number
 
@@ -205,15 +207,16 @@ function ToolbarSelect({ trackingAction, id, label, options, className = '', clo
       }}
       ref={containerRef}
     >
-      <label className="sr-only" htmlFor={selectId}>{label}</label>
+      {!labelledBy && <label className="sr-only" htmlFor={selectId}>{label}</label>}
       <div className="astro-toolbar-select-control">
         <input data-track-action={trackingAction}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${selectId}-error` : undefined}
-          aria-controls={listId}
+          aria-controls={open ? listId : undefined}
           aria-expanded={open && !closing}
           aria-haspopup="listbox"
-          aria-label={label}
+          aria-label={labelledBy ? undefined : label}
+          aria-labelledby={labelledBy}
           aria-autocomplete={searchable ? 'list' : 'none'}
           autoComplete="off"
           className={`astro-toolbar-select-trigger astro-toolbar-select-input${displayedOption?.tone === 'muted' && (!open || !searchable || closing) ? ' astro-toolbar-select-input--muted' : ''}`}
@@ -231,7 +234,7 @@ function ToolbarSelect({ trackingAction, id, label, options, className = '', clo
           value={searchable && open && !closing ? searchTerm : closing ? valueWhileClosing : selectedLabel}
         />
         <button data-track-action={trackingAction}
-          aria-controls={listId}
+          aria-controls={open ? listId : undefined}
           aria-expanded={open && !closing}
           aria-label={open && !closing ? `Fechar opções de ${label}` : `Abrir opções de ${label}`}
           className="astro-toolbar-select-toggle"
@@ -257,7 +260,7 @@ function ToolbarSelect({ trackingAction, id, label, options, className = '', clo
                 tabIndex={-1}
                 type="button"
               ><TruncatedText focusParent nativeEllipsis>{option.label}</TruncatedText></button>
-            )) : <div aria-disabled="true" className="astro-toolbar-select-empty" role="option">Nenhuma opção encontrada</div>}
+            )) : <div aria-disabled="true" className="astro-toolbar-select-empty" role="option" aria-selected={false}>Nenhuma opção encontrada</div>}
           </div>
         </div>
       )}

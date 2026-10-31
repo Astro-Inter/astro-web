@@ -17,8 +17,8 @@ interface DashboardViewModalProps {
 }
 
 export default function DashboardViewModal({ existingNames, initialView, onCreate, onClose }: DashboardViewModalProps) {
-  const [name, setName] = useState(initialView?.name ?? '')
-  const [artwork, setArtwork] = useState<DashboardArtworkId>(initialView?.artwork ?? 'overview')
+  const [values, setValues] = useState<{ name: string; artwork: DashboardArtworkId }>(() => ({ name: initialView?.name ?? '', artwork: initialView?.artwork ?? 'overview' }))
+  const { name, artwork } = values
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const savingRef = useRef(false)
@@ -47,11 +47,11 @@ export default function DashboardViewModal({ existingNames, initialView, onCreat
     {dismiss => <form className="analytics-new-view-form" noValidate onSubmit={event => { event.preventDefault(); void submit(dismiss) }}>
       {!initialView && <div className="create-forms-field">
         <label htmlFor="dashboard-view-name">Nome da visão</label>
-        <input id="dashboard-view-name" ref={inputRef} required maxLength={120} placeholder="Digite o nome da visão" value={name} disabled={saving} aria-invalid={!!error} aria-describedby={error ? 'dashboard-view-name-error' : undefined} onChange={event => { setName(event.target.value); setError('') }} />
+        <input id="dashboard-view-name" ref={inputRef} required maxLength={120} placeholder="Digite o nome da visão" value={name} disabled={saving} aria-invalid={!!error} aria-describedby={error ? 'dashboard-view-name-error' : undefined} onChange={event => { setValues(current => ({ ...current, name: event.target.value })); setError('') }} />
         <AnimatedFieldError id="dashboard-view-name-error" message={error} />
       </div>}
       <CardAppearancePreview name={name.trim() || 'Nova visão'} className="dashboard-artwork-preview"><DashboardArtwork artwork={artwork} /></CardAppearancePreview>
-      <DashboardArtworkPicker value={artwork} onChange={setArtwork} disabled={saving} />
+      <DashboardArtworkPicker value={artwork} onChange={artwork => setValues(current => ({ ...current, artwork }))} disabled={saving} />
       <div className="astro-modal-actions">
         <button className="astro-modal-cancel" type="button" disabled={saving} onClick={dismiss}>Cancelar</button>
         <PurpleButton type="submit" disabled={saving}>{initialView ? 'Salvar alterações' : 'Criar visão'}</PurpleButton>

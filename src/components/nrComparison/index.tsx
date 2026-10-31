@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import type { NrDocument } from '../../types/nrReview'
 import { formatNrField, nrReviewFields, nrTextDifference } from '../../utils/nrReview'
 
@@ -6,6 +6,7 @@ interface NrComparisonProps { pending: NrDocument; approved: NrDocument | null; 
 const comparisonFields = nrReviewFields.filter(([field]) => field !== 'ultima_atualizacao')
 
 export default function NrComparison({ pending, approved, comparing = true }: NrComparisonProps) {
+  const inputId = useId()
   const previous = comparing ? approved : null
   const [onlyChanged, setOnlyChanged] = useState(false)
   const changedCount = approved ? comparisonFields.filter(([field]) => approved[field] !== pending[field]).length : 0
@@ -15,7 +16,7 @@ export default function NrComparison({ pending, approved, comparing = true }: Nr
     {previous && <>
       <div className="nr-comparison-controls">
         <p role="status">{changedCount} de {comparisonFields.length} campos alterados</p>
-        <label><input type="checkbox" checked={onlyChanged} onChange={event => setOnlyChanged(event.target.checked)} />Mostrar apenas alterações</label>
+        <label htmlFor={inputId}><input id={inputId} type="checkbox" checked={onlyChanged} onChange={event => setOnlyChanged(event.target.checked)} />Mostrar apenas alterações</label>
       </div>
       <p className="nr-review-comparison-help"><span className="nr-comparison-legend nr-comparison-legend--before">Trecho anterior</span><span className="nr-comparison-legend nr-comparison-legend--after">Trecho atualizado</span></p>
     </>}

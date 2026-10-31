@@ -192,6 +192,14 @@ test('contratos mobile usam rotas próprias e evidências multipart sem Content-
   assert.equal(calls[2].headers['Content-Type'], undefined)
   assert.equal(calls[2].body.getAll('files')[0].name, 'certificado.pdf')
   await assert.rejects(api.requestEventCompletion('42', Array(4).fill(new File(['x'], 'x.txt'))), /até três/)
+  const { validateEventCompletionFiles } = load('src/utils/eventCompletionValidation.ts')
+  const file = new File(['x'], 'certificado.pdf')
+  Object.defineProperty(file, 'size', { configurable: true, value: 50 * 1024 * 1024 })
+  assert.equal(validateEventCompletionFiles([file]), null)
+  assert.equal(validateEventCompletionFiles([]), null)
+  Object.defineProperty(file, 'size', { value: 50 * 1024 * 1024 + 1 })
+  await assert.rejects(api.requestEventCompletion('42', [file]), /50 MB/)
+  assert.equal(calls.length, 3, 'arquivos inválidos são recusados antes de consultar a API')
 })
 
 

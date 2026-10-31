@@ -1,3 +1,4 @@
+import { validateNrSelection } from '../utils/nrSelection'
 import { useEffect, useRef, useState } from 'react'
 import { useAuthentication } from './useAuthentication'
 import { createRole, listRoles, listRoleNrs, listRoleNrOptions, updateRole, toggleRoleStatus, updateRoleNrs } from '../services/roles'
@@ -114,7 +115,10 @@ export function usePositions(roleId?: string): PositionsResult {
     return mutate(async () => {
       const enabled = new Set(enabledIds)
       const options = nrs.options.map((row) => ({ ...row, ativo: enabled.has(String(row.nr)) }))
-      await updateRoleNrs(id, options.map(({ nr, ativo }) => ({ nr, ativo })))
+      const selection = options.map(({ nr, ativo }) => ({ nr, ativo }))
+      const validationError = validateNrSelection(selection)
+      if (validationError) throw new Error(validationError)
+      await updateRoleNrs(id, selection)
       if (mounted.current) setNrs((current) => ({ ...current, options, rows: options.filter((row) => row.ativo).map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.descricao })) }))
     })
   }

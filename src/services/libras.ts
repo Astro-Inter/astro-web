@@ -1,4 +1,5 @@
 import type { LibrasPosition } from '../types/accessibility'
+import { parseLibrasWidgetStorage } from '../utils/librasStorage'
 import widgetTheme from '../../styles/librasWidget.css?raw'
 import handsUrl from '../../styles/assets/librasHands.svg?url'
 import cursorUrl from '../../styles/assets/librasCursor.svg?url'
@@ -65,10 +66,9 @@ function resetLibrasOpenState(): void {
   // próximo reload. Preservamos suas demais preferências, mas exigimos clique.
   try {
     const raw = localStorage.getItem('@vlibras-widget')
-    const saved: unknown = raw ? JSON.parse(raw) : null
-    if (saved && typeof saved === 'object' && 'state' in saved && saved.state && typeof saved.state === 'object' && 'isOpen' in saved.state) {
-      localStorage.setItem('@vlibras-widget', JSON.stringify({ ...saved, state: { ...saved.state, isOpen: false } }))
-    }
+    const saved = parseLibrasWidgetStorage(raw)
+    if (saved) localStorage.setItem('@vlibras-widget', JSON.stringify(saved))
+    else if (raw !== null) localStorage.removeItem('@vlibras-widget')
   } catch { /* O widget continua disponível sem persistência. */ }
 }
 

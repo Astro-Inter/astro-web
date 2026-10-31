@@ -232,7 +232,10 @@ export function useAstroChatController() {
   }, [user?.uid])
 
   useEffect(() => {
-    if (chat.open && authState.authenticated) void loadSessions()
+    if (!chat.open || !authState.authenticated) return
+    let active = true
+    void Promise.resolve().then(() => { if (active) return loadSessions() })
+    return () => { active = false }
   }, [authState.authenticated, chat.open, loadSessions])
 
   const finishClose = useCallback(() => {

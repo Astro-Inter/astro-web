@@ -173,6 +173,13 @@
 .astro-toolbar-select-option--muted:hover,
 .astro-toolbar-select-option--muted:focus-visible { color: #9f9bad; }
 
+.astro-toolbar-select-option:focus-visible {
+  outline: 2px solid var(--astro-focus-border);
+  outline-offset: -2px;
+  border-radius: var(--astro-control-radius);
+  background: var(--astro-focus-surface);
+}
+
 
 
 .astro-toolbar-select-popover--closing { pointer-events: none; animation: astro-popup-out var(--astro-popover-duration) ease both; }
@@ -191,8 +198,6 @@
   .astro-toolbar-select-options { transition: none; }
   .astro-toolbar-select-toggle .astro-icon { transition: none; }
 }
-
-.astro-toolbar-select-option:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; }
 
 .astro-toolbar-select-input { cursor: pointer; }
 .astro-toolbar-select[data-open="true"] .astro-toolbar-select-input:not([readonly]) { cursor: text; }

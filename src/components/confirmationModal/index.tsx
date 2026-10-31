@@ -19,12 +19,13 @@ interface ConfirmationModalProps {
   onCancel: () => void
   onCancelRequest?: () => void
   onConfirm: () => string | null | Promise<string | null>
+  validate?: () => boolean
   onConfirmed: () => void
   title: string
   tone?: 'default' | 'danger'
 }
 
-function ConfirmationModal({ trackingName, cancelLabel = 'Cancelar', className = '', backdrop = 'transparent', preservePageScroll = false, confirmCloseDelay = 0, confirmLabel, description, icon, onCancel, onCancelRequest, onConfirm, onConfirmed, title, tone = 'default' }: ConfirmationModalProps) {
+function ConfirmationModal({ trackingName, cancelLabel = 'Cancelar', className = '', backdrop = 'transparent', preservePageScroll = false, confirmCloseDelay = 0, confirmLabel, description, icon, onCancel, onCancelRequest, onConfirm, onConfirmed, title, tone = 'default', validate }: ConfirmationModalProps) {
   const confirmedRef = useRef(false)
   const confirmTimerRef = useRef<number | null>(null)
   const notify = useActionFeedback()
@@ -44,13 +45,14 @@ function ConfirmationModal({ trackingName, cancelLabel = 'Cancelar', className =
       if (!confirmedRef.current) onCancelRequest?.()
     }} title={icon ? <><span className="astro-confirmation-title-icon">{icon}</span><span className="astro-confirmation-title-text">{title}</span></> : title}>
       {(dismiss) => <>
-        {description && <p className="astro-confirmation-description">{description}</p>}
+        {description && <div className="astro-confirmation-description">{description}</div>}
         <ActionLoading active={submitting} />
         {error && <p className="login-field-error" role="alert">{error}</p>}
         <div className="astro-modal-actions">
           <button data-track-action={cancelLabel === 'Voltar' ? BUTTONS.comuns.voltar : BUTTONS.comuns.cancelar} className="astro-modal-cancel" disabled={submitting} onClick={dismiss} type="button">{cancelLabel}</button>
           <PurpleButton data-track-action={confirmationAction(confirmLabel)} variant={tone === 'danger' ? 'danger' : 'solid'} disabled={submitting} onClick={async () => {
             if (submittingRef.current || confirmedRef.current) return
+            if (validate && !validate()) return
             submittingRef.current = true
             setError('')
             setSubmitting(true)

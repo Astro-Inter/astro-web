@@ -72,13 +72,13 @@ function CollaboratorForm({ subject = 'colaborador', collaborator, mode, options
   function select(field: 'unitId' | 'roleId' | 'modality' | 'status', label: string, choices: { label: string; value: string }[]) {
     const id = `collaborator-${field}`
     return <div className="field-group">
-      <label htmlFor={id}>{label}</label>
+      <label htmlFor={id} id={id + '-label'}>{label}</label>
       <ToolbarSelect trackingAction={({ Cargo: BUTTONS.comuns.cargo, Unidades: BUTTONS.comuns.unidade, Modalidade: BUTTONS.comuns.modalidade, Status: BUTTONS.comuns.status } as Record<string, string>)[label] ?? BUTTONS.comuns.selecionar_opcao} className="account-field-select" disabled={locked} error={errors[field]} id={id} label={label}
         onValueChange={(value) => {
           if (field === 'modality') update(field, value as CollaboratorFormValues['modality'])
           else if (field === 'status') update(field, value as CollaboratorStatus)
           else update(field, value)
-        }} options={[{ label: `Selecione ${field === 'roleId' || field === 'status' ? 'o' : 'a'} ${label.toLowerCase()}`, value: '', tone: 'muted' }, ...choices]} value={values[field]} />
+        }} options={[{ label: `Selecione ${field === 'roleId' || field === 'status' ? 'o' : 'a'} ${label.toLowerCase()}`, value: '', tone: 'muted' }, ...choices]} value={values[field]} labelledBy={id + '-label'} />
       {errors[field] && <p className="login-field-error" id={`${id}-error`} role="alert">{errors[field]}</p>}
     </div>
   }

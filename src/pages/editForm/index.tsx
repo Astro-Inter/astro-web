@@ -1,3 +1,4 @@
+import { validateAndSanitizeFormForOptions } from '../../utils/formEditorValidation'
 import ActionLoading from '../../components/actionLoading'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
@@ -14,7 +15,7 @@ import HelpLink from '../../components/helpLink'
 import OptionsPopup from '../../components/optionsPopup'
 import PurpleButton from '../../components/purpleButton'
 import { useFormEditor } from '../../hooks/useFormEditor'
-import { makeQuestion, validateAndSanitizeForm } from '../../utils/forms'
+import { makeQuestion } from '../../utils/forms'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { useQuestionReorder } from '../../hooks/useQuestionReorder'
 import { animateRemoval } from '../../utils/animateRemoval'
@@ -35,7 +36,7 @@ function EditFormPage() {
   const [validationError, setValidationError] = useState('')
   const [deadlineValid, setDeadlineValid] = useState(true)
   const [validationAttempt, setValidationAttempt] = useState<{ values: typeof values; draft: boolean } | null>(null)
-  const fieldErrors = validationAttempt?.values === values ? validateAndSanitizeForm(values, validationAttempt.draft).errors : {}
+  const fieldErrors = validationAttempt?.values === values ? validateAndSanitizeFormForOptions(values, options, validationAttempt.draft).errors : {}
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
 
@@ -139,7 +140,7 @@ function EditFormPage() {
     if (removingQuestionIdsRef.current.size) { setValidationError('Aguarde a remoção da pergunta antes de salvar.'); return }
     setValidationAttempt({ values, draft: detail?.status === 'RASCUNHO' && !publishing })
     if (!deadlineValid) return
-    const validation = validateAndSanitizeForm(values, detail?.status === 'RASCUNHO' && !publishing)
+    const validation = validateAndSanitizeFormForOptions(values, options, detail?.status === 'RASCUNHO' && !publishing)
     if (validation.errors.questions) notify(validation.errors.questions, 'error')
     const message = Object.values(validation.errors)[0]
     setValidationError('')
@@ -154,7 +155,7 @@ function EditFormPage() {
   return (
     <div className={`create-forms-page edit-forms-page astro-scale-90${leaving ? ' create-forms-page--leaving' : ''}`}>
       <button data-track-action={BUTTONS.comuns.acoes}
-        aria-controls="edit-forms-options"
+        aria-controls={menuOpen ? 'edit-forms-options' : undefined}
         aria-expanded={menuOpen}
         aria-haspopup="menu"
         aria-label="Voltar e abrir opções do formulário"
@@ -186,7 +187,7 @@ function EditFormPage() {
             <FormInformationFields errors={fieldErrors} prefix="edit-forms" values={values} setValues={setValues} options={options} onDeadlineValidityChange={setDeadlineValid} onRetryManagers={retryManagers} />
           </section>
 
-          <div aria-label="Perguntas do formulário" className="create-forms-questions" role="list">
+          <div aria-label="Perguntas do formulário" className="create-forms-questions" role={renderedQuestions.length ? 'list' : 'region'}>
             {renderedQuestions.map((question, index) => (
               <div
                 className={["create-forms-question-item", question.id === recentlyMovedQuestionId ? "create-forms-question-item--moved" : "", question.id === draggingQuestionId ? "create-forms-question-item--dragging" : "", dropTarget?.id === question.id ? `create-forms-question-item--drop-${dropTarget.position}` : ""].filter(Boolean).join(" ")}

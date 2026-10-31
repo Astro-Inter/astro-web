@@ -1,3 +1,4 @@
+import { useEventClock } from '../../hooks/useEventClock'
 import { useExitPresence } from '../../hooks/useExitPresence'
 import { useCurrentCalendarDate } from '../../hooks/useCurrentCalendarDate'
 import { SHOWCASE_NAMES } from '../../gtm/showcases'
@@ -34,7 +35,9 @@ function eventOccursInHour(event: CalendarEvent, hour: number) {
   return hour >= firstHour && hour <= lastHour
 }
 
-function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, selectedEventId, savedEventId, loading: requestedLoading = false, now = Date.now() }: EventCalendarProps) {
+function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, selectedEventId, savedEventId, loading: requestedLoading = false, now: suppliedNow }: EventCalendarProps) {
+  const clock = useEventClock(events, suppliedNow === undefined)
+  const now = suppliedNow ?? clock
   const today = useCurrentCalendarDate()
   const currentDayMarker: CalendarEvent = { id: `calendar-today-${today}`, category: 'today', date: today, title: 'Dia atual' }
   const presence = useExitPresence(true, requestedLoading)
@@ -123,7 +126,7 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
         <h2 aria-live="polite">{label}</h2>
         <button data-track-action={BUTTONS.comuns.proximo_periodo} aria-label={view === 'week' ? 'Próxima semana' : `Próximo ${period.toLocaleLowerCase('pt-BR')}`} className="event-month-arrow event-month-arrow--next" onClick={() => onMonthChange(1)} type="button"><AstroIcon name="chevron-right" /></button>
       </div>
-      <div className={`event-calendar-scroll${view === 'year' ? presence.exiting ? ' event-loading-exit' : !loading ? ' event-loading-ready' : '' : ''}`} ref={scrollRef} onWheel={preserveWeekPosition} onTouchMove={preserveWeekPosition} onPointerDown={preserveWeekPosition} onKeyDown={event => {
+      <div aria-label={`Conteúdo do calendário de ${label}`} role="region" tabIndex={0} className={`event-calendar-scroll${view === 'year' ? presence.exiting ? ' event-loading-exit' : !loading ? ' event-loading-ready' : '' : ''}`} ref={scrollRef} onWheel={preserveWeekPosition} onTouchMove={preserveWeekPosition} onPointerDown={preserveWeekPosition} onKeyDown={event => {
         if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) preserveWeekPosition()
       }}>
         {view === 'week' ? <table aria-hidden={contentLoading || undefined} className="event-week-table">

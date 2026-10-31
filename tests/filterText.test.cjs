@@ -4,7 +4,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 const ts = require('typescript')
 const React = require('react')
-const { createRoot } = require('react-dom/client')
+const createRoot = container => require('react-dom/client').createRoot(container)
 const { JSDOM } = require('jsdom')
 
 function load(filename) {
@@ -17,6 +17,75 @@ function load(filename) {
   }, module, module.exports)
   return module.exports
 }
+
+test('menu conserva foco ao terminar de posicionar e só devolve à origem ao desmontar', async () => {
+  const dom = new JSDOM('<button id="origin">Opções</button><div id="root"></div>')
+  const names = ['window', 'document', 'Node', 'HTMLElement', 'getComputedStyle', 'requestAnimationFrame', 'cancelAnimationFrame', 'IS_REACT_ACT_ENVIRONMENT']
+  const previous = Object.fromEntries(names.map(name => [name, Object.getOwnPropertyDescriptor(global, name)]))
+  Object.assign(global, { window: dom.window, document: dom.window.document, Node: dom.window.Node, HTMLElement: dom.window.HTMLElement,
+    getComputedStyle: dom.window.getComputedStyle.bind(dom.window), requestAnimationFrame: fn => { fn(); return 0 }, cancelAnimationFrame() {}, IS_REACT_ACT_ENVIRONMENT: true })
+  dom.window.matchMedia = () => ({ matches: true })
+  const Popup = load(path.resolve('src/components/optionsPopup/index.tsx')).default
+  const root = createRoot(document.getElementById('root'))
+  const panelRef = { current: null }
+  const origin = document.getElementById('origin')
+  const render = visibility => React.createElement(Popup, { ariaLabel: 'Ações', panelRef, onClose() {}, style: { visibility }, items: [
+    { id: 'edit', label: 'Editar', onSelect() {} }, { id: 'delete', label: 'Excluir', onSelect() {} },
+  ] })
+  try {
+    origin.focus()
+    await React.act(async () => root.render(render('hidden')))
+    assert.equal(document.activeElement, origin)
+    await React.act(async () => root.render(render('visible')))
+    const items = document.querySelectorAll('[role="menuitem"]')
+    assert.equal(document.activeElement, items[0])
+    await React.act(async () => items[0].dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true })))
+    assert.equal(document.activeElement, items[1])
+    await React.act(async () => root.render(render('visible')))
+    assert.equal(document.activeElement, items[1])
+    await React.act(async () => root.unmount())
+    assert.equal(document.activeElement, origin)
+  } finally {
+    await React.act(async () => root.unmount()); dom.window.close()
+    for (const name of names) { if (previous[name]) Object.defineProperty(global, name, previous[name]); else delete global[name] }
+  }
+})
+
+test('seletor intercepta Escape somente aberto; fechado permite dispensar o modal', async () => {
+  const dom = new JSDOM('<div id="root"></div>')
+  const names = ['window', 'document', 'Node', 'HTMLElement', 'getComputedStyle', 'requestAnimationFrame', 'cancelAnimationFrame', 'IS_REACT_ACT_ENVIRONMENT']
+  const previous = Object.fromEntries(names.map(name => [name, Object.getOwnPropertyDescriptor(global, name)]))
+  Object.assign(global, { window: dom.window, document: dom.window.document, Node: dom.window.Node, HTMLElement: dom.window.HTMLElement,
+    getComputedStyle: dom.window.getComputedStyle.bind(dom.window), requestAnimationFrame: fn => { fn(); return 0 }, cancelAnimationFrame() {}, IS_REACT_ACT_ENVIRONMENT: true })
+  dom.window.matchMedia = () => ({ matches: true })
+  const Select = load(path.resolve('src/components/toolbarSelect/index.tsx')).default
+  const root = createRoot(document.getElementById('root'))
+  try {
+    await React.act(async () => root.render(React.createElement(Select, { id: 'select', label: 'Indicador', searchable: false, value: 'a', options: [{ value: 'a', label: 'Primeiro' }], onValueChange() {} })))
+    const input = document.getElementById('select')
+    assert.equal(input.hasAttribute('aria-controls'), false)
+    function key(key) { const event = new dom.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }); input.dispatchEvent(event); return event }
+    assert.equal(key('Escape').defaultPrevented, false)
+    await React.act(async () => key('Enter'))
+    assert.equal(input.getAttribute('aria-expanded'), 'true')
+    assert.equal(document.getElementById(input.getAttribute('aria-controls')).getAttribute('role'), 'listbox')
+    let escape
+    await React.act(async () => { escape = key('Escape') })
+    assert.equal(escape.defaultPrevented, true)
+    assert.equal(input.getAttribute('aria-expanded'), 'false')
+    assert.equal(input.hasAttribute('aria-controls'), false)
+    assert.equal(key('Escape').defaultPrevented, false)
+    await React.act(async () => root.render(React.createElement(React.Fragment, null,
+      React.createElement('label', { id: 'visible-label', htmlFor: 'select' }, 'Indicador'),
+      React.createElement(Select, { id: 'select', label: 'Indicador', labelledBy: 'visible-label', searchable: false, value: 'a', options: [{ value: 'a', label: 'Primeiro' }], onValueChange() {} }))))
+    assert.equal(document.querySelectorAll('label[for="select"]').length, 1)
+    assert.equal(document.getElementById('select').getAttribute('aria-labelledby'), 'visible-label')
+    assert.equal(document.getElementById('select').hasAttribute('aria-label'), false)
+  } finally {
+    await React.act(async () => root.unmount()); dom.window.close()
+    for (const name of names) { if (previous[name]) Object.defineProperty(global, name, previous[name]); else delete global[name] }
+  }
+})
 
 test('opção longa mostra tooltip no foco do botão sem criar outro ponto de tabulação', async () => {
   const dom = new JSDOM('<div id="root"></div>')
@@ -34,6 +103,8 @@ test('opção longa mostra tooltip no foco do botão sem criar outro ponto de ta
     const text = document.querySelector('.astro-truncated-text')
     assert.equal(text.getAttribute('data-truncated'), 'true')
     assert.equal(text.hasAttribute('tabindex'), false)
+    assert.equal(text.hasAttribute('aria-label'), false)
+    assert.equal(text.textContent, label)
     await React.act(async () => document.querySelector('button').focus())
     assert.equal(document.querySelector('[role="tooltip"]').textContent, label)
     assert.equal(document.activeElement.tagName, 'BUTTON')
