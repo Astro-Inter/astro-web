@@ -17,7 +17,7 @@ function ToolbarSearch({ id, label, className = '', onClear, value, ...inputProp
   const voice = useVoiceSearch(text => {
     const input = inputRef.current
     if (!input) return
-    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, text)
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, text.slice(0, input.maxLength > 0 ? input.maxLength : 240))
     input.dispatchEvent(new Event('input', { bubbles: true }))
     input.focus({ preventScroll: true })
   }, Boolean(inputProps.disabled || inputProps.readOnly))
@@ -26,7 +26,7 @@ function ToolbarSearch({ id, label, className = '', onClear, value, ...inputProp
     <div className={`astro-toolbar-search${voice.listening ? ' astro-toolbar-search--listening' : ''}${className ? ` ${className}` : ''}`}>
       <label className="sr-only" htmlFor={inputId}>{label}</label>
       <AstroIcon name="search" />
-      <input id={inputId} ref={inputRef} type="search" value={value} {...inputProps} />
+      <input id={inputId} ref={inputRef} maxLength={240} type="search" value={value} {...inputProps} />
       {canClear && (
         <button data-track-action={BUTTONS.comuns.limpar_busca} aria-label="Limpar busca" className="astro-toolbar-search-clear" onClick={() => { onClear(); inputRef.current?.focus() }} type="button">
           <img alt="" aria-hidden="true" height="24" src={iconAsset('close.svg')} width="24" />

@@ -1,0 +1,15 @@
+{
+  "name": "astro-react-profiler",
+  "private": true,
+  "scripts": {
+    "build": "node build.cjs",
+    "start": "node build.cjs && node serve.cjs"
+  },
+  "dependencies": {
+    "react-devtools-inline": "8.0.0",
+    "react": "0.0.0-experimental-a703ca64-20261030",
+    "react-dom": "0.0.0-experimental-a703ca64-20261030",
+    "react-is": "0.0.0-experimental-a703ca64-20261030",
+    "esbuild": "0.28.2"
+  }
+}

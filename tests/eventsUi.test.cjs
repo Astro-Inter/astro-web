@@ -21,12 +21,13 @@ function environment(overrides = {}) {
     const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
     new Function('require', 'module', 'exports', code)(name => {
       if (Object.hasOwn(overrides, name)) return overrides[name]
+      if (name.startsWith('./use')) { const alias = '../../hooks/' + name.slice(2); if (Object.hasOwn(overrides, alias)) return overrides[alias] }
       if (name === '../../hooks/useAuthentication') return { useAuthentication: () => ({ user: { uid: 'gestor' } }) }
-      if (name === '../../hooks/useEventCandidates') return { useEventCandidates: () => candidates }
-      if (name === '../../hooks/useEventCollaboratorPhotos') return { useEventCollaboratorPhotos: people => people }
+      if (name.endsWith('/useEventCandidates')) return { useEventCandidates: () => candidates }
+      if (name.endsWith('/useEventCollaboratorPhotos')) return { useEventCollaboratorPhotos: people => people }
       if (name === '../appModal') return { __esModule: true, default: Modal }
       if (name === '../truncatedText') return { __esModule: true, default: ({ children }) => React.createElement('span', null, children) }
-      if (name === '../../hooks/usePopupStepTransition') return { usePopupStepTransition: () => update => update() }
+      if (name.endsWith('/usePopupStepTransition')) return { usePopupStepTransition: () => update => update() }
       if (name === '../../hooks/useAnimatedClose') return { useAnimatedClose: () => ({ closing: false, requestClose: done => done() }) }
       if (name === '../../hooks/useAnimatedResults') return { useAnimatedResults: (items, signature) => ({ items, signature, exiting: false }) }
       if (name === '../../components') return Object.fromEntries(['AppSidebar', 'AstroIcon', 'CompactPurpleButton', 'ConfirmationModal', 'ToolbarSearch', 'ToolbarSelect'].map(component => [component, component === 'AppSidebar' ? () => null : load(`src/components/${component[0].toLowerCase()}${component.slice(1)}/index.tsx`).default]))
@@ -190,7 +191,13 @@ test('calendário carrega no próprio layout em mês, semana e ano, sem expor ev
     assert.equal(document.querySelector('[data-track-item]'), null)
     assert.match(document.querySelector('[role=status]').textContent, /Carregando eventos/)
     assert.ok(document.querySelector('.event-calendar-heading h2').textContent)
-    assert.equal(document.querySelector('.event-calendar-scroll').scrollTop, 0)
+    const scroll = document.querySelector('.event-calendar-scroll')
+    assert.equal(scroll.scrollTop, 0)
+    assert.equal(scroll.tabIndex, 0)
+    assert.equal(scroll.getAttribute('role'), 'region')
+    assert.match(scroll.getAttribute('aria-label'), /^Conteúdo do calendário de /)
+    scroll.focus()
+    assert.equal(document.activeElement, scroll)
     await act(async () => document.querySelector('.event-month-arrow--next').click())
     document.querySelector('.event-calendar-scroll').scrollTop = 150
   }
@@ -329,7 +336,7 @@ test('programação exige datas e horários válidos e aceita término no dia se
   let advances = 0, update
   function Host() {
     const [schedules, setSchedules] = React.useState({})
-    update = schedule => setSchedules({ '90': schedule })
+    React.useLayoutEffect(() => { update = schedule => setSchedules({ '90': schedule }) }, [])
     return React.createElement(Schedule, { groups: value.groups, assignments: value.assignments, schedules, onChange() {}, onBack() {}, onContinue() { advances++ } })
   }
   await act(async () => root.render(React.createElement(Host)))
@@ -470,6 +477,12 @@ test('calendário carrega dados da API, protege ações por permissão e envia j
   await click('Inativar')
   const input = document.getElementById('event-cancellation-reason')
   assert.ok(input); assert.equal(document.querySelector('label[for=event-cancellation-reason]').textContent, 'Justificativa')
+  await click('Inativar', document.querySelector('[role=dialog]'))
+  assert.equal(reason, undefined)
+  assert.equal(input.getAttribute('aria-invalid'), 'true')
+  assert.equal(input.getAttribute('aria-describedby'), 'event-cancellation-error')
+  assert.match(document.getElementById('event-cancellation-error').textContent, /3 a 1000 caracteres/)
+  assert.equal(document.activeElement, input)
   await act(async () => {
     Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype, 'value').set.call(input, 'Reagendamento solicitado')
     input.dispatchEvent(new dom.window.Event('input', { bubbles: true }))
@@ -604,34 +617,37 @@ test('setas animam nos dois sentidos mesmo quando o próximo período está carr
   assert.equal(document.getElementById('root').textContent, '9/true')
 }))
 
-test('semana preenche todos os horários e mostra os eventos durante a saída do skeleton', async () => withDom(async (root, dom) => {
-  dom.window.matchMedia = () => ({ matches: false })
-  const measure = dom.window.HTMLElement.prototype.getBoundingClientRect
-  dom.window.HTMLElement.prototype.getBoundingClientRect = function () {
-    return this.matches('.event-week-table tbody tr') ? { height: 100 } : measure.call(this)
-  }
-  const Calendar = environment().load('src/components/eventCalendar/index.tsx').default
-  const month = new Date(2026, 9, 23)
-  const event = { id: 'late', title: 'Evento noturno', date: '2026-10-23', category: 'event', startTime: '22:00', endTime: '23:00' }
-  const props = { month, view: 'week', selectedEventId: null, onMonthChange() {}, onOpenOptions() {} }
-  await act(async () => root.render(React.createElement(Calendar, { ...props, events: [], loading: true })))
-  const scroll = document.querySelector('.event-calendar-scroll')
-  assert.equal(scroll.scrollTop, 800)
-  for (const cell of document.querySelectorAll('.event-week-table tbody td')) assert.ok(cell.querySelector('.api-skeleton'))
-  scroll.scrollTop = 2200
-  assert.ok(document.querySelectorAll('.event-week-table tbody tr')[22].querySelector('.api-skeleton'))
-  await act(async () => root.render(React.createElement(Calendar, { ...props, events: [event], loading: false })))
-  assert.equal(scroll.scrollTop, 2100)
-  assert.equal(scroll.classList.contains('event-loading-exit'), false)
-  assert.ok(document.querySelector('.event-week-cell-skeleton.event-loading-exit'))
-  assert.ok(document.querySelectorAll('.event-week-table tbody tr')[22].querySelector('button'))
-  assert.equal(document.querySelector('.event-calendar-panel').getAttribute('aria-busy'), 'false')
-  await act(async () => new Promise(resolve => dom.window.setTimeout(resolve, 220)))
-  assert.equal(scroll.scrollTop, 2100)
-  assert.equal(document.querySelector('.api-skeleton'), null)
-  assert.ok(document.querySelectorAll('.event-week-table tbody tr')[22].querySelector('button'))
-  assert.equal(scroll.classList.contains('event-loading-ready'), false)
-}))
+test('semana preenche todos os horários e mostra os eventos durante a saída do skeleton', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+  return withDom(async (root, dom) => {
+    dom.window.matchMedia = () => ({ matches: false })
+    const measure = dom.window.HTMLElement.prototype.getBoundingClientRect
+    dom.window.HTMLElement.prototype.getBoundingClientRect = function () {
+      return this.matches('.event-week-table tbody tr') ? { height: 100 } : measure.call(this)
+    }
+    const Calendar = environment().load('src/components/eventCalendar/index.tsx').default
+    const month = new Date(2026, 9, 23)
+    const event = { id: 'late', title: 'Evento noturno', date: '2026-10-23', category: 'event', startTime: '22:00', endTime: '23:00' }
+    const props = { month, view: 'week', selectedEventId: null, onMonthChange() {}, onOpenOptions() {} }
+    await act(async () => root.render(React.createElement(Calendar, { ...props, events: [], loading: true })))
+    const scroll = document.querySelector('.event-calendar-scroll')
+    assert.equal(scroll.scrollTop, 800)
+    for (const cell of document.querySelectorAll('.event-week-table tbody td')) assert.ok(cell.querySelector('.api-skeleton'))
+    scroll.scrollTop = 2200
+    assert.ok(document.querySelectorAll('.event-week-table tbody tr')[22].querySelector('.api-skeleton'))
+    await act(async () => root.render(React.createElement(Calendar, { ...props, events: [event], loading: false })))
+    assert.equal(scroll.scrollTop, 2100)
+    assert.equal(scroll.classList.contains('event-loading-exit'), false)
+    assert.ok(document.querySelector('.event-week-cell-skeleton.event-loading-exit'))
+    assert.ok(document.querySelectorAll('.event-week-table tbody tr')[22].querySelector('button'))
+    assert.equal(document.querySelector('.event-calendar-panel').getAttribute('aria-busy'), 'false')
+    await act(async () => t.mock.timers.tick(220))
+    assert.equal(scroll.scrollTop, 2100)
+    assert.equal(document.querySelector('.api-skeleton'), null)
+    assert.ok(document.querySelectorAll('.event-week-table tbody tr')[22].querySelector('button'))
+    assert.equal(scroll.classList.contains('event-loading-ready'), false)
+  })
+})
 
 
 test('semana preserva rolagem manual durante a leitura, atualizações e recarga do mesmo período', async () => withDom(async (root, dom) => {

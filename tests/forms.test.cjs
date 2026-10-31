@@ -81,8 +81,19 @@ test('rascunho aceita campos vazios; publicação exige conteúdo e opções com
 test('IDs, status, busca e paginação inválidos são recusados antes da rede', async () => {
   let calls = 0; global.fetch = async () => { calls++; throw Error('não deveria chamar') }
   for (const badId of ['', '42', 'fake/../forms', '550e8400-e29b-41d4-a716-44665544000z']) await assert.rejects(api.getForm(badId), /Identificador/)
-  for (const args of [['x'.repeat(241), '', 0, 4], ['', 'active', 0, 4], ['', '', -1, 4], ['', '', 0, 101]]) await assert.rejects(api.listForms(...args), /Filtros/)
+  for (const args of [['x'.repeat(241), '', 0, 4], ['', 'active', 0, 4], ['', 'constructor', 0, 4], ['', 'toString', 0, 4], ['', '__proto__', 0, 4], ['', '', -1, 4], ['', '', .5, 4], ['', '', 0, 101], ['', '', 0, 0]]) await assert.rejects(api.listForms(...args), /Filtros/)
   assert.equal(calls, 0)
+})
+
+test('filtros normalizam a busca sem mutação e identificam cada campo inválido', () => {
+  const { validateAndSanitizeFormFilters } = load('src/utils/formFilters.ts')
+  const input = { search: '  Inspeção  ', status: 'draft', page: 0, size: 4 }
+  const before = structuredClone(input)
+  assert.deepEqual(validateAndSanitizeFormFilters(input), { values: { ...input, search: 'Inspeção' }, errors: {} })
+  assert.deepEqual(input, before)
+  const invalid = validateAndSanitizeFormFilters({ search: 'a'.repeat(241), status: 'constructor', page: NaN, size: 0 })
+  assert.equal(invalid.values, null)
+  assert.deepEqual(Object.keys(invalid.errors), ['search', 'status', 'page', 'size'])
 })
 
 test('erros HTTP, conflitos, falha de rede e DTOs malformados nunca viram sucesso', async () => {

@@ -3,9 +3,9 @@ import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, useTransi
 import PrivateRoute from '../components/privateRoute'
 import GuestRoute from '../components/guestRoute'
 import { useAuthentication } from '../hooks/useAuthentication'
-import LoadingScreenPage from '../pages/loadingScreen'
 import RouteErrorBoundary from '../components/routeErrorBoundary'
 
+const LoadingScreenPage = lazy(() => import('../pages/loadingScreen'))
 const MainHomeScreenPage = lazy(() => import('../pages/mainHomeScreen'))
 const loadDashboards = () => import('../pages/mainDashboardsScreen')
 const MainDashboardsScreenPage = lazy(loadDashboards)

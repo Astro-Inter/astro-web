@@ -50,9 +50,9 @@ function AccountDetailsForm({ profile, roles, units, editable, canChangeLinks, p
   }
   function select(field: 'roleId' | 'unitId' | 'workModel', label: string, choices: { label: string; value: string }[], disabled = false) {
     const id = `account-detail-${field}`
-    return <div className="field-group"><label htmlFor={id}>{label}</label>
+    return <div className="field-group"><label htmlFor={id} id={id + '-label'}>{label}</label>
       <ToolbarSelect trackingAction={({ roleId: BUTTONS.comuns.cargo, unitId: BUTTONS.comuns.unidade, workModel: BUTTONS.comuns.modalidade })[field]} className="account-field-select" disabled={pending || disabled} error={errors[field]} id={id} label={label}
-        onValueChange={value => update(field, value)} options={[{ label: `Selecione ${field === 'roleId' ? 'o' : 'a'} ${label.toLowerCase()}`, value: '', tone: 'muted' }, ...choices]} value={values[field]} />
+        onValueChange={value => update(field, value)} options={[{ label: `Selecione ${field === 'roleId' ? 'o' : 'a'} ${label.toLowerCase()}`, value: '', tone: 'muted' }, ...choices]} value={values[field]} labelledBy={id + '-label'} />
       {errors[field] && <p className="login-field-error" id={`${id}-error`} role="alert">{errors[field]}</p>}
     </div>
   }

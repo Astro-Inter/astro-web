@@ -53,20 +53,20 @@ function ConformityFilterModal({ type = 'COLABORADOR', filters, nrs, onApply, on
       {(dismiss) => <form data-track-submit={BUTTONS.comuns.aplicar_filtros} autoComplete="off" noValidate onSubmit={(event) => handleSubmit(event, dismiss)}>
         <div className="position-dialog-row conformity-form-row">
           <div className="position-dialog-field">
-            <label htmlFor="conformity-filter-nr">NR</label>
-            <ToolbarSelect trackingAction={BUTTONS.comuns.nr} className={selectClassName('nr')} id="conformity-filter-nr" label="NR" onValueChange={(nr) => update('nr', nr)} options={nrOptions} value={values.nr} />
+            <label htmlFor="conformity-filter-nr" id="conformity-filter-nr-label">NR</label>
+            <ToolbarSelect trackingAction={BUTTONS.comuns.nr} className={selectClassName('nr')} id="conformity-filter-nr" label="NR" onValueChange={(nr) => update('nr', nr)} options={nrOptions} value={values.nr} labelledBy="conformity-filter-nr-label" />
           </div>
           <div className="position-dialog-field">
-            <label htmlFor="conformity-filter-origin">Origem</label>
-            <ToolbarSelect trackingAction={BUTTONS.comuns.origem} className={selectClassName('origin')} id="conformity-filter-origin" label="Origem" onValueChange={(origin) => update('origin', isConformityOrigin(origin) ? origin : '')} options={originOptions} searchable={false} value={values.origin} />
+            <label htmlFor="conformity-filter-origin" id="conformity-filter-origin-label">Origem</label>
+            <ToolbarSelect trackingAction={BUTTONS.comuns.origem} className={selectClassName('origin')} id="conformity-filter-origin" label="Origem" onValueChange={(origin) => update('origin', isConformityOrigin(origin) ? origin : '')} options={originOptions} searchable={false} value={values.origin} labelledBy="conformity-filter-origin-label" />
           </div>
           <div className="position-dialog-field">
-            <label htmlFor="conformity-filter-from">Data de validade (início)</label>
-            <FormDatePicker error={errors.from} id="conformity-filter-from" label="Data de validade inicial" onChange={(from) => update('from', from)} onValidityChange={(from) => setValidDates((current) => ({ ...current, from }))} value={values.from} />
+            <label htmlFor="conformity-filter-from" id="conformity-filter-from-label">Data de validade (início)</label>
+            <FormDatePicker error={errors.from} id="conformity-filter-from" labelledBy="conformity-filter-from-label" label="Data de validade inicial" onChange={(from) => update('from', from)} onValidityChange={(from) => setValidDates((current) => ({ ...current, from }))} value={values.from} />
           </div>
           <div className="position-dialog-field">
-            <label htmlFor="conformity-filter-to">Data de validade (fim)</label>
-            <FormDatePicker error={errors.to} id="conformity-filter-to" label="Data de validade final" onChange={(to) => update('to', to)} onValidityChange={(to) => setValidDates((current) => ({ ...current, to }))} value={values.to} />
+            <label htmlFor="conformity-filter-to" id="conformity-filter-to-label">Data de validade (fim)</label>
+            <FormDatePicker error={errors.to} id="conformity-filter-to" labelledBy="conformity-filter-to-label" label="Data de validade final" onChange={(to) => update('to', to)} onValidityChange={(to) => setValidDates((current) => ({ ...current, to }))} value={values.to} />
           </div>
         </div>
 

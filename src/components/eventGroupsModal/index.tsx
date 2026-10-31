@@ -208,7 +208,7 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
     </div>
     <div
       aria-label="Distribuição de colaboradores"
-      aria-invalid={Boolean(boardError)}
+      data-invalid={Boolean(boardError)}
       aria-describedby={boardError ? errorId : undefined}
       role="group"
       tabIndex={-1}
@@ -228,7 +228,7 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
     >
       {[{ id: '', name: 'Não distribuídos' }, ...groups].map(group => <section
         aria-label={group.name}
-        aria-invalid={Boolean(group.id ? errors?.emptyGroups[group.id] : errors?.assignments)}
+        data-invalid={Boolean(group.id ? errors?.emptyGroups[group.id] : errors?.assignments)}
         aria-describedby={group.id && errors?.emptyGroups[group.id] ? `${errorId}-${group.id}` : !group.id && errors?.assignments ? errorId : undefined}
         tabIndex={-1}
         className={`event-create-group-column${group.id && !animationBaseline.ids.has(group.id) ? ' event-create-group-column--added' : ''}${group.id === '' ? ' event-create-group-column--unassigned' : ''}${dropGroupId === group.id ? ' event-create-group-column--drop-target' : ''}${removingGroupId === group.id ? ' event-create-group-column--removing' : ''}`}

@@ -24,6 +24,7 @@ export interface CreateFormValues {
 }
 
 export type FormStatus = 'pending' | 'completed' | 'draft'
+export interface FormListFilters { search: string; status: FormStatus | ''; page: number; size: number }
 export type FormCardIcon = 'document' | 'calendar' | 'feedback' | 'person-outline' | 'security' | 'check' | 'building' | 'collaborators' | 'position' | 'clock'
 export type FormCardColor = 'purple' | 'pink' | 'blue' | 'green' | 'teal' | 'indigo' | 'orange' | 'rose' | 'violet' | 'slate'
 export interface FormCardAppearance { icon: FormCardIcon; color: FormCardColor }

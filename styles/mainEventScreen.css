@@ -34,7 +34,7 @@
 .event-calendar-table td { position: relative; padding: calc(0.45rem * var(--astro-scale)); border-top: 1px solid #514669; border-right: 1px solid #514669; color: #cac4d8; font-size: var(--astro-subtitle-font-size); vertical-align: top; }
 .event-calendar-table td:last-child { border-right: 0; }
 .event-calendar-table tbody tr:last-child td { border-bottom: 1px solid #514669; }
-.event-calendar-day--outside .event-calendar-day-number { color: #77718c; }
+.event-calendar-day--outside .event-calendar-day-number { color: #a39ab7; }
 .event-calendar-day-number { display: block; line-height: 1.1; }
 .event-calendar-day-events { position: absolute; right: calc(0.2rem * var(--astro-scale)); bottom: calc(0.2rem * var(--astro-scale)); left: calc(0.2rem * var(--astro-scale)); display: flex; flex-direction: column; gap: calc(0.2rem * var(--astro-scale)); max-height: calc(4.6rem * var(--astro-scale)); overflow-x: hidden; overflow-y: auto; }
 .event-calendar-day-events > .event-calendar-item { flex: none; height: calc(2.2rem * var(--astro-scale)); }
@@ -128,6 +128,7 @@
 
 .event-calendar-panel--month .event-calendar-day-events { position: static; inset: auto; height: auto; max-height: calc(7rem * var(--astro-scale)); margin-top: calc(.6rem * var(--astro-scale)); overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain; transform: none; }
 .event-calendar-day-events:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
+.event-calendar-scroll:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; border-radius: var(--astro-control-radius); }
 .event-calendar-panel--month .event-calendar-item--today { cursor: default; pointer-events: none; user-select: none; }
 
 .event-calendar-item--read-only { color: #f8f7fc; background: rgb(117 117 130 / 45%); }

@@ -8,7 +8,7 @@ function load(filename, resolve = require) {
   const module = { exports: {} }
   const source = fs.readFileSync(path.join(__dirname, '../src', filename), 'utf8')
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
-  const imports = name => name.endsWith('.css?raw') ? fs.readFileSync(path.resolve(__dirname, '../src', path.dirname(filename), name.replace('?raw', '')), 'utf8') : name.endsWith('.svg?url') ? '/assets/librasHands.svg' : resolve(name)
+  const imports = name => name.endsWith('.css?raw') ? fs.readFileSync(path.resolve(__dirname, '../src', path.dirname(filename), name.replace('?raw', '')), 'utf8') : name.endsWith('.svg?url') ? '/assets/librasHands.svg' : name === '../utils/librasStorage' ? load('utils/librasStorage.ts') : resolve(name)
   new Function('require', 'module', 'exports', code)(imports, module, module.exports)
   return module.exports
 }
@@ -273,7 +273,7 @@ test('desativar VLibras encerra captura e remove cursor e marcações, inclusive
   assert.deepEqual([...classes], ['astro-action'])
   assert.equal(container.hidden, true)
   assert.equal(container.closed, true)
-  assert.deepEqual(JSON.parse(sdkSaved), { version: 1, state: { isOpen: false, opacity: .8 } })
+  assert.deepEqual(JSON.parse(sdkSaved), { version: 1, _versao: 1, state: { isOpen: false, opacity: .8 } })
   assert.doesNotThrow(() => libras.hideLibras())
   assert.equal(pauses, 2)
 })
