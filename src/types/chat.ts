@@ -41,7 +41,7 @@ export interface ChatSessionMessagesResponse {
 
 export interface ChatApiResponse {
   session_id: string
-  resposta: string
+  resposta?: string
   agentes_chamados: string[]
   blocos?: unknown
 }
