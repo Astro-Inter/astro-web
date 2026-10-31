@@ -270,7 +270,7 @@ function WorkspaceDashboards({ identity, initialSaved }: WorkspaceDashboardsProp
       })}
     </div>
     </div>}
-    <footer className="analytics-footer">Suas visões ficam salvas somente neste navegador. Limpar os dados do site remove essas configurações. Os resultados podem ser reutilizados por até 90 segundos; use Atualizar dados para consultar a fonte novamente.</footer>
+    <footer className="analytics-footer">Suas visões ficam salvas na sua conta e workspace e podem ser acessadas em outros dispositivos. Os resultados podem ser reutilizados por até 90 segundos; use Atualizar dados para consultar a fonte novamente.</footer>
   </AnalyticsPageLayout>
 }
 

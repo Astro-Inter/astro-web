@@ -12,7 +12,7 @@ function baseUrl(): string {
   if (url.username || url.password || (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname)))) throw new DashboardApiError('O endereço do serviço de dashboards não é válido.')
   return import.meta.env.DEV ? '/dashboard-api' : configured.replace(/\/+$/, '')
 }
-async function request(path: string, init: RequestInit = {}, signal?: AbortSignal): Promise<unknown> {
+export async function dashboardRequest(path: string, init: RequestInit = {}, signal?: AbortSignal): Promise<unknown> {
   const user = firebaseAuth.currentUser
   if (!user) throw new DashboardApiError('Entre na sua conta para consultar os dashboards.', 401)
   const controller = new AbortController()
@@ -45,12 +45,12 @@ async function request(path: string, init: RequestInit = {}, signal?: AbortSigna
   } finally { clearTimeout(timeout); signal?.removeEventListener('abort', abort) }
 }
 export async function loadAnalyticsIdentity(signal?: AbortSignal): Promise<AnalyticsIdentity> {
-  const identity = await request('/api/me', {}, signal) as AnalyticsIdentity
+  const identity = await dashboardRequest('/api/me', {}, signal) as AnalyticsIdentity
   if (!identity || !/^\d+$/.test(identity.workspaceId) || !/^\d+$/.test(identity.userId) || !['GESTOR', 'GESTOR_WORKSPACE'].includes(identity.role)) throw new DashboardApiError('Não foi possível confirmar o acesso ao workspace.')
   return identity
 }
 export async function loadAnalytics(view: AnalyticsView, filters: AnalyticsFilters, workspaceId: string, signal?: AbortSignal, refresh = false): Promise<AnalyticsDashboard> {
-  const result = await request(`/api/dashboard?${new URLSearchParams({ ...filters, view })}`, { headers: refresh ? { 'X-Dashboard-Refresh': '1' } : {} }, signal) as AnalyticsDashboard
+  const result = await dashboardRequest(`/api/dashboard?${new URLSearchParams({ ...filters, view })}`, { headers: refresh ? { 'X-Dashboard-Refresh': '1' } : {} }, signal) as AnalyticsDashboard
   if (!result || result.workspaceId !== workspaceId || result.view !== view || result.dataSource !== 'databricks' || !result.filters || result.filters.start !== filters.start || result.filters.end !== filters.end || result.filters.granularity !== filters.granularity || !Number.isFinite(Date.parse(result.generatedAt)) || !Array.isArray(result.charts) || result.charts.length !== (view === 'visao-geral' ? 3 : 5) || !Array.isArray(result.kpis)
     || result.kpis.some(k => typeof k.label !== 'string' || !Number.isSafeInteger(k.value) || k.value < 0)
     || result.charts.some(chart => !Array.isArray(chart.dimensions) || !chart.dimensions.length || chart.dimensions.some(d => typeof d !== 'string') || typeof chart.measure !== 'string' || !Array.isArray(chart.rows)
@@ -60,14 +60,14 @@ export async function loadAnalytics(view: AnalyticsView, filters: AnalyticsFilte
   return result
 }
 export async function loadExplorerCatalog(signal?: AbortSignal): Promise<ExplorerCatalog> {
-  const result = await request('/api/explorer/catalog', {}, signal) as ExplorerCatalog
+  const result = await dashboardRequest('/api/explorer/catalog', {}, signal) as ExplorerCatalog
   if (!result || typeof result.version !== 'string' || !Array.isArray(result.datasets) || !result.datasets.length || result.datasets.some(dataset => typeof dataset.id !== 'string' || typeof dataset.label !== 'string' || !Array.isArray(dataset.fields) || !dataset.fields.length || dataset.fields.some(field => typeof field.id !== 'string' || typeof field.label !== 'string' || !Array.isArray(field.operations)))) throw new DashboardApiError('Não foi possível ler o catálogo de campos.')
   return result
 }
 export async function queryExplorer(query: ExplorerQuery, filters: AnalyticsFilters, workspaceId: string, signal?: AbortSignal, refresh = false): Promise<ExplorerResult> {
   const validation = validateAndSanitizeExplorerQuery(query)
   if (!validation.values) throw new DashboardApiError(Object.values(validation.errors)[0])
-  const result = await request('/api/explorer/query', { method: 'POST', body: JSON.stringify({ query: validation.values, filters }), headers: refresh ? { 'X-Dashboard-Refresh': '1' } : {} }, signal) as ExplorerResult
+  const result = await dashboardRequest('/api/explorer/query', { method: 'POST', body: JSON.stringify({ query: validation.values, filters }), headers: refresh ? { 'X-Dashboard-Refresh': '1' } : {} }, signal) as ExplorerResult
   const chart = result?.chart
   if (!result || result.workspaceId !== workspaceId || result.dataSource !== 'databricks' || !Number.isFinite(Date.parse(result.generatedAt)) || !result.filters || JSON.stringify(result.filters) !== JSON.stringify({ start: filters.start, end: filters.end, granularity: filters.granularity }) || !chart || !Array.isArray(chart.dimensions) || !chart.dimensions.length || typeof chart.measure !== 'string' || !Array.isArray(chart.rows) || chart.rows.some(row => !row || typeof row !== 'object' || typeof row[chart.measure] !== 'number' || !Number.isFinite(row[chart.measure]) || Math.abs(Number(row[chart.measure])) > Number.MAX_SAFE_INTEGER || chart.dimensions.some(field => !['string', 'number'].includes(typeof row[field])))) throw new DashboardApiError('O cálculo retornou dados incompatíveis com esta visão.')
   return result
