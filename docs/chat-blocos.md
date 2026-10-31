@@ -1,11 +1,7 @@
-# Blocos no chatbot
+# Blocos do Astro Chat
 
+O envio e o histórico do chat aceitam uma lista ordenada de blocos. Os tipos visuais disponíveis são texto, gráficos de barras, linhas e setores, tabela e galeria de usuários.
 
-## Blocos visuais
+Quando a lista de blocos está ausente, é inválida ou usa versão desconhecida, a interface usa os campos resposta ou content como fallback. Os valores dos gráficos também são apresentados em texto; tabelas permitem rolagem horizontal.
 
-O envio e o histórico aceitam `blocos` ordenados com texto, gráficos de barras,
-linhas e setores, tabela e galeria de usuários. Quando os blocos não existem,
-são inválidos ou a versão é desconhecida, o chat apresenta `resposta`/`content`
-como fallback. Os valores dos gráficos também aparecem como texto, e tabelas
-possuem rolagem horizontal. Fotos HTTPS do R2 usam URL temporária e iniciais como
-alternativa quando não há imagem ou ocorre erro. A autorização é da API.
+Fotos HTTPS do R2 são carregadas por URL temporária. Se a URL estiver ausente ou falhar, a galeria mostra as iniciais. A API controla a autorização dos dados e das imagens.
