@@ -10,6 +10,7 @@ export interface AccessibilityPreferences {
   colorVision: ColorVision
   readingGuide: boolean
   reduceMotion: boolean
+  voiceSearch: boolean
   libras: boolean
   librasPosition: LibrasPosition
 }

@@ -3,7 +3,7 @@ import type { AccessibilityPreferences, ColorVision } from '../types/accessibili
 export const ACCESSIBILITY_KEY = 'astro-accessibility'
 export const DEFAULT_ACCESSIBILITY: Readonly<AccessibilityPreferences> = Object.freeze({
   textSize: 100, dyslexicFont: false, theme: 'dark', highContrast: false,
-  colorVision: 'default', readingGuide: false, reduceMotion: false, libras: false, librasPosition: 'L',
+  colorVision: 'default', readingGuide: false, reduceMotion: false, voiceSearch: false, libras: false, librasPosition: 'L',
 })
 export const COLOR_VISION_OPTIONS: readonly { value: ColorVision; label: string }[] = [
   { value: 'default', label: 'Padrão' }, { value: 'protanopia', label: 'Protanopia' },
@@ -17,7 +17,7 @@ export function normalizeAccessibility(value: unknown): AccessibilityPreferences
   if (!value || typeof value !== 'object') return preferences
   const saved = value as Record<string, unknown>
   if (typeof saved.textSize === 'number' && Number.isFinite(saved.textSize)) preferences.textSize = Math.max(90, Math.min(150, Math.round(saved.textSize / 5) * 5))
-  for (const key of ['dyslexicFont', 'highContrast', 'readingGuide', 'reduceMotion', 'libras'] as const) {
+  for (const key of ['dyslexicFont', 'highContrast', 'readingGuide', 'reduceMotion', 'voiceSearch', 'libras'] as const) {
     if (typeof saved[key] === 'boolean') preferences[key] = saved[key]
   }
   if (COLOR_VISION_OPTIONS.some(option => option.value === saved.colorVision)) preferences.colorVision = saved.colorVision as ColorVision

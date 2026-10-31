@@ -12,7 +12,7 @@ function SetAddressPage() {
   const settingsMode = searchParams.get('context') === 'settings'
   const { draft, updateDraft } = useWorkspaceRegistration()
   const addresses = useWorkspaceAddresses(settingsMode ? undefined : draft.units, !settingsMode)
-  const lookingUpPostalCode = addresses.postalCode.status === 'loading'
+  const lookingUpPostalCode = addresses.postalCode.status === 'loading' || addresses.validatingPostalCodes
   useEffect(() => {
     if (!settingsMode && draft.file && addresses.address.units !== draft.units) updateDraft({ units: addresses.address.units })
   }, [settingsMode, draft.file, draft.units, addresses.address.units, updateDraft])

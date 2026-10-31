@@ -38,6 +38,25 @@ test('validação por etapa rejeita datas impossíveis e preserva segundos de ho
   assert.ok(validateEventSchedule({ ...schedule, date: '2099-02-30' }).date)
 })
 
+test('programação recusa dias passados e término anterior ou igual, aceitando hoje e múltiplos dias', () => {
+  const now = new Date(2026, 9, 31, 12)
+  const schedule = { date: '2026-10-31', startTime: '13:00', endTime: '14:00' }
+  assert.deepEqual(validateEventSchedule(schedule, now), {})
+  assert.match(validateEventSchedule({ ...schedule, date: '2026-10-30' }, now).date, /anterior ao dia atual/)
+  assert.match(validateEventSchedule({ ...schedule, endDate: '2026-10-30' }, now).endDate, /igual ou posterior/)
+  for (const endTime of ['12:00', '13:00']) assert.ok(validateEventSchedule({ ...schedule, endTime }, now).endTime)
+  assert.deepEqual(validateEventSchedule({ ...schedule, endDate: '2026-11-01', endTime: '08:00' }, now), {})
+})
+
+test('ordem dos horários é validada mesmo quando as datas ainda estão vazias ou inválidas', () => {
+  for (const date of ['', '2026-02-30', '2020-01-01']) {
+    const result = validateEventSchedule({ date, startTime: '01:30', endTime: '00:00' })
+    assert.ok(result.date)
+    assert.match(result.endTime, /posterior ao horário de início/)
+    assert.equal(validateEventSchedule({ date, startTime: '01:30', endTime: '02:00' }).endTime, undefined)
+  }
+})
+
 test('validação inicial e envio final compartilham limites e rejeitam campos só com espaços', () => {
   const draft = { title: ' abc ', description: ' abc ', nr: '', type: 'Evento', externalLink: '' }
   assert.deepEqual(validateEventInformation(draft), {})

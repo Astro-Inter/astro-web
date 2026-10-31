@@ -16,6 +16,8 @@ Contrato conferido no [Swagger](https://astro-api-h2hx.onrender.com/swagger-ui/i
 
 Os DTOs usam `title`, `description`, `managerId`, `nrCode`, `unitId`, `dueDate`, `status` e `questions`. A interface converte `draft`, `pending` e `completed` para `RASCUNHO`, `PENDENTE` e `CONCLUIDO`. Texto, opção, foto e data correspondem a `texto`, `alternativa`, `foto` e `data`. NR e unidade são vínculos do formulário. Campos opcionais vazios vão como `null`, permitindo remover vínculos e prazo na edição. Respostas, remetente, workspace e datas de auditoria não são enviados.
 
+A apresentação usa **Rascunho**, **Pendente** e **Respondido**, nessa ordem; `CONCLUIDO` continua sendo o valor enviado à API para filtrar respondidos. Sem filtro de status, o serviço compõe a paginação a partir das consultas de cada estado, preservando a ordem entre páginas sem carregar a lista inteira. Busca, totais e cancelamento das consultas são mantidos. O menu de um respondido oferece somente **Cancelar** e **Ver respostas**; edição, personalização e exclusão ficam disponíveis apenas nos demais estados.
+
 Perguntas aceitam até 140 caracteres; alternativas, até 100 opções de 80 caracteres, com no máximo uma opção Outros; fotos, até 10 arquivos com limites de 5, 10, 20, 50 ou 100 MB. Não há upload de respostas por esses endpoints.
 
 ## Permissões e limitações da API

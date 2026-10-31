@@ -50,9 +50,10 @@
   --astro-primary-green: #147a64;   /* primarygreen */
   --astro-tertiary-blue: #539dd1;   /* tertiaryblue */
   --astro-quinary-green: #5aae67;   /* quinarygreen */
-  --astro-primary-error: #ff9292;   /* primaryerrorcolor */
-  --astro-danger: #b73349;
-  --astro-danger-hover: #9e293d;
+  --astro-primary-error: #ff4d4d;   /* primaryerrorcolor */
+  --astro-error-focus-border: color-mix(in srgb, var(--astro-primary-error) 80%, black);
+  --astro-danger: #eb6264;
+  --astro-danger-hover: #cf4f53;
   --astro-focus-border: rgb(248 247 252 / 65%);
   --astro-input-focus-border: #918d99;
   --astro-focus-surface: rgb(255 255 255 / 11%);

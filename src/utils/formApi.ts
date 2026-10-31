@@ -27,7 +27,7 @@ export function formValues(row: FormDetailsResponse): CreateFormValues {
 }
 
 export function formRequest(input: CreateFormValues, status: FormApiStatus, existing?: FormDetailsResponse): FormRequest {
-  if (status === 'CONCLUIDO') throw new Error('Formulários concluídos não podem ser alterados.')
+  if (status === 'CONCLUIDO') throw new Error('Formulários respondidos não podem ser alterados.')
   const validation = validateAndSanitizeForm(input, status === 'RASCUNHO')
   const error = Object.values(validation.errors)[0]
   if (error) throw new Error(error)

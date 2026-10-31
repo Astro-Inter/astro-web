@@ -1,6 +1,6 @@
 import type { FormSummary } from '../types/forms'
 
-export const formStatusLabels = { pending: 'Pendente', completed: 'Concluído', draft: 'Rascunho' }
+export const formStatusLabels = { pending: 'Pendente', completed: 'Respondido', draft: 'Rascunho' }
 
 export const mockForms: FormSummary[] = [
   { id: 'clima', name: 'Pesquisa de clima', description: 'Avaliação do ambiente organizacional e satisfação da equipe.', questionCount: 12, status: 'pending', icon: 'document', color: 'purple' },

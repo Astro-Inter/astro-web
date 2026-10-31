@@ -259,7 +259,7 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
         </div>
         <AnimatedFieldError className="login-field-error event-create-block-error" id={`${errorId}-${group.id}`} message={group.id && errors?.emptyGroups[group.id] ? errors.emptyGroups[group.id] : undefined} />
       </section>)}
-      <button data-track-action={BUTTONS.comuns.adicionar_grupo} className="event-create-add-group" onClick={onAddGroup} type="button"><AstroIcon name="plus" />Adicionar grupo</button>
+      <button data-track-action={BUTTONS.comuns.adicionar_grupo} className="event-create-add-group" disabled={groups.length >= collaborators.length} title={groups.length >= collaborators.length ? 'Cada grupo precisa de pelo menos um participante.' : undefined} onClick={onAddGroup} type="button"><AstroIcon name="plus" />Adicionar grupo</button>
     </div>
     <AnimatedFieldError className="login-field-error event-create-block-error" id={errorId} message={boardError} />
     <div className="event-create-group-footer">

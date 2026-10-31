@@ -100,9 +100,9 @@
 
 .spreadsheet-preview {
   position: relative;
-  max-height: 18rem;
+  height: 10.375rem;
   margin-top: 1.125rem;
-  overflow: auto;
+  overflow: hidden;
   border-radius: 1rem;
   color: #333;
   background: #fff;
@@ -110,19 +110,18 @@
 
 .spreadsheet-preview table {
   width: 100%;
-  min-width: 64rem;
   border-collapse: collapse;
   table-layout: fixed;
   font-family: Arial, sans-serif;
-  font-size: 1rem;
+  font-size: 0.625rem;
   line-height: 1.15;
   text-align: left;
 }
 
 .spreadsheet-preview th,
 .spreadsheet-preview td {
-  height: 2rem;
-  padding: .4rem .6rem;
+  height: 0.9375rem;
+  padding: 0.0625rem 0.1875rem;
   overflow: hidden;
   border: 1px solid #e7e7e7;
   font-weight: 400;
@@ -153,16 +152,16 @@
 .spreadsheet-mode { width: 10%; }
 
 .spreadsheet-preview-download {
-  padding: .75rem 1rem;
+  padding: 0;
   border: 0;
   cursor: pointer;
   transition: background-color 220ms ease;
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  width: fit-content;
-  min-height: 2.75rem;
-  margin-top: 1rem;
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: grid;
+  width: 1.9375rem;
+  height: 1.9375rem;
   font: inherit;
   place-items: center;
   border-radius: 0.375rem;
@@ -223,12 +222,9 @@
   }
 
   .spreadsheet-preview table {
-    font-size: 1rem;
+    font-size: 8px;
   }
 }
-
-.spreadsheet-scroll-hint { margin-top: 1rem !important; color: #d4cfe2; font-size: 1rem; line-height: 1.5; }
-.spreadsheet-preview:focus-visible { outline: 3px solid #f8f7fc; outline-offset: 4px; }
 
 @media (min-width: 601px) and (max-width: 850px) and (max-height: 850px) {
   .spreadsheet-explanation-highlight {

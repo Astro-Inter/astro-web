@@ -242,3 +242,19 @@ html[data-astro-contrast='true'] :is(.dashboard-art-line, .dashboard-art-muted) 
 html[data-astro-contrast='true'] .dashboard-art-muted-fill { fill: #fff; }
 html[data-astro-contrast='true'] .dashboard-art-ring { stroke: #aaa; }
 html[data-astro-contrast='true'] :is(.dashboard-art-board, .dashboard-art-panel) { fill: #202020; }
+
+/* O erro prevalece sobre o foco normal, inclusive em controles compostos. */
+:root :is(input, textarea, select)[aria-invalid='true'],
+:root .astro-toolbar-search:has(> input[aria-invalid='true']) {
+  border-color: var(--astro-primary-error) !important;
+  outline-color: var(--astro-primary-error) !important;
+}
+
+:root :is(input, textarea, select)[aria-invalid='true']:focus,
+:root .astro-toolbar-select-control:focus-within > input[aria-invalid='true'],
+:root .astro-toolbar-search:has(> input[aria-invalid='true']):focus-within {
+  --astro-autofill-focus-shadow: 0 0 transparent;
+  border-color: var(--astro-error-focus-border) !important;
+  outline-color: var(--astro-error-focus-border) !important;
+  box-shadow: none;
+}

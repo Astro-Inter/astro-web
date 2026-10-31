@@ -188,7 +188,8 @@
 }
 
 .attach-excel-form > .login-field-error {
-  margin-top: var(--astro-field-gap);
+  margin-top: calc(3 * var(--astro-field-gap));
+  white-space: pre-line;
 }
 
 .attach-excel-model-link {

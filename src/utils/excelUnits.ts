@@ -1,8 +1,18 @@
 import { read, utils } from 'xlsx'
 import { normalizeUnitName } from './workspaceUnits'
 import { ManagerEmailMissingError } from './spreadsheetErrors'
+import { isValidCpf } from './collaborator'
+import type { RegistrationSpreadsheetAnalysis } from '../types/workspaceRegistration'
 
 export function extractSpreadsheetUnitNames(data: ArrayBuffer, managerEmail: string, importMode = false): string[] {
+  return analyzeSpreadsheet(data, managerEmail, importMode).names
+}
+
+export function extractRegistrationSpreadsheet(data: ArrayBuffer, managerEmail: string): RegistrationSpreadsheetAnalysis {
+  return analyzeSpreadsheet(data, managerEmail, false)
+}
+
+function analyzeSpreadsheet(data: ArrayBuffer, managerEmail: string, importMode: boolean): RegistrationSpreadsheetAnalysis {
   const bytes = new Uint8Array(data)
   const isZip = bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04
   const isOle = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1].every((byte, index) => bytes[index] === byte)
@@ -53,6 +63,9 @@ export function extractSpreadsheetUnitNames(data: ArrayBuffer, managerEmail: str
     }
   }
   const names = new Map<string, string>()
+  const emails: RegistrationSpreadsheetAnalysis['emails'] = []
+  const emailRows = new Map<string, number>()
+  const cpfRows = new Map<string, number>()
   for (const [index, row] of rows.slice(1).entries()) {
     if (row.every(value => !String(value).trim())) continue
     const name = String(row[unitColumns[0]] ?? '').trim()
@@ -60,9 +73,37 @@ export function extractSpreadsheetUnitNames(data: ArrayBuffer, managerEmail: str
     if (name.length < 2 || name.length > (importMode ? 255 : 80)) {
       throw new Error(`Linha ${rowNumber}: preencha a unidade com um nome de 2 a ${importMode ? 255 : 80} caracteres na planilha.`)
     }
+    if (!importMode) {
+      const fieldValue = (field: string): string => String(row[requiredColumns.get(field)!] ?? '').trim()
+      for (const field of ['nome', 'cargo']) {
+        if (fieldValue(field).length < 2 || fieldValue(field).length > 255) {
+          throw new Error(`Linha ${rowNumber}: preencha o ${field} com 2 a 255 caracteres.`)
+        }
+      }
+      const email = fieldValue('email')
+      if (email.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new Error(`Linha ${rowNumber}: informe um e-mail válido.`)
+      }
+      const normalizedEmail = email.toLowerCase()
+      if (emailRows.has(normalizedEmail)) throw new Error(`Linha ${rowNumber}: e-mail duplicado na planilha (também na linha ${emailRows.get(normalizedEmail)}).`)
+      emailRows.set(normalizedEmail, rowNumber)
+      emails.push({ row: rowNumber, email: normalizedEmail })
+      const isManager = normalizedEmail === managerEmail.trim().toLowerCase()
+      const cpf = fieldValue('cpf')
+      if ((!isManager || cpf) && !isValidCpf(cpf)) throw new Error(`Linha ${rowNumber}: informe um CPF válido.`)
+      if (cpf) {
+        const normalizedCpf = cpf.replace(/[.\s-]/g, '')
+        if (cpfRows.has(normalizedCpf)) throw new Error(`Linha ${rowNumber}: CPF duplicado na planilha (também na linha ${cpfRows.get(normalizedCpf)}).`)
+        cpfRows.set(normalizedCpf, rowNumber)
+      }
+      const modality = fieldValue('modalidade')
+      if ((!isManager || modality) && !['presencial', 'remoto', 'hibrido'].includes(normalizeUnitName(modality))) {
+        throw new Error(`Linha ${rowNumber}: informe a modalidade Presencial, Remoto ou Híbrido.`)
+      }
+    }
     const key = normalizeUnitName(name)
     if (!names.has(key)) names.set(key, name)
   }
   if (!names.size) throw new Error('A primeira aba não contém unidades para cadastrar. Confira a coluna "unidade".')
-  return [...names.values()]
+  return { names: [...names.values()], emails }
 }
