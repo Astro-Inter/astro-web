@@ -51,9 +51,10 @@
   --astro-tertiary-blue: #539dd1;   /* tertiaryblue */
   --astro-quinary-green: #5aae67;   /* quinarygreen */
   --astro-primary-error: #ff4d4d;   /* primaryerrorcolor */
+  --astro-error-text: #ff9292;
   --astro-error-focus-border: color-mix(in srgb, var(--astro-primary-error) 80%, black);
-  --astro-danger: #eb6264;
-  --astro-danger-hover: #cf4f53;
+  --astro-danger: #c54e50;
+  --astro-danger-hover: #b84447;
   --astro-focus-border: rgb(248 247 252 / 65%);
   --astro-input-focus-border: #918d99;
   --astro-focus-surface: rgb(255 255 255 / 11%);

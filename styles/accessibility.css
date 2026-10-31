@@ -62,7 +62,7 @@ html[data-astro-text-size]:not([data-astro-text-size='100']) .workspace-settings
 .a11y-face-panel, .a11y-global-error, .a11y-settings :is([role='alert'], [role='status']) { animation: astro-popup-in 220ms ease both; }
 .a11y-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .75rem; margin-top: 1.5rem; }
 .a11y-actions > button { flex: 1; width: auto; min-width: min(100%, 10rem); }
-.a11y-settings .a11y-error { color: var(--astro-primary-error); line-height: 1.5; }
+.a11y-settings .a11y-error { color: var(--astro-error-text); line-height: 1.5; }
 .a11y-workspace-card { margin-top: var(--create-forms-section-gap); }
 .create-forms-card.a11y-workspace-card > h2 { margin-bottom: calc(2 * var(--astro-field-gap)); }
 .a11y-workspace-card .a11y-settings { display: flex; flex-direction: column; gap: var(--create-forms-outer-gap); }
@@ -147,7 +147,7 @@ html[data-astro-contrast='true'] :where(h1, h2, h3, h4, label, legend, .create-f
 html[data-astro-contrast='true'] :where(.login-heading p, .position-heading p, .page-heading p, .create-forms-field label, .account-profile-header p, .form-field-hint) { color: var(--a11y-muted) !important; }
 html[data-astro-contrast='true'] :where(input:not([type='checkbox'],[type='radio'],[type='range']), textarea, .astro-toolbar-select-trigger, .astro-toolbar-select-popover) { color: var(--astro-text) !important; background: var(--a11y-field) !important; }
 html[data-astro-contrast='true'] :where(.workspace-link, .workspace-key-link, .payment-info-link, .attach-excel-model-link) { color: var(--astro-link) !important; }
-html[data-astro-contrast='true'] :where(.login-field-error, .create-forms-field-error, [role='alert'], .a11y-error) { color: var(--astro-primary-error) !important; }
+html[data-astro-contrast='true'] :where(.login-field-error, .create-forms-field-error, [role='alert'], .a11y-error) { color: var(--astro-error-text) !important; }
 html[data-astro-contrast='true'] :where(input, textarea, select)[aria-invalid='true'] { border-color: var(--astro-primary-error) !important; }
 html[data-astro-contrast='true'] .workspace-settings-tabs button[aria-current],
 html[data-astro-contrast='true'] .workspace-settings-tabs button:not([aria-disabled]):hover { color: var(--astro-text); background: var(--a11y-selected); }
@@ -155,7 +155,7 @@ html[data-astro-contrast='true'] .workspace-settings-tabs button[aria-current]:h
 html[data-astro-contrast='true'] .astro-toggle-switch input:checked + svg rect { fill: var(--a11y-switch); }
 html[data-astro-contrast='true'] .astro-toggle-switch input:checked + svg circle { fill: #111; }
 html[data-astro-contrast='true'] :where(.astro-toolbar-select-option, .astro-options-popup-item):focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; }
-html[data-astro-contrast='true'] .astro-options-popup-item--danger { color: var(--astro-primary-error) !important; }
+html[data-astro-contrast='true'] .astro-options-popup-item--danger { color: var(--astro-error-text) !important; }
 html[data-astro-contrast='true'] .astro-options-popup-item--disabled { color: var(--a11y-muted) !important; }
 html[data-astro-contrast='true'] .compliance-overview-action.astro-action { color: var(--astro-text); background: var(--a11y-selected); }
 html[data-astro-contrast='true'] .compliance-overview-action.astro-action:hover { background: var(--a11y-selected-hover); }
@@ -244,6 +244,11 @@ html[data-astro-contrast='true'] .dashboard-art-ring { stroke: #aaa; }
 html[data-astro-contrast='true'] :is(.dashboard-art-board, .dashboard-art-panel) { fill: #202020; }
 
 /* O erro prevalece sobre o foco normal, inclusive em controles compostos. */
+html[data-astro-contrast='true'],
+html[data-astro-vision]:not([data-astro-vision='default']) {
+  --astro-error-text: var(--astro-primary-error);
+}
+
 :root :is(input, textarea, select)[aria-invalid='true'],
 :root .astro-toolbar-search:has(> input[aria-invalid='true']) {
   border-color: var(--astro-primary-error) !important;

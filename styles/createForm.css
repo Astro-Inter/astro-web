@@ -269,13 +269,13 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
   .create-forms-calendar { width: 100%; max-width: 100%; }
 }
 .form-validation-error {
-  color: var(--astro-primary-error);
+  color: var(--astro-error-text);
   font-size: var(--astro-label-font-size);
   margin-block: 1rem;
 }
 .forms-editor-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
 .forms-editor-fields:disabled { opacity: 0.7; }
-.forms-recipients-feedback p { color: var(--astro-primary-error); }
+.forms-recipients-feedback p { color: var(--astro-error-text); }
 
 /* A espera bloqueia a edição sem esmaecer o fundo dos campos. */
 .forms-editor-fields:disabled[aria-busy="true"] { opacity: 1; }
