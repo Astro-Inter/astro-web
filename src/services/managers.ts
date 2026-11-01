@@ -101,3 +101,7 @@ export async function changeManagerStatus(id: string, status: 'ATIVO' | 'DESATIV
   if (status !== 'ATIVO' && status !== 'DESATIVADO') throw new ManagersApiError('Status inválido. Selecione ativo ou desativado.')
   return toDetails(await requestManagers<ManagerDetailsResponse>(`${managerPath(id)}/status`, 'PATCH', { status }))
 }
+
+export async function demoteManager(id: string): Promise<ManagerDetails> {
+  return toDetails(await requestManagers<ManagerDetailsResponse>(`${managerPath(id)}/demote`, 'PATCH'))
+}

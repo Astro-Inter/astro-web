@@ -18,7 +18,7 @@ function environment() {
   const services = {
     listManagers: async () => [person], getManager: async () => person,
     promoteManager: async () => ({ ...person, id: '43', status: 'ATIVO' }),
-    updateManager: async () => person, changeManagerStatus: async () => person,
+    demoteManager: async () => person, updateManager: async () => person, changeManagerStatus: async () => person,
     listCollaborators: async () => [{ ...person, id: '43' }], listRoles: async () => [], listUnits: async () => [],
   }
   const trackedServices = Object.fromEntries(Object.keys(services).map(name => [name, (...args) => { calls.push({ name, args }); return services[name](...args) }]))
@@ -196,4 +196,42 @@ test('promoção solicita exclusão do próprio responsável para não oferecer 
   const env = environment()
   env.render(undefined, false, true); await flush()
   assert.equal(env.calls.find(call => call.name === 'listCollaborators').args[1], true)
+})
+test('despromoção aguarda confirmação da API, bloqueia duplicação, remove gestor e recarrega candidatos', async () => {
+  const env = environment(), pending = deferred()
+  env.render('42', false, true)
+  await flush()
+  env.services.demoteManager = () => pending.promise
+  const operation = env.render().demote('42')
+  assert.equal(env.render().saving, true)
+  assert.equal(env.render().managers.length, 1)
+  assert.match((await env.render().demote('42')).error, /Aguarde/)
+  env.services.listCollaborators = async () => [person]
+  pending.resolve(person)
+  assert.equal((await operation).manager.id, '42')
+  assert.equal(env.render().saving, false)
+  assert.deepEqual(env.render().managers, [])
+  assert.equal(env.render().details.data, null)
+  await flush()
+  assert.deepEqual(env.render().candidates.data.map(row => row.id), ['42'])
+  assert.equal(env.calls.filter(call => call.name === 'demoteManager').length, 1)
+})
+
+test('falha na despromoção preserva gestor e detalhes; resposta de sessão antiga é descartada', async () => {
+  const env = environment()
+  env.render('42')
+  await flush()
+  env.services.demoteManager = async () => { throw new Error('Sem permissão.') }
+  assert.equal((await env.render().demote('42')).error, 'Sem permissão.')
+  assert.equal(env.render().managers[0].id, '42')
+  assert.equal(env.render().details.data.id, '42')
+  const pending = deferred()
+  env.services.demoteManager = () => pending.promise
+  const operation = env.render().demote('42')
+  env.context.user = { uid: 'other' }
+  env.render()
+  await flush()
+  pending.resolve(person)
+  assert.match((await operation).error, /sessão mudou/)
+  assert.equal(env.render().managers.length, 1)
 })

@@ -26,7 +26,7 @@ const statusFilterOptions = [
 type ManagerDialogState =
   | { kind: 'view' | 'edit' | 'edit-password'; manager: ManagerSummary }
   | { kind: 'confirm-edit'; manager: ManagerSummary; values: ManagerFormValues }
-  | { kind: 'deactivate'; manager: ManagerSummary }
+  | { kind: 'deactivate' | 'demote'; manager: ManagerSummary }
 
 function MainManagerScreenPage() {
   const inviteOriginRef = useRef<HTMLButtonElement | null>(null)
@@ -97,6 +97,13 @@ function MainManagerScreenPage() {
     return null
   }
 
+  async function demoteManager(manager: ManagerSummary): Promise<string | null> {
+    const result = await api.demote(manager.id)
+    if (result.error !== null) return result.error
+    setFeedback(`${result.manager.name} voltou a ser colaborador(a).`)
+    return null
+  }
+
   function closeDetails() {
     if (dialog?.kind === 'confirm-edit') return
     setDialog(null)
@@ -150,7 +157,7 @@ function MainManagerScreenPage() {
           </header>
 
           <div aria-label="Ações e filtros dos gestores" className="position-toolbar" role="group">
-            <CompactPurpleButton data-track-action={BUTTONS.comuns.adicionar} disabled={api.loading || api.saving || Boolean(api.error)} onClick={(event) => { inviteOriginRef.current = event.currentTarget; api.retryCandidates(); setInviteOpen(true) }} type="button">
+            <CompactPurpleButton ref={inviteOriginRef} data-track-action={BUTTONS.comuns.adicionar} disabled={api.loading || api.saving || Boolean(api.error)} onClick={(event) => { inviteOriginRef.current = event.currentTarget; api.retryCandidates(); setInviteOpen(true) }} type="button">
               <AstroIcon name="plus" />
               Promover a gestor
             </CompactPurpleButton>
@@ -185,6 +192,7 @@ function MainManagerScreenPage() {
               { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
               { trackingAction: BUTTONS.comuns.informacoes, id: 'view', label: 'Ver mais informações', separatorAfter: true, onSelect: () => actions.close(() => { api.retryDetails(); setDialog({ kind: 'view', manager: openManager }) }) },
               { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit-password', manager: openManager })) },
+              { trackingAction: BUTTONS.comuns.despromover, id: 'demote', label: 'Despromover para colaborador', separatorAfter: true, tone: 'danger', onSelect: () => actions.close(() => setDialog({ kind: 'demote', manager: openManager })) },
               { trackingAction: openManager.status === 'DESATIVADO'  ? BUTTONS.comuns.ativar : BUTTONS.comuns.inativar, id: 'toggle-status', label: openManager.status === 'DESATIVADO' ? 'Ativar' : 'Desativar', tone: openManager.status === 'DESATIVADO' ? 'default' : 'danger', onSelect: () => actions.close(() => {
                 if (openManager.status !== 'DESATIVADO') setDialog({ kind: 'deactivate', manager: openManager })
                 else void toggleStatus(openManager).then((error) => { if (error) setFeedback(error, 'error') })
@@ -255,6 +263,24 @@ function MainManagerScreenPage() {
             requestAnimationFrame(() => actions.triggerRef.current?.focus())
           }}
           title="Deseja salvar as alterações deste gestor?"
+        />
+      )}
+      {dialog?.kind === 'demote' && (
+        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_despromocao_gestor}
+          backdrop="dimmed"
+          confirmLabel="Despromover"
+          description="O acesso de gestor será removido. A conta, o status, o cargo, a unidade e o histórico serão preservados."
+          onCancel={() => {
+            setDialog(null)
+            actions.triggerRef.current?.focus()
+          }}
+          onConfirm={() => demoteManager(dialog.manager)}
+          onConfirmed={() => {
+            setDialog(null)
+            requestAnimationFrame(() => inviteOriginRef.current?.focus())
+          }}
+          title={`Despromover ${dialog.manager.name} para colaborador?`}
+          tone="danger"
         />
       )}
       {dialog?.kind === 'deactivate' && (

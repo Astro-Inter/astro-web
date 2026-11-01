@@ -251,3 +251,21 @@ test('modal de promoção mantém valores e exibe erro acessível para tentar no
   assert.deepEqual(env.notices, [{ message: 'Colaborador não está mais ativo.', tone: 'error' }])
   assert.equal(result.modal.props.dismissible, true)
 })
+
+test('despromoção usa PATCH autenticado sem corpo, valida ID e preserva erros da API', async () => {
+  const calls = []
+  global.fetch = async (url, init) => { calls.push({ url, ...init }); return respond({ ...details, status: 'DESATIVADO' }) }
+  const result = await api.demoteManager('42')
+  assert.equal(result.id, '42')
+  assert.equal(result.status, 'DESATIVADO')
+  assert.equal(new URL(calls[0].url).pathname, '/managers/42/demote')
+  assert.equal(calls[0].method, 'PATCH')
+  assert.equal(calls[0].headers.Authorization, 'Bearer firebase-token')
+  assert.equal(calls[0].body, undefined)
+  for (const id of ['0', '-1', '42/other', 'local']) await assert.rejects(api.demoteManager(id), /Identificador/)
+  assert.equal(calls.length, 1)
+  for (const status of [403, 404]) {
+    global.fetch = async () => new Response(JSON.stringify({ success: false, message: 'Gestor indisponível.' }), { status })
+    await assert.rejects(api.demoteManager('42'), /Gestor indisponível/)
+  }
+})

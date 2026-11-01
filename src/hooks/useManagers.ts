@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuthentication } from './useAuthentication'
-import { changeManagerStatus, getManager, listManagers, promoteManager, updateManager } from '../services/managers'
+import { changeManagerStatus, demoteManager, getManager, listManagers, promoteManager, updateManager } from '../services/managers'
 import { listRoles } from '../services/roles'
 import { listUnits } from '../services/units'
 import type { ManagerSummary, ManagerDetails, ManagerFormValues, ManagerInviteValues } from '../types/manager'
@@ -23,6 +23,7 @@ interface ManagersResult {
   retryCandidates: () => void
   promote: (values: ManagerInviteValues) => Promise<ManagerMutationResult>
   save: (values: ManagerFormValues, id: string) => Promise<ManagerMutationResult>
+  demote: (id: string) => Promise<ManagerMutationResult>
   changeStatus: (id: string, status: 'ATIVO' | 'DESATIVADO') => Promise<ManagerMutationResult>
 }
 const emptyOptions: ManagerOptions = { positions: [], units: [] }
@@ -96,7 +97,7 @@ export function useManagers(managerId?: string, needsOptions = false, needsCandi
     return () => controller.abort()
   }, [uid, needsCandidates, candidatesKey])
 
-  async function mutate(operation: () => Promise<ManagerDetails>, id?: string): Promise<ManagerMutationResult> {
+  async function mutate(operation: () => Promise<ManagerDetails>, id?: string, remove = false): Promise<ManagerMutationResult> {
     if (!uid) return { error: 'Entre na sua conta para gerenciar os gestores.', manager: null }
     if (busy.current) return { error: 'Aguarde a operação em andamento.', manager: null }
     const currentSession = session.current
@@ -107,7 +108,11 @@ export function useManagers(managerId?: string, needsOptions = false, needsCandi
       if (currentSession?.signal.aborted || session.current !== currentSession) {
         return { error: 'A sessão mudou durante a operação. Recarregue os gestores.', manager: null }
       }
-      if (uid) {
+      if (remove) {
+        setList((current) => current.key === listKey ? { ...current, data: current.data.filter((row) => row.id !== id) } : current)
+        setDetails((current) => current.key === detailsKey && managerId === id ? { ...current, data: null } : current)
+        setRetries((current) => ({ ...current, candidates: current.candidates + 1 }))
+      } else if (uid) {
         setList((current) => current.key === listKey ? { ...current, data: (id
           ? current.data.map((row) => row.id === id ? manager : row)
           : [...current.data.filter((row) => row.id !== manager.id), manager])
@@ -142,6 +147,7 @@ export function useManagers(managerId?: string, needsOptions = false, needsCandi
       }
       return mutate(() => promoteManager(values))
     },
+    demote: (id) => mutate(() => demoteManager(id), id, true),
     save: (values, id) => mutate(() => updateManager(id, values), id),
     changeStatus: (id, status) => mutate(() => changeManagerStatus(id, status), id),
   }
