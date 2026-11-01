@@ -1,3 +1,4 @@
+import { chatMessageText } from '../utils/chatMessageText'
 import { getPopupDuration } from '../utils/popupMotion'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react'
@@ -502,6 +503,7 @@ export function useAstroChatController() {
       if (chat.sessionId && chat.sessionStatus === 'encerrada') await startChatSession(chat.sessionId, controller.signal)
       const response = await sendChatMessage(trimmed, chat.sessionId, controller.signal)
       if (controller.signal.aborted) return
+      const answer = chatMessageText(response.resposta, response.blocos)
       const now = new Date().toISOString()
       setOptimisticSessions((current) => {
         const previous = current.find((session) => session.session_id === chat.draftSessionId || session.session_id === response.session_id)
@@ -509,7 +511,7 @@ export function useAstroChatController() {
         const saved: ChatSessionSummary = {
           session_id: response.session_id,
           title: chat.draftSessionId || !previous?.title ? trimmed : previous.title,
-          last_message_preview: response.resposta,
+          last_message_preview: answer,
           created_at: previous?.created_at ?? now,
           updated_at: now,
           status: 'ativa',
@@ -528,7 +530,7 @@ export function useAstroChatController() {
         messages: [
           ...current.messages,
           { id: pendingMessageId, author: 'user', text: trimmed },
-          { id: pendingReplyId, author: 'astro', text: response.resposta, blocos: response.blocos },
+          { id: pendingReplyId, author: 'astro', text: answer, blocos: response.blocos },
         ],
       }))
       void loadSessions()
@@ -564,7 +566,7 @@ export function useAstroChatController() {
         messages: history.mensagens.map((message) => ({
           id: crypto.randomUUID(),
           author: message.role === 'user' ? 'user' : 'astro',
-          text: message.content,
+          text: message.role === 'assistant' ? chatMessageText(message.content, message.blocos) : message.content,
           blocos: message.role === 'assistant' ? message.blocos : undefined,
         })),
       }))

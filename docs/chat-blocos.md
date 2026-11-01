@@ -1,30 +1,84 @@
-# Blocos estruturados do Astro Chat
+# Blocos no chatbot
 
-O envio e o histórico do chat podem conter uma lista ordenada de blocos: texto, gráficos de barras, linhas ou setores, tabelas e galerias de usuários. O frontend valida a lista antes de renderizá-la. Se a lista estiver ausente, inválida ou contiver um tipo ou versão desconhecida, a interface exibe o texto de fallback da resposta ou do conteúdo.
+O POST e o histórico usam o mesmo parser e renderer. `resposta` é opcional;
+blocos de texto são apresentados na posição recebida, inclusive entre componentes.
+Prévia e histórico usam `chatMessageText`, com títulos quando a resposta contém
+somente componentes. Mensagens antigas mantêm o texto e seus blocos originais.
 
-## Contratos e validação
+Contratos em `src/types/chatBlocks.ts`, validação em `src/utils/chatBlocks.ts`,
+memorização em `useChatBlocks`, renderização em `chatBlocks`, `chatBlockGraphic`
+e `chatBlockAvatar`; tabela, cartões, contexto, ficha e resumo ficam em seus
+componentes `chatBlockTable`, `chatBlockIndicators`, `chatBlockContext`,
+`chatBlockUserProfile` e `chatBlockSetSummary`. Estilos em `styles/chatBlocks.css`.
 
-Os tipos estão em src/types/chatBlocks.ts e a validação em src/utils/chatBlocks.ts. Uma resposta aceita até 10 blocos. Um bloco inválido invalida a lista inteira e aciona o fallback textual.
+## Tipos suportados
 
-| Bloco | Limites e regras |
-| --- | --- |
-| Texto | Conteúdo obrigatório, entre 1 e 6.000 caracteres. |
-| Gráfico | Versão 1; título, fonte e unidade obrigatórios; de 1 a 12 pontos. Cada categoria é texto não vazio e cada valor é finito e não negativo. |
-| Tabela | Versão 1; de 1 a 10 colunas, com chaves únicas em formato snake_case; de 1 a 50 linhas. Células aceitam texto de até 6.000 caracteres, número finito ou null. A página começa em 1, não ultrapassa o total de páginas e o total de resultados não pode ser menor que a quantidade de linhas. |
-| Galeria de usuários | Versão 1; de 1 a 50 pessoas. Nome obrigatório; e-mail pode ser null ou texto de até 320 caracteres; URL pode ser null ou texto de até 8.192 caracteres. |
+- `texto`; `tabela` v1/v2; `ficha_usuario` v1; células `imagem` e galeria legada.
+- `grafico_barras`, `grafico_linhas`, `grafico_setores`, `grafico_rosca` v1.
+- `indicadores`, `matriz_conformidade`, `contexto_dados` v1.
 
-Gráficos também exigem título, fonte, unidade e pontos com categoria e valor válidos. O acumulado dos valores precisa permanecer finito. Tabelas rejeitam colunas repetidas e paginação inconsistente.
+Cada bloco é validado isoladamente. Tipos/versões desconhecidos ou dados inválidos
+produzem aviso acessível sem eliminar os reconhecidos ou apresentar JSON bruto.
+O fallback textual atende mensagens legadas. Colunas repetidas, números não finitos,
+contagens inconsistentes e duplicação de pessoa/NR na matriz são recusados.
 
-## Componentes e estado
+## Paginação e abrangência
 
-O componente ChatBlocks escolhe um componente visual para cada bloco. useChatBlocks memoriza a validação e cria chaves estáveis a partir do conteúdo, já que o contrato não fornece IDs. Itens duplicados recebem sufixos distintos.
+Tabelas v2 e matrizes v1 recebem até 200 linhas e usam páginas locais de dez.
+O total visual vem de `linhas.length`, independentemente do envelope 1/1.
+Cada bloco tem estado próprio, isolado pela mensagem. Não há callback de consulta
+na paginação. Tabelas v1 continuam com até 50 linhas e metadados de servidor;
+não foram alteradas as consultas antigas de agenda/mensagens/notificações.
 
-- ChatBlockGraphic renderiza barras, linhas e setores. Os gráficos são decorativos para tecnologias assistivas; uma lista textual adjacente apresenta categorias e valores, além de fonte e unidade.
-- Tabelas mostram o título, cabeçalhos, linhas e resumo da paginação.
-- ChatBlockAvatar mostra foto e nome ou, se não houver uma imagem segura ou se ela falhar, as iniciais da pessoa.
+São exibidos quantidade solicitada, recebida, total disponível e existência de
+outros registros autorizados. `limitado` identifica corte de segurança por
+`maximo_resultados` ou `tamanho_resposta`, separadamente de `tem_mais`.
+100 recebidos de 273 com limitado=false representa quantidade atendida, conjunto
+parcial. Zero recebido com total positivo é distinguido de total zero.
 
-## URLs de imagem e acessibilidade
+Indicadores e gráficos usam exclusivamente os agregados enviados pela API.
+Não são derivados da página ou somados entre categorias. Percentual nulo é
+“Sem base”, com numerador/denominador preservados. Cartões mostram universo,
+abrangência, unidade e critério. O arredondamento Python da API é aceito inclusive
+nos empates decimais; o valor apresentado é sempre o recebido.
 
-safeChatImage aceita somente URLs HTTPS sem credenciais cujo host termine em .r2.cloudflarestorage.com. Fotos usam referrerPolicy no-referrer. URL ausente, inválida ou com erro usa iniciais. A autorização dos dados e das imagens continua sendo responsabilidade da API.
+A matriz permanece longa: identidade `(referencia_pessoa, nr)`, permitindo
+homônimos e preservando unidade, validade, conformidade, agenda e análise.
+Nenhum registro ausente é transformado em situação inferida. Referências não
+geram consultas ou ações no frontend.
 
-A tabela fica dentro de uma região nomeada e focável, com rolagem horizontal e contorno visível ao receber foco. Tamanho de texto e cores usam as variáveis de preferência do chat; os estilos de alto contraste têm regras próprias em styles/chatBlocks.css.
+## Apresentação e segurança
+
+O contexto mostra fonte, referência, período, escopo, filtros, critérios, avisos
+e resumo do conjunto. Não inventa data/hora ou abrangência. Avisos ficam visíveis.
+Rosca usa o discriminador próprio e preserva zeros, legenda, unidade e fonte;
+soma zero mostra “Sem valores para distribuir”, sem fatias artificiais.
+Meses ausentes não são completados. Valores também aparecem em texto acessível,
+com tooltips na legenda e barras. Tabela tem região focável e rolagem horizontal.
+
+Fichas aceitam nome e campos opcionais, modalidade e origem autenticada ou nula
+no legado. Sem foto usam iniciais; sem nome usam avatar neutro. Conformidade só
+aparece se recebida. Não acrescentam Status ou Cadastrado em.
+URLs de fotos são HTTPS R2, temporárias, sem referrer e com fallback de erro;
+não são persistidas pelo chat. Autorização, bloqueios e confirmações ficam na API.
+
+## Validação reproduzível
+
+`node --test tests/chatBlocks.test.cjs` cobre contratos, mistura/ordem, legado,
+100/200 linhas, limites, homônimos, denominador zero, rosca zerada, fotos, navegação
+sem rede, isolamento e invariância dos agregados. Exercita também o controlador
+com POST/histórico simulados, retomada de sessão e troca de usuário durante envio.
+
+Com `npm run dev`, abrir `/tools/chat-blocks-preview/index.html` para homologação
+visual isolada com dados fictícios e fixture validada pelos mesmos testes.
+Esse HTML não é entrada do build de produção. Evidências e limitações reais em
+[homologação da PR 70](homologacao-chat-pr70.md).
+
+## Limites do envelope e componentes legados
+
+A resposta aceita até dez blocos. Textos têm de 1 a 6.000 caracteres; gráficos
+admitem de 1 a 12 categorias e valores inteiros não negativos com soma segura.
+Galerias antigas continuam com até 50 pessoas, nome obrigatório, e-mail opcional
+até 320 caracteres e URL opcional até 8.192. Duplicatas de conteúdo têm chaves
+separadas. `useChatBlocks` memoriza o parsing; os gráficos decorativos têm uma
+lista textual adjacente, preservando acesso aos valores sem depender da imagem.

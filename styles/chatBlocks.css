@@ -23,3 +23,34 @@
 html[data-astro-contrast='true'] .chat-data-card { color: var(--astro-text); background: var(--a11y-surface); border-color: var(--astro-input-focus-border); }
 html[data-astro-contrast='true'] .chat-data-card small { color: var(--a11y-muted); }
 html[data-astro-contrast='true'] .chat-gallery-person span { color: var(--astro-text); background: var(--a11y-field); }
+
+.chat-user-card-body { display: flex; flex-wrap: wrap; align-items: start; gap: 1rem; }
+.chat-user-card dl { flex: 1; min-width: 0; margin: 0; }
+.chat-user-card dl > div { display: flex; flex-wrap: wrap; gap: .4rem; padding: .4rem 0; border-bottom: 1px solid currentColor; }
+.chat-user-card dt { font-weight: 600; }
+.chat-user-card dd { margin: 0; overflow-wrap: anywhere; }
+.chat-user-compliance { display: grid; gap: .5rem; margin-top: 1rem; }
+.chat-user-compliance meter { width: 100%; height: 1rem; }
+.chat-local-pagination { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-top:12px; font-size:var(--chat-body-size, .75rem) }
+.chat-local-pagination button { font:inherit; padding:8px 12px; border:1px solid currentColor; border-radius:var(--astro-control-radius, 8px); background:transparent; color:inherit; cursor:pointer }
+.chat-local-pagination button:disabled { opacity:.5; cursor:default }
+.chat-local-pagination button:focus-visible { outline:2px solid var(--astro-input-focus-border, #6047a0); outline-offset:2px }
+.chat-set-summary { display:grid; gap:6px; margin-top:12px; font-size:var(--chat-body-size, .75rem) }
+.chat-indicators { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr)); gap:12px; margin:12px 0 0 }
+.chat-indicators > div { border:1px solid #d9d2ed; border-radius:10px; padding:12px; overflow-wrap:anywhere }
+.chat-indicators dt { font-weight:600 }
+.chat-indicators dd { margin:8px 0 0; display:grid; gap:4px }
+.chat-indicators dd strong { font-size:1.25rem }
+.chat-data-context { font-size:var(--chat-body-size, .75rem); overflow-wrap:anywhere }
+.chat-data-context dl { display:grid; gap:6px }
+.chat-data-context dd { margin:0 }
+.chat-data-context dt { font-weight:600 }
+.chat-data-context h5 { margin:12px 0 6px; font-size:inherit }
+.chat-data-context ul { padding-left:20px }
+.chat-pie--donut { position:relative }
+.chat-pie--donut::after { content:''; position:absolute; inset:28%; border-radius:50%; background:#fff }
+html[data-astro-contrast='true'] .chat-pie--donut::after { background:var(--a11y-surface) }
+.chat-chart-values li > span { min-width:0 }
+.chat-chart-values li > strong { flex-shrink:0 }
+
+.chat-gallery-person { white-space:normal }
