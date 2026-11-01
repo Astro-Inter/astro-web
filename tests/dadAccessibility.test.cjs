@@ -102,8 +102,8 @@ test('tokens de texto, campos, erros e botões mantêm contraste AA nos fundos c
   assert.match(optionsCss, /\.astro-options-popup-item--danger\s*\{\s*color:\s*var\(--astro-error-text\)/)
   const dangerFocus = optionsCss.match(/\.astro-options-popup-item--danger:focus-visible\s*\{\s*color:\s*(#[a-f0-9]{6})/i)[1]
   assert.ok(contrast(dangerFocus, token('popup-background')) >= 4.5, 'excluir com foco')
-  const calendarColors = [...calendarCss.matchAll(/\.event-calendar-item--(?:scheduled|today)\s*\{\s*background:\s*(#[a-f0-9]{6})/gi)]
-  assert.equal(calendarColors.length, 2)
+  const calendarColors = [...calendarCss.matchAll(/\.event-calendar-item--(?:scheduled|today|in-progress)\s*\{\s*background:\s*(#[a-f0-9]{6})/gi)]
+  assert.equal(calendarColors.length, 3)
   for (const [, background] of calendarColors) assert.ok(contrast('#ffffff', background) >= 4.5, `evento ${background}`)
   // O contorno translúcido precisa contrastar com a superfície sob ele, não com branco puro.
   const ring = css.match(/--astro-focus-border:\s*rgb\((\d+) (\d+) (\d+) \/ ([\d.]+)%\)/).slice(1).map(Number)

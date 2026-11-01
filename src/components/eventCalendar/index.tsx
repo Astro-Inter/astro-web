@@ -90,10 +90,11 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
   function eventItem(event: CalendarEvent, miniature = false, weekly = false) {
     const inProgress = calendarEventInProgress(event, now)
     const readOnlyReason = calendarEventReadOnlyReason(event, now)
+    const inactive = Boolean(event.inactive || event.status === 'CANCELADO')
     const timedEvent = event.category === 'today' ? null : event
     const eventLabel = event.category === 'today' ? 'Dia atual' : event.title
-    const itemClass = `event-calendar-item event-calendar-item--${event.category}${event.category !== 'today' ? ' event-calendar-item--scheduled' : ''}${event.inactive ? ' event-calendar-item--inactive' : ''}${inProgress ? ' event-calendar-item--in-progress' : ''}${readOnlyReason ? ' event-calendar-item--read-only' : ''}${miniature ? ' event-calendar-item--miniature' : ' event-loading-ready'}${weekly ? ' event-calendar-item--weekly' : ''}${savedEventId === (event.eventId ?? event.id) ? ' event-calendar-item--saved' : ''}`
-    const itemLabel = `${eventLabel}${event.inactive ? ', inativo' : ''}${readOnlyReason ? `, ${readOnlyReason.toLocaleLowerCase('pt-BR')}` : ''}, ${eventDateLabel(event.date)}${timedEvent ? `, das ${timedEvent.startTime} às ${timedEvent.endTime}` : ''}`
+    const itemClass = `event-calendar-item event-calendar-item--${event.category}${event.category !== 'today' ? ' event-calendar-item--scheduled' : ''}${inactive ? ' event-calendar-item--inactive' : ''}${inProgress ? ' event-calendar-item--in-progress' : ''}${readOnlyReason ? ' event-calendar-item--read-only' : ''}${miniature ? ' event-calendar-item--miniature' : ' event-loading-ready'}${weekly ? ' event-calendar-item--weekly' : ''}${savedEventId === (event.eventId ?? event.id) ? ' event-calendar-item--saved' : ''}`
+    const itemLabel = `${eventLabel}${inactive ? ', inativo' : ''}${readOnlyReason ? `, ${readOnlyReason.toLocaleLowerCase('pt-BR')}` : ''}, ${eventDateLabel(event.date)}${timedEvent ? `, das ${timedEvent.startTime} às ${timedEvent.endTime}` : ''}`
     const itemContent = miniature ? null : <span className="event-calendar-item-label">{eventLabel}</span>
 
     if (event.category === 'today') return <span
@@ -101,7 +102,7 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
       className={`${itemClass} event-calendar-item--static`}
       key={event.id}
       role={miniature ? 'img' : undefined}
-      title={`${event.title}${event.inactive ? ' — Inativo' : ''}${readOnlyReason ? ` — ${readOnlyReason}` : ''}`}
+      title={`${event.title}${inactive ? ' — Inativo' : ''}${readOnlyReason ? ` — ${readOnlyReason}` : ''}`}
     >{itemContent}</span>
 
     return <button data-track-item={BUTTONS.comuns.evento}
@@ -112,7 +113,7 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
       className={itemClass}
       key={event.id}
       onClick={click => onOpenOptions(event, click.currentTarget)}
-      title={`${event.title}${event.inactive ? ' — Inativo' : ''}${readOnlyReason ? ` — ${readOnlyReason}` : ''}`}
+      title={`${event.title}${inactive ? ' — Inativo' : ''}${readOnlyReason ? ` — ${readOnlyReason}` : ''}`}
       type="button"
     >{itemContent}</button>
   }

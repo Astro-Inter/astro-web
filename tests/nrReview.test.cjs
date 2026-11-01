@@ -313,7 +313,8 @@ test('revisor corrige a análise, confere diferenças e aprova as correções se
 }))
 
 test('cancelar a edição ou fechar a revisão descarta mudanças sem alterar o catálogo', async () => withPage('/admin/nrs/pending', async env => {
-  await act(async () => document.querySelector('button[aria-label="Revisar NR-20"]').click()); await settle()
+  await act(async () => document.querySelector('button[aria-label="Revisar NR-20"]').click())
+  await waitFor(() => [...document.querySelectorAll('button')].some(button => button.textContent === 'Editar análise'))
   await click('Editar análise')
   const revoked = document.getElementById('pending-edit-revogada')
   await act(async () => { revoked.value = 'true'; revoked.dispatchEvent(new window.Event('change', { bubbles: true })) })

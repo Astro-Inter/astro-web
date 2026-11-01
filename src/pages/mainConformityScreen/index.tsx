@@ -193,7 +193,7 @@ function MainConformityScreenPage() {
             <div className="position-toolbar-selects">
               <button data-track-action={BUTTONS.comuns.filtro} aria-haspopup="dialog" aria-label={activeFilterCount ? `Filtros, ${activeFilterCount} ${activeFilterCount === 1 ? 'ativo' : 'ativos'}` : 'Filtros'} className="conformity-filter-button" onClick={() => setFilterOpen(true)} ref={filterTriggerRef} type="button">
                 {activeFilterCount ? `Filtros (${activeFilterCount})` : 'Filtros'}
-                <AstroIcon name="chevron-down" />
+                <AstroIcon name="filter" />
               </button>
             </div>
           </div>

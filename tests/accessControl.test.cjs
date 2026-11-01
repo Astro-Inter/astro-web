@@ -188,7 +188,7 @@ test('conta usa apenas o perfil autenticado, ignorando qualquer tentativa de alt
     for (const query of ['', '?role=manager', '?role=workspaceManager']) {
       const markup = env.render(account, `/mainAccountScreen${query}`)
       if (role === 'GESTOR') {
-        assert.match(markup, />Enviar email<\/button>/)
+        assert.match(markup, /href="mailto:app\.4str0@gmail\.com\?subject=[^"]+"[^>]*>Enviar email<\/a>/)
         assert.doesNotMatch(markup, />Substituir<\/button>/)
         assert.match(markup, />Workspace<\/button>/)
       } else {

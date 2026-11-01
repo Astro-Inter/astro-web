@@ -25,7 +25,6 @@
 .account-logout-action { display: flex; justify-content: center; margin-top: var(--create-forms-outer-gap); }
 .account-information-card--saved { animation: account-information-saved 900ms cubic-bezier(.22, 1, .36, 1); }
 @keyframes account-information-saved { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 35% { box-shadow: 0 0 0 2px rgb(156 0 205 / 45%); } }
-.account-transfer-card .account-email-preview { margin-top: var(--create-forms-stack-gap); }
 .account-details-modal { --astro-modal-width: var(--astro-modal-two-column-width); }
 .account-details-form { margin-top: var(--astro-modal-content-gap); }
 .account-details-content { margin-top: var(--astro-modal-content-gap); }
@@ -51,7 +50,7 @@
 @supports (anchor-name: --account-select) {
   .account-field-select { anchor-scope: --account-select; }
   .account-field-select .astro-toolbar-select-control { anchor-name: --account-select; }
-  .account-field-select .astro-toolbar-select-popover { position: fixed; position-anchor: --account-select; top: calc(anchor(bottom) + .45rem); left: anchor(left); right: auto; width: anchor-size(width); }
+  .account-field-select .astro-toolbar-select-popover { margin: 0; color: inherit; font: inherit; position: fixed; position-anchor: --account-select; top: calc(anchor(bottom) + .45rem); bottom: auto; left: anchor(left); right: auto; width: anchor-size(width); }
   .account-field-select[data-placement='above'] .astro-toolbar-select-popover { top: auto; bottom: calc(anchor(top) + .45rem); }
 }
 

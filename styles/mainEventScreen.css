@@ -49,6 +49,7 @@
 .event-calendar-item-label { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .event-calendar-item--today { background: #176b54; }
 .event-calendar-item--scheduled { background: #6248a0; }
+.event-calendar-item--in-progress { background: #8e673f; color: #fff; }
 .event-calendar-item--inactive { color: #fff; background: var(--astro-danger); }
 .event-calendar-item:not(.event-calendar-item--static):hover, .event-calendar-item[aria-expanded='true'] { filter: brightness(0.91); }
 .event-calendar-item--static { cursor: default; }
@@ -140,4 +141,4 @@
 .event-calendar-day-events:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
 .event-calendar-scroll:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; border-radius: var(--astro-control-radius); }
 
-.event-calendar-item--read-only { color: #f8f7fc; background: rgb(117 117 130 / 45%); }
+.event-calendar-item--read-only:not(.event-calendar-item--inactive):not(.event-calendar-item--in-progress) { color: #f8f7fc; background: rgb(117 117 130 / 45%); }

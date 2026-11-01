@@ -32,6 +32,7 @@ type AstroIconName =
   | 'event-calendar'
   | 'settings'
   | 'search'
+  | 'filter'
   | 'chevron-down'
   | 'chevron-left'
   | 'chevron-right'
@@ -69,6 +70,7 @@ const iconFiles: Record<AstroIconName, { file: string; width: number; height: nu
   help: { file: 'help.svg', width: 24, height: 24 },
   active: { file: 'person.svg', width: 24, height: 24 },
   mapping: { file: 'mappingDocument.svg', width: 24, height: 24 },
+  filter: { file: 'filter.svg', width: 24, height: 24 },
   pix: { file: 'pix.svg', width: 24, height: 24 },
   plus: { file: 'addPurple.svg', width: 24, height: 24 },
   'plus-square': { file: 'plus.svg', width: 24, height: 24 },

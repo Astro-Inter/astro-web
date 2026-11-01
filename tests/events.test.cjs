@@ -244,7 +244,7 @@ test('calendário mantém os períodos reais das turmas e reconhece andamento na
     { ...calendar, eventClassId: 91, startDate: '2099-11-10T08:00:00', endDate: '2099-11-10T09:00:00' }]
   const entries = utils.calendarFromApi(rows, '2099-11-01T00:00:00', '2099-11-30T23:59:59')
   const start = new Date(rows[0].startDate).getTime(), end = new Date(rows[0].endDate).getTime()
-  for (const entry of entries) {
+  for (const entry of entries.filter(item => item.id.split(':')[1] === String(calendar.eventClassId))) {
     assert.equal(calendarUtils.calendarEventInProgress(entry, start - 1), false)
     assert.equal(calendarUtils.calendarEventInProgress(entry, start), true)
     assert.equal(calendarUtils.calendarEventInProgress(entry, end - 1), true)
@@ -252,6 +252,10 @@ test('calendário mantém os períodos reais das turmas e reconhece andamento na
     assert.equal(calendarUtils.calendarEventInProgress({ ...entry, inactive: true, status: 'CANCELADO' }, start), false)
     assert.equal(calendarUtils.calendarEventInProgress({ ...entry, status: 'CONCLUIDO' }, start), false)
   }
+  const future = entries.find(item => item.id.split(':')[1] === '91')
+  assert.equal(calendarUtils.calendarEventInProgress(future, start), false)
+  assert.equal(calendarUtils.calendarEventReadOnlyReason(future, start), '')
+  assert.equal(calendarUtils.calendarEventInProgress(future, new Date(rows[1].startDate).getTime()), true)
 })
 
 test('histórico fica somente para consulta por status ou prazo, preservando turmas futuras', () => {
