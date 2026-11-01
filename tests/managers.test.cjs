@@ -252,7 +252,7 @@ test('modal de promoção mantém valores e exibe erro acessível para tentar no
   assert.equal(result.modal.props.dismissible, true)
 })
 
-test('despromoção usa PATCH autenticado sem corpo, valida ID e preserva erros da API', async () => {
+test('rebaixamento usa PATCH autenticado sem corpo, valida ID e preserva erros da API', async () => {
   const calls = []
   global.fetch = async (url, init) => { calls.push({ url, ...init }); return respond({ ...details, status: 'DESATIVADO' }) }
   const result = await api.demoteManager('42')

@@ -197,7 +197,7 @@ test('promoção solicita exclusão do próprio responsável para não oferecer 
   env.render(undefined, false, true); await flush()
   assert.equal(env.calls.find(call => call.name === 'listCollaborators').args[1], true)
 })
-test('despromoção aguarda confirmação da API, bloqueia duplicação, remove gestor e recarrega candidatos', async () => {
+test('rebaixamento aguarda confirmação da API, bloqueia duplicação, remove gestor e recarrega candidatos', async () => {
   const env = environment(), pending = deferred()
   env.render('42', false, true)
   await flush()
@@ -217,7 +217,7 @@ test('despromoção aguarda confirmação da API, bloqueia duplicação, remove 
   assert.equal(env.calls.filter(call => call.name === 'demoteManager').length, 1)
 })
 
-test('falha na despromoção preserva gestor e detalhes; resposta de sessão antiga é descartada', async () => {
+test('falha no rebaixamento preserva gestor e detalhes; resposta de sessão antiga é descartada', async () => {
   const env = environment()
   env.render('42')
   await flush()

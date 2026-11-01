@@ -56,19 +56,19 @@ function environment(status = 'ATIVO') {
   }
 }
 
-test('despromoção aparece para todos os status e exige confirmação, com cancelamento sem escrita', async () => {
+test('rebaixamento aparece para todos os status e exige confirmação, com cancelamento sem escrita', async () => {
   for (const status of ['ATIVO', 'DESATIVADO', 'PRE_CADASTRADO']) {
     const env = environment(status)
     env.render()
     const item = env.menu().props.items.find(item => item.id === 'demote')
-    assert.equal(item.label, 'Despromover para colaborador')
+    assert.equal(item.label, 'Rebaixar para colaborador')
     item.onSelect()
     assert.deepEqual(env.calls, [])
     env.render()
     const modal = env.confirmation()
     assert.match(modal.props.title, /Ana Silva/)
     assert.match(modal.props.description, /status.*cargo.*unidade.*histórico/)
-    assert.equal(modal.props.confirmLabel, 'Despromover')
+    assert.equal(modal.props.confirmLabel, 'Rebaixar')
     modal.props.onCancel()
     env.render()
     assert.equal(env.confirmation(), undefined)
