@@ -26,7 +26,7 @@ const role = { roleId: 42, workspaceId: 3, name: 'Gerente', collaboratorCount: 5
 const values = { name: ' Gerente ', active: true }
 function respond(data) { return new Response(JSON.stringify({ success: true, data }), { status: 200 }) }
 
-test('conecta os sete endpoints com token, UID e DTOs do Swagger', async () => {
+test('conecta os sete endpoints somente com token e DTOs do Swagger', async () => {
   const calls = []
   const responses = [[role], null, { ...role, name: 'Diretor' }, false, [{ nrCode: 6, description: 'EPI' }], [{ nr: 6, description: 'EPI', active: true }], null]
   global.fetch = async (url, init) => { calls.push({ url, ...init }); return respond(responses.shift()) }
@@ -43,11 +43,16 @@ test('conecta os sete endpoints com token, UID e DTOs do Swagger', async () => {
   ])
   for (const call of calls) {
     assert.equal(call.headers.Authorization, 'Bearer firebase-token')
-    if (call.method === 'GET') { assert.equal(new URL(call.url).searchParams.get('firebase_uid'), 'gestor/uid'); assert.equal(call.body, undefined) }
-    else assert.equal(JSON.parse(call.body).firebaseUid, 'gestor/uid')
+    assert.equal(new URL(call.url).search, '')
+    if (call.body) {
+      assert.equal(Object.hasOwn(JSON.parse(call.body), 'firebaseUid'), false)
+      assert.equal(Object.hasOwn(JSON.parse(call.body), 'firebase_uid'), false)
+    }
+    if (call.method === 'GET' || call.method === 'PATCH') assert.equal(call.body, undefined)
   }
-  assert.deepEqual(JSON.parse(calls[1].body), { firebaseUid: 'gestor/uid', name: 'Gerente', status: 'ativo' })
-  assert.deepEqual(JSON.parse(calls[3].body), { firebaseUid: 'gestor/uid' })
+  assert.deepEqual(JSON.parse(calls[1].body), { name: 'Gerente', status: 'ativo' })
+  assert.equal(calls[3].body, undefined)
+  assert.equal(calls[3].headers['Content-Type'], undefined)
   assert.deepEqual(JSON.parse(calls[6].body).nrs, [{ nr: 6, active: false }, { nr: 10, active: true }])
 })
 
