@@ -170,6 +170,7 @@ export const BUTTONS = {
     "distribuir_aleatoriamente": "distribuir_aleatoriamente",
     "duplicar_pergunta": "duplicar_pergunta",
     "e_mail_do_gestor": "e_mail_do_gestor",
+    "despromover": "despromover",
     "editar": "editar",
     "editar_dados": "editar_dados",
     "editar_endereco": "editar_endereco",
@@ -259,5 +260,5 @@ export const BUTTONS = {
   }
 } as const
 
-const CONFIRM_ACTIONS: Record<string, string> = { Continuar: 'continuar', Substituir: 'substituir', Salvar: 'salvar', Sair: 'sair', Excluir: 'excluir', Desativar: 'inativar', Inativar: 'inativar', Ativar: 'ativar', 'Tornar não aplicável': 'tornar_nao_aplicavel', 'Salvar alterações': 'salvar_alteracoes' }
+const CONFIRM_ACTIONS: Record<string, string> = { Despromover: 'despromover', Continuar: 'continuar', Substituir: 'substituir', Salvar: 'salvar', Sair: 'sair', Excluir: 'excluir', Desativar: 'inativar', Inativar: 'inativar', Ativar: 'ativar', 'Tornar não aplicável': 'tornar_nao_aplicavel', 'Salvar alterações': 'salvar_alteracoes' }
 export function confirmationAction(label: string): string { return CONFIRM_ACTIONS[label] ?? 'confirmar' }
