@@ -1,65 +1,44 @@
-# Confirmação de identidade — SCRUM-516
+# Confirmação de identidade
 
-A confirmação usa a conta atual do Firebase, com `EmailAuthProvider.credential(user.email, password)` e `reauthenticateWithCredential(user, credential)`, conforme a [documentação oficial](https://firebase.google.com/docs/auth/web/manage-users#re-authenticate_a_user). Não executa um novo login comum.
+A confirmação reautentica a conta Firebase atual com e-mail e senha, usando EmailAuthProvider.credential e reauthenticateWithCredential. Não inicia uma sessão diferente.
 
-## Organização
+## Organização do código
 
-- `src/services/identityConfirmation.ts`: valida a sessão esperada, reautentica e traduz erros do Firebase em mensagens públicas.
-- `src/hooks/usePasswordConfirmation.ts`: mantém o estado temporário do formulário, impede envios simultâneos e descarta respostas após cancelamento, desmontagem ou troca de usuário.
-- `src/types/identityConfirmation.ts`: contratos do estado e controlador.
-- `src/components/passwordConfirmationForm/index.tsx`: campo, visibilidade da senha, carregamento e erros acessíveis; não acessa serviços.
-- `src/components/passwordConfirmationModal/index.tsx`: usa o hook e libera uma única vez o callback que originou o modal, após o sucesso e o fechamento animado.
-- `src/components/replaceAccountFlowModal/index.tsx`: reutiliza o mesmo hook/formulário na etapa de senha da transferência.
+- src/services/identityConfirmation.ts: valida a sessão esperada, chama o SDK Firebase e traduz erros em mensagens públicas.
+- src/hooks/usePasswordConfirmation.ts: controla o formulário, bloqueia envios simultâneos e descarta respostas após cancelamento, desmontagem ou troca de usuário.
+- src/types/identityConfirmation.ts: tipos do estado e do controlador.
+- src/components/passwordConfirmationForm/index.tsx: campo, visibilidade da senha, loading e mensagens acessíveis.
+- src/components/passwordConfirmationModal/index.tsx: coordena o hook e libera somente o callback da ação que abriu o modal.
+- src/components/replaceAccountFlowModal/index.tsx: reutiliza o formulário na etapa de senha da transferência de responsável.
 
-## Telas integradas
+## Ações integradas
 
-Todos os usos do modal de senha existente estão integrados: informações da empresa, planilha empresarial, endereços das unidades e pagamentos em configurações de workspace; ver tudo e editar em configurações de conta; editar gestores e colaboradores; substituir o gestor do workspace.
+A confirmação é usada antes de ver detalhes ou editar a própria conta, editar gestores e colaboradores, alterar informações da empresa, importar planilha, editar endereços ou pagamentos em configurações de workspace e substituir o gestor responsável.
 
-A confirmação protege a continuação que já estava associada a cada modal. Ela não adiciona endpoints nem transforma operações demonstrativas em persistência real. Outras ações que não possuíam esse modal continuam com seu fluxo existente.
+O callback continua responsável pela ação original, incluindo chamada à API, loading e tratamento de erro. A confirmação não adiciona endpoints nem converte operações demonstrativas em persistência.
 
-## Reutilizar antes de uma ação
+## Reutilização
 
-Uma tela precisa apenas manter a ação/recurso pendente e renderizar o modal. O callback não recebe a senha:
+A tela mantém a ação ou o registro pendente e renderiza o modal. O callback não recebe a senha:
 
-```tsx
-{pendingRecordId && (
-  <PasswordConfirmationModal
-    className="record-password-modal"
-    key={pendingRecordId}
-    onCancel={() => setPendingRecordId(null)}
-    onContinue={() => {
-      const recordId = pendingRecordId
-      setPendingRecordId(null)
-      void deleteRecord(recordId) // operação da tela, com seu loading/erro
-    }}
-  />
-)}
-```
+    <PasswordConfirmationModal
+      key={pendingRecordId}
+      onCancel={() => setPendingRecordId(null)}
+      onContinue={() => {
+        const recordId = pendingRecordId
+        setPendingRecordId(null)
+        void deleteRecord(recordId)
+      }}
+    />
 
-Use uma `key` que identifique a ação e o recurso quando o modal puder ser substituído enquanto aberto. Cada instância guarda o callback inicial e a conta que solicitou a ação. Uma confirmação não fica disponível para outras ações ou modais futuros. Para composições próprias de diálogo, reutilize `usePasswordConfirmation` e `PasswordConfirmationForm` como no fluxo de transferência, sem repetir o acesso ao Firebase.
+Use uma chave que identifique a ação e o recurso quando o modal puder ser substituído enquanto estiver aberto. Para composições próprias, reutilize usePasswordConfirmation e PasswordConfirmationForm, sem duplicar acesso ao Firebase.
 
-O serviço também pode ser aguardado por outro controlador: `await confirmarIdentidadeDoUsuario(password, user.uid)`. Ele não abre um modal; o hook e os componentes cuidam da interface, do cancelamento e da continuação.
+O serviço também pode ser aguardado diretamente por um controlador com confirmarIdentidadeDoUsuario(password, user.uid); ele não abre interface.
 
 ## Segurança e erros
 
-A senha existe somente no estado transitório do campo e na chamada ao SDK; o estado é limpo já no início da tentativa e ao cancelar. Não é gravada em storage, context global, logs ou enviada à API própria. Não é normalizada com `trim`, pois espaços podem fazer parte da senha. O limite de 128 caracteres acompanha o campo/login atual do projeto.
+A senha existe somente no estado transitório do campo e na chamada ao SDK. O estado é limpo no início da tentativa e ao cancelar. A senha não é gravada em storage, contexto global ou logs e não é enviada à API Astro. Não se aplica trim, pois espaços podem fazer parte da senha.
 
-Senha errada e credencial inválida, excesso de tentativas, falta de rede, conta desativada, sessão expirada, provedor sem senha e erros desconhecidos possuem mensagens apropriadas. Erros originais do SDK não são expostos nem anexados às mensagens públicas. Um erro mantém o modal aberto, bloqueia a continuação e permite tentar novamente com o campo vazio.
+Erros de credencial, limite de tentativas, rede, conta desativada, sessão expirada e provedor sem senha são mapeados para mensagens públicas. O modal permanece aberto e permite nova tentativa com o campo limpo. Durante a validação, campo, visibilidade e envio ficam desabilitados. Cancelar, Escape e clique no backdrop descartam a tentativa; como o SDK não cancela a requisição, uma resposta tardia é ignorada.
 
-Durante a validação, campo, visibilidade e envio ficam desabilitados; Cancelar, Escape e clique no backdrop descartam a tentativa. O SDK não oferece cancelamento dessa requisição: a resposta tardia é ignorada e não libera a ação. Após sucesso, o formulário bloqueia novos envios enquanto o modal fecha. O consumo final confere novamente o UID autenticado.
-
-A reautenticação é uma confirmação adicional no frontend. O backend deve continuar validando o token, a role/permissão e o acesso ao recurso; o usuário conhecer a própria senha não lhe concede permissões. Se a API exigir autenticação recente, deve validar também a idade de `auth_time` no token verificado pelo servidor. Nunca confie em um booleano enviado pelo cliente para autorizar uma operação.
-
-## Verificar
-
-Os testes automatizados usam Firebase simulado e verificam o serviço, o controlador, a ligação do modal e o HTML do formulário. Não utilizam uma conta real.
-
-Para testar no Firebase configurado: entrar com e-mail/senha, abrir cada ação integrada, confirmar senha errada (sem continuação e campo limpo), confirmar senha correta (somente ação solicitada), cancelar antes e durante a validação, pressionar Enter/clique repetidamente, simular falha de rede e repetir a ação (uma nova confirmação deve ser exigida). Conferir no navegador que a requisição da senha vai ao Firebase e não à API do sistema. Testar também teclado, Escape, foco ao fechar e mensagens de erro/carregamento.
-
-## Critérios DAD aplicáveis à alteração
-
-- M03–M05 atendidos nesta alteração: apresentação no formulário, estado no hook, Firebase no serviço, contratos tipados e retorno assíncrono explícito. O build verifica os tipos.
-- M06–M07 atendidos: estado do formulário agrupado e atualizado sem mutação; efeitos têm dependências e limpeza para descartar respostas após desmontagem.
-- M12 atendido: carregamento, sucesso e erro estão no DOM e são verificados pelos testes do formulário.
-- M11 parcial: label/input, botões, erros com `role="alert"` e feedback com `role="status"` verificados no HTML. Teclado, foco e contraste na interface renderizada aguardam teste manual; não foi usado leitor de tela.
-- M13–M14 não avaliados nesta verificação funcional: esses critérios globais dependem do deploy e do histórico do projeto.
+Após sucesso, o consumo confere novamente o UID autenticado. A API continua responsável por validar token, perfil, permissão e acesso ao recurso. Se exigir autenticação recente, deve verificar auth_time no token validado pelo servidor.

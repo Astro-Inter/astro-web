@@ -1,6 +1,6 @@
-# Tracking do Astro — SCRUM-544
+# Tracking de eventos do Astro
 
-Você abre uma tela ou clica → o frontend põe o evento no dataLayer → o GTM recebe → a tag chama a API → a API grava na tabela eventos_astro.
+A interface coloca eventos no dataLayer; o Google Tag Manager os encaminha à API, que os persiste na tabela eventos_astro.
 
 ~~~mermaid
 flowchart LR
@@ -235,7 +235,3 @@ Este mapa aponta os controles existentes. Uma ação dentro de dialog vira dialo
 | [src/pages/setAddress/index.tsx](../src/pages/setAddress/index.tsx#L25) | tela exibida |
 | [src/pages/workspaceCreated/index.tsx](../src/pages/workspaceCreated/index.tsx#L16) | tela exibida; data-track-action: login.canSignIn ? (login.error ? tentar_novamente : continuar) : login |
 | [src/routes/index.tsx](../src/routes/index.tsx#L184) | data-track-route: renderedLocation.pathname; data-track-search: renderedLocation.search; data-track-visit: renderedLocation.key |
-
-## Conferência realizada
-
-O schema publicado da API foi consultado em 14/10/2026. O container público contém os seis acionadores e o destino correto. /health/db confirmou banco conectado nessa consulta. Testes automatizados cobrem navegação, StrictMode, submit/Enter, janelas reabertas e por etapa, menus em portal, showcases na viewport, UID/logout, campos proibidos e controles desativados. A navegação no Chrome foi verificada com a configuração Firebase local: o clique em Ver dashboards gerou button_click (home/home/dashboard) e a gravação foi confirmada por consulta ao banco da API.
