@@ -46,6 +46,7 @@ function MainFormScreenPage() {
     const content = contentRef.current
     const main = content?.parentElement
     if (!content || !main) return
+    let frame: number | null = null
     function fitCards() {
       if (!content || !main) return
       const grid = content.querySelector<HTMLElement>('.forms-grid')
@@ -68,12 +69,25 @@ function MainFormScreenPage() {
       const rows = Math.max(1, Math.floor((available + gap) / (card.getBoundingClientRect().height + gap)))
       if (Number.isFinite(rows)) setPageSize(Math.min(4, rows * columns))
     }
-    fitCards()
-    const observer = new ResizeObserver(fitCards)
+    // A medição altera o tamanho da lista e pode disparar outro layout.
+    // Agrupa esses avisos fora do commit para não encadear atualizações síncronas.
+    function scheduleFitCards() {
+      if (frame !== null) return
+      frame = window.requestAnimationFrame(() => {
+        frame = null
+        fitCards()
+      })
+    }
+    scheduleFitCards()
+    const observer = new ResizeObserver(scheduleFitCards)
     observer.observe(main)
     observer.observe(content)
-    window.addEventListener('resize', fitCards)
-    return () => { observer.disconnect(); window.removeEventListener('resize', fitCards) }
+    window.addEventListener('resize', scheduleFitCards)
+    return () => {
+      if (frame !== null) window.cancelAnimationFrame(frame)
+      observer.disconnect()
+      window.removeEventListener('resize', scheduleFitCards)
+    }
   }, [forms.length])
   const closeMenu = useCallback((afterClose?: () => void, restoreFocus = true) => {
     requestClose(() => {
