@@ -82,3 +82,35 @@ Galerias antigas continuam com até 50 pessoas, nome obrigatório, e-mail opcion
 até 320 caracteres e URL opcional até 8.192. Duplicatas de conteúdo têm chaves
 separadas. `useChatBlocks` memoriza o parsing; os gráficos decorativos têm uma
 lista textual adjacente, preservando acesso aos valores sem depender da imagem.
+
+## Arquivo PDF v1 (API PR 34)
+
+`arquivo` v1 é validado isoladamente e renderizado por `chatBlockFile`, separado
+do texto e na posição recebida. Aceita UUID, nome seguro `.pdf` (até 100), MIME
+`application/pdf`, tamanho nulo ou inteiro de 1 a 2.000.000, URL HTTPS ou nula,
+expiração ISO UTC e estado disponivel/expirado/indisponivel. O cartão omite o tamanho
+quando ausente; não estima nem converte arquivo para outro tipo.
+
+`useChatFileDownload` controla prazo, carregamento, erro e cancelamento. O botão
+só habilita com URL, estado disponível e prazo válido; expiração é reavaliada
+pelo relógio e quando a aba volta a receber foco/visibilidade. Histórico e lembrete
+mantêm o mesmo id/prazo recebido. O cliente nunca renova assinatura ou consulta o
+arquivo pelo id. Falha de geração sem bloco não produz cartão de sucesso.
+
+`services/chatFiles.ts` recebe apenas a URL fornecida, em download iniciado por
+clique. Não usa o cliente autenticado Astro: credentials omit, no-referrer,
+no-store, sem Authorization ou cookies. Valida resposta PDF e limite de 2 MB,
+cria Blob temporário somente para salvar, e revoga seu object URL após uso.
+Não faz prefetch/preview automático nem coloca URL assinada em href do cartão,
+logs, analytics ou armazenamento. O cartão usa data-track-ignore. Erros de rede,
+CORS, HTTP, MIME ou tamanho produzem alerta sem incluir a URL no erro.
+
+O download direto precisa de GET permitido por CORS e Content-Type application/pdf.
+Se falhar, o alerta oferece “Abrir PDF no navegador”: uma ação explícita de
+navegação para a mesma URL, com noopener/noreferrer, sem token Astro, sem renovação
+e sem construir outra capacidade. Não faz preview automático. O usuário pode
+usar o download do visualizador do navegador; erros HTTP do armazenamento nessa
+navegação ficam a cargo do navegador. A alternativa desaparece ao expirar.
+A implementação mantém os componentes e contratos analíticos existentes, sem
+recalcular agregados a partir das linhas. A simulação visual específica está em
+`/tools/chat-contracts-preview/index.html` e não entra no build de produção.

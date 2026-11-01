@@ -7,7 +7,7 @@ const React = require('react')
 const { renderToStaticMarkup } = require('react-dom/server')
 function load(file) {
   const filename = path.resolve(file), module = { exports: {} }
-  const code = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText
+  const code = ts.transpileModule(fs.readFileSync(filename, 'utf8').replaceAll('import.meta.env.BASE_URL', "'/'"), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText
   new Function('require', 'module', 'exports', code)(name => {
     if (!name.startsWith('.')) return require(name)
     const target = path.resolve(path.dirname(filename), name)

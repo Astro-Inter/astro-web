@@ -54,3 +54,15 @@ html[data-astro-contrast='true'] .chat-pie--donut::after { background:var(--a11y
 .chat-chart-values li > strong { flex-shrink:0 }
 
 .chat-gallery-person { white-space:normal }
+
+.chat-file-card { display:grid; gap:12px; overflow-wrap:anywhere }
+.chat-file-heading { display:flex; align-items:center; gap:10px; min-width:0 }
+.chat-file-heading > .astro-icon { flex:none; width:28px; height:28px }
+.chat-file-heading > div { min-width:0 }
+.chat-file-heading h4 { margin-bottom:4px }
+.chat-file-card p,.chat-file-heading span { font-size:var(--chat-body-size, .75rem) }
+.chat-file-card button { display:inline-flex; justify-content:center; align-items:center; gap:8px; padding:10px 12px; border:1px solid currentColor; border-radius:var(--astro-control-radius, 8px); color:inherit; background:transparent; font:inherit; cursor:pointer }
+.chat-file-card button > .astro-icon { width:18px; height:18px }
+.chat-file-card button:disabled { opacity:.6; cursor:default }
+.chat-file-card button:focus-visible { outline:2px solid var(--astro-input-focus-border, #6047a0); outline-offset:3px }
+.chat-file-card [role='alert'] { color:var(--astro-error-text, #a51f37) }
