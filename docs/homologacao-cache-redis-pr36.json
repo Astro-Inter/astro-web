@@ -1,0 +1,104 @@
+{
+  "local": true,
+  "turns": [
+    {
+      "label": "own_direct",
+      "status": 200,
+      "types": [
+        "texto",
+        "ficha_usuario"
+      ],
+      "recognized": 2,
+      "received": 2,
+      "photoSlots": 1,
+      "withPhoto": 1,
+      "imageElements": 1,
+      "photoChecks": [
+        {
+          "allowed": true,
+          "status": 200,
+          "mime": "image/png",
+          "nonempty": true
+        }
+      ]
+    },
+    {
+      "label": "list",
+      "status": 200,
+      "types": [
+        "texto",
+        "tabela",
+        "texto"
+      ],
+      "recognized": 3,
+      "received": 3,
+      "photoSlots": 100,
+      "withPhoto": 3,
+      "imageElements": 0,
+      "photoChecks": [
+        {
+          "allowed": true,
+          "status": 404,
+          "mime": "application/xml",
+          "nonempty": true
+        },
+        {
+          "allowed": true,
+          "status": 200,
+          "mime": "image/jpeg",
+          "nonempty": true
+        },
+        {
+          "allowed": true,
+          "status": 200,
+          "mime": "image/jpeg",
+          "nonempty": true
+        }
+      ]
+    },
+    {
+      "label": "third_direct",
+      "status": 200,
+      "types": [
+        "texto"
+      ],
+      "recognized": 1,
+      "received": 1,
+      "photoSlots": 0,
+      "withPhoto": 0,
+      "imageElements": 0,
+      "photoChecks": []
+    }
+  ],
+  "version": {
+    "commit": "a5df1bb5a47bd4abe1bc7115d5b8c030e4e45fa0"
+  },
+  "publishedVersion": {
+    "commit": "bf2f90998aba17d8b3480cfcbb6b0f65039b2f76"
+  },
+  "loginStatus": 200,
+  "tokenIssuedAheadSeconds": 1,
+  "historyStatus": 200,
+  "history": [
+    {
+      "label": "own_direct",
+      "presentInHistory": true,
+      "exactBlocks": true,
+      "sameRendering": true
+    },
+    {
+      "label": "list",
+      "presentInHistory": true,
+      "exactBlocks": true,
+      "sameRendering": true
+    },
+    {
+      "label": "third_direct",
+      "presentInHistory": false,
+      "exactBlocks": null,
+      "sameRendering": null
+    }
+  ],
+  "otherLoginStatus": 200,
+  "otherAccountHistoryStatus": 404
+}

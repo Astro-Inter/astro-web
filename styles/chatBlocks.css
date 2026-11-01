@@ -24,12 +24,17 @@ html[data-astro-contrast='true'] .chat-data-card { color: var(--astro-text); bac
 html[data-astro-contrast='true'] .chat-data-card small { color: var(--a11y-muted); }
 html[data-astro-contrast='true'] .chat-gallery-person span { color: var(--astro-text); background: var(--a11y-field); }
 
-.chat-user-card-body { display: flex; flex-wrap: wrap; align-items: start; gap: 1rem; }
-.chat-user-card dl { flex: 1; min-width: 0; margin: 0; }
-.chat-user-card dl > div { display: flex; flex-wrap: wrap; gap: .4rem; padding: .4rem 0; border-bottom: 1px solid currentColor; }
-.chat-user-card dt { font-weight: 600; }
-.chat-user-card dd { margin: 0; overflow-wrap: anywhere; }
-.chat-user-compliance { display: grid; gap: .5rem; margin-top: 1rem; }
+.chat-user-card-heading { display:flex; align-items:center; gap:10px; margin-bottom:8px }
+.chat-user-card-heading h4 { margin:0 }
+.chat-user-card-heading .chat-gallery-person { width:36px; flex:none }
+.chat-user-card-heading .chat-gallery-person img,.chat-user-card-heading .chat-gallery-person span { width:36px; height:36px }
+.chat-user-card-body { min-width:0 }
+.chat-user-card dl { margin:0; font-size:var(--chat-body-size, .75rem); line-height:1.4 }
+.chat-user-card dl > div { display:grid; grid-template-columns:minmax(0, 4.5rem) minmax(0, 1fr); align-items:baseline; gap:8px; padding:5px 0; border-bottom:1px solid #ebe8f1 }
+.chat-user-card dl > div:last-child { border-bottom:0 }
+.chat-user-card dt { font-weight:600; overflow-wrap:anywhere }
+.chat-user-card dd { margin:0; overflow-wrap:anywhere }
+.chat-user-compliance { display:grid; gap:6px; margin-top:10px; font-size:var(--chat-body-size, .75rem) }
 .chat-user-compliance meter { width: 100%; height: 1rem; }
 .chat-local-pagination { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-top:12px; font-size:var(--chat-body-size, .75rem) }
 .chat-local-pagination button { font:inherit; padding:8px 12px; border:1px solid currentColor; border-radius:var(--astro-control-radius, 8px); background:transparent; color:inherit; cursor:pointer }
@@ -54,3 +59,17 @@ html[data-astro-contrast='true'] .chat-pie--donut::after { background:var(--a11y
 .chat-chart-values li > strong { flex-shrink:0 }
 
 .chat-gallery-person { white-space:normal }
+
+.chat-file-card { display:grid; gap:12px; overflow-wrap:anywhere }
+.chat-file-heading { display:flex; align-items:center; gap:10px; min-width:0 }
+.chat-file-heading > .astro-icon { flex:none; width:28px; height:28px }
+.chat-file-heading > div { min-width:0 }
+.chat-file-heading h4 { margin-bottom:4px }
+.chat-file-card p,.chat-file-heading span { font-size:var(--chat-body-size, .75rem) }
+.chat-file-card button { display:inline-flex; justify-content:center; align-items:center; gap:8px; padding:10px 12px; border:1px solid currentColor; border-radius:var(--astro-control-radius, 8px); color:inherit; background:transparent; font:inherit; cursor:pointer }
+.chat-file-card button > .astro-icon { width:18px; height:18px }
+.chat-file-card button:disabled { opacity:.6; cursor:default }
+.chat-file-card button:focus-visible { outline:2px solid var(--astro-input-focus-border, #6047a0); outline-offset:3px }
+.chat-file-card [role='alert'] { color:var(--astro-error-text, #a51f37) }
+
+.chat-data-card.chat-file-card .astro-icon { filter: brightness(0) saturate(100%) invert(16%) sepia(12%) saturate(1277%) hue-rotate(218deg) brightness(94%) contrast(91%) }

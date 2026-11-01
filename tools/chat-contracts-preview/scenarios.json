@@ -1,0 +1,2768 @@
+{
+  "cobertura": {
+    "question": "Mostre indicadores de cobertura da equipe.",
+    "blocos": [
+      {
+        "tipo": "indicadores",
+        "versao": 1,
+        "titulo": "Cobertura da equipe",
+        "abrangencia": "conjunto_autorizado",
+        "universo": "Exigências pessoa/NR antes do filtro de encaminhamento.",
+        "indicadores": [
+          {
+            "chave": "pares",
+            "rotulo": "Pares aplicáveis",
+            "valor": 120,
+            "unidade": "pares_pessoa_nr",
+            "numerador": null,
+            "denominador": null,
+            "criterio": "Exigências do cadastro autorizado."
+          },
+          {
+            "chave": "vigencia",
+            "rotulo": "Vigência",
+            "valor": 75,
+            "unidade": "%",
+            "numerador": 90,
+            "denominador": 120,
+            "criterio": "Pares vigentes / exigidos."
+          }
+        ]
+      },
+      {
+        "tipo": "tabela",
+        "versao": 2,
+        "titulo": "Cobertura por NR",
+        "colunas": [
+          {
+            "chave": "nr",
+            "titulo": "Nr"
+          },
+          {
+            "chave": "pares_aplicaveis",
+            "titulo": "Pares aplicaveis"
+          },
+          {
+            "chave": "pares_vigentes",
+            "titulo": "Pares vigentes"
+          },
+          {
+            "chave": "pares_em_analise",
+            "titulo": "Pares em analise"
+          },
+          {
+            "chave": "pares_agendados",
+            "titulo": "Pares agendados"
+          },
+          {
+            "chave": "pares_sem_encaminhamento",
+            "titulo": "Pares sem encaminhamento"
+          }
+        ],
+        "linhas": [
+          {
+            "nr": 10,
+            "pares_aplicaveis": 60,
+            "pares_vigentes": 45,
+            "pares_em_analise": 5,
+            "pares_agendados": 0,
+            "pares_sem_encaminhamento": 10
+          },
+          {
+            "nr": 35,
+            "pares_aplicaveis": 60,
+            "pares_vigentes": 45,
+            "pares_em_analise": 0,
+            "pares_agendados": 0,
+            "pares_sem_encaminhamento": 15
+          }
+        ],
+        "pagina": 1,
+        "total_paginas": 1,
+        "paginacao": "local",
+        "solicitada": 100,
+        "retornada": 2,
+        "total": 2,
+        "limitado": false,
+        "tem_mais": false,
+        "motivo_limite": null
+      },
+      {
+        "tipo": "grafico_barras",
+        "versao": 1,
+        "titulo": "Pares sem encaminhamento por NR",
+        "fonte": "Fixture autorizada",
+        "unidade": "registros",
+        "dados": [
+          {
+            "categoria": "NR-10",
+            "valor": 10
+          },
+          {
+            "categoria": "NR-35",
+            "valor": 15
+          }
+        ]
+      },
+      {
+        "tipo": "contexto_dados",
+        "versao": 1,
+        "fonte": "Fixture autorizada de homologação",
+        "referencia": "2026-11-01",
+        "inicio": null,
+        "fim": null,
+        "escopo": "Conjunto fictício autorizado",
+        "filtros": {
+          "cargo": "Soldador"
+        },
+        "criterios": [
+          "Contagens globais independentes da tabela."
+        ],
+        "avisos": [
+          "Dados fictícios. Célula ausente não comprova vigência."
+        ],
+        "conjunto": {
+          "solicitada": 100,
+          "retornada": 2,
+          "total": 2,
+          "limitado": false,
+          "tem_mais": false,
+          "motivo_limite": null,
+          "unidade_total": "NRs"
+        }
+      }
+    ]
+  },
+  "matriz": {
+    "question": "Mostre 100 registros da matriz de conformidade da equipe.",
+    "blocos": [
+      {
+        "tipo": "indicadores",
+        "versao": 1,
+        "titulo": "Cobertura da equipe",
+        "abrangencia": "conjunto_autorizado",
+        "universo": "Exigências pessoa/NR antes do filtro de encaminhamento.",
+        "indicadores": [
+          {
+            "chave": "pares",
+            "rotulo": "Pares aplicáveis",
+            "valor": 120,
+            "unidade": "pares_pessoa_nr",
+            "numerador": null,
+            "denominador": null,
+            "criterio": "Exigências do cadastro autorizado."
+          },
+          {
+            "chave": "vigencia",
+            "rotulo": "Vigência",
+            "valor": 75,
+            "unidade": "%",
+            "numerador": 90,
+            "denominador": 120,
+            "criterio": "Pares vigentes / exigidos."
+          }
+        ]
+      },
+      {
+        "tipo": "matriz_conformidade",
+        "versao": 1,
+        "titulo": "Matriz de conformidade",
+        "colunas": [
+          {
+            "chave": "referencia_pessoa",
+            "titulo": "referencia_pessoa"
+          },
+          {
+            "chave": "nome",
+            "titulo": "nome"
+          },
+          {
+            "chave": "nr",
+            "titulo": "nr"
+          },
+          {
+            "chave": "situacao",
+            "titulo": "situacao"
+          }
+        ],
+        "linhas": [
+          {
+            "referencia_pessoa": 1,
+            "nome": "Homônimo fictício",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 2,
+            "nome": "Homônimo fictício",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 3,
+            "nome": "Pessoa 3",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 4,
+            "nome": "Pessoa 4",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 5,
+            "nome": "Pessoa 5",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 6,
+            "nome": "Pessoa 6",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 7,
+            "nome": "Pessoa 7",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 8,
+            "nome": "Pessoa 8",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 9,
+            "nome": "Pessoa 9",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 10,
+            "nome": "Pessoa 10",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 11,
+            "nome": "Pessoa 11",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 12,
+            "nome": "Pessoa 12",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 13,
+            "nome": "Pessoa 13",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 14,
+            "nome": "Pessoa 14",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 15,
+            "nome": "Pessoa 15",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 16,
+            "nome": "Pessoa 16",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 17,
+            "nome": "Pessoa 17",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 18,
+            "nome": "Pessoa 18",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 19,
+            "nome": "Pessoa 19",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 20,
+            "nome": "Pessoa 20",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 21,
+            "nome": "Pessoa 21",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 22,
+            "nome": "Pessoa 22",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 23,
+            "nome": "Pessoa 23",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 24,
+            "nome": "Pessoa 24",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 25,
+            "nome": "Pessoa 25",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 26,
+            "nome": "Pessoa 26",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 27,
+            "nome": "Pessoa 27",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 28,
+            "nome": "Pessoa 28",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 29,
+            "nome": "Pessoa 29",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 30,
+            "nome": "Pessoa 30",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 31,
+            "nome": "Pessoa 31",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 32,
+            "nome": "Pessoa 32",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 33,
+            "nome": "Pessoa 33",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 34,
+            "nome": "Pessoa 34",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 35,
+            "nome": "Pessoa 35",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 36,
+            "nome": "Pessoa 36",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 37,
+            "nome": "Pessoa 37",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 38,
+            "nome": "Pessoa 38",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 39,
+            "nome": "Pessoa 39",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 40,
+            "nome": "Pessoa 40",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 41,
+            "nome": "Pessoa 41",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 42,
+            "nome": "Pessoa 42",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 43,
+            "nome": "Pessoa 43",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 44,
+            "nome": "Pessoa 44",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 45,
+            "nome": "Pessoa 45",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 46,
+            "nome": "Pessoa 46",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 47,
+            "nome": "Pessoa 47",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 48,
+            "nome": "Pessoa 48",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 49,
+            "nome": "Pessoa 49",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 50,
+            "nome": "Pessoa 50",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 51,
+            "nome": "Pessoa 51",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 52,
+            "nome": "Pessoa 52",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 53,
+            "nome": "Pessoa 53",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 54,
+            "nome": "Pessoa 54",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 55,
+            "nome": "Pessoa 55",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 56,
+            "nome": "Pessoa 56",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 57,
+            "nome": "Pessoa 57",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 58,
+            "nome": "Pessoa 58",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 59,
+            "nome": "Pessoa 59",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 60,
+            "nome": "Pessoa 60",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 61,
+            "nome": "Pessoa 61",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 62,
+            "nome": "Pessoa 62",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 63,
+            "nome": "Pessoa 63",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 64,
+            "nome": "Pessoa 64",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 65,
+            "nome": "Pessoa 65",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 66,
+            "nome": "Pessoa 66",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 67,
+            "nome": "Pessoa 67",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 68,
+            "nome": "Pessoa 68",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 69,
+            "nome": "Pessoa 69",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 70,
+            "nome": "Pessoa 70",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 71,
+            "nome": "Pessoa 71",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 72,
+            "nome": "Pessoa 72",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 73,
+            "nome": "Pessoa 73",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 74,
+            "nome": "Pessoa 74",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 75,
+            "nome": "Pessoa 75",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 76,
+            "nome": "Pessoa 76",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 77,
+            "nome": "Pessoa 77",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 78,
+            "nome": "Pessoa 78",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 79,
+            "nome": "Pessoa 79",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 80,
+            "nome": "Pessoa 80",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 81,
+            "nome": "Pessoa 81",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 82,
+            "nome": "Pessoa 82",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 83,
+            "nome": "Pessoa 83",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 84,
+            "nome": "Pessoa 84",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 85,
+            "nome": "Pessoa 85",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 86,
+            "nome": "Pessoa 86",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 87,
+            "nome": "Pessoa 87",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 88,
+            "nome": "Pessoa 88",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 89,
+            "nome": "Pessoa 89",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 90,
+            "nome": "Pessoa 90",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 91,
+            "nome": "Pessoa 91",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 92,
+            "nome": "Pessoa 92",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 93,
+            "nome": "Pessoa 93",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 94,
+            "nome": "Pessoa 94",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 95,
+            "nome": "Pessoa 95",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 96,
+            "nome": "Pessoa 96",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          },
+          {
+            "referencia_pessoa": 97,
+            "nome": "Pessoa 97",
+            "nr": 10,
+            "situacao": "VIGENTE"
+          },
+          {
+            "referencia_pessoa": 98,
+            "nome": "Pessoa 98",
+            "nr": 10,
+            "situacao": "VENCIDA"
+          },
+          {
+            "referencia_pessoa": 99,
+            "nome": "Pessoa 99",
+            "nr": 10,
+            "situacao": "SEM_VALIDADE"
+          },
+          {
+            "referencia_pessoa": 100,
+            "nome": "Pessoa 100",
+            "nr": 10,
+            "situacao": "SEM_REGISTRO"
+          }
+        ],
+        "pagina": 1,
+        "total_paginas": 1,
+        "paginacao": "local",
+        "solicitada": 100,
+        "retornada": 100,
+        "total": 273,
+        "limitado": false,
+        "tem_mais": true,
+        "motivo_limite": null,
+        "chave_pessoa": "referencia_pessoa",
+        "chave_categoria": "nr",
+        "chave_situacao": "situacao"
+      },
+      {
+        "tipo": "contexto_dados",
+        "versao": 1,
+        "fonte": "Fixture autorizada de homologação",
+        "referencia": "2026-11-01",
+        "inicio": null,
+        "fim": null,
+        "escopo": "Conjunto fictício autorizado",
+        "filtros": {
+          "cargo": "Soldador"
+        },
+        "criterios": [
+          "Contagens globais independentes da tabela."
+        ],
+        "avisos": [
+          "Dados fictícios. Célula ausente não comprova vigência."
+        ],
+        "conjunto": {
+          "solicitada": 100,
+          "retornada": 100,
+          "total": 273,
+          "limitado": false,
+          "tem_mais": true,
+          "motivo_limite": null,
+          "unidade_total": "pares pessoa/NR"
+        }
+      }
+    ]
+  },
+  "comparacao": {
+    "question": "Compare a conformidade entre as unidades.",
+    "blocos": [
+      {
+        "tipo": "indicadores",
+        "versao": 1,
+        "titulo": "Conformidade das unidades",
+        "abrangencia": "conjunto_autorizado",
+        "universo": "Exigências pessoa/NR de todas as unidades autorizadas.",
+        "indicadores": [
+          {
+            "chave": "pares",
+            "rotulo": "Pares aplicáveis",
+            "valor": 50,
+            "unidade": "pares_pessoa_nr",
+            "numerador": null,
+            "denominador": null,
+            "criterio": "Exigências do cadastro autorizado."
+          },
+          {
+            "chave": "vigencia",
+            "rotulo": "Vigência",
+            "valor": 70,
+            "unidade": "%",
+            "numerador": 35,
+            "denominador": 50,
+            "criterio": "Pares vigentes / exigidos."
+          }
+        ]
+      },
+      {
+        "tipo": "tabela",
+        "versao": 2,
+        "titulo": "Comparação entre unidades",
+        "colunas": [
+          {
+            "chave": "unidade",
+            "titulo": "Unidade"
+          },
+          {
+            "chave": "pessoas",
+            "titulo": "Pessoas"
+          },
+          {
+            "chave": "pares_aplicaveis",
+            "titulo": "Pares aplicáveis"
+          },
+          {
+            "chave": "pares_vigentes",
+            "titulo": "Pares vigentes"
+          },
+          {
+            "chave": "percentual",
+            "titulo": "Percentual"
+          },
+          {
+            "chave": "numerador",
+            "titulo": "Numerador"
+          },
+          {
+            "chave": "denominador",
+            "titulo": "Denominador"
+          }
+        ],
+        "linhas": [
+          {
+            "unidade": "Unidade A",
+            "pessoas": 10,
+            "pares_aplicaveis": 20,
+            "pares_vigentes": 15,
+            "percentual": 75.0,
+            "numerador": 15,
+            "denominador": 20
+          },
+          {
+            "unidade": "Unidade B",
+            "pessoas": 15,
+            "pares_aplicaveis": 30,
+            "pares_vigentes": 20,
+            "percentual": 66.67,
+            "numerador": 20,
+            "denominador": 30
+          },
+          {
+            "unidade": "Unidade sem exigências",
+            "pessoas": 2,
+            "pares_aplicaveis": 0,
+            "pares_vigentes": 0,
+            "percentual": null,
+            "numerador": 0,
+            "denominador": 0
+          }
+        ],
+        "pagina": 1,
+        "total_paginas": 1,
+        "paginacao": "local",
+        "solicitada": 100,
+        "retornada": 3,
+        "total": 3,
+        "limitado": false,
+        "tem_mais": false,
+        "motivo_limite": null
+      },
+      {
+        "tipo": "grafico_barras",
+        "versao": 1,
+        "titulo": "Pares vigentes por unidade",
+        "fonte": "Fixture autorizada",
+        "unidade": "registros",
+        "dados": [
+          {
+            "categoria": "Unidade A",
+            "valor": 15
+          },
+          {
+            "categoria": "Unidade B",
+            "valor": 20
+          },
+          {
+            "categoria": "Unidade sem exigências",
+            "valor": 0
+          }
+        ]
+      },
+      {
+        "tipo": "contexto_dados",
+        "versao": 1,
+        "fonte": "Fixture autorizada de homologação",
+        "referencia": "2026-11-01",
+        "inicio": null,
+        "fim": null,
+        "escopo": "Conjunto fictício autorizado",
+        "filtros": {
+          "cargo": "Soldador"
+        },
+        "criterios": [
+          "Contagens globais independentes da tabela."
+        ],
+        "avisos": [
+          "Dados fictícios. Célula ausente não comprova vigência."
+        ],
+        "conjunto": {
+          "solicitada": 100,
+          "retornada": 3,
+          "total": 3,
+          "limitado": false,
+          "tem_mais": false,
+          "motivo_limite": null,
+          "unidade_total": "unidades"
+        }
+      }
+    ]
+  },
+  "usuarios100": {
+    "question": "Mostre 100 usuários da minha equipe em uma tabela.",
+    "blocos": [
+      {
+        "tipo": "tabela",
+        "versao": 2,
+        "titulo": "Usuários",
+        "colunas": [
+          {
+            "chave": "nome",
+            "titulo": "Nome"
+          }
+        ],
+        "linhas": [
+          {
+            "nome": "Pessoa fictícia 1"
+          },
+          {
+            "nome": "Pessoa fictícia 2"
+          },
+          {
+            "nome": "Pessoa fictícia 3"
+          },
+          {
+            "nome": "Pessoa fictícia 4"
+          },
+          {
+            "nome": "Pessoa fictícia 5"
+          },
+          {
+            "nome": "Pessoa fictícia 6"
+          },
+          {
+            "nome": "Pessoa fictícia 7"
+          },
+          {
+            "nome": "Pessoa fictícia 8"
+          },
+          {
+            "nome": "Pessoa fictícia 9"
+          },
+          {
+            "nome": "Pessoa fictícia 10"
+          },
+          {
+            "nome": "Pessoa fictícia 11"
+          },
+          {
+            "nome": "Pessoa fictícia 12"
+          },
+          {
+            "nome": "Pessoa fictícia 13"
+          },
+          {
+            "nome": "Pessoa fictícia 14"
+          },
+          {
+            "nome": "Pessoa fictícia 15"
+          },
+          {
+            "nome": "Pessoa fictícia 16"
+          },
+          {
+            "nome": "Pessoa fictícia 17"
+          },
+          {
+            "nome": "Pessoa fictícia 18"
+          },
+          {
+            "nome": "Pessoa fictícia 19"
+          },
+          {
+            "nome": "Pessoa fictícia 20"
+          },
+          {
+            "nome": "Pessoa fictícia 21"
+          },
+          {
+            "nome": "Pessoa fictícia 22"
+          },
+          {
+            "nome": "Pessoa fictícia 23"
+          },
+          {
+            "nome": "Pessoa fictícia 24"
+          },
+          {
+            "nome": "Pessoa fictícia 25"
+          },
+          {
+            "nome": "Pessoa fictícia 26"
+          },
+          {
+            "nome": "Pessoa fictícia 27"
+          },
+          {
+            "nome": "Pessoa fictícia 28"
+          },
+          {
+            "nome": "Pessoa fictícia 29"
+          },
+          {
+            "nome": "Pessoa fictícia 30"
+          },
+          {
+            "nome": "Pessoa fictícia 31"
+          },
+          {
+            "nome": "Pessoa fictícia 32"
+          },
+          {
+            "nome": "Pessoa fictícia 33"
+          },
+          {
+            "nome": "Pessoa fictícia 34"
+          },
+          {
+            "nome": "Pessoa fictícia 35"
+          },
+          {
+            "nome": "Pessoa fictícia 36"
+          },
+          {
+            "nome": "Pessoa fictícia 37"
+          },
+          {
+            "nome": "Pessoa fictícia 38"
+          },
+          {
+            "nome": "Pessoa fictícia 39"
+          },
+          {
+            "nome": "Pessoa fictícia 40"
+          },
+          {
+            "nome": "Pessoa fictícia 41"
+          },
+          {
+            "nome": "Pessoa fictícia 42"
+          },
+          {
+            "nome": "Pessoa fictícia 43"
+          },
+          {
+            "nome": "Pessoa fictícia 44"
+          },
+          {
+            "nome": "Pessoa fictícia 45"
+          },
+          {
+            "nome": "Pessoa fictícia 46"
+          },
+          {
+            "nome": "Pessoa fictícia 47"
+          },
+          {
+            "nome": "Pessoa fictícia 48"
+          },
+          {
+            "nome": "Pessoa fictícia 49"
+          },
+          {
+            "nome": "Pessoa fictícia 50"
+          },
+          {
+            "nome": "Pessoa fictícia 51"
+          },
+          {
+            "nome": "Pessoa fictícia 52"
+          },
+          {
+            "nome": "Pessoa fictícia 53"
+          },
+          {
+            "nome": "Pessoa fictícia 54"
+          },
+          {
+            "nome": "Pessoa fictícia 55"
+          },
+          {
+            "nome": "Pessoa fictícia 56"
+          },
+          {
+            "nome": "Pessoa fictícia 57"
+          },
+          {
+            "nome": "Pessoa fictícia 58"
+          },
+          {
+            "nome": "Pessoa fictícia 59"
+          },
+          {
+            "nome": "Pessoa fictícia 60"
+          },
+          {
+            "nome": "Pessoa fictícia 61"
+          },
+          {
+            "nome": "Pessoa fictícia 62"
+          },
+          {
+            "nome": "Pessoa fictícia 63"
+          },
+          {
+            "nome": "Pessoa fictícia 64"
+          },
+          {
+            "nome": "Pessoa fictícia 65"
+          },
+          {
+            "nome": "Pessoa fictícia 66"
+          },
+          {
+            "nome": "Pessoa fictícia 67"
+          },
+          {
+            "nome": "Pessoa fictícia 68"
+          },
+          {
+            "nome": "Pessoa fictícia 69"
+          },
+          {
+            "nome": "Pessoa fictícia 70"
+          },
+          {
+            "nome": "Pessoa fictícia 71"
+          },
+          {
+            "nome": "Pessoa fictícia 72"
+          },
+          {
+            "nome": "Pessoa fictícia 73"
+          },
+          {
+            "nome": "Pessoa fictícia 74"
+          },
+          {
+            "nome": "Pessoa fictícia 75"
+          },
+          {
+            "nome": "Pessoa fictícia 76"
+          },
+          {
+            "nome": "Pessoa fictícia 77"
+          },
+          {
+            "nome": "Pessoa fictícia 78"
+          },
+          {
+            "nome": "Pessoa fictícia 79"
+          },
+          {
+            "nome": "Pessoa fictícia 80"
+          },
+          {
+            "nome": "Pessoa fictícia 81"
+          },
+          {
+            "nome": "Pessoa fictícia 82"
+          },
+          {
+            "nome": "Pessoa fictícia 83"
+          },
+          {
+            "nome": "Pessoa fictícia 84"
+          },
+          {
+            "nome": "Pessoa fictícia 85"
+          },
+          {
+            "nome": "Pessoa fictícia 86"
+          },
+          {
+            "nome": "Pessoa fictícia 87"
+          },
+          {
+            "nome": "Pessoa fictícia 88"
+          },
+          {
+            "nome": "Pessoa fictícia 89"
+          },
+          {
+            "nome": "Pessoa fictícia 90"
+          },
+          {
+            "nome": "Pessoa fictícia 91"
+          },
+          {
+            "nome": "Pessoa fictícia 92"
+          },
+          {
+            "nome": "Pessoa fictícia 93"
+          },
+          {
+            "nome": "Pessoa fictícia 94"
+          },
+          {
+            "nome": "Pessoa fictícia 95"
+          },
+          {
+            "nome": "Pessoa fictícia 96"
+          },
+          {
+            "nome": "Pessoa fictícia 97"
+          },
+          {
+            "nome": "Pessoa fictícia 98"
+          },
+          {
+            "nome": "Pessoa fictícia 99"
+          },
+          {
+            "nome": "Pessoa fictícia 100"
+          }
+        ],
+        "pagina": 1,
+        "total_paginas": 1,
+        "paginacao": "local",
+        "solicitada": 100,
+        "retornada": 100,
+        "total": 141,
+        "limitado": false,
+        "tem_mais": true,
+        "motivo_limite": null
+      }
+    ]
+  },
+  "usuarios500": {
+    "question": "Agora mostre 500 usuários da minha equipe em uma tabela.",
+    "blocos": [
+      {
+        "tipo": "tabela",
+        "versao": 2,
+        "titulo": "Usuários",
+        "colunas": [
+          {
+            "chave": "nome",
+            "titulo": "Nome"
+          }
+        ],
+        "linhas": [
+          {
+            "nome": "Pessoa fictícia 1"
+          },
+          {
+            "nome": "Pessoa fictícia 2"
+          },
+          {
+            "nome": "Pessoa fictícia 3"
+          },
+          {
+            "nome": "Pessoa fictícia 4"
+          },
+          {
+            "nome": "Pessoa fictícia 5"
+          },
+          {
+            "nome": "Pessoa fictícia 6"
+          },
+          {
+            "nome": "Pessoa fictícia 7"
+          },
+          {
+            "nome": "Pessoa fictícia 8"
+          },
+          {
+            "nome": "Pessoa fictícia 9"
+          },
+          {
+            "nome": "Pessoa fictícia 10"
+          },
+          {
+            "nome": "Pessoa fictícia 11"
+          },
+          {
+            "nome": "Pessoa fictícia 12"
+          },
+          {
+            "nome": "Pessoa fictícia 13"
+          },
+          {
+            "nome": "Pessoa fictícia 14"
+          },
+          {
+            "nome": "Pessoa fictícia 15"
+          },
+          {
+            "nome": "Pessoa fictícia 16"
+          },
+          {
+            "nome": "Pessoa fictícia 17"
+          },
+          {
+            "nome": "Pessoa fictícia 18"
+          },
+          {
+            "nome": "Pessoa fictícia 19"
+          },
+          {
+            "nome": "Pessoa fictícia 20"
+          },
+          {
+            "nome": "Pessoa fictícia 21"
+          },
+          {
+            "nome": "Pessoa fictícia 22"
+          },
+          {
+            "nome": "Pessoa fictícia 23"
+          },
+          {
+            "nome": "Pessoa fictícia 24"
+          },
+          {
+            "nome": "Pessoa fictícia 25"
+          },
+          {
+            "nome": "Pessoa fictícia 26"
+          },
+          {
+            "nome": "Pessoa fictícia 27"
+          },
+          {
+            "nome": "Pessoa fictícia 28"
+          },
+          {
+            "nome": "Pessoa fictícia 29"
+          },
+          {
+            "nome": "Pessoa fictícia 30"
+          },
+          {
+            "nome": "Pessoa fictícia 31"
+          },
+          {
+            "nome": "Pessoa fictícia 32"
+          },
+          {
+            "nome": "Pessoa fictícia 33"
+          },
+          {
+            "nome": "Pessoa fictícia 34"
+          },
+          {
+            "nome": "Pessoa fictícia 35"
+          },
+          {
+            "nome": "Pessoa fictícia 36"
+          },
+          {
+            "nome": "Pessoa fictícia 37"
+          },
+          {
+            "nome": "Pessoa fictícia 38"
+          },
+          {
+            "nome": "Pessoa fictícia 39"
+          },
+          {
+            "nome": "Pessoa fictícia 40"
+          },
+          {
+            "nome": "Pessoa fictícia 41"
+          },
+          {
+            "nome": "Pessoa fictícia 42"
+          },
+          {
+            "nome": "Pessoa fictícia 43"
+          },
+          {
+            "nome": "Pessoa fictícia 44"
+          },
+          {
+            "nome": "Pessoa fictícia 45"
+          },
+          {
+            "nome": "Pessoa fictícia 46"
+          },
+          {
+            "nome": "Pessoa fictícia 47"
+          },
+          {
+            "nome": "Pessoa fictícia 48"
+          },
+          {
+            "nome": "Pessoa fictícia 49"
+          },
+          {
+            "nome": "Pessoa fictícia 50"
+          },
+          {
+            "nome": "Pessoa fictícia 51"
+          },
+          {
+            "nome": "Pessoa fictícia 52"
+          },
+          {
+            "nome": "Pessoa fictícia 53"
+          },
+          {
+            "nome": "Pessoa fictícia 54"
+          },
+          {
+            "nome": "Pessoa fictícia 55"
+          },
+          {
+            "nome": "Pessoa fictícia 56"
+          },
+          {
+            "nome": "Pessoa fictícia 57"
+          },
+          {
+            "nome": "Pessoa fictícia 58"
+          },
+          {
+            "nome": "Pessoa fictícia 59"
+          },
+          {
+            "nome": "Pessoa fictícia 60"
+          },
+          {
+            "nome": "Pessoa fictícia 61"
+          },
+          {
+            "nome": "Pessoa fictícia 62"
+          },
+          {
+            "nome": "Pessoa fictícia 63"
+          },
+          {
+            "nome": "Pessoa fictícia 64"
+          },
+          {
+            "nome": "Pessoa fictícia 65"
+          },
+          {
+            "nome": "Pessoa fictícia 66"
+          },
+          {
+            "nome": "Pessoa fictícia 67"
+          },
+          {
+            "nome": "Pessoa fictícia 68"
+          },
+          {
+            "nome": "Pessoa fictícia 69"
+          },
+          {
+            "nome": "Pessoa fictícia 70"
+          },
+          {
+            "nome": "Pessoa fictícia 71"
+          },
+          {
+            "nome": "Pessoa fictícia 72"
+          },
+          {
+            "nome": "Pessoa fictícia 73"
+          },
+          {
+            "nome": "Pessoa fictícia 74"
+          },
+          {
+            "nome": "Pessoa fictícia 75"
+          },
+          {
+            "nome": "Pessoa fictícia 76"
+          },
+          {
+            "nome": "Pessoa fictícia 77"
+          },
+          {
+            "nome": "Pessoa fictícia 78"
+          },
+          {
+            "nome": "Pessoa fictícia 79"
+          },
+          {
+            "nome": "Pessoa fictícia 80"
+          },
+          {
+            "nome": "Pessoa fictícia 81"
+          },
+          {
+            "nome": "Pessoa fictícia 82"
+          },
+          {
+            "nome": "Pessoa fictícia 83"
+          },
+          {
+            "nome": "Pessoa fictícia 84"
+          },
+          {
+            "nome": "Pessoa fictícia 85"
+          },
+          {
+            "nome": "Pessoa fictícia 86"
+          },
+          {
+            "nome": "Pessoa fictícia 87"
+          },
+          {
+            "nome": "Pessoa fictícia 88"
+          },
+          {
+            "nome": "Pessoa fictícia 89"
+          },
+          {
+            "nome": "Pessoa fictícia 90"
+          },
+          {
+            "nome": "Pessoa fictícia 91"
+          },
+          {
+            "nome": "Pessoa fictícia 92"
+          },
+          {
+            "nome": "Pessoa fictícia 93"
+          },
+          {
+            "nome": "Pessoa fictícia 94"
+          },
+          {
+            "nome": "Pessoa fictícia 95"
+          },
+          {
+            "nome": "Pessoa fictícia 96"
+          },
+          {
+            "nome": "Pessoa fictícia 97"
+          },
+          {
+            "nome": "Pessoa fictícia 98"
+          },
+          {
+            "nome": "Pessoa fictícia 99"
+          },
+          {
+            "nome": "Pessoa fictícia 100"
+          },
+          {
+            "nome": "Pessoa fictícia 101"
+          },
+          {
+            "nome": "Pessoa fictícia 102"
+          },
+          {
+            "nome": "Pessoa fictícia 103"
+          },
+          {
+            "nome": "Pessoa fictícia 104"
+          },
+          {
+            "nome": "Pessoa fictícia 105"
+          },
+          {
+            "nome": "Pessoa fictícia 106"
+          },
+          {
+            "nome": "Pessoa fictícia 107"
+          },
+          {
+            "nome": "Pessoa fictícia 108"
+          },
+          {
+            "nome": "Pessoa fictícia 109"
+          },
+          {
+            "nome": "Pessoa fictícia 110"
+          },
+          {
+            "nome": "Pessoa fictícia 111"
+          },
+          {
+            "nome": "Pessoa fictícia 112"
+          },
+          {
+            "nome": "Pessoa fictícia 113"
+          },
+          {
+            "nome": "Pessoa fictícia 114"
+          },
+          {
+            "nome": "Pessoa fictícia 115"
+          },
+          {
+            "nome": "Pessoa fictícia 116"
+          },
+          {
+            "nome": "Pessoa fictícia 117"
+          },
+          {
+            "nome": "Pessoa fictícia 118"
+          },
+          {
+            "nome": "Pessoa fictícia 119"
+          },
+          {
+            "nome": "Pessoa fictícia 120"
+          },
+          {
+            "nome": "Pessoa fictícia 121"
+          },
+          {
+            "nome": "Pessoa fictícia 122"
+          },
+          {
+            "nome": "Pessoa fictícia 123"
+          },
+          {
+            "nome": "Pessoa fictícia 124"
+          },
+          {
+            "nome": "Pessoa fictícia 125"
+          },
+          {
+            "nome": "Pessoa fictícia 126"
+          },
+          {
+            "nome": "Pessoa fictícia 127"
+          },
+          {
+            "nome": "Pessoa fictícia 128"
+          },
+          {
+            "nome": "Pessoa fictícia 129"
+          },
+          {
+            "nome": "Pessoa fictícia 130"
+          },
+          {
+            "nome": "Pessoa fictícia 131"
+          },
+          {
+            "nome": "Pessoa fictícia 132"
+          },
+          {
+            "nome": "Pessoa fictícia 133"
+          },
+          {
+            "nome": "Pessoa fictícia 134"
+          },
+          {
+            "nome": "Pessoa fictícia 135"
+          },
+          {
+            "nome": "Pessoa fictícia 136"
+          },
+          {
+            "nome": "Pessoa fictícia 137"
+          },
+          {
+            "nome": "Pessoa fictícia 138"
+          },
+          {
+            "nome": "Pessoa fictícia 139"
+          },
+          {
+            "nome": "Pessoa fictícia 140"
+          },
+          {
+            "nome": "Pessoa fictícia 141"
+          }
+        ],
+        "pagina": 1,
+        "total_paginas": 1,
+        "paginacao": "local",
+        "solicitada": 500,
+        "retornada": 141,
+        "total": 141,
+        "limitado": false,
+        "tem_mais": false,
+        "motivo_limite": null
+      }
+    ]
+  },
+  "barras": {
+    "question": "Com base nessa listagem, mostre barras por cargo.",
+    "blocos": [
+      {
+        "tipo": "grafico_barras",
+        "versao": 1,
+        "titulo": "Equipe por cargo",
+        "fonte": "Fixture autorizada",
+        "unidade": "pessoas",
+        "dados": [
+          {
+            "categoria": "Soldador",
+            "valor": 80
+          },
+          {
+            "categoria": "Técnico",
+            "valor": 61
+          }
+        ]
+      }
+    ]
+  },
+  "linhas": {
+    "question": "Mostre linhas dos meus treinamentos concluídos.",
+    "blocos": [
+      {
+        "tipo": "grafico_linhas",
+        "versao": 1,
+        "titulo": "Conclusões pessoais",
+        "fonte": "Fixture autorizada",
+        "unidade": "participações",
+        "dados": [
+          {
+            "categoria": "2026-01",
+            "valor": 0
+          },
+          {
+            "categoria": "2026-02",
+            "valor": 0
+          },
+          {
+            "categoria": "2026-03",
+            "valor": 0
+          },
+          {
+            "categoria": "2026-04",
+            "valor": 0
+          },
+          {
+            "categoria": "2026-05",
+            "valor": 0
+          },
+          {
+            "categoria": "2026-06",
+            "valor": 0
+          },
+          {
+            "categoria": "2026-07",
+            "valor": 0
+          },
+          {
+            "categoria": "2026-08",
+            "valor": 0
+          },
+          {
+            "categoria": "2026-09",
+            "valor": 0
+          },
+          {
+            "categoria": "2026-10",
+            "valor": 0
+          },
+          {
+            "categoria": "2026-11",
+            "valor": 0
+          },
+          {
+            "categoria": "2026-12",
+            "valor": 0
+          }
+        ]
+      }
+    ]
+  },
+  "vazio": {
+    "question": "Mostre um conjunto sem registros.",
+    "blocos": [
+      {
+        "tipo": "indicadores",
+        "versao": 1,
+        "titulo": "Cobertura da equipe",
+        "abrangencia": "conjunto_autorizado",
+        "universo": "Exigências pessoa/NR antes do filtro de encaminhamento.",
+        "indicadores": [
+          {
+            "chave": "zero",
+            "rotulo": "Participações",
+            "valor": 0,
+            "unidade": "participações",
+            "numerador": null,
+            "denominador": null,
+            "criterio": "Nenhuma participação no conjunto."
+          },
+          {
+            "chave": "percentual",
+            "rotulo": "Percentual sem base",
+            "valor": null,
+            "unidade": "%",
+            "numerador": 0,
+            "denominador": 0,
+            "criterio": "Denominador zero."
+          }
+        ]
+      },
+      {
+        "tipo": "contexto_dados",
+        "versao": 1,
+        "fonte": "Fixture autorizada de homologação",
+        "referencia": "2026-11-01",
+        "inicio": null,
+        "fim": null,
+        "escopo": "Conjunto fictício autorizado",
+        "filtros": {
+          "cargo": "Soldador"
+        },
+        "criterios": [
+          "Contagens globais independentes da tabela."
+        ],
+        "avisos": [
+          "Dados fictícios. Célula ausente não comprova vigência."
+        ],
+        "conjunto": {
+          "solicitada": 100,
+          "retornada": 0,
+          "total": 0,
+          "limitado": false,
+          "tem_mais": false,
+          "motivo_limite": null,
+          "unidade_total": "pares pessoa/NR"
+        }
+      }
+    ]
+  },
+  "eventos": {
+    "question": "Liste meus eventos com referência.",
+    "blocos": [
+      {
+        "tipo": "texto",
+        "conteudo": "Eventos autorizados: evento_id 42 — Treinamento fictício; evento_id 43 — Treinamento fictício."
+      }
+    ]
+  },
+  "ambiguo": {
+    "question": "Resuma o Treinamento fictício.",
+    "blocos": [
+      {
+        "tipo": "texto",
+        "conteudo": "Há eventos com esse título. Informe evento_id 42 ou 43."
+      }
+    ]
+  },
+  "evento42": {
+    "question": "Resuma o evento_id 42.",
+    "blocos": [
+      {
+        "tipo": "indicadores",
+        "versao": 1,
+        "titulo": "Resumo do treinamento",
+        "abrangencia": "conjunto_autorizado",
+        "universo": "Participações no evento autorizado.",
+        "indicadores": [
+          {
+            "chave": "participacoes",
+            "rotulo": "Participações",
+            "valor": 4,
+            "unidade": "participações",
+            "numerador": null,
+            "denominador": null,
+            "criterio": "Participações autorizadas, sem comprovar presença."
+          },
+          {
+            "chave": "concluidas",
+            "rotulo": "Concluídas",
+            "valor": 50,
+            "unidade": "%",
+            "numerador": 2,
+            "denominador": 4,
+            "criterio": "Concluídas / participações."
+          }
+        ]
+      },
+      {
+        "tipo": "grafico_barras",
+        "versao": 1,
+        "titulo": "Participações por situação",
+        "fonte": "Fixture autorizada",
+        "unidade": "participações",
+        "dados": [
+          {
+            "categoria": "PENDENTE",
+            "valor": 1
+          },
+          {
+            "categoria": "CONCLUIDO",
+            "valor": 2
+          },
+          {
+            "categoria": "EM_ANALISE",
+            "valor": 1
+          },
+          {
+            "categoria": "REJEITADO",
+            "valor": 0
+          }
+        ]
+      },
+      {
+        "tipo": "contexto_dados",
+        "versao": 1,
+        "fonte": "Fixture autorizada de homologação",
+        "referencia": "2026-11-01",
+        "inicio": null,
+        "fim": null,
+        "escopo": "Conjunto fictício autorizado",
+        "filtros": {
+          "evento_id": 42
+        },
+        "criterios": [
+          "Contagens globais independentes da tabela."
+        ],
+        "avisos": [
+          "Dados fictícios. Célula ausente não comprova vigência."
+        ],
+        "conjunto": {
+          "solicitada": 100,
+          "retornada": 4,
+          "total": 4,
+          "limitado": false,
+          "tem_mais": false,
+          "motivo_limite": null,
+          "unidade_total": "situações"
+        }
+      }
+    ]
+  },
+  "negado": {
+    "question": "Consulte evento de outro workspace.",
+    "blocos": [
+      {
+        "tipo": "texto",
+        "conteudo": "Acesso negado ao evento solicitado."
+      }
+    ]
+  },
+  "pdf": {
+    "question": "Gere um PDF dessa consulta.",
+    "blocos": [
+      {
+        "tipo": "texto",
+        "conteudo": "PDF gerado a partir da consulta autorizada fictícia."
+      },
+      {
+        "tipo": "arquivo",
+        "versao": 1,
+        "id": "fc9acaf4-4ea1-416b-a1ed-dc2d1c3d90b4",
+        "nome": "relatorio-de-rh.pdf",
+        "mime_type": "application/pdf",
+        "tamanho_bytes": null,
+        "url": "https://files.example/relatorio.pdf?assinatura=FICTICIA",
+        "expira_em": "2099-11-01T20:00:00Z",
+        "estado": "disponivel"
+      }
+    ]
+  },
+  "lembrar": {
+    "question": "Cadê o PDF?",
+    "blocos": [
+      {
+        "tipo": "texto",
+        "conteudo": "Este é o mesmo arquivo, sem renovação."
+      },
+      {
+        "tipo": "arquivo",
+        "versao": 1,
+        "id": "fc9acaf4-4ea1-416b-a1ed-dc2d1c3d90b4",
+        "nome": "relatorio-de-rh.pdf",
+        "mime_type": "application/pdf",
+        "tamanho_bytes": null,
+        "url": "https://files.example/relatorio.pdf?assinatura=FICTICIA",
+        "expira_em": "2099-11-01T20:00:00Z",
+        "estado": "disponivel"
+      }
+    ]
+  },
+  "expirado": {
+    "question": "Arquivo com prazo expirado.",
+    "blocos": [
+      {
+        "tipo": "arquivo",
+        "versao": 1,
+        "id": "fc9acaf4-4ea1-416b-a1ed-dc2d1c3d90b4",
+        "nome": "relatorio-de-rh.pdf",
+        "mime_type": "application/pdf",
+        "tamanho_bytes": null,
+        "url": null,
+        "expira_em": "2026-01-01T00:00:00Z",
+        "estado": "expirado"
+      }
+    ]
+  },
+  "indisponivel": {
+    "question": "Arquivo indisponível.",
+    "blocos": [
+      {
+        "tipo": "arquivo",
+        "versao": 1,
+        "id": "fc9acaf4-4ea1-416b-a1ed-dc2d1c3d90b4",
+        "nome": "relatorio-de-rh.pdf",
+        "mime_type": "application/pdf",
+        "tamanho_bytes": null,
+        "url": null,
+        "expira_em": "2099-11-01T20:00:00Z",
+        "estado": "indisponivel"
+      }
+    ]
+  },
+  "falha_pdf": {
+    "question": "Simular falha de geração.",
+    "blocos": [
+      {
+        "tipo": "texto",
+        "conteudo": "Não foi possível gerar o PDF. Tente novamente."
+      }
+    ]
+  },
+  "download_erro": {
+    "question": "Simular falha de download.",
+    "blocos": [
+      {
+        "tipo": "arquivo",
+        "versao": 1,
+        "id": "cc9acaf4-4ea1-416b-a1ed-dc2d1c3d90b4",
+        "nome": "relatorio-de-rh.pdf",
+        "mime_type": "application/pdf",
+        "tamanho_bytes": null,
+        "url": "https://files.example/falha.pdf",
+        "expira_em": "2099-11-01T20:00:00Z",
+        "estado": "disponivel"
+      }
+    ]
+  },
+  "desconhecido": {
+    "question": "Bloco futuro entre textos.",
+    "blocos": [
+      {
+        "tipo": "texto",
+        "conteudo": "Antes"
+      },
+      {
+        "tipo": "futuro",
+        "versao": 1,
+        "conteudo": "não exibir JSON"
+      },
+      {
+        "tipo": "texto",
+        "conteudo": "Depois"
+      }
+    ]
+  },
+  "limite200": {
+    "question": "Pedido limitado a 200.",
+    "blocos": [
+      {
+        "tipo": "tabela",
+        "versao": 2,
+        "titulo": "Usuários",
+        "colunas": [
+          {
+            "chave": "nome",
+            "titulo": "Nome"
+          }
+        ],
+        "linhas": [
+          {
+            "nome": "Pessoa fictícia 1"
+          },
+          {
+            "nome": "Pessoa fictícia 2"
+          },
+          {
+            "nome": "Pessoa fictícia 3"
+          },
+          {
+            "nome": "Pessoa fictícia 4"
+          },
+          {
+            "nome": "Pessoa fictícia 5"
+          },
+          {
+            "nome": "Pessoa fictícia 6"
+          },
+          {
+            "nome": "Pessoa fictícia 7"
+          },
+          {
+            "nome": "Pessoa fictícia 8"
+          },
+          {
+            "nome": "Pessoa fictícia 9"
+          },
+          {
+            "nome": "Pessoa fictícia 10"
+          },
+          {
+            "nome": "Pessoa fictícia 11"
+          },
+          {
+            "nome": "Pessoa fictícia 12"
+          },
+          {
+            "nome": "Pessoa fictícia 13"
+          },
+          {
+            "nome": "Pessoa fictícia 14"
+          },
+          {
+            "nome": "Pessoa fictícia 15"
+          },
+          {
+            "nome": "Pessoa fictícia 16"
+          },
+          {
+            "nome": "Pessoa fictícia 17"
+          },
+          {
+            "nome": "Pessoa fictícia 18"
+          },
+          {
+            "nome": "Pessoa fictícia 19"
+          },
+          {
+            "nome": "Pessoa fictícia 20"
+          },
+          {
+            "nome": "Pessoa fictícia 21"
+          },
+          {
+            "nome": "Pessoa fictícia 22"
+          },
+          {
+            "nome": "Pessoa fictícia 23"
+          },
+          {
+            "nome": "Pessoa fictícia 24"
+          },
+          {
+            "nome": "Pessoa fictícia 25"
+          },
+          {
+            "nome": "Pessoa fictícia 26"
+          },
+          {
+            "nome": "Pessoa fictícia 27"
+          },
+          {
+            "nome": "Pessoa fictícia 28"
+          },
+          {
+            "nome": "Pessoa fictícia 29"
+          },
+          {
+            "nome": "Pessoa fictícia 30"
+          },
+          {
+            "nome": "Pessoa fictícia 31"
+          },
+          {
+            "nome": "Pessoa fictícia 32"
+          },
+          {
+            "nome": "Pessoa fictícia 33"
+          },
+          {
+            "nome": "Pessoa fictícia 34"
+          },
+          {
+            "nome": "Pessoa fictícia 35"
+          },
+          {
+            "nome": "Pessoa fictícia 36"
+          },
+          {
+            "nome": "Pessoa fictícia 37"
+          },
+          {
+            "nome": "Pessoa fictícia 38"
+          },
+          {
+            "nome": "Pessoa fictícia 39"
+          },
+          {
+            "nome": "Pessoa fictícia 40"
+          },
+          {
+            "nome": "Pessoa fictícia 41"
+          },
+          {
+            "nome": "Pessoa fictícia 42"
+          },
+          {
+            "nome": "Pessoa fictícia 43"
+          },
+          {
+            "nome": "Pessoa fictícia 44"
+          },
+          {
+            "nome": "Pessoa fictícia 45"
+          },
+          {
+            "nome": "Pessoa fictícia 46"
+          },
+          {
+            "nome": "Pessoa fictícia 47"
+          },
+          {
+            "nome": "Pessoa fictícia 48"
+          },
+          {
+            "nome": "Pessoa fictícia 49"
+          },
+          {
+            "nome": "Pessoa fictícia 50"
+          },
+          {
+            "nome": "Pessoa fictícia 51"
+          },
+          {
+            "nome": "Pessoa fictícia 52"
+          },
+          {
+            "nome": "Pessoa fictícia 53"
+          },
+          {
+            "nome": "Pessoa fictícia 54"
+          },
+          {
+            "nome": "Pessoa fictícia 55"
+          },
+          {
+            "nome": "Pessoa fictícia 56"
+          },
+          {
+            "nome": "Pessoa fictícia 57"
+          },
+          {
+            "nome": "Pessoa fictícia 58"
+          },
+          {
+            "nome": "Pessoa fictícia 59"
+          },
+          {
+            "nome": "Pessoa fictícia 60"
+          },
+          {
+            "nome": "Pessoa fictícia 61"
+          },
+          {
+            "nome": "Pessoa fictícia 62"
+          },
+          {
+            "nome": "Pessoa fictícia 63"
+          },
+          {
+            "nome": "Pessoa fictícia 64"
+          },
+          {
+            "nome": "Pessoa fictícia 65"
+          },
+          {
+            "nome": "Pessoa fictícia 66"
+          },
+          {
+            "nome": "Pessoa fictícia 67"
+          },
+          {
+            "nome": "Pessoa fictícia 68"
+          },
+          {
+            "nome": "Pessoa fictícia 69"
+          },
+          {
+            "nome": "Pessoa fictícia 70"
+          },
+          {
+            "nome": "Pessoa fictícia 71"
+          },
+          {
+            "nome": "Pessoa fictícia 72"
+          },
+          {
+            "nome": "Pessoa fictícia 73"
+          },
+          {
+            "nome": "Pessoa fictícia 74"
+          },
+          {
+            "nome": "Pessoa fictícia 75"
+          },
+          {
+            "nome": "Pessoa fictícia 76"
+          },
+          {
+            "nome": "Pessoa fictícia 77"
+          },
+          {
+            "nome": "Pessoa fictícia 78"
+          },
+          {
+            "nome": "Pessoa fictícia 79"
+          },
+          {
+            "nome": "Pessoa fictícia 80"
+          },
+          {
+            "nome": "Pessoa fictícia 81"
+          },
+          {
+            "nome": "Pessoa fictícia 82"
+          },
+          {
+            "nome": "Pessoa fictícia 83"
+          },
+          {
+            "nome": "Pessoa fictícia 84"
+          },
+          {
+            "nome": "Pessoa fictícia 85"
+          },
+          {
+            "nome": "Pessoa fictícia 86"
+          },
+          {
+            "nome": "Pessoa fictícia 87"
+          },
+          {
+            "nome": "Pessoa fictícia 88"
+          },
+          {
+            "nome": "Pessoa fictícia 89"
+          },
+          {
+            "nome": "Pessoa fictícia 90"
+          },
+          {
+            "nome": "Pessoa fictícia 91"
+          },
+          {
+            "nome": "Pessoa fictícia 92"
+          },
+          {
+            "nome": "Pessoa fictícia 93"
+          },
+          {
+            "nome": "Pessoa fictícia 94"
+          },
+          {
+            "nome": "Pessoa fictícia 95"
+          },
+          {
+            "nome": "Pessoa fictícia 96"
+          },
+          {
+            "nome": "Pessoa fictícia 97"
+          },
+          {
+            "nome": "Pessoa fictícia 98"
+          },
+          {
+            "nome": "Pessoa fictícia 99"
+          },
+          {
+            "nome": "Pessoa fictícia 100"
+          },
+          {
+            "nome": "Pessoa fictícia 101"
+          },
+          {
+            "nome": "Pessoa fictícia 102"
+          },
+          {
+            "nome": "Pessoa fictícia 103"
+          },
+          {
+            "nome": "Pessoa fictícia 104"
+          },
+          {
+            "nome": "Pessoa fictícia 105"
+          },
+          {
+            "nome": "Pessoa fictícia 106"
+          },
+          {
+            "nome": "Pessoa fictícia 107"
+          },
+          {
+            "nome": "Pessoa fictícia 108"
+          },
+          {
+            "nome": "Pessoa fictícia 109"
+          },
+          {
+            "nome": "Pessoa fictícia 110"
+          },
+          {
+            "nome": "Pessoa fictícia 111"
+          },
+          {
+            "nome": "Pessoa fictícia 112"
+          },
+          {
+            "nome": "Pessoa fictícia 113"
+          },
+          {
+            "nome": "Pessoa fictícia 114"
+          },
+          {
+            "nome": "Pessoa fictícia 115"
+          },
+          {
+            "nome": "Pessoa fictícia 116"
+          },
+          {
+            "nome": "Pessoa fictícia 117"
+          },
+          {
+            "nome": "Pessoa fictícia 118"
+          },
+          {
+            "nome": "Pessoa fictícia 119"
+          },
+          {
+            "nome": "Pessoa fictícia 120"
+          },
+          {
+            "nome": "Pessoa fictícia 121"
+          },
+          {
+            "nome": "Pessoa fictícia 122"
+          },
+          {
+            "nome": "Pessoa fictícia 123"
+          },
+          {
+            "nome": "Pessoa fictícia 124"
+          },
+          {
+            "nome": "Pessoa fictícia 125"
+          },
+          {
+            "nome": "Pessoa fictícia 126"
+          },
+          {
+            "nome": "Pessoa fictícia 127"
+          },
+          {
+            "nome": "Pessoa fictícia 128"
+          },
+          {
+            "nome": "Pessoa fictícia 129"
+          },
+          {
+            "nome": "Pessoa fictícia 130"
+          },
+          {
+            "nome": "Pessoa fictícia 131"
+          },
+          {
+            "nome": "Pessoa fictícia 132"
+          },
+          {
+            "nome": "Pessoa fictícia 133"
+          },
+          {
+            "nome": "Pessoa fictícia 134"
+          },
+          {
+            "nome": "Pessoa fictícia 135"
+          },
+          {
+            "nome": "Pessoa fictícia 136"
+          },
+          {
+            "nome": "Pessoa fictícia 137"
+          },
+          {
+            "nome": "Pessoa fictícia 138"
+          },
+          {
+            "nome": "Pessoa fictícia 139"
+          },
+          {
+            "nome": "Pessoa fictícia 140"
+          },
+          {
+            "nome": "Pessoa fictícia 141"
+          },
+          {
+            "nome": "Pessoa fictícia 142"
+          },
+          {
+            "nome": "Pessoa fictícia 143"
+          },
+          {
+            "nome": "Pessoa fictícia 144"
+          },
+          {
+            "nome": "Pessoa fictícia 145"
+          },
+          {
+            "nome": "Pessoa fictícia 146"
+          },
+          {
+            "nome": "Pessoa fictícia 147"
+          },
+          {
+            "nome": "Pessoa fictícia 148"
+          },
+          {
+            "nome": "Pessoa fictícia 149"
+          },
+          {
+            "nome": "Pessoa fictícia 150"
+          },
+          {
+            "nome": "Pessoa fictícia 151"
+          },
+          {
+            "nome": "Pessoa fictícia 152"
+          },
+          {
+            "nome": "Pessoa fictícia 153"
+          },
+          {
+            "nome": "Pessoa fictícia 154"
+          },
+          {
+            "nome": "Pessoa fictícia 155"
+          },
+          {
+            "nome": "Pessoa fictícia 156"
+          },
+          {
+            "nome": "Pessoa fictícia 157"
+          },
+          {
+            "nome": "Pessoa fictícia 158"
+          },
+          {
+            "nome": "Pessoa fictícia 159"
+          },
+          {
+            "nome": "Pessoa fictícia 160"
+          },
+          {
+            "nome": "Pessoa fictícia 161"
+          },
+          {
+            "nome": "Pessoa fictícia 162"
+          },
+          {
+            "nome": "Pessoa fictícia 163"
+          },
+          {
+            "nome": "Pessoa fictícia 164"
+          },
+          {
+            "nome": "Pessoa fictícia 165"
+          },
+          {
+            "nome": "Pessoa fictícia 166"
+          },
+          {
+            "nome": "Pessoa fictícia 167"
+          },
+          {
+            "nome": "Pessoa fictícia 168"
+          },
+          {
+            "nome": "Pessoa fictícia 169"
+          },
+          {
+            "nome": "Pessoa fictícia 170"
+          },
+          {
+            "nome": "Pessoa fictícia 171"
+          },
+          {
+            "nome": "Pessoa fictícia 172"
+          },
+          {
+            "nome": "Pessoa fictícia 173"
+          },
+          {
+            "nome": "Pessoa fictícia 174"
+          },
+          {
+            "nome": "Pessoa fictícia 175"
+          },
+          {
+            "nome": "Pessoa fictícia 176"
+          },
+          {
+            "nome": "Pessoa fictícia 177"
+          },
+          {
+            "nome": "Pessoa fictícia 178"
+          },
+          {
+            "nome": "Pessoa fictícia 179"
+          },
+          {
+            "nome": "Pessoa fictícia 180"
+          },
+          {
+            "nome": "Pessoa fictícia 181"
+          },
+          {
+            "nome": "Pessoa fictícia 182"
+          },
+          {
+            "nome": "Pessoa fictícia 183"
+          },
+          {
+            "nome": "Pessoa fictícia 184"
+          },
+          {
+            "nome": "Pessoa fictícia 185"
+          },
+          {
+            "nome": "Pessoa fictícia 186"
+          },
+          {
+            "nome": "Pessoa fictícia 187"
+          },
+          {
+            "nome": "Pessoa fictícia 188"
+          },
+          {
+            "nome": "Pessoa fictícia 189"
+          },
+          {
+            "nome": "Pessoa fictícia 190"
+          },
+          {
+            "nome": "Pessoa fictícia 191"
+          },
+          {
+            "nome": "Pessoa fictícia 192"
+          },
+          {
+            "nome": "Pessoa fictícia 193"
+          },
+          {
+            "nome": "Pessoa fictícia 194"
+          },
+          {
+            "nome": "Pessoa fictícia 195"
+          },
+          {
+            "nome": "Pessoa fictícia 196"
+          },
+          {
+            "nome": "Pessoa fictícia 197"
+          },
+          {
+            "nome": "Pessoa fictícia 198"
+          },
+          {
+            "nome": "Pessoa fictícia 199"
+          },
+          {
+            "nome": "Pessoa fictícia 200"
+          }
+        ],
+        "pagina": 1,
+        "total_paginas": 1,
+        "paginacao": "local",
+        "solicitada": 500,
+        "retornada": 200,
+        "total": 273,
+        "limitado": true,
+        "tem_mais": true,
+        "motivo_limite": "maximo_resultados"
+      }
+    ]
+  },
+  "validacao": {
+    "question": "Simular validação inválida.",
+    "error": "Confira os filtros informados. Período inválido.",
+    "status": 422
+  },
+  "indisponibilidade": {
+    "question": "Simular dependência indisponível.",
+    "error": "Serviço de IA indisponível. Tente novamente em instantes.",
+    "status": 503
+  }
+}

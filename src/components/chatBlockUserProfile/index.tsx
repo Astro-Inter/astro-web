@@ -5,8 +5,9 @@ interface UserProfileProps { card: ChatUserCardBlock }
 export default function UserProfile({ card }: UserProfileProps) {
   const compliance = card.conformidade
   return <section className="chat-data-card chat-user-card" aria-label={card.titulo}>
-    <h4>{card.titulo}</h4><div className="chat-user-card-body">
-      <ChatBlockAvatar item={{ nome: card.nome || '', email: card.email ?? null, url: card.foto?.url ?? null }} />
+    <div className="chat-user-card-heading">
+      <ChatBlockAvatar showName={false} item={{ nome: card.nome || '', email: card.email ?? null, url: card.foto?.url ?? null }} /><h4>{card.titulo}</h4></div>
+    <div className="chat-user-card-body">
       <dl>{[['Nome', card.nome], ['E-mail', card.email], ['Cargo', card.cargo], ['Unidade', card.unidade], ['Perfil', card.perfil], ['Modalidade', card.modalidade], ['Situação', card.situacao]].map(([label, value]) => value && <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
     </div>
     {compliance && <div className="chat-user-compliance"><strong>Conformidade cadastral: {compliance.percentual === null ? 'Sem NRs aplicáveis' : `${compliance.percentual.toLocaleString('pt-BR')}%`}</strong>

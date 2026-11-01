@@ -6,6 +6,6 @@ export function chatMessageText(legacy: string | undefined, value: unknown): str
   const content = blocks?.flatMap(block => block.tipo === 'texto' ? [block.conteudo] : []).join('\n\n')
   if (content) return content
   if (legacy) return legacy
-  const titles = blocks?.flatMap(block => 'titulo' in block ? [block.titulo] : block.tipo === 'contexto_dados' ? ['Contexto dos dados'] : [])
+  const titles = blocks?.flatMap(block => 'titulo' in block ? [block.titulo] : block.tipo === 'contexto_dados' ? ['Contexto dos dados'] : block.tipo === 'arquivo' ? [block.nome] : [])
   return titles?.join(' · ') || 'Não foi possível exibir esta resposta.'
 }

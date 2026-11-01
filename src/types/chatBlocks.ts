@@ -38,5 +38,10 @@ export interface ChatUserCardBlock {
 export interface ChatGalleryPerson { nome: string; email: string | null; url: string | null }
 export interface ChatGalleryBlock { tipo: 'galeria_usuarios'; versao: 1; titulo: string; imagens: ChatGalleryPerson[] }
 export interface ChatTextBlock { tipo: 'texto'; conteudo: string }
-export type ChatBlock = ChatTextBlock | ChatChartBlock | ChatTableBlock | ChatGalleryBlock | ChatUserCardBlock | ChatIndicatorBlock | ChatContextBlock
+export interface ChatFileBlock {
+  tipo: 'arquivo'; versao: 1; id: string; nome: string; mime_type: 'application/pdf'
+  tamanho_bytes: number | null; url: string | null; expira_em: string
+  estado: 'disponivel' | 'expirado' | 'indisponivel'
+}
+export type ChatBlock = ChatTextBlock | ChatChartBlock | ChatTableBlock | ChatGalleryBlock | ChatUserCardBlock | ChatIndicatorBlock | ChatContextBlock | ChatFileBlock
 export interface KeyedChatItem<T> { key: string; item: T }

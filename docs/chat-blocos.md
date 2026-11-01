@@ -82,3 +82,26 @@ Galerias antigas continuam com até 50 pessoas, nome obrigatório, e-mail opcion
 até 320 caracteres e URL opcional até 8.192. Duplicatas de conteúdo têm chaves
 separadas. `useChatBlocks` memoriza o parsing; os gráficos decorativos têm uma
 lista textual adjacente, preservando acesso aos valores sem depender da imagem.
+
+## Arquivo PDF v1 (API PR 34)
+
+`arquivo` v1 é validado isoladamente e renderizado por `chatBlockFile`, separado
+do texto e na posição recebida. Aceita UUID, nome seguro `.pdf` (até 100), MIME
+`application/pdf`, tamanho nulo ou inteiro de 1 a 2.000.000, URL HTTPS ou nula,
+expiração ISO UTC e estado disponivel/expirado/indisponivel. O cartão omite o tamanho
+quando ausente; não estima nem converte arquivo para outro tipo.
+
+`useChatFileOpen` controla prazo e erro. O cartão oferece somente “Abrir PDF
+no navegador”, habilitado com URL, estado disponível e prazo válido. Expiração
+é reavaliada pelo relógio e ao recuperar foco/visibilidade. O clique revalida o
+prazo e abre a mesma URL recebida com noopener/noreferrer, sem token Astro.
+Não há download direto, fetch de arquivo, Blob ou renovação de assinatura.
+O usuário pode salvar pelo visualizador do navegador. Erros HTTP do armazenamento
+são apresentados pelo navegador; falha ao abrir produz alerta sem expor a URL.
+Histórico e lembrete mantêm id/prazo; falha de geração não fabrica cartão.
+Não há preview automático, URL no href do cartão, logs ou persistência local.
+Os ícones do cartão usam cor escura para contrastar com o fundo branco.
+
+A implementação mantém os componentes e contratos analíticos existentes, sem
+recalcular agregados a partir das linhas. A simulação visual específica está em
+`/tools/chat-contracts-preview/index.html` e não entra no build de produção.

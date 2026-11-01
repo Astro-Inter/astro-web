@@ -1,4 +1,5 @@
 import type { ChatBlock, ChatImageCell, KeyedChatItem } from '../types/chatBlocks'
+import { chatFileExpiration, safeChatFileUrl } from './chatFiles'
 
 const text = (value: unknown, max = 6000): value is string => typeof value === 'string' && value.length > 0 && value.length <= max
 const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -23,6 +24,13 @@ function summary(b: Record<string, unknown>): boolean {
 function validBlock(block: unknown): boolean {
   if (!object(block)) return false
   if (block.tipo === 'texto') return text(block.conteudo)
+  if (block.tipo === 'arquivo') {
+    return block.versao === 1 && typeof block.id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(block.id)
+      && text(block.nome, 100) && /^[a-zA-Z0-9_-]+\.pdf$/.test(block.nome) && block.mime_type === 'application/pdf'
+      && (block.tamanho_bytes === null || integer(block.tamanho_bytes, 1) && block.tamanho_bytes <= 2000000)
+      && (block.url === null || safeChatFileUrl(block.url)) && chatFileExpiration(block.expira_em) !== null
+      && ['disponivel', 'expirado', 'indisponivel'].includes(String(block.estado))
+  }
   if (block.tipo === 'contexto_dados') {
     return block.versao === 1 && text(block.fonte, 200) && date(block.referencia) && date(block.inicio) && date(block.fim)
       && ((block.inicio === null && block.fim === null) || (typeof block.inicio === 'string' && typeof block.fim === 'string' && block.inicio <= block.fim))

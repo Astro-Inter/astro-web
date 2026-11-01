@@ -1,0 +1,402 @@
+{
+  "checked_at": "2026-11-01T05:02:14.786Z",
+  "mode": "API real por HTTP; payloads privados somente em memoria",
+  "backend": {
+    "commit": "a7fbe680520c90355f17f766fb6d21efce4e8f38"
+  },
+  "results": [
+    {
+      "label": "cobertura",
+      "http": 200,
+      "elapsed_ms": 5367,
+      "types": [
+        "texto"
+      ],
+      "parsed": 1,
+      "received_blocks": 1,
+      "sets": [],
+      "charts": [],
+      "file_states": []
+    },
+    {
+      "label": "matriz_apos_cobertura",
+      "http": 200,
+      "elapsed_ms": 6986,
+      "types": [
+        "indicadores",
+        "matriz_conformidade",
+        "contexto_dados"
+      ],
+      "parsed": 3,
+      "received_blocks": 3,
+      "sets": [
+        {
+          "tipo": "matriz_conformidade",
+          "versao": 1,
+          "total": 272,
+          "solicitada": 100,
+          "retornada": 100,
+          "linhas": 100,
+          "limitado": false,
+          "tem_mais": true,
+          "motivo_limite": null,
+          "paginacao": "local",
+          "visual_pages": 10
+        }
+      ],
+      "charts": [],
+      "file_states": []
+    },
+    {
+      "label": "comparacao_apos_matriz",
+      "http": 200,
+      "elapsed_ms": 6184,
+      "types": [
+        "indicadores",
+        "tabela",
+        "grafico_barras",
+        "contexto_dados"
+      ],
+      "parsed": 4,
+      "received_blocks": 4,
+      "sets": [
+        {
+          "tipo": "tabela",
+          "versao": 2,
+          "total": 3,
+          "solicitada": 100,
+          "retornada": 3,
+          "linhas": 3,
+          "limitado": false,
+          "tem_mais": false,
+          "motivo_limite": null,
+          "paginacao": "local",
+          "visual_pages": 1
+        }
+      ],
+      "charts": [
+        {
+          "tipo": "grafico_barras",
+          "pontos": 3,
+          "soma": 75,
+          "all_zero": false
+        }
+      ],
+      "file_states": []
+    },
+    {
+      "label": "usuarios100",
+      "http": 200,
+      "elapsed_ms": 8531,
+      "types": [
+        "texto",
+        "tabela",
+        "texto"
+      ],
+      "parsed": 3,
+      "received_blocks": 3,
+      "sets": [
+        {
+          "tipo": "tabela",
+          "versao": 2,
+          "total": 141,
+          "solicitada": 100,
+          "retornada": 100,
+          "linhas": 100,
+          "limitado": false,
+          "tem_mais": true,
+          "motivo_limite": null,
+          "paginacao": "local",
+          "visual_pages": 10
+        }
+      ],
+      "charts": [],
+      "file_states": []
+    },
+    {
+      "label": "usuarios500_mesma_sessao",
+      "http": 200,
+      "elapsed_ms": 14219,
+      "types": [
+        "texto",
+        "tabela",
+        "texto"
+      ],
+      "parsed": 3,
+      "received_blocks": 3,
+      "sets": [
+        {
+          "tipo": "tabela",
+          "versao": 2,
+          "total": 141,
+          "solicitada": 500,
+          "retornada": 141,
+          "linhas": 141,
+          "limitado": false,
+          "tem_mais": false,
+          "motivo_limite": null,
+          "paginacao": "local",
+          "visual_pages": 15
+        }
+      ],
+      "charts": [],
+      "file_states": []
+    },
+    {
+      "label": "barras_da_listagem",
+      "http": 200,
+      "elapsed_ms": 11972,
+      "types": [
+        "texto"
+      ],
+      "parsed": 1,
+      "received_blocks": 1,
+      "sets": [],
+      "charts": [],
+      "file_states": []
+    },
+    {
+      "label": "linhas_pessoais_zero",
+      "http": 200,
+      "elapsed_ms": 5120,
+      "types": [
+        "texto",
+        "grafico_linhas",
+        "texto"
+      ],
+      "parsed": 3,
+      "received_blocks": 3,
+      "sets": [],
+      "charts": [
+        {
+          "tipo": "grafico_linhas",
+          "pontos": 12,
+          "soma": 0,
+          "all_zero": true
+        }
+      ],
+      "file_states": []
+    },
+    {
+      "label": "conflitos_vazios",
+      "http": 200,
+      "elapsed_ms": 5529,
+      "types": [
+        "indicadores",
+        "contexto_dados"
+      ],
+      "parsed": 2,
+      "received_blocks": 2,
+      "sets": [],
+      "charts": [],
+      "file_states": []
+    },
+    {
+      "label": "eventos_com_referencia",
+      "http": 200,
+      "elapsed_ms": 6618,
+      "types": [
+        "texto"
+      ],
+      "parsed": 1,
+      "received_blocks": 1,
+      "sets": [],
+      "charts": [],
+      "file_states": []
+    },
+    {
+      "label": "evento_sem_referencia",
+      "http": 200,
+      "elapsed_ms": 5812,
+      "types": [
+        "texto"
+      ],
+      "parsed": 1,
+      "received_blocks": 1,
+      "sets": [],
+      "charts": [],
+      "file_states": []
+    },
+    {
+      "label": "acesso_negado",
+      "http": 200,
+      "elapsed_ms": 3237,
+      "types": [
+        "texto"
+      ],
+      "parsed": 1,
+      "received_blocks": 1,
+      "sets": [],
+      "charts": [],
+      "file_states": []
+    },
+    {
+      "label": "gerar_pdf",
+      "http": 503,
+      "elapsed_ms": 2653,
+      "types": [],
+      "parsed": 0,
+      "received_blocks": 0,
+      "sets": [],
+      "charts": [],
+      "file_states": [],
+      "error_explicit": true
+    },
+    {
+      "label": "consulta_pessoal_antes_pdf",
+      "http": 200,
+      "types": [
+        "texto",
+        "ficha_usuario"
+      ],
+      "explicit_error": false
+    },
+    {
+      "label": "pdf_apos_consulta_autorizada",
+      "http": 200,
+      "types": [
+        "texto",
+        "arquivo"
+      ],
+      "explicit_error": false
+    },
+    {
+      "label": "cade_pdf_real",
+      "http": 200,
+      "types": [
+        "texto",
+        "arquivo"
+      ],
+      "explicit_error": false
+    }
+  ],
+  "history": {
+    "http": 200,
+    "assistant_messages": 7,
+    "verified": [
+      {
+        "label": "matriz_apos_cobertura",
+        "types": [
+          "indicadores",
+          "matriz_conformidade",
+          "contexto_dados"
+        ],
+        "same_types": true,
+        "same_returned": true,
+        "same_chart_sum": true
+      },
+      {
+        "label": "comparacao_apos_matriz",
+        "types": [
+          "indicadores",
+          "tabela",
+          "grafico_barras",
+          "contexto_dados"
+        ],
+        "same_types": true,
+        "same_returned": true,
+        "same_chart_sum": true
+      },
+      {
+        "label": "usuarios100",
+        "types": [
+          "texto",
+          "tabela",
+          "texto"
+        ],
+        "same_types": true,
+        "same_returned": true,
+        "same_chart_sum": true
+      },
+      {
+        "label": "usuarios500_mesma_sessao",
+        "types": [
+          "texto",
+          "tabela",
+          "texto"
+        ],
+        "same_types": true,
+        "same_returned": true,
+        "same_chart_sum": true
+      },
+      {
+        "label": "turno_sem_correspondencia_no_recorte",
+        "types": [],
+        "comparison": "sem_snapshot_POST_correspondente"
+      },
+      {
+        "label": "linhas_pessoais_zero",
+        "types": [
+          "texto",
+          "grafico_linhas",
+          "texto"
+        ],
+        "same_types": true,
+        "same_returned": true,
+        "same_chart_sum": true
+      },
+      {
+        "label": "conflitos_vazios",
+        "types": [
+          "indicadores",
+          "contexto_dados"
+        ],
+        "same_types": true,
+        "same_returned": true,
+        "same_chart_sum": true
+      }
+    ],
+    "unpersisted": [
+      "cobertura",
+      "barras_da_listagem",
+      "eventos_com_referencia",
+      "evento_sem_referencia",
+      "acesso_negado"
+    ]
+  },
+  "event_reference": {
+    "http": 200,
+    "types": [
+      "texto"
+    ],
+    "explicit_reference_found": false,
+    "numbered_refs": 0,
+    "no_events": true,
+    "clarification": false
+  },
+  "schema_validation": {
+    "http": 422,
+    "explicit": true
+  },
+  "real_pdf": {
+    "estado": "disponivel",
+    "mime_type": "application/pdf",
+    "tamanho_bytes": 77244,
+    "has_url": true,
+    "future": true
+  },
+  "file_reuse": {
+    "http": 200,
+    "same_id": true,
+    "same_url": true,
+    "raw_expiration_equal": false,
+    "same_expiration_instant": true,
+    "expiration_delta_ms": 0,
+    "parsed_original": true,
+    "parsed_reminder": true
+  },
+  "file_download": {
+    "http": 200,
+    "mime": "application/pdf",
+    "bytes": 77244,
+    "pdf_signature": true,
+    "cors_origin": null
+  },
+  "file_history": {
+    "http": 200,
+    "found": true,
+    "all_same_id": true,
+    "all_same_expiration_instant": true,
+    "all_recognized": true
+  }
+}
