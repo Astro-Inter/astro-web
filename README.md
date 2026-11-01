@@ -1,5 +1,9 @@
 # Astro Web
 
+Aplicação publicada: [Astro Web — GitHub Pages](https://astro-inter.github.io/astro-web/).
+
+[Critérios de Aplicações Dinâmicas e roteiro de demonstração](docs/conformidade-dad.md).
+
 Interface do Astro, feita com Vite, React, TypeScript e React Router. O login usa Firebase Authentication; cadastro inicial, home, cargos, unidades e colaboradores usam a API principal. Pagamento e outras telas internas continuam demonstrativos.
 
 ## Executar e verificar
@@ -134,17 +138,17 @@ createForms grava astro-created-form e astro-create-forms-draft com _versao: 1 e
 
 | Critério | Estado atual |
 | --- | --- |
-| M01–M04 | Vite/React/TS estrito, somente TS/TSX em src, componentes/páginas em pastas próprias, props e domínio tipados, sem any. Lógica de perguntas e validação compartilhada. |
-| M05 | Firebase, login, chatbot e cadastro inicial em src/services, retornos Promise tipados, tratamento de erros e .env fora do versionamento. A gestão das entidades internas ainda usa dados demonstrativos. |
+| M01–M04 | Vite, React e TypeScript estrito; somente TS/TSX em src; componentes e páginas em pastas próprias; props com interfaces e entidades em types. Consultas do editor em hook separado. |
+| M05 | Requisições em services, contratos Promise tipados, tratamento de erros e configuração em ambiente. |
 | M06–M08 | Estados locais agrupados, atualizações imutáveis, efeitos com dependências verificadas pelo lint e ids estáveis nas listas dinâmicas. |
-| M09 | Nenhuma rota recebe parâmetros atualmente. |
+| M09 | Revisão de NRs utiliza useParams com tratamento de parâmetro ausente ou inválido. |
 | M10 | React Router, navegação interna e rota curinga com retorno ao início. |
 | M11 | Correções de contraste, foco, teclado e tooltips realizadas. Certificação integral WCAG AA e validação com leitor de tela ainda não concluídas. |
-| M12 | Login e cadastro inicial apresentam carregamento, sucesso com navegação e erros no DOM. Demais integrações assíncronas reais ainda pendentes. |
-| M13 | Publicação segue pendente. |
-| M14 | Histórico em desenvolvimento; acompanhar 20 commits convencionais distribuídos por quatro semanas reais. |
+| M12 | Carregamento, resultado/sucesso e erro no DOM nos fluxos integrados; cancelamento e recuperação cobertos por testes. |
+| M13 | GitHub Pages publicado; link no início deste README. |
+| M14 | Histórico com mais de 20 commits convencionais entre setembro e outubro de 2026, cobrindo mais de quatro semanas. |
 
-E01 também é usado no cadastro: Provider dedicado com hook e tipagem, mantendo o rascunho entre as rotas. E04 implementado com lazy/Suspense por página e chunks separados no build. E05 parcial: versão ao gravar, sem carga/migração. E08 inclui validação e normalização do cadastro em `utils/workspaceRegistration.ts` antes do envio. E10 tem melhorias de ARIA/foco/teclado, mas ainda precisa de demonstração com NVDA ou VoiceOver. Os demais extras não são declarados concluídos.
+Context, reducer, hooks canceláveis, carregamento por página, persistência versionada e validações estão descritos em [Conformidade DAD](docs/conformidade-dad.md). As demonstrações com React DevTools Profiler e leitor de tela fazem parte do roteiro de apresentação.
 
 ## Verificação manual
 
@@ -152,6 +156,6 @@ Conferir limpeza de prazo, datas inválidas, seleção pelo teclado, opções va
 
 ## Nomes de arquivos e pastas
 
-Use camelCase em inglês nos arquivos e pastas da aplicação (por exemplo, `appModal/index.tsx`, `errorScreenLayout/index.tsx` e `accessKeyVerified.png`). Componentes React e seus tipos permanecem em PascalCase no código. Cada página e componente mantém seu `index.tsx`, conforme M02 da skill DAD. Imagens e CSS permanecem fora de `src/`, conforme M01.
+Use camelCase em inglês nos arquivos e pastas da aplicação (por exemplo, `appModal/index.tsx`, `errorScreenLayout/index.tsx` e `accessKeyVerified.png`). Componentes React e seus tipos permanecem em PascalCase no código. Cada página e componente mantém seu `index.tsx`. Imagens e CSS permanecem fora de `src/`.
 
 Exceções: nomes convencionais de ferramentas e metadados (`package.json`, `package-lock.json`, `tsconfig*.json`, `vite.config.ts`, `.oxlintrc.json`, `.env.example`, `.gitignore`, `.github`, `.gitkeep`, `LICENSE` e `README.md`). O README mantém o nome indicado no critério M13. Siglas oficiais, como CNPJ e NR, permanecem nos dados e textos do domínio. URLs existentes são preservadas nesta organização de arquivos.

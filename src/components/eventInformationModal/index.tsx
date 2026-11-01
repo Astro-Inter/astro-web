@@ -58,12 +58,12 @@ function EventInformationModal({ draft, onCancel, onChange, onContinue, nrs, loa
       </div>
       <div className="event-create-field">
         <label htmlFor="event-create-description">Descrição</label>
-        <input readOnly={detailsLocked} required aria-invalid={!!errors.description} aria-describedby={errors.description ? 'event-create-description-error' : undefined} id="event-create-description" minLength={3} onChange={event => update({ description: event.target.value }, 'description')} placeholder="Digite a descrição do evento" value={draft.description} />
+        <input readOnly={detailsLocked} required aria-invalid={!!errors.description} aria-describedby={errors.description ? 'event-create-description-error' : undefined} id="event-create-description" maxLength={5000} minLength={3} onChange={event => update({ description: event.target.value }, 'description')} placeholder="Digite a descrição do evento" value={draft.description} />
         <AnimatedFieldError id="event-create-description-error" message={errors.description} />
       </div>
       <div className="event-create-field">
-        <label htmlFor="event-create-nr">NR (opcional)</label>
-        <ToolbarSelect trackingAction={BUTTONS.comuns.nr} escapeOverflow disabled={loading || editing || unavailable} error={nrUnavailable ? 'Selecione uma NR destinada a colaboradores ou a opção Sem NR.' : undefined} className="event-create-select" id="event-create-nr" label="NR do evento" maxVisibleRows={2.5} onValueChange={nr => onChange({ nr: nr.replace(/^NR\s*/i, '') })} options={options} value={nr} />
+        <label htmlFor="event-create-nr" id="event-create-nr-label">NR (opcional)</label>
+        <ToolbarSelect trackingAction={BUTTONS.comuns.nr} escapeOverflow disabled={loading || editing || unavailable} error={nrUnavailable ? 'Selecione uma NR destinada a colaboradores ou a opção Sem NR.' : undefined} className="event-create-select" id="event-create-nr" label="NR do evento" maxVisibleRows={2.5} onValueChange={nr => onChange({ nr: nr.replace(/^NR\s*/i, '') })} options={options} value={nr} labelledBy="event-create-nr-label" />
         <AnimatedFieldError id="event-create-nr-error" message={nrUnavailable ? 'Selecione uma NR destinada a colaboradores ou a opção Sem NR.' : undefined} />
       </div>
       <div className="event-create-field">

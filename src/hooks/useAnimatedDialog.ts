@@ -1,5 +1,7 @@
 import { useCallback, useLayoutEffect, useRef, type MouseEvent, type RefObject, type SyntheticEvent } from 'react'
 import { useAnimatedClose } from './useAnimatedClose'
+import { restoreFocus } from '../utils/restoreFocus'
+import { containDialogTab } from '../utils/dialogFocus'
 
 interface AnimatedDialogOptions {
   initialFocusRef?: RefObject<HTMLElement | null>
@@ -12,6 +14,7 @@ export function useAnimatedDialog({ initialFocusRef, onClose, onDismissRequest, 
   const dialogRef = useRef<HTMLDialogElement>(null)
   const closeRequestedRef = useRef(false)
   const previousOpenRef = useRef(open)
+  const openerRef = useRef<HTMLElement | null>(null)
   const { closing, requestClose } = useAnimatedClose('modal')
 
   const dismiss = useCallback(() => {
@@ -30,6 +33,7 @@ export function useAnimatedDialog({ initialFocusRef, onClose, onDismissRequest, 
     if (open) {
       if (closeRequestedRef.current) return
       if (!dialog.open) {
+        openerRef.current = document.activeElement instanceof window.HTMLElement ? document.activeElement : null
         const pageScroll = { left: window.scrollX, top: window.scrollY }
         dialog.showModal()
         dialog.scrollTop = 0
@@ -41,6 +45,21 @@ export function useAnimatedDialog({ initialFocusRef, onClose, onDismissRequest, 
       dismiss()
     }
   }, [dismiss, initialFocusRef, open])
+
+  useLayoutEffect(() => {
+    const dialog = dialogRef.current
+    const handleTab = (event: KeyboardEvent) => {
+      if (dialog) containDialogTab(event, dialog, initialFocusRef?.current ?? dialog)
+    }
+    dialog?.addEventListener('keydown', handleTab)
+    return () => {
+      dialog?.removeEventListener('keydown', handleTab)
+      const opener = openerRef.current
+      queueMicrotask(() => {
+        if (!dialog?.isConnected) restoreFocus(opener, dialog)
+      })
+    }
+  }, [initialFocusRef])
 
   function handleBackdropClick(event: MouseEvent<HTMLDialogElement>) {
     if (event.target !== event.currentTarget) return
@@ -55,5 +74,12 @@ export function useAnimatedDialog({ initialFocusRef, onClose, onDismissRequest, 
     dismiss()
   }
 
-  return { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose: onClose }
+  function handleClose() {
+    const opener = openerRef.current
+    const dialog = dialogRef.current
+    onClose()
+    queueMicrotask(() => restoreFocus(opener, dialog))
+  }
+
+  return { closing, dialogRef, dismiss, handleBackdropClick, handleCancel, handleClose }
 }

@@ -16,6 +16,8 @@ Contrato conferido no [Swagger](https://astro-api-h2hx.onrender.com/swagger-ui/i
 
 Os DTOs usam `title`, `description`, `managerId`, `nrCode`, `unitId`, `dueDate`, `status` e `questions`. A interface converte `draft`, `pending` e `completed` para `RASCUNHO`, `PENDENTE` e `CONCLUIDO`. Texto, opção, foto e data correspondem a `texto`, `alternativa`, `foto` e `data`. NR e unidade são vínculos do formulário. Campos opcionais vazios vão como `null`, permitindo remover vínculos e prazo na edição. Respostas, remetente, workspace e datas de auditoria não são enviados.
 
+A apresentação usa **Rascunho**, **Pendente** e **Respondido**, nessa ordem; `CONCLUIDO` continua sendo o valor enviado à API para filtrar respondidos. Sem filtro de status, o serviço compõe a paginação a partir das consultas de cada estado, preservando a ordem entre páginas sem carregar a lista inteira. Busca, totais e cancelamento das consultas são mantidos. O menu de um respondido oferece somente **Cancelar** e **Ver respostas**; edição, personalização e exclusão ficam disponíveis apenas nos demais estados.
+
 Perguntas aceitam até 140 caracteres; alternativas, até 100 opções de 80 caracteres, com no máximo uma opção Outros; fotos, até 10 arquivos com limites de 5, 10, 20, 50 ou 100 MB. Não há upload de respostas por esses endpoints.
 
 ## Permissões e limitações da API
@@ -42,3 +44,9 @@ Rascunhos novos são salvos na API. O editor não carrega o antigo rascunho comp
 - M13 e M14: publicação e requisitos globais do histórico não foram auditados. Os commits desta integração seguem o padrão Astro Git, com datas reais; isso não comprova os requisitos globais de publicação e distribuição do histórico por quatro semanas.
 
 `tests/forms.test.cjs` cobre os seis endpoints, DTOs, autenticação, validação, preservação de IDs, vínculos e erros. `tests/formsUi.test.cjs` cobre carregamento, salvamento, publicação, rascunhos, exclusão, paginação, recuperação de erros, cancelamento e troca de sessão com React e JSDOM. As chamadas nesses testes são simuladas; operações autenticadas contra o ambiente Render precisam ser conferidas com uma conta de teste autorizada.
+
+## Aparência e nomes físicos no Mongo
+
+`POST /forms` e `PUT /forms/{id}` aceitam `appearance: { "icon": "calendar", "color": "orange" }`. Detalhes e itens da listagem retornam appearance opcional/null. Cor e ícone são validados pelo catálogo permitido. Sem appearance em uma edição, a configuração anterior é preservada. O bloqueio de alterações após respostas permanece.
+
+A coleção física passa a `formularios`, com `configuracao.icone` e `configuracao.cor`; o título tem até 100 caracteres e não contém marcadores de aparência. Referências usam sufixo `_id`, como `workspace_id`, `gestor_id`, `gestor_remetente_id`, `unidade_id` e `nr_id`. DTOs HTTP permanecem camelCase. Migrar os dados antigos antes de disponibilizar as novas versões; o procedimento está no repositório banco-de-dados, em mongo/docs/migracao-padronizacao.md.

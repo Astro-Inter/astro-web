@@ -13,7 +13,7 @@ function AccessibilitySettings({ onDone }: AccessibilitySettingsProps) {
   const { face, libras } = useAccessibilityRuntime()
   const idPrefix = useId()
   const [message, setMessage] = useState('')
-  const toggle = (key: keyof Pick<AccessibilityPreferences, 'dyslexicFont' | 'highContrast' | 'readingGuide' | 'reduceMotion' | 'libras'>, label: string, description?: string) =>
+  const toggle = (key: keyof Pick<AccessibilityPreferences, 'dyslexicFont' | 'highContrast' | 'readingGuide' | 'reduceMotion' | 'voiceSearch' | 'libras'>, label: string, description?: string) =>
     <div className="a11y-option">
       <span>{label}{description && <small>{description}</small>}</span>
       <ToggleSwitch label={label} checked={preferences[key]} onChange={checked => update({ [key]: checked })} />
@@ -37,13 +37,19 @@ function AccessibilitySettings({ onDone }: AccessibilitySettingsProps) {
         {toggle('reduceMotion', 'Reduzir animações')}
         </div>
       </section>
+      <section className="a11y-fieldset" aria-labelledby={`${idPrefix}-search-title`}>
+        <h3 className="a11y-section-title" id={`${idPrefix}-search-title`}>Pesquisa</h3>
+        <div className="a11y-fields">
+          {toggle('voiceSearch', 'Pesquisa por voz', 'Mostrar o botão de microfone nos campos de busca.')}
+        </div>
+      </section>
       <section className="a11y-fieldset" aria-labelledby={`${idPrefix}-colors-title`}>
         <h3 className="a11y-section-title" id={`${idPrefix}-colors-title`}>Cores e contraste</h3>
         <div className="a11y-fields">
 {toggle('highContrast', 'Alto contraste')}
         <div className="create-forms-field a11y-select-field">
-        <label htmlFor={`${idPrefix}-color-vision`}>Adaptação de cores</label>
-        <ToolbarSelect id={`${idPrefix}-color-vision`} className="create-forms-select" label="Adaptação de cores" searchable={false} value={preferences.colorVision} options={COLOR_VISION_OPTIONS} onValueChange={value => {
+        <label htmlFor={`${idPrefix}-color-vision`} id={`${idPrefix}-color-vision-label`}>Adaptação de cores</label>
+        <ToolbarSelect id={`${idPrefix}-color-vision`} labelledBy={`${idPrefix}-color-vision-label`} className="create-forms-select" label="Adaptação de cores" searchable={false} value={preferences.colorVision} options={COLOR_VISION_OPTIONS} onValueChange={value => {
           const option = COLOR_VISION_OPTIONS.find(item => item.value === value)
           if (option) update({ colorVision: option.value })
         }} />
@@ -57,8 +63,8 @@ function AccessibilitySettings({ onDone }: AccessibilitySettingsProps) {
         <div className="a11y-disclosure" data-open={preferences.libras} aria-hidden={!preferences.libras} inert={!preferences.libras}>
         <div><div className="a11y-fields">
           <div className="create-forms-field a11y-select-field">
-          <label htmlFor={`${idPrefix}-libras-position`}>Posição do tradutor</label>
-          <ToolbarSelect id={`${idPrefix}-libras-position`} className="create-forms-select" label="Posição do tradutor" searchable={false} value={preferences.librasPosition} options={[{value:'L',label:'Esquerda'},{value:'R',label:'Direita'}]} onValueChange={position => {
+          <label htmlFor={`${idPrefix}-libras-position`} id={`${idPrefix}-libras-position-label`}>Posição do tradutor</label>
+          <ToolbarSelect id={`${idPrefix}-libras-position`} labelledBy={`${idPrefix}-libras-position-label`} className="create-forms-select" label="Posição do tradutor" searchable={false} value={preferences.librasPosition} options={[{value:'L',label:'Esquerda'},{value:'R',label:'Direita'}]} onValueChange={position => {
             if (position === 'L' || position === 'R') update({ librasPosition: position })
           }} />
           </div>
@@ -77,7 +83,7 @@ function AccessibilitySettings({ onDone }: AccessibilitySettingsProps) {
         </div>
       </section>
       <div className="a11y-notes">
-        <p className="a11y-hint">As buscas têm um botão de microfone quando o navegador oferece reconhecimento de voz. O áudio pode ser processado pelo serviço do navegador.</p>
+        <p className="a11y-hint">A pesquisa por voz depende do reconhecimento de voz do navegador. Ao ativar e usar o microfone, o áudio pode ser processado pelo serviço do navegador.</p>
         <p className="a11y-hint">Atalho: Alt + A abre este painel. Tab navega pelos controles e Escape fecha o painel.</p>
       </div>
       {message && <p role="status">{message}</p>}

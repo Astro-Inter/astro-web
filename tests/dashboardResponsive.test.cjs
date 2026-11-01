@@ -16,14 +16,19 @@ test('gráfico acompanha largura e altura da prévia sem reduzir os textos; cons
     for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true,
       ResizeObserver: class { constructor(callback) { resize = callback } observe() {} disconnect() { disconnected = true } },
     })) Object.defineProperty(global, key, { value, configurable: true, writable: true })
-    const source = fs.readFileSync(path.join(__dirname, '../src/components/analyticsChart/index.tsx'), 'utf8')
+    function load(filename) {
+    const source = fs.readFileSync(filename, 'utf8')
     const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText
     const module = { exports: {} }
     new Function('require', 'module', 'exports', code)(name => {
       if (name === '../../data/dashboardCatalog') return { dimensionLabels: { data: 'Data' } }
       if (name === '../truncatedText') return { __esModule: true, default: ({ children }) => React.createElement('span', null, children) }
+      if (name.startsWith('.')) { const target = path.resolve(path.dirname(filename), name); return load(path.join(target, 'index.tsx')) }
       return require(name)
     }, module, module.exports)
+    return module.exports
+    }
+    const module = { exports: load(path.join(__dirname, '../src/components/analyticsChart/index.tsx')) }
     root = createRoot(document.getElementById('root'))
     const chart = { title: 'Colaboradores', kind: 'line', dimensions: ['data'], measure: 'quantidade', dateSensitive: true,
       rows: [{ data: '2026-07-01', quantidade: 20 }, { data: '2026-10-01', quantidade: 130 }] }

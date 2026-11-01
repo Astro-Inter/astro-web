@@ -7,6 +7,7 @@ import AstroIcon from '../astroIcon'
 interface FormDatePickerProps {
   id: string
   label: string
+  labelledBy?: string
   onChange: (value: string) => void
   onValidityChange?: (valid: boolean) => void
   value: string
@@ -69,7 +70,7 @@ function sameDate(first: Date | null, second: Date) {
   return first !== null && first.getFullYear() === second.getFullYear() && first.getMonth() === second.getMonth() && first.getDate() === second.getDate()
 }
 
-function FormDatePicker({ id, label, onChange, onValidityChange, value, error, validate = true, escapeOverflow = false, animateError = false }: FormDatePickerProps) {
+function FormDatePicker({ id, label, labelledBy, onChange, onValidityChange, value, error, validate = true, escapeOverflow = false, animateError = false }: FormDatePickerProps) {
   const generatedId = useId()
   const calendarId = `${generatedId}-calendar`
   const containerRef = useRef<HTMLDivElement>(null)
@@ -221,15 +222,17 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, error, v
 
   return (
     <div className="create-forms-date-picker" data-placement={placement} ref={containerRef}>
-      <label className="sr-only" htmlFor={id}>{label}</label>
+      {!labelledBy && <label className="sr-only" htmlFor={id}>{label}</label>}
       <div className="create-forms-date-control">
         <input data-track-action={BUTTONS.comuns.calendario}
-          aria-label={label}
+          aria-label={labelledBy ? undefined : label}
+          aria-labelledby={labelledBy}
           aria-describedby={showError ? `${id}-error` : undefined}
           aria-invalid={showError}
-          aria-controls={calendarId}
+          aria-controls={open ? calendarId : undefined}
           aria-expanded={open && !closing}
           aria-haspopup="dialog"
+          role="combobox"
           autoComplete="off"
           id={id}
           inputMode="numeric"
@@ -243,7 +246,7 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, error, v
           value={inputValue}
         />
         <button data-track-action={BUTTONS.comuns.calendario}
-          aria-controls={calendarId}
+          aria-controls={open ? calendarId : undefined}
           aria-expanded={open && !closing}
           aria-label={open && !closing ? 'Fechar calendário' : `Abrir calendário de ${label.toLocaleLowerCase('pt-BR')}`}
           className="create-forms-date-trigger"
@@ -267,7 +270,7 @@ function FormDatePicker({ id, label, onChange, onValidityChange, value, error, v
           {weekdays.map((weekday) => <span key={weekday}>{weekday}</span>)}
         </div>
 
-        <div aria-label={formatMonthTitle(visibleMonth)} className={`create-forms-calendar-days create-forms-calendar-days--${monthTransitionDirection}`} key={`${year}-${month}`}>
+        <div role="group" aria-label={formatMonthTitle(visibleMonth)} className={`create-forms-calendar-days create-forms-calendar-days--${monthTransitionDirection}`} key={`${year}-${month}`}>
           {Array.from({ length: firstWeekday }, (_, index) => <span aria-hidden="true" className="create-forms-calendar-empty" key={`empty-${year}-${month}-${index}`} />)}
           {days.map((date) => {
             const isSelected = sameDate(selectedDate, date)

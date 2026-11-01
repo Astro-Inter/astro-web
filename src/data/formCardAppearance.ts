@@ -1,6 +1,5 @@
 import type { FormCardAppearance, FormCardColor, FormCardIcon } from '../types/forms'
 
-// A ordem dos ícones e cores compõe o marcador ac1 salvo nos títulos.
 export const formCardIcons: readonly { value: FormCardIcon; label: string }[] = [
   { value: 'document', label: 'Documento' }, { value: 'calendar', label: 'Calendário' },
   { value: 'feedback', label: 'Feedback' }, { value: 'person-outline', label: 'Pessoa' },

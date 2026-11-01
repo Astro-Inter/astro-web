@@ -43,7 +43,7 @@
 
 .registration-loading-content h1 { font-size: var(--astro-heading-font-size); font-weight: 600; line-height: 1.2; }
 .registration-loading-content > p { font-size: var(--astro-subtitle-font-size); line-height: 1.4; }
-.registration-loading-content > p[role="alert"] { color: var(--astro-primary-error); }
+.registration-loading-content > p[role="alert"] { color: var(--astro-error-text); white-space: pre-line; }
 
 .registration-loading-content ul {
   align-self: stretch;

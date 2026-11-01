@@ -1,3 +1,4 @@
+import { validateAndSanitizeFormForOptions } from '../../utils/formEditorValidation'
 import ActionLoading from '../../components/actionLoading'
 import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
@@ -13,7 +14,7 @@ import FormQuestionCard from '../../components/formQuestionCard'
 import HelpLink from '../../components/helpLink'
 import OptionsPopup from '../../components/optionsPopup'
 import PurpleButton from '../../components/purpleButton'
-import { makeQuestion, validateAndSanitizeForm } from '../../utils/forms'
+import { makeQuestion } from '../../utils/forms'
 import { useFormEditor } from '../../hooks/useFormEditor'
 import { animateRemoval } from '../../utils/animateRemoval'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
@@ -35,7 +36,7 @@ function CreateFormPage() {
   const [error, setError] = useState('')
   const [deadlineValid, setDeadlineValid] = useState(true)
   const [validationAttempt, setValidationAttempt] = useState<{ values: typeof values; draft: boolean } | null>(null)
-  const fieldErrors = validationAttempt?.values === values ? validateAndSanitizeForm(values, validationAttempt.draft).errors : {}
+  const fieldErrors = validationAttempt?.values === values ? validateAndSanitizeFormForOptions(values, options, validationAttempt.draft).errors : {}
   const menuTriggerRef = useRef<HTMLButtonElement>(null)
   const menuPanelRef = useRef<HTMLDivElement>(null)
   const highlightTimerRef = useRef<number | null>(null)
@@ -120,7 +121,7 @@ function CreateFormPage() {
     if (saving || leaving) return
     if (removingQuestionIdsRef.current.size) { setError('Aguarde a remoção da pergunta antes de salvar.'); return }
     setValidationAttempt({ values, draft })
-    const validation = validateAndSanitizeForm(values, draft)
+    const validation = validateAndSanitizeFormForOptions(values, options, draft)
     if (validation.errors.questions) setFeedback(validation.errors.questions, 'error')
     if (!deadlineValid || Object.keys(validation.errors).length) return
     try {
@@ -144,7 +145,7 @@ function CreateFormPage() {
   return (
     <div className={`create-forms-page astro-scale-90${leaving ? ' create-forms-page--leaving' : ''}`}>
       <button data-track-action={BUTTONS.comuns.acoes}
-        aria-controls="create-forms-options"
+        aria-controls={menuOpen ? 'create-forms-options' : undefined}
         aria-expanded={menuOpen}
         aria-haspopup="menu"
         aria-label="Voltar e abrir opções do formulário"
@@ -171,7 +172,7 @@ function CreateFormPage() {
             <FormInformationFields errors={fieldErrors} prefix="create-forms" values={values} setValues={setValues} options={options} onDeadlineValidityChange={setDeadlineValid} onRetryManagers={retryManagers} />
           </section>
 
-          <div aria-label="Perguntas do formulário" className="create-forms-questions" role="list">
+          <div aria-label="Perguntas do formulário" className="create-forms-questions" role={renderedQuestions.length ? 'list' : 'region'}>
             {renderedQuestions.map((question, index) => (
               <div
                 className={[

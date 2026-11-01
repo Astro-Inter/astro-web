@@ -21,21 +21,33 @@ export async function listUnitConformities(signal?: AbortSignal): Promise<Confor
     const rows = await requestConformities<UnitConformityResponse[]>(path(), 'GET', undefined, signal)
     if (!Array.isArray(rows)) throw new ConformitiesApiError('A API retornou uma lista inválida de conformidades de unidades.')
     return rows.map(convert)
-  } catch (error: unknown) { throw error }
+  } catch (error: unknown) {
+    if (signal?.aborted || error instanceof ConformitiesApiError) throw error
+    throw new ConformitiesApiError('Não foi possível concluir a operação de conformidades da unidade.', { cause: error })
+  }
 }
 export async function getUnitConformity(id: string, signal?: AbortSignal): Promise<ConformityDetails> {
   try { return convert(await requestConformities<UnitConformityResponse>(path(id), 'GET', undefined, signal)) }
-  catch (error: unknown) { throw error }
+  catch (error: unknown) {
+    if (signal?.aborted || error instanceof ConformitiesApiError) throw error
+    throw new ConformitiesApiError('Não foi possível concluir a operação de conformidades da unidade.', { cause: error })
+  }
 }
 export async function saveUnitConformity(values: ConformityFormValues, id?: string, signal?: AbortSignal): Promise<ConformityDetails> {
   try {
     const fields = conformityPayload(values, Boolean(id))
     return convert(await requestConformities<UnitConformityResponse>(path(id), id ? 'PUT' : 'POST', id ? fields : { ...fields, unitId: Number(values.employeeId) }, signal))
-  } catch (error: unknown) { throw error }
+  } catch (error: unknown) {
+    if (signal?.aborted || error instanceof ConformitiesApiError) throw error
+    throw new ConformitiesApiError('Não foi possível concluir a operação de conformidades da unidade.', { cause: error })
+  }
 }
 export async function changeUnitConformityApplicability(id: string, applicable: boolean, signal?: AbortSignal): Promise<ConformityDetails> {
   try {
     if (typeof applicable !== 'boolean') throw new ConformitiesApiError('Aplicabilidade inválida.')
     return convert(await requestConformities<UnitConformityResponse>(path(id) + '/applicability', 'PATCH', { applicable }, signal))
-  } catch (error: unknown) { throw error }
+  } catch (error: unknown) {
+    if (signal?.aborted || error instanceof ConformitiesApiError) throw error
+    throw new ConformitiesApiError('Não foi possível concluir a operação de conformidades da unidade.', { cause: error })
+  }
 }

@@ -34,7 +34,7 @@
 .event-calendar-table td { position: relative; padding: calc(0.45rem * var(--astro-scale)); border-top: 1px solid #514669; border-right: 1px solid #514669; color: #cac4d8; font-size: var(--astro-subtitle-font-size); vertical-align: top; }
 .event-calendar-table td:last-child { border-right: 0; }
 .event-calendar-table tbody tr:last-child td { border-bottom: 1px solid #514669; }
-.event-calendar-day--outside .event-calendar-day-number { color: #77718c; }
+.event-calendar-day--outside .event-calendar-day-number { color: #a39ab7; }
 .event-calendar-day-number { display: block; line-height: 1.1; }
 .event-calendar-day-events { position: absolute; right: calc(0.2rem * var(--astro-scale)); bottom: calc(0.2rem * var(--astro-scale)); left: calc(0.2rem * var(--astro-scale)); display: flex; flex-direction: column; gap: calc(0.2rem * var(--astro-scale)); max-height: calc(4.6rem * var(--astro-scale)); overflow-x: hidden; overflow-y: auto; }
 .event-calendar-day-events > .event-calendar-item { flex: none; height: calc(2.2rem * var(--astro-scale)); }
@@ -78,9 +78,10 @@
 .event-year-month h3 { margin: 0 0 calc(0.55rem * var(--astro-scale)); color: #eeeaf5; font-size: var(--astro-subtitle-font-size); font-weight: 600; text-align: center; text-transform: capitalize; }
 .event-year-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: calc(0.14rem * var(--astro-scale)); text-align: center; }
 .event-year-weekday { color: #a9a0bd; font-size: var(--astro-label-font-size); font-weight: 500; }
-.event-year-day { position: relative; display: grid; place-items: center; min-width: 0; aspect-ratio: 1; color: #d4cfe0; font-size: var(--astro-label-font-size); }
+.event-year-day { position: relative; display: grid; grid-template-rows: minmax(0, 1fr) calc(.35rem * var(--astro-scale)); gap: calc(.2rem * var(--astro-scale)); place-items: center; min-width: 0; aspect-ratio: 1; color: #d4cfe0; font-size: var(--astro-label-font-size); }
+.event-year-day-number { display: grid; grid-row: 1; place-items: center; width: 100%; height: 100%; line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
 .event-year-day--outside { color: transparent; }
-.event-year-day-events { position: absolute; right: 0; bottom: 0; left: 0; display: flex; flex-wrap: wrap; gap: 2px; }
+.event-year-day-events { grid-row: 2; display: flex; flex-wrap: wrap; gap: 2px; width: 100%; }
 .event-calendar-item--miniature { flex: 1 1 calc(25% - 2px); min-width: 0; min-height: calc(0.35rem * var(--astro-scale)); height: calc(0.35rem * var(--astro-scale)); padding: 0; border-radius: 999px; }
 .event-calendar-item--miniature:focus-visible { outline-offset: 1px; }
 .event-deactivation-modal { --astro-modal-width: 50rem; }
@@ -118,16 +119,22 @@
 .event-year-skeleton-day { width: 1.4em; height: 1.1em; border-radius: .2rem; }
 
 
-.event-calendar-day--today .event-calendar-day-number { color: #fff; font-weight: 600; }
-.event-current-day-label { font-size: .65em; font-weight: 600; line-height: 1; }
-.event-week-table thead .event-week-day--today { color: #b4ebd4; }
-.event-week-table thead .event-week-day--today > .event-week-day-number { display: flex; align-items: center; justify-content: center; gap: .4em; width: fit-content; margin: .2em auto 0; padding: .2em .45em; border-radius: var(--astro-control-radius); color: #fff; background: #176b54; }
-.event-week-table .event-week-cell--today { background: rgb(23 107 84 / 10%); }
-.event-year-day--today { border-radius: .3rem; color: #fff; background: #176b54; font-weight: 600; }
+.event-calendar-day-heading .event-calendar-day-number { display: flex; align-items: center; justify-content: center; width: 1.65em; height: 1.65em; line-height: 1; }
+.event-calendar-day-heading { display: flex; align-items: center; gap: .4em; }
+.event-calendar-day-heading--today { width: fit-content; max-width: 100%; padding-right: .45em; border-radius: .3rem; color: #fff; background: #176b54; }
+.event-calendar-day-heading .event-calendar-day-number { flex: none; }
+.event-calendar-current-label { display: inline-flex; align-items: center; align-self: stretch; min-width: 0; color: inherit; font-size: .8em; font-weight: 500; line-height: 1; }
+.event-week-table thead th:not(:first-child) { padding: calc(.5rem * var(--astro-scale)) calc(.25rem * var(--astro-scale)); vertical-align: top; }
+.event-week-table thead th > span.event-week-day-name { color: #bcb5d0; font-weight: 500; line-height: 1.2; }
+.event-week-table thead th > span.event-week-day-number { display: flex; justify-content: center; flex-wrap: wrap; width: fit-content; max-width: 100%; margin: calc(.35rem * var(--astro-scale)) auto 0; font-size: var(--astro-subtitle-font-size); font-weight: 400; }
+.event-week-table .event-week-cell--today { background: rgb(23 107 84 / 4%); }
+.event-calendar-day-heading--today .event-calendar-day-number,
+.event-year-day--today .event-year-day-number { border-radius: .3rem; color: #fff; background: #176b54; font-weight: 600; }
+.event-year-day--today .event-year-day-number { width: 70%; height: 70%; place-self: center; }
 
 
 .event-calendar-panel--month .event-calendar-day-events { position: static; inset: auto; height: auto; max-height: calc(7rem * var(--astro-scale)); margin-top: calc(.6rem * var(--astro-scale)); overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain; transform: none; }
 .event-calendar-day-events:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
-.event-calendar-panel--month .event-calendar-item--today { cursor: default; pointer-events: none; user-select: none; }
+.event-calendar-scroll:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; border-radius: var(--astro-control-radius); }
 
 .event-calendar-item--read-only { color: #f8f7fc; background: rgb(117 117 130 / 45%); }

@@ -94,19 +94,19 @@ function ConformityFormModal({ showAvatar = true, subjectLabel = 'Colaborador', 
           <div className="position-dialog-row conformity-form-row">
             {!employee && (
               <div className="position-dialog-field">
-                <label htmlFor="conformity-form-employee">{subjectLabel}</label>
-                <ToolbarSelect trackingAction={BUTTONS.comuns.selecionar_opcao} className={selectClassName('employeeId')} id="conformity-form-employee" error={errors.employeeId} label={subjectLabel} onValueChange={(employeeId) => update('employeeId', employeeId)} options={employeeOptions} value={values.employeeId} />
+                <label htmlFor="conformity-form-employee" id="conformity-form-employee-label">{subjectLabel}</label>
+                <ToolbarSelect trackingAction={BUTTONS.comuns.selecionar_opcao} className={selectClassName('employeeId')} id="conformity-form-employee" error={errors.employeeId} label={subjectLabel} onValueChange={(employeeId) => update('employeeId', employeeId)} options={employeeOptions} value={values.employeeId} labelledBy="conformity-form-employee-label" />
                 {errors.employeeId && <p className="login-field-error" id="conformity-form-employee-error" role="alert">{errors.employeeId}</p>}
               </div>
             )}
             <div className="position-dialog-field">
-              <label htmlFor="conformity-form-nr">NR</label>
-              <ToolbarSelect trackingAction={BUTTONS.comuns.nr} className={selectClassName('nr')} id="conformity-form-nr" error={errors.nr} label="NR" onValueChange={(nr) => update('nr', nr)} options={nrOptions} value={values.nr} />
+              <label htmlFor="conformity-form-nr" id="conformity-form-nr-label">NR</label>
+              <ToolbarSelect trackingAction={BUTTONS.comuns.nr} className={selectClassName('nr')} id="conformity-form-nr" error={errors.nr} label="NR" onValueChange={(nr) => update('nr', nr)} options={nrOptions} value={values.nr} labelledBy="conformity-form-nr-label" />
               {errors.nr && <p className="login-field-error" id="conformity-form-nr-error" role="alert">{errors.nr}</p>}
             </div>
             <div className="position-dialog-field">
-              <label htmlFor="conformity-form-date">Data de validade</label>
-              <FormDatePicker error={errors.expiresAt} id="conformity-form-date" label="Data de validade" onChange={(expiresAt) => update('expiresAt', expiresAt)} onValidityChange={setDateValid} value={values.expiresAt} />
+              <label htmlFor="conformity-form-date" id="conformity-form-date-label">Data de validade</label>
+              <FormDatePicker error={errors.expiresAt} id="conformity-form-date" labelledBy="conformity-form-date-label" label="Data de validade" onChange={(expiresAt) => update('expiresAt', expiresAt)} onValidityChange={setDateValid} value={values.expiresAt} />
             </div>
           </div>
         </fieldset>

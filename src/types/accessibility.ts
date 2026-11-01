@@ -10,6 +10,7 @@ export interface AccessibilityPreferences {
   colorVision: ColorVision
   readingGuide: boolean
   reduceMotion: boolean
+  voiceSearch: boolean
   libras: boolean
   librasPosition: LibrasPosition
 }
@@ -21,4 +22,8 @@ export interface AccessibilityContextValue {
   panelOpen: boolean
   openPanel: () => void
   closePanel: () => void
+}
+export interface LibrasWidgetSnapshot extends Record<string, unknown> {
+  _versao: 1
+  state: Record<string, unknown> & { isOpen: boolean }
 }

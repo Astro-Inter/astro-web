@@ -10,7 +10,7 @@
 .analytics-personal-tabs { display: flex; flex-wrap: wrap; gap: .6rem; }
 .analytics-primary .astro-icon { filter: brightness(0) invert(1); }
 .analytics-text-button { font-size: var(--astro-control-font-size); }
-.analytics-danger { color: var(--astro-primary-error); }
+.analytics-danger { color: var(--astro-error-text); }
 .analytics-page button:disabled { opacity: .48; cursor: not-allowed; }
 .analytics-page :is(button,summary,a):focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 3px; }
 .analytics-page :is(input,select) { min-width: 0; width: 100%; min-height: var(--astro-control-height); padding: .65rem var(--astro-control-padding-inline); border: 1px solid transparent; border-radius: var(--astro-control-radius); background-color: var(--astro-field); color: var(--astro-text); font: inherit; font-size: var(--astro-control-font-size); caret-color: var(--astro-text); }
@@ -338,7 +338,7 @@ html[data-astro-reduced-motion='true'] .analytics-chart-tooltip { animation: non
 .analytics-filter-add > .astro-icon, .analytics-filter-remove > .astro-icon { display: block; width: 1em; height: 1em; flex: none; align-self: center; }
 .analytics-filter-add > .astro-icon { filter: brightness(0) invert(1); }
 .analytics-filter-add > span, .analytics-filter-remove > span { display: block; line-height: 1.2; transform: translateY(.06em); }
-.analytics-filter-remove { display: inline-flex; align-items: center; justify-self: start; gap: var(--astro-modal-inline-gap); width: fit-content; min-height: var(--astro-action-height); padding: 0; border: 0; color: var(--astro-primary-error); background: transparent; font: inherit; font-size: var(--astro-action-font-size); font-weight: 600; line-height: 1.2; cursor: pointer; }
+.analytics-filter-remove { display: inline-flex; align-items: center; justify-self: start; gap: var(--astro-modal-inline-gap); width: fit-content; min-height: var(--astro-action-height); padding: 0; border: 0; color: var(--astro-error-text); background: transparent; font: inherit; font-size: var(--astro-action-font-size); font-weight: 600; line-height: 1.2; cursor: pointer; }
 .analytics-filter-remove:hover { opacity: .75; }
 .analytics-condition { animation: analytics-content-enter 160ms ease-out both; }
 .analytics-condition--closing { overflow: hidden; pointer-events: none; animation: analytics-filter-remove 160ms ease-in both; }
@@ -543,8 +543,10 @@ html[data-astro-reduced-motion='true'] :is(.dashboard-gallery-grid, .analytics-d
   .dashboard-card { padding: 1.25rem; }
   .dashboard-card-header { gap: .75rem; }
   .dashboard-card-art { width: 3.5rem; }
-  .dashboard-card-footer { gap: .5rem; }
-  .dashboard-card-link { white-space: normal; }
+  .dashboard-card-footer { gap: .5rem; flex-wrap: wrap; }
+  .dashboard-card-link { max-width: 100%; white-space: normal; }
+  .dashboard-card-link-label { min-width: 0; overflow-wrap: anywhere; }
+  .dashboard-gallery-page { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
   .analytics-filters fieldset > .astro-action { flex: 1 1 calc(100% - var(--astro-control-height) - var(--create-forms-stack-gap)); min-width: 0; width: auto; }
 }
 

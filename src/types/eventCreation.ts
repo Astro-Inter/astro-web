@@ -47,3 +47,7 @@ export interface EventConfiguration {
   schedules: Record<string, EventGroupSchedule>
   settings: EventSettings
 }
+
+export type EventCreationStep = 'details' | 'collaborators' | 'groups' | 'schedule' | 'settings' | 'review'
+
+export type EventCreationForm = Pick<EventConfiguration, 'draft' | 'selectedIds' | 'groups' | 'assignments' | 'schedules' | 'settings'>

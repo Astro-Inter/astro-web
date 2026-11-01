@@ -40,8 +40,8 @@ export default function NrCatalogPage() {
         <span className="nr-review-filter-label" aria-hidden="true">Buscar norma</span>
         <ToolbarSearch id="nr-catalog-search" label="Buscar por número ou nome" value={filters.search} onChange={event => filter('search', event.target.value)} onClear={() => filter('search', '')} placeholder="Número ou nome da NR..." />
       </div>
-      <div className="nr-review-filter-field"><label htmlFor="nr-catalog-usability">Usabilidade</label><ToolbarSelect id="nr-catalog-usability" label="Usabilidade" value={filters.usability} onValueChange={value => filter('usability', value)} options={nrUsabilityFilterOptions} searchable={false} closeOnPageScroll={false} /></div>
-      <div className="nr-review-filter-field"><label htmlFor="nr-catalog-revoked">Revogação</label><ToolbarSelect id="nr-catalog-revoked" label="Revogação" value={filters.revoked} onValueChange={value => filter('revoked', value)} options={nrRevocationFilterOptions} searchable={false} closeOnPageScroll={false} /></div>
+      <div className="nr-review-filter-field"><label htmlFor="nr-catalog-usability" id="nr-catalog-usability-label">Usabilidade</label><ToolbarSelect id="nr-catalog-usability" label="Usabilidade" value={filters.usability} onValueChange={value => filter('usability', value)} options={nrUsabilityFilterOptions} searchable={false} closeOnPageScroll={false} labelledBy="nr-catalog-usability-label" /></div>
+      <div className="nr-review-filter-field"><label htmlFor="nr-catalog-revoked" id="nr-catalog-revoked-label">Revogação</label><ToolbarSelect id="nr-catalog-revoked" label="Revogação" value={filters.revoked} onValueChange={value => filter('revoked', value)} options={nrRevocationFilterOptions} searchable={false} closeOnPageScroll={false} labelledBy="nr-catalog-revoked-label" /></div>
       <button className="nr-review-clear" type="button" onClick={() => setFilters(initialFilters)}><AstroIcon name="reload" />Limpar filtros</button>
     </section>
     {notice && <p className="nr-review-notice" role="status">{notice}</p>}

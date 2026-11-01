@@ -24,6 +24,7 @@ export interface CreateFormValues {
 }
 
 export type FormStatus = 'pending' | 'completed' | 'draft'
+export interface FormListFilters { search: string; status: FormStatus | ''; page: number; size: number }
 export type FormCardIcon = 'document' | 'calendar' | 'feedback' | 'person-outline' | 'security' | 'check' | 'building' | 'collaborators' | 'position' | 'clock'
 export type FormCardColor = 'purple' | 'pink' | 'blue' | 'green' | 'teal' | 'indigo' | 'orange' | 'rose' | 'violet' | 'slate'
 export interface FormCardAppearance { icon: FormCardIcon; color: FormCardColor }
@@ -53,6 +54,7 @@ export interface FormQuestionRequest {
   maxFileSizeMb?: number
 }
 export interface FormRequest {
+  appearance?: FormCardAppearance
   title: string
   description: string
   managerId: number | null
@@ -79,7 +81,7 @@ export interface FormDetailsResponse {
   senderManagerId: number
   managerId: number | null
   title: string | null
-  appearance?: FormCardAppearance
+  appearance?: FormCardAppearance | null
   description: string | null
   nrCode: number | null
   unitId: number | null
@@ -92,7 +94,7 @@ export interface FormDetailsResponse {
 }
 export interface FormSummaryResponse {
   id: string; title: string | null; description: string | null; questionCount: number; status: FormApiStatus
-  appearance?: FormCardAppearance
+  appearance?: FormCardAppearance | null
 }
 export interface FormsPageResponse {
   items: FormSummaryResponse[]; page: number; size: number; totalElements: number; totalPages: number

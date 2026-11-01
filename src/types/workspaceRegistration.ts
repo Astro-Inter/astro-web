@@ -32,6 +32,11 @@ export interface SpreadsheetImportError {
   message: string
 }
 
+export interface RegistrationSpreadsheetAnalysis {
+  names: string[]
+  emails: { row: number; email: string }[]
+}
+
 export interface WorkspaceRegistrationResult {
   workspaceId: number
   importErrors: SpreadsheetImportError[]

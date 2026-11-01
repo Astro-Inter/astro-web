@@ -95,6 +95,7 @@
 .event-participants-filters-skeleton .api-loading-fields { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .9rem; margin-bottom: var(--astro-modal-content-gap); }
 .event-create-modal:is(.event-create-modal--details, .event-create-modal--settings) .event-create-fields { width: 100%; }
 .event-create-field { display: flex; min-width: 0; flex-direction: column; gap: var(--astro-field-gap); }
+.event-create-filters .astro-toolbar-search { flex: none; width: 100%; max-width: none; min-width: 0; }
 .event-create-field > input,
 .event-create-field .astro-toolbar-select { width: 100%; min-width: 0; }
 .event-create-field > input { min-height: var(--astro-control-height); padding: 0 var(--astro-control-padding-inline); border: 1px solid transparent; border-radius: var(--astro-control-radius); outline: none; color: var(--astro-text); background: var(--astro-field); font-family: inherit; font-size: var(--astro-control-font-size); font-weight: 400; transition: border-color 180ms ease, background 180ms ease; }

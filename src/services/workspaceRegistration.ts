@@ -1,12 +1,13 @@
 import type { SpreadsheetImportError, WorkspaceRegistrationDraft, WorkspaceRegistrationResult } from '../types/workspaceRegistration'
 import { buildWorkspaceRegistration } from '../utils/workspaceRegistration'
 import { getSystemApiBaseUrl } from './systemApi'
+import { registrationErrorMessage } from '../utils/registrationErrorFeedback'
 
 const messages: Record<number, string> = {
-  400: 'Confira os dados do cadastro e o formato da planilha.',
+  400: 'Há dados inválidos no cadastro. Revise os campos indicados e envie novamente.',
   409: 'Há dados já cadastrados ou unidades duplicadas. Confira o CNPJ, o e-mail e os nomes das unidades.',
   413: 'A planilha deve ter até 5 MB e o envio completo até 6 MB.',
-  422: 'Corrija os problemas indicados na planilha e envie novamente.',
+  422: 'Há dados inválidos no cadastro ou na planilha. Corrija os campos ou as linhas indicadas e tente novamente.',
   500: 'Não foi possível concluir o cadastro. Confira a planilha e tente novamente.',
   503: 'O serviço de cadastro está indisponível. Tente novamente mais tarde.',
 }
@@ -48,9 +49,10 @@ export async function registerWorkspace(draft: WorkspaceRegistrationDraft): Prom
       const details = isRecord(body) ? body : {}
       const nestedData = isRecord(details.data) ? details.data : {}
       const nestedErrors = isRecord(details.errors) ? details.errors : {}
-      const importErrors = readImportErrors(details.importErrors ?? nestedData.importErrors ?? nestedErrors.importErrors ?? details.errors)
-      const message = typeof details.message === 'string' && details.message.trim()
-        ? details.message : messages[response.status] ?? 'Não foi possível concluir o cadastro.'
+      const importErrors = [...new Map([
+        details.importErrors, nestedData.importErrors, nestedErrors.importErrors, details.errors, details.data,
+      ].flatMap(readImportErrors).map(item => [`${item.row}-${item.field}-${item.message}`, item] as const)).values()]
+      const message = registrationErrorMessage(details, messages[response.status] ?? 'Não foi possível concluir o cadastro. Tente novamente.')
       throw new WorkspaceRegistrationError(message, response.status, importErrors)
     }
     if (!isRecord(body.data) || typeof body.data.workspaceId !== 'number') {

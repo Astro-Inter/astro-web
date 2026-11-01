@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuthentication } from './useAuthentication'
 import { deleteForm, listForms } from '../services/forms'
 import { formSummary } from '../utils/formApi'
+import { validateAndSanitizeFormFilters } from '../utils/formFilters'
 import { saveFormCardAppearance } from '../services/formCardAppearance'
 import type { FormCardAppearance, FormStatus, FormSummary } from '../types/forms'
 
@@ -20,7 +21,13 @@ export function useForms(search: string, status: FormStatus | '', page: number, 
     // A busca muda durante a digitação; cancela também o atraso anterior.
     const timer = window.setTimeout(() => {
       if (!uid) return
-      void listForms(search, status, page - 1, size, controller.signal).then(data => {
+      const validation = validateAndSanitizeFormFilters({ search, status, page: page - 1, size })
+      if (!validation.values) {
+        setState({ key, rows: [], totalPages: 0, totalElements: 0, loading: false, error: Object.values(validation.errors)[0] || 'Confira os filtros de formulários.' })
+        return
+      }
+      const filters = validation.values
+      void listForms(filters.search, filters.status, filters.page, filters.size, controller.signal).then(data => {
         if (!controller.signal.aborted) setState({ key, rows: data.items.map(formSummary), totalPages: data.totalPages, totalElements: data.totalElements, loading: false, error: '' })
       }).catch((error: unknown) => {
         if (!controller.signal.aborted) setState({ key, rows: [], totalPages: 0, totalElements: 0, loading: false, error: error instanceof Error ? error.message : 'Não foi possível carregar os formulários.' })

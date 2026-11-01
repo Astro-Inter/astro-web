@@ -208,7 +208,7 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
     </div>
     <div
       aria-label="Distribuição de colaboradores"
-      aria-invalid={Boolean(boardError)}
+      data-invalid={Boolean(boardError)}
       aria-describedby={boardError ? errorId : undefined}
       role="group"
       tabIndex={-1}
@@ -228,7 +228,7 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
     >
       {[{ id: '', name: 'Não distribuídos' }, ...groups].map(group => <section
         aria-label={group.name}
-        aria-invalid={Boolean(group.id ? errors?.emptyGroups[group.id] : errors?.assignments)}
+        data-invalid={Boolean(group.id ? errors?.emptyGroups[group.id] : errors?.assignments)}
         aria-describedby={group.id && errors?.emptyGroups[group.id] ? `${errorId}-${group.id}` : !group.id && errors?.assignments ? errorId : undefined}
         tabIndex={-1}
         className={`event-create-group-column${group.id && !animationBaseline.ids.has(group.id) ? ' event-create-group-column--added' : ''}${group.id === '' ? ' event-create-group-column--unassigned' : ''}${dropGroupId === group.id ? ' event-create-group-column--drop-target' : ''}${removingGroupId === group.id ? ' event-create-group-column--removing' : ''}`}
@@ -259,7 +259,7 @@ function EventGroupsModal({ distributionVersion, assignments, collaborators, gro
         </div>
         <AnimatedFieldError className="login-field-error event-create-block-error" id={`${errorId}-${group.id}`} message={group.id && errors?.emptyGroups[group.id] ? errors.emptyGroups[group.id] : undefined} />
       </section>)}
-      <button data-track-action={BUTTONS.comuns.adicionar_grupo} className="event-create-add-group" onClick={onAddGroup} type="button"><AstroIcon name="plus" />Adicionar grupo</button>
+      <button data-track-action={BUTTONS.comuns.adicionar_grupo} className="event-create-add-group" disabled={groups.length >= collaborators.length} title={groups.length >= collaborators.length ? 'Cada grupo precisa de pelo menos um participante.' : undefined} onClick={onAddGroup} type="button"><AstroIcon name="plus" />Adicionar grupo</button>
     </div>
     <AnimatedFieldError className="login-field-error event-create-block-error" id={errorId} message={boardError} />
     <div className="event-create-group-footer">

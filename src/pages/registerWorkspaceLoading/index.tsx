@@ -4,6 +4,7 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { PurpleButton } from '../../components'
 import LoadingIndicator from '../../components/loadingIndicator'
 import { useWorkspaceRegistration } from '../../hooks/useWorkspaceRegistration'
+import { spreadsheetErrorFieldLabel } from '../../utils/registrationErrorFeedback'
 
 function RegisterWorkspaceLoadingPage() {
   const navigate = useNavigate()
@@ -23,9 +24,14 @@ function RegisterWorkspaceLoadingPage() {
       {status !== 'error' ? <LoadingIndicator /> : <>
         <h1>Não foi possível concluir o cadastro</h1>
         <p role="alert">{error}</p>
-        {importErrors.length > 0 && <ul aria-label="Problemas na planilha">
-          {importErrors.map(item => <li key={`${item.row}-${item.field}-${item.message}`}>Linha {item.row}, {item.field}: {item.message}</li>)}
-        </ul>}
+        {importErrors.length > 0 && <>
+          <ul aria-label="Problemas na planilha" role="alert">
+            {importErrors.map(item => <li key={`${item.row}-${item.field}-${item.message}`}>
+              <strong>Linha {item.row} · {spreadsheetErrorFieldLabel(item.field)}:</strong> {item.message}
+            </li>)}
+          </ul>
+          <p>Corrija esses campos no Excel e use a opção Planilha abaixo para anexar o arquivo corrigido.</p>
+        </>}
         {failureStatus === 201 ? <PurpleButton data-track-action={BUTTONS.comuns.login} onClick={() => navigate('/', { replace: true })}>Ir para o login</PurpleButton> : <>
           <PurpleButton data-track-action={BUTTONS.comuns.tentar_novamente} onClick={() => { void submit() }}>Tentar novamente</PurpleButton>
           <nav className="registration-correction-actions" aria-label="Corrigir cadastro">

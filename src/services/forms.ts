@@ -2,7 +2,8 @@ import { firebaseAuth } from './firebase'
 import { getSystemApiBaseUrl } from './systemApi'
 import { listUnitNrOptions, listUnits } from './units'
 import { formApiStatuses, formRequest, isFormId, isFormReferenceId } from '../utils/formApi'
-import { decodeFormCardTitle } from '../utils/cardTitleMetadata'
+import { isFormCardAppearance } from '../data/formCardAppearance'
+import { validateAndSanitizeFormFilters } from '../utils/formFilters'
 import type { CreateFormValues, FormDetailsResponse, FormEditorOptions, FormManagerOptions, FormRecipientsResponse, FormsPageResponse, FormStatus, FormSummaryResponse } from '../types/forms'
 
 export class FormsApiError extends Error {
@@ -53,11 +54,12 @@ const positiveId = (id: number) => isFormReferenceId(String(id))
 const nullableText = (value: unknown) => value === null || typeof value === 'string'
 const validStatus = (value: string) => ['RASCUNHO', 'PENDENTE', 'CONCLUIDO'].includes(value)
 const validDate = (value: string | null) => value === null || (/^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value)
-const validSummary = (row: FormSummaryResponse) => row && isFormId(row.id) && nullableText(row.title) && nullableText(row.description)
+const validAppearance = (value: unknown) => value == null || isFormCardAppearance(value)
+const validSummary = (row: FormSummaryResponse) => row && validAppearance(row.appearance) && isFormId(row.id) && nullableText(row.title) && nullableText(row.description)
   && Number.isSafeInteger(row.questionCount) && row.questionCount >= 0 && row.questionCount <= 100 && validStatus(row.status)
 
 export function parseFormDetails(row: FormDetailsResponse): FormDetailsResponse {
-  if (!row || !isFormId(row.id) || !positiveId(row.workspaceId) || !positiveId(row.senderManagerId)
+  if (!row || !validAppearance(row.appearance) || !isFormId(row.id) || !positiveId(row.workspaceId) || !positiveId(row.senderManagerId)
     || [row.managerId, row.nrCode, row.unitId].some(id => id !== null && !positiveId(id))
     || !nullableText(row.title) || !nullableText(row.description) || !validStatus(row.status) || !validDate(row.dueDate)
     || typeof row.createdAt !== 'string' || typeof row.updatedAt !== 'string' || !nullableText(row.respondedAt)
@@ -71,22 +73,51 @@ export function parseFormDetails(row: FormDetailsResponse): FormDetailsResponse 
     || new Set(row.questions.map(q => q.id)).size !== row.questions.length) {
     throw new FormsApiError('A API retornou detalhes inválidos para o formulário.')
   }
-  const title = decodeFormCardTitle(row.title)
-  return { ...row, title: row.title === null ? null : title.title, ...(title.appearance ? { appearance: title.appearance } : {}) }
+  return row
 }
 
-export async function listForms(search: string, status: FormStatus | '', page: number, size: number, signal?: AbortSignal): Promise<FormsPageResponse> {
-  if (search.trim().length > 240 || (status && !(status in formApiStatuses)) || !Number.isSafeInteger(page) || page < 0
-    || !Number.isSafeInteger(size) || size < 1 || size > 100) throw new FormsApiError('Filtros ou paginação de formulários inválidos.')
-  const query = new URLSearchParams({ page: String(page), size: String(size) })
-  if (search.trim()) query.set('search', search.trim())
-  if (status) query.set('status', formApiStatuses[status])
+async function listFormsPage(search: string, status: FormStatus | '', page: number, size: number, signal?: AbortSignal): Promise<FormsPageResponse> {
+  const validation = validateAndSanitizeFormFilters({ search, status, page, size })
+  if (!validation.values) throw new FormsApiError(`Filtros ou paginação de formulários inválidos. ${Object.values(validation.errors)[0]}`)
+  const filters = validation.values
+  const query = new URLSearchParams({ page: String(filters.page), size: String(filters.size) })
+  if (filters.search) query.set('search', filters.search)
+  if (filters.status) query.set('status', formApiStatuses[filters.status])
   const data = await requestForms<FormsPageResponse>(`/forms?${query}`, 'GET', undefined, signal)
   if (!data || !Array.isArray(data.items) || data.items.some(row => !validSummary(row))
     || data.page !== page || data.size !== size || !Number.isSafeInteger(data.totalElements) || data.totalElements < 0
     || !Number.isSafeInteger(data.totalPages) || data.totalPages !== Math.ceil(data.totalElements / size)
     || data.items.length > size) throw new FormsApiError('A API retornou uma lista de formulários inválida.')
-  return { ...data, items: data.items.map(row => { const title = decodeFormCardTitle(row.title); return { ...row, title: title.title, appearance: title.appearance } }) }
+  return data
+}
+
+export async function listForms(search: string, status: FormStatus | '', page: number, size: number, signal?: AbortSignal): Promise<FormsPageResponse> {
+  const validation = validateAndSanitizeFormFilters({ search, status, page, size })
+  if (!validation.values) throw new FormsApiError(`Filtros ou paginação de formulários inválidos. ${Object.values(validation.errors)[0]}`)
+  if (status) return listFormsPage(search, status, page, size, signal)
+  // A API pagina por status. Compõe a página global nessa ordem sem carregar
+  // todos os formulários nem ordenar somente os quatro cards já recebidos.
+  const statuses: FormStatus[] = ['draft', 'pending', 'completed']
+  const firstPages = await Promise.all(statuses.map(value => listFormsPage(search, value, 0, size, signal)))
+  const totalElements = firstPages.reduce((total, result) => total + result.totalElements, 0)
+  const items: FormSummaryResponse[] = []
+  let offset = page * size
+  for (const [index, first] of firstPages.entries()) {
+    if (offset >= first.totalElements) { offset -= first.totalElements; continue }
+    while (offset < first.totalElements && items.length < size) {
+      signal?.throwIfAborted()
+      const bucketPage = Math.floor(offset / size)
+      const result = bucketPage === 0 ? first : await listFormsPage(search, statuses[index], bucketPage, size, signal)
+      const entries = result.items.slice(offset % size, offset % size + size - items.length)
+      if (!entries.length) throw new FormsApiError('A lista de formulários mudou. Tente novamente.')
+      items.push(...entries)
+      offset += entries.length
+    }
+    offset = 0
+    if (items.length === size) break
+  }
+  signal?.throwIfAborted()
+  return { items, page, size, totalElements, totalPages: Math.ceil(totalElements / size) }
 }
 export async function getForm(id: string, signal?: AbortSignal): Promise<FormDetailsResponse> {
   return parseFormDetails(await requestForms<FormDetailsResponse>(formPath(id), 'GET', undefined, signal))

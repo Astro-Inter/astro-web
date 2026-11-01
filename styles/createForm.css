@@ -1,7 +1,7 @@
 .create-forms-page { position: relative; min-height: 100svh; min-height: 100dvh; padding: calc((clamp(2rem, 7vh, 4rem) + 4.75rem) * var(--astro-scale)) 1.25rem calc(5rem * var(--astro-scale)); background: var(--astro-background); }
 .create-forms-header { --astro-scale: 1; position: absolute; z-index: 4; right: 0; left: 0; width: 100%; display: flex; align-items: center; justify-content: center; padding: 0.25rem 0; background: transparent; pointer-events: none; transform: none; }
 .create-forms-page > .payment-back-button { position: fixed; z-index: 4; }
-.create-forms-page > .help-link { position: fixed; z-index: 4; }
+.create-forms-page > .help-link, .create-forms-page > footer .help-link { position: fixed; z-index: 4; }
 .create-forms-header > .astro-brand { transform: scale(0.9); transform-origin: center top; }
 .create-forms-main { --create-forms-section-gap: calc(clamp(1.25rem, 1.8vw, 1.5rem) * var(--astro-scale)); --create-forms-outer-gap: calc(clamp(1.5rem, 2vw, 1.8rem) * var(--astro-scale)); position: relative; z-index: 1; width: min(100%, calc(54rem * var(--astro-scale))); min-width: 0; margin: calc(6rem * var(--astro-scale)) auto 0; }
 .create-forms-main h1 { margin: 0 0 var(--create-forms-outer-gap); color: var(--astro-text); font-size: var(--astro-heading-font-size); font-weight: 600; text-align: center; }
@@ -269,13 +269,13 @@ html.create-forms-drag-active, html.create-forms-drag-active body { overflow-anc
   .create-forms-calendar { width: 100%; max-width: 100%; }
 }
 .form-validation-error {
-  color: var(--astro-primary-error);
+  color: var(--astro-error-text);
   font-size: var(--astro-label-font-size);
   margin-block: 1rem;
 }
 .forms-editor-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
 .forms-editor-fields:disabled { opacity: 0.7; }
-.forms-recipients-feedback p { color: var(--astro-primary-error); }
+.forms-recipients-feedback p { color: var(--astro-error-text); }
 
 /* A espera bloqueia a edição sem esmaecer o fundo dos campos. */
 .forms-editor-fields:disabled[aria-busy="true"] { opacity: 1; }

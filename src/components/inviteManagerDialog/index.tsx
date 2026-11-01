@@ -68,7 +68,7 @@ function InviteManagerDialog({ candidates, loading, error, saving, onRetry, onCl
         <ActionLoading active={submitting} />
         <div hidden={loading} className="position-dialog-row">
           <div className="position-dialog-field">
-            <label htmlFor="invite-manager-email">E-mail</label>
+            <label htmlFor="invite-manager-email" id="invite-manager-email-label">E-mail</label>
             <ToolbarSelect trackingAction={BUTTONS.comuns.colaborador}
               className={`position-dialog-select${values.collaboratorId ? '' : ' position-dialog-select--placeholder'}${errors.collaboratorId ? ' position-dialog-select--invalid' : ''}`}
               id="invite-manager-email"
@@ -80,12 +80,12 @@ function InviteManagerDialog({ candidates, loading, error, saving, onRetry, onCl
                 setErrors((current) => ({ ...current, collaboratorId: undefined }))
               }}
               options={emailOptions}
-              value={values.collaboratorId}
+              value={values.collaboratorId} labelledBy="invite-manager-email-label"
             />
             {errors.collaboratorId && <p className="login-field-error" id="invite-manager-email-error" role="alert">{errors.collaboratorId}</p>}
           </div>
           <div className="position-dialog-field">
-            <label htmlFor="invite-manager-status">Status</label>
+            <label htmlFor="invite-manager-status" id="invite-manager-status-label">Status</label>
             <ToolbarSelect trackingAction={BUTTONS.comuns.status}
               className={`position-dialog-select${values.status ? '' : ' position-dialog-select--placeholder'}${errors.status ? ' position-dialog-select--invalid' : ''}`}
               id="invite-manager-status"
@@ -97,7 +97,7 @@ function InviteManagerDialog({ candidates, loading, error, saving, onRetry, onCl
                 setErrors((current) => ({ ...current, status: undefined }))
               }}
               options={statusOptions}
-              value={values.status}
+              value={values.status} labelledBy="invite-manager-status-label"
             />
             {errors.status && <p className="login-field-error" id="invite-manager-status-error" role="alert">{errors.status}</p>}
           </div>

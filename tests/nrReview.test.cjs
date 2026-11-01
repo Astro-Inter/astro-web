@@ -152,6 +152,13 @@ async function withPage(route, run) {
   } finally { await act(async () => root.unmount()); dom.window.close(); Object.assign(global, previous) }
 }
 async function settle() { await act(async () => { await new Promise(resolve => setTimeout(resolve, 30)) }) }
+async function waitFor(check) {
+  const deadline = Date.now() + 5000
+  while (!check()) {
+    if (Date.now() >= deadline) assert.fail('O conteúdo esperado não terminou de carregar.')
+    await settle()
+  }
+}
 async function click(label) {
   const button = [...document.querySelectorAll('button')].find(button => button.textContent === label || button.getAttribute('aria-label') === label)
   assert.ok(button, label)
@@ -273,7 +280,7 @@ test('Revisar abre popup sobre a listagem e fechar preserva a página e filtros'
   assert.ok(link)
   assert.equal(link.getAttribute('aria-haspopup'), 'dialog')
   await act(async () => link.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true, button: 0 })))
-  await settle()
+  await waitFor(() => /Revisão da NR-20/.test(document.querySelector('[role="dialog"]')?.textContent ?? ''))
   assert.match(document.querySelector('[role="dialog"]').textContent, /Revisão da NR-20/)
   assert.match(document.querySelector('h1').textContent, /Revisão de NRs/)
   assert.ok(document.getElementById('nr-usability'))

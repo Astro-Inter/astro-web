@@ -1,3 +1,4 @@
+import { useEventClock } from '../../hooks/useEventClock'
 import { calendarEventReadOnlyReason } from '../../utils/events'
 import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
@@ -17,7 +18,9 @@ interface EventOptionsModalProps {
   style: CSSProperties
 }
 
-function EventOptionsModal({ closing, event, onClose, onInactivate, onEdit, onViewInformation, panelRef, style, now = Date.now() }: EventOptionsModalProps) {
+function EventOptionsModal({ closing, event, onClose, onInactivate, onEdit, onViewInformation, panelRef, style, now: suppliedNow }: EventOptionsModalProps) {
+  const clock = useEventClock([event], suppliedNow === undefined)
+  const now = suppliedNow ?? clock
   const readOnly = Boolean(calendarEventReadOnlyReason(event, now))
   return <OptionsPopup trackingName={DIALOG_NAMES.acoes_evento}
     ariaLabel={`Opções para ${event.title}`}

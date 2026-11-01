@@ -1,6 +1,7 @@
 import { firebaseAuth } from './firebase'
 import { getSystemApiBaseUrl } from './systemApi'
 import { validatePosition } from '../utils/position'
+import { validateNrSelection } from '../utils/nrSelection'
 import type { Position, PositionFormValues } from '../types/position'
 import type { RoleResponse, RoleNrResponse, RoleNrOptionResponse, RoleNrRequest } from '../types/role'
 
@@ -101,7 +102,7 @@ export async function listRoleNrOptions(id: string, signal?: AbortSignal): Promi
 }
 
 export async function updateRoleNrs(id: string, nrs: RoleNrRequest[]): Promise<void> {
-  if (nrs.some((row) => !Number.isSafeInteger(row.nr) || row.nr <= 0 || typeof row.ativo !== 'boolean')
-    || new Set(nrs.map((row) => row.nr)).size !== nrs.length) throw new RolesApiError('Seleção de NRs inválida.')
+  const error = validateNrSelection(nrs)
+  if (error) throw new RolesApiError(error)
   await requestRoles<void>(`${rolePath(id)}/nrs`, 'POST', { nrs })
 }

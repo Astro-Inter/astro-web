@@ -29,6 +29,30 @@ const response = data => new Response(JSON.stringify({ success: true, data }))
 const originalFetch = global.fetch, originalToken = user.getIdToken
 afterEach(() => { global.fetch = originalFetch; auth.currentUser = user; user.getIdToken = originalToken })
 
+test('lista global pagina rascunhos, pendentes e respondidos sem misturar a ordem entre páginas', async () => {
+  const buckets = Object.fromEntries(['RASCUNHO', 'PENDENTE', 'CONCLUIDO'].map((status, index) => [status, Array.from({ length: index + 3 }, (_, number) => ({
+    id: `550e8400-e29b-41d4-a716-${String(index * 10 + number).padStart(12, '0')}`, title: `${status} ${number}`, description: '', questionCount: 1, status,
+  }))]))
+  const statuses = [], queries = []
+  global.fetch = async url => {
+    const query = new URL(url).searchParams; queries.push(query)
+    const rows = buckets[query.get('status')], page = Number(query.get('page')), size = Number(query.get('size'))
+    assert.ok(rows, 'consulta deve usar um status do contrato da API')
+    return response({ items: rows.slice(page * size, (page + 1) * size), page, size, totalElements: rows.length, totalPages: Math.ceil(rows.length / size) })
+  }
+  for (let page = 0; page < 3; page++) {
+    const data = await api.listForms('  inspeção  ', '', page, 4)
+    assert.equal(data.page, page); assert.equal(data.totalElements, 12); assert.equal(data.totalPages, 3)
+    statuses.push(...data.items.map(row => row.status))
+  }
+  assert.deepEqual(statuses, [...Array(3).fill('RASCUNHO'), ...Array(4).fill('PENDENTE'), ...Array(5).fill('CONCLUIDO')])
+  assert.ok(queries.every(query => query.get('search') === 'inspeção'))
+  const answered = await api.listForms('', 'completed', 0, 4)
+  assert.deepEqual(answered.items.map(row => row.status), Array(4).fill('CONCLUIDO'))
+  const empty = await api.listForms('', '', 8, 4)
+  assert.deepEqual(empty.items, [])
+})
+
 test('seis endpoints usam Bearer, UUID, paginação zero e DTOs camelCase do Swagger', async () => {
   const calls = [], data = [{ items: [{ id, title: 'Inspeção', description: null, questionCount: 4, status: 'RASCUNHO' }], page: 1, size: 4, totalElements: 5, totalPages: 2 }, form, form, form, null, { ...form, status: 'PENDENTE' }]
   global.fetch = async (url, init) => { calls.push({ url, ...init }); const next = data.shift(); return init.method === 'DELETE' ? new Response(null, { status: 204 }) : response(next) }
@@ -81,8 +105,19 @@ test('rascunho aceita campos vazios; publicação exige conteúdo e opções com
 test('IDs, status, busca e paginação inválidos são recusados antes da rede', async () => {
   let calls = 0; global.fetch = async () => { calls++; throw Error('não deveria chamar') }
   for (const badId of ['', '42', 'fake/../forms', '550e8400-e29b-41d4-a716-44665544000z']) await assert.rejects(api.getForm(badId), /Identificador/)
-  for (const args of [['x'.repeat(241), '', 0, 4], ['', 'active', 0, 4], ['', '', -1, 4], ['', '', 0, 101]]) await assert.rejects(api.listForms(...args), /Filtros/)
+  for (const args of [['x'.repeat(241), '', 0, 4], ['', 'active', 0, 4], ['', 'constructor', 0, 4], ['', 'toString', 0, 4], ['', '__proto__', 0, 4], ['', '', -1, 4], ['', '', .5, 4], ['', '', 0, 101], ['', '', 0, 0]]) await assert.rejects(api.listForms(...args), /Filtros/)
   assert.equal(calls, 0)
+})
+
+test('filtros normalizam a busca sem mutação e identificam cada campo inválido', () => {
+  const { validateAndSanitizeFormFilters } = load('src/utils/formFilters.ts')
+  const input = { search: '  Inspeção  ', status: 'draft', page: 0, size: 4 }
+  const before = structuredClone(input)
+  assert.deepEqual(validateAndSanitizeFormFilters(input), { values: { ...input, search: 'Inspeção' }, errors: {} })
+  assert.deepEqual(input, before)
+  const invalid = validateAndSanitizeFormFilters({ search: 'a'.repeat(241), status: 'constructor', page: NaN, size: 0 })
+  assert.equal(invalid.values, null)
+  assert.deepEqual(Object.keys(invalid.errors), ['search', 'status', 'page', 'size'])
 })
 
 test('erros HTTP, conflitos, falha de rede e DTOs malformados nunca viram sucesso', async () => {
@@ -189,9 +224,8 @@ test('descrição é obrigatória fora do rascunho e espaços não contam como c
   assert.doesNotThrow(() => utils.formRequest(utils.formValues(form), 'PENDENTE'))
 })
 
-test('marcador do card persiste no título e fica oculto na lista e nos campos de edição', async () => {
+test('aparência persiste em campo próprio e o título permanece limpo', async () => {
   const appearanceApi = load('src/services/formCardAppearance.ts')
-  const metadata = load('src/utils/cardTitleMetadata.ts')
   let stored = structuredClone(form)
   const calls = []
   global.fetch = async (_url, init) => {
@@ -201,7 +235,7 @@ test('marcador do card persiste no título e fica oculto na lista e nos campos d
   }
   const selected = { icon: 'calendar', color: 'orange' }
   const card = await appearanceApi.saveFormCardAppearance(id, selected)
-  assert.match(stored.title, /\[ac1:f:/)
+  assert.equal(stored.title, 'Inspeção'); assert.deepEqual(stored.appearance, selected)
   assert.equal(card.name, 'Inspeção')
   assert.equal(card.icon, 'calendar'); assert.equal(card.color, 'orange')
   assert.deepEqual(JSON.parse(calls[1].body).questions.map(q => q.id), [1, 2, 3, 4])
@@ -211,8 +245,7 @@ test('marcador do card persiste no título e fica oculto na lista e nos campos d
   assert.equal(values.name, 'Inspeção')
   assert.deepEqual(values.appearance, selected)
   await api.updateForm(id, { ...values, name: 'Inspeção revisada' }, loaded)
-  assert.deepEqual(metadata.decodeFormCardTitle(stored.title), { title: 'Inspeção revisada', appearance: selected })
-  assert.equal(stored.title.match(/\[ac1:/g).length, 1)
+  assert.equal(stored.title, 'Inspeção revisada'); assert.deepEqual(stored.appearance, selected)
   const completed = utils.formSummary({ ...stored, status: 'CONCLUIDO', questionCount: 4 })
   assert.equal(completed.icon, 'calendar'); assert.equal(completed.color, 'orange')
   stored.status = 'CONCLUIDO'
@@ -221,16 +254,15 @@ test('marcador do card persiste no título e fica oculto na lista e nos campos d
   assert.equal(calls.filter(call => call.method === 'PUT').length, count)
 })
 
-test('marcadores ausentes, inválidos ou de outra versão usam o padrão e não aparecem no nome', () => {
-  const metadata = load('src/utils/cardTitleMetadata.ts')
-  for (const title of ['Inspeção', 'Inspeção [ac1:f:99:3]', 'Inspeção [ac2:f:0:0]', 'Inspeção [ac1:f:invalido]']) {
-    const card = utils.formSummary({ ...form, title, questionCount: 4 })
-    assert.equal(card.name, 'Inspeção'); assert.equal(card.icon, 'document'); assert.equal(card.color, 'blue')
-  }
-  for (const title of ['Equipe', 'Equipe [ac1:d:99]', 'Equipe [ac2:d:0]']) assert.equal(metadata.decodeDashboardCardTitle(title).artwork, undefined)
+test('aparência inválida é rejeitada e título permite 100 caracteres sem metadados', async () => {
   const selected = { icon: 'calendar', color: 'orange' }
-  const limit = metadata.formCardTitleLimit(selected)
-  const values = { ...utils.formValues(form), name: 'A'.repeat(limit), appearance: selected }
-  assert.equal(utils.formRequest(values, 'RASCUNHO').title.length, 100)
+  const values = { ...utils.formValues(form), name: 'A'.repeat(100), appearance: selected }
+  const request = utils.formRequest(values, 'RASCUNHO')
+  assert.equal(request.title.length, 100)
+  assert.deepEqual(request.appearance, selected)
   assert.throws(() => utils.formRequest({ ...values, name: values.name + 'A' }, 'RASCUNHO'), /Informe um nome/)
+  global.fetch = async () => response({ ...form, appearance: { icon: 'invalido', color: 'blue' } })
+  await assert.rejects(api.getForm(id), /detalhes inválidos/)
+  global.fetch = async () => response({ ...form, appearance: null })
+  assert.equal(utils.formValues(await api.getForm(id)).appearance, undefined)
 })
