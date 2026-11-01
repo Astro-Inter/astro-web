@@ -58,6 +58,8 @@ async function withDom(run) {
       get(style, key) { return ({ gridTemplateColumns: '300px 300px', rowGap: '12px', paddingTop: '0px', paddingBottom: '0px' })[key] ?? style[key] },
     }) })
   dom.window.matchMedia = () => ({ matches: true })
+  dom.window.requestAnimationFrame = callback => dom.window.setTimeout(() => callback(0), 0)
+  dom.window.cancelAnimationFrame = frame => dom.window.clearTimeout(frame)
   dom.window.HTMLElement.prototype.scrollIntoView = () => {}
   const { createRoot } = require('react-dom/client'), root = createRoot(document.getElementById('root'))
   try { await run(root, dom) } finally { await act(async () => root.unmount()); dom.window.close(); Object.assign(global, previous) }
@@ -508,4 +510,70 @@ test('filtros inválidos são recusados antes de chamar o serviço da lista', as
   assert.equal(current.loading, false)
   assert.match(current.error, /240 caracteres/)
   assert.equal(env.calls.filter(call => call.name === 'listForms').length, 0)
+}))
+
+test('layout de formulários mede uma vez por quadro, adapta a página e cancela medições pendentes', async () => withDom(async root => {
+  const env = environment({ realResults: true }), Page = env.load('src/pages/mainFormScreen/index.tsx').default
+  const frames = new Map(), observers = new Set()
+  let nextFrame = 0, layoutReads = 0, columns = 1
+  window.requestAnimationFrame = callback => { const id = ++nextFrame; frames.set(id, callback); return id }
+  window.cancelAnimationFrame = id => frames.delete(id)
+  global.ResizeObserver = class {
+    constructor(callback) { this.callback = callback; observers.add(this) }
+    observe() {}
+    disconnect() { observers.delete(this) }
+  }
+  const originalStyle = global.getComputedStyle
+  global.getComputedStyle = element => new Proxy(originalStyle(element), {
+    get(style, key) {
+      if (key === 'gridTemplateColumns') { layoutReads++; return columns === 1 ? '300px' : '300px 300px' }
+      return ({ marginTop: '0px', marginBottom: '0px' })[key] ?? style[key]
+    },
+  })
+  Object.defineProperty(window.HTMLElement.prototype, 'clientHeight', { configurable: true, get: () => 650 })
+  window.HTMLElement.prototype.getBoundingClientRect = function () {
+    const height = this.classList.contains('form-card') ? 200 : 60
+    return { x: 0, y: 0, top: 0, left: 0, width: 300, height, right: 300, bottom: height }
+  }
+  const rows = Array.from({ length: 6 }, (_, i) => ({ id: `550e8400-e29b-41d4-a716-44665544000${i}`, title: `Formulário ${i}`, description: 'Teste', status: 'PENDENTE', questionCount: 1 }))
+  env.services.listForms = async (_search, _status, page, size) => ({ items: rows.slice(page * size, (page + 1) * size), page, size, totalPages: Math.ceil(rows.length / size), totalElements: rows.length })
+  async function flushFrame() {
+    const callbacks = [...frames.values()]; frames.clear()
+    await act(async () => callbacks.forEach(callback => callback(0)))
+  }
+  const latestSize = () => env.calls.filter(call => call.name === 'listForms').at(-1).args[3]
+  await mount(root, Page, '/mainFormScreen'); await waitForList()
+  assert.equal(layoutReads, 0, 'não mede nem atualiza o tamanho da lista durante o commit')
+  assert.equal(latestSize(), 4)
+  await flushFrame(); await waitForList()
+  assert.equal(latestSize(), 2)
+  assert.match(document.querySelector('.forms-pagination').textContent, /Página 1 de 3/)
+  await flushFrame()
+  const before = layoutReads
+  await act(async () => {
+    for (let i = 0; i < 20; i++) {
+      for (const observer of observers) observer.callback([])
+      window.dispatchEvent(new window.Event('resize'))
+    }
+  })
+  assert.equal(layoutReads, before)
+  assert.equal(frames.size, 1, 'resize e observer compartilham a medição agendada')
+  await flushFrame()
+  assert.equal(layoutReads, before + 1)
+  await waitForList()
+  assert.equal(env.calls.filter(call => call.name === 'listForms').length, 2, 'o mesmo tamanho não refaz a consulta')
+  columns = 2
+  window.dispatchEvent(new window.Event('resize'))
+  await flushFrame(); await waitForList()
+  assert.equal(latestSize(), 4)
+  await flushFrame()
+  window.dispatchEvent(new window.Event('resize'))
+  assert.equal(frames.size, 1)
+  const beforeUnmount = layoutReads
+  await act(async () => root.render(null))
+  assert.equal(frames.size, 0)
+  assert.equal(observers.size, 0)
+  window.dispatchEvent(new window.Event('resize'))
+  await flushFrame()
+  assert.equal(layoutReads, beforeUnmount)
 }))
