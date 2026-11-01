@@ -17,11 +17,12 @@ async function requestRoles<T>(path: string, method = 'GET', payload?: object, s
     const user = firebaseAuth.currentUser
     if (!user) throw new RolesApiError('Entre na sua conta para gerenciar os cargos.')
     const token = await user.getIdToken()
-    const url = `${getSystemApiBaseUrl()}${path}${method === 'GET' ? `?${new URLSearchParams({ firebase_uid: user.uid })}` : ''}`
+    signal?.throwIfAborted()
+    const url = `${getSystemApiBaseUrl()}${path}`
     const response = await fetch(url, {
       method, signal,
-      headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(method !== 'GET' ? { 'Content-Type': 'application/json' } : {}) },
-      ...(method !== 'GET' ? { body: JSON.stringify({ firebaseUid: user.uid, ...payload }) } : {}),
+      headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(payload ? { 'Content-Type': 'application/json' } : {}) },
+      ...(payload ? { body: JSON.stringify(payload) } : {}),
     })
     const text = await response.text()
     let body: unknown = null
