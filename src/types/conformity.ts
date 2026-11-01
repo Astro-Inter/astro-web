@@ -56,6 +56,7 @@ export interface ConformityImportResult {
 }
 
 export interface ConformityFilters {
+  validity: '' | ConformityStatus
   nr: string
   origin: '' | ConformityOrigin
   from: string

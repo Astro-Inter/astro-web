@@ -10,6 +10,7 @@ import { animateRemoval } from '../../utils/animateRemoval'
 import { otherOptionsLast } from '../../utils/forms'
 
 interface FormQuestionCardProps {
+  readOnly?: boolean
   error?: string
   index: number
   question: FormQuestion
@@ -39,7 +40,7 @@ function questionHeading(kind: FormQuestionKind, index: number) {
 }
 
 
-function FormQuestionCard({ error, index, question, onChange, onCopy, onDelete, onPointerDown, onMove }: FormQuestionCardProps) {
+function FormQuestionCard({ readOnly = false, error, index, question, onChange, onCopy, onDelete, onPointerDown, onMove }: FormQuestionCardProps) {
   const isAttachment = question.kind === 'nr' || question.kind === 'unit'
   const hasOtherOption = question.options.some((option) => option.isOther)
   const fieldId = `create-forms-question-${question.id}`
@@ -69,7 +70,7 @@ function FormQuestionCard({ error, index, question, onChange, onCopy, onDelete, 
 
   return (
     <section aria-label={questionHeading(question.kind, index)} className="create-forms-card create-forms-question-card">
-      {onPointerDown && onMove && <>
+      {!readOnly && onPointerDown && onMove && <>
         <button data-track-action={BUTTONS.comuns.reordenar_pergunta}
         aria-label={`Arrastar ${questionHeading(question.kind, index)} para reordenar. Use Alt e as setas para mover pelo teclado.`}
         className="create-forms-drag-handle"
@@ -106,10 +107,10 @@ function FormQuestionCard({ error, index, question, onChange, onCopy, onDelete, 
       </>}
       <div className="create-forms-question-header">
         <h2>{questionHeading(question.kind, index)}</h2>
-        <div className="create-forms-question-actions">
+        {!readOnly && <div className="create-forms-question-actions">
           <button data-track-action={BUTTONS.comuns.duplicar_pergunta} aria-label={`Duplicar ${questionHeading(question.kind, index)}`} onClick={onCopy} title="Duplicar" type="button"><img alt="" src={iconAsset('copy.svg')} /></button>
           <button data-track-action={BUTTONS.comuns.excluir_pergunta} aria-label={`Excluir ${questionHeading(question.kind, index)}`} onClick={onDelete} title="Excluir" type="button"><img alt="" src={iconAsset('trash.svg')} /></button>
-        </div>
+        </div>}
       </div>
 
       {isAttachment ? (
@@ -141,10 +142,10 @@ function FormQuestionCard({ error, index, question, onChange, onCopy, onDelete, 
                   <label className="sr-only" htmlFor={`${fieldId}-option-${option.id}`}>Opção {optionIndex + 1}</label>
                   <input aria-invalid={Boolean(error && (!option.value.trim() || option.value.length > 80))} aria-describedby={error ? `${fieldId}-error` : undefined} id={`${fieldId}-option-${option.id}`} maxLength={80} onChange={(event) => updateOption(option.id, event.target.value)} placeholder={`Opção ${optionIndex + 1}`} value={option.value} />
                 </>}
-                <button data-track-action={BUTTONS.comuns.excluir_opcao} aria-label={`Excluir opção ${option.isOther ? 'de resposta livre' : optionIndex + 1}`} disabled={question.options.length <= 2 || removingOptionId !== null} onClick={() => deleteOption(option.id)} type="button"><img alt="" src={iconAsset('trash.svg')} /></button>
+                {!readOnly && <button data-track-action={BUTTONS.comuns.excluir_opcao} aria-label={`Excluir opção ${option.isOther ? 'de resposta livre' : optionIndex + 1}`} disabled={question.options.length <= 2 || removingOptionId !== null} onClick={() => deleteOption(option.id)} type="button"><img alt="" src={iconAsset('trash.svg')} /></button>}
               </div>
             ))}
-            <div className="create-forms-option-links">
+            {!readOnly && <div className="create-forms-option-links">
               <button data-track-action={BUTTONS.comuns.adicionar_opcao} onClick={() => onChange({ ...question, options: otherOptionsLast([...question.options, { id: crypto.randomUUID(), value: '' }]) })} type="button">
                 <span aria-hidden="true" className="create-forms-option-link-icon" />
                 <span className="create-forms-option-link-label">Adicionar opção</span>
@@ -153,7 +154,7 @@ function FormQuestionCard({ error, index, question, onChange, onCopy, onDelete, 
                 <span aria-hidden="true" className="create-forms-option-link-icon" />
                 <span className="create-forms-option-link-label">Adicionar opção outros</span>
               </button>
-            </div>
+            </div>}
           </div>}
 
           {question.kind === 'text' && <div className="create-forms-field create-forms-answer-preview"><label htmlFor={`${fieldId}-answer`}>Resposta</label><input disabled id={`${fieldId}-answer`} placeholder="Digite sua resposta" /></div>}

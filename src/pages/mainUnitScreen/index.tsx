@@ -5,7 +5,9 @@ import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AppSidebar, AstroIcon, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, OptionsPopup, RegulatoryStandardsDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroIcon, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, OptionsPopup, RegulatoryStandardsDialog, ToolbarSearch, TruncatedText } from '../../components'
+import ListFilterControl from '../../components/listFilterControl'
+import { matchesCountRange } from '../../utils/listFilters'
 import type { DataTableColumn } from '../../components/dataTable'
 import { useUnits } from '../../hooks/useUnits'
 import { useUnitNrRecommendations } from '../../hooks/useUnitNrRecommendations'
@@ -14,7 +16,7 @@ import type { Unit } from '../../types'
 import { iconAsset } from '../../utils/iconAsset'
 
 const statusFilterOptions = [
-  { value: '', label: 'Status', triggerLabel: 'Status', tone: 'muted' as const },
+  { value: '', label: 'Todos', triggerLabel: 'Status', tone: 'muted' as const },
   { value: 'active', label: 'Ativa' },
   { value: 'inactive', label: 'Inativa' },
 ]
@@ -34,7 +36,7 @@ function MainUnitScreenPage() {
   const savedTimerRef = useRef<number | null>(null)
   const nrsTimerRef = useRef<number | null>(null)
   const changedNrsRef = useRef<string[]>([])
-  const [filters, setFilters] = useState({ search: '', status: '' })
+  const [filters, setFilters] = useState({ search: '', status: '', minimum: '', maximum: '' })
   const [nrs, setNrs] = useState<UnitNrsState>(closedNrs)
   const api = useUnits(nrs.unit?.id)
   const recommendations = useUnitNrRecommendations(nrs.editing ? nrs.unit?.id : undefined)
@@ -54,7 +56,8 @@ function MainUnitScreenPage() {
 
   const normalizedSearch = filters.search.trim().toLocaleLowerCase('pt-BR')
   const visibleUnits = units.filter((unit) => unit.name.toLocaleLowerCase('pt-BR').includes(normalizedSearch)
-    && (!filters.status || (filters.status === 'active') === unit.active))
+    && (!filters.status || (filters.status === 'active') === unit.active)
+    && matchesCountRange(unit.collaboratorCount, filters.minimum, filters.maximum))
   const openUnit = visibleUnits.find((unit) => unit.id === actions.openId)
 
   async function toggleStatus(unit: Unit): Promise<string | null> {
@@ -119,7 +122,11 @@ function MainUnitScreenPage() {
             />
 
             <div className="position-toolbar-selects">
-              <ToolbarSelect trackingAction={BUTTONS.comuns.status} label="Filtrar por status" onValueChange={(status) => setFilters((current) => ({ ...current, status }))} options={statusFilterOptions} value={filters.status} />
+              <ListFilterControl label="Filtrar unidades" fields={[
+                { id: 'status', label: 'Status', options: statusFilterOptions },
+                { id: 'minimum', label: 'Quantidade mínima de colaboradores', kind: 'number' },
+                { id: 'maximum', label: 'Quantidade máxima de colaboradores', kind: 'number', minimumField: 'minimum' },
+              ]} values={{ status: filters.status, minimum: filters.minimum, maximum: filters.maximum }} onApply={values => setFilters(current => ({ ...current, status: values.status, minimum: values.minimum, maximum: values.maximum }))} />
             </div>
           </div>
 

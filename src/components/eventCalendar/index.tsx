@@ -92,7 +92,7 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
     const readOnlyReason = calendarEventReadOnlyReason(event, now)
     const timedEvent = event.category === 'today' ? null : event
     const eventLabel = event.category === 'today' ? 'Dia atual' : event.title
-    const itemClass = `event-calendar-item event-calendar-item--${event.category}${event.category !== 'today' ? ` event-calendar-item--color-${((event.eventNumber ?? 1) - 1) % 4}` : ''}${event.inactive ? ' event-calendar-item--inactive' : ''}${inProgress ? ' event-calendar-item--in-progress' : ''}${readOnlyReason ? ' event-calendar-item--read-only' : ''}${miniature ? ' event-calendar-item--miniature' : ' event-loading-ready'}${weekly ? ' event-calendar-item--weekly' : ''}${savedEventId === (event.eventId ?? event.id) ? ' event-calendar-item--saved' : ''}`
+    const itemClass = `event-calendar-item event-calendar-item--${event.category}${event.category !== 'today' ? ' event-calendar-item--scheduled' : ''}${event.inactive ? ' event-calendar-item--inactive' : ''}${inProgress ? ' event-calendar-item--in-progress' : ''}${readOnlyReason ? ' event-calendar-item--read-only' : ''}${miniature ? ' event-calendar-item--miniature' : ' event-loading-ready'}${weekly ? ' event-calendar-item--weekly' : ''}${savedEventId === (event.eventId ?? event.id) ? ' event-calendar-item--saved' : ''}`
     const itemLabel = `${eventLabel}${event.inactive ? ', inativo' : ''}${readOnlyReason ? `, ${readOnlyReason.toLocaleLowerCase('pt-BR')}` : ''}, ${eventDateLabel(event.date)}${timedEvent ? `, das ${timedEvent.startTime} às ${timedEvent.endTime}` : ''}`
     const itemContent = miniature ? null : <span className="event-calendar-item-label">{eventLabel}</span>
 
@@ -106,8 +106,8 @@ function EventCalendar({ events, month, view, onMonthChange, onOpenOptions, sele
 
     return <button data-track-item={BUTTONS.comuns.evento}
       aria-controls={selectedEventId === event.id ? `event-options-${event.id}` : undefined}
-      aria-expanded={selectedEventId === event.id}
-      aria-haspopup="menu"
+      aria-expanded={readOnlyReason ? undefined : selectedEventId === event.id}
+      aria-haspopup={readOnlyReason ? 'dialog' : 'menu'}
       aria-label={itemLabel}
       className={itemClass}
       key={event.id}

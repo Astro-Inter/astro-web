@@ -53,6 +53,30 @@ test('lista global pagina rascunhos, pendentes e respondidos sem misturar a orde
   assert.deepEqual(empty.items, [])
 })
 
+test('quantidade de perguntas filtra todas as páginas antes de paginar e mantém a ordem dos status', async () => {
+  const row = (number, status, questionCount) => ({ id: `550e8400-e29b-41d4-a716-${String(number).padStart(12, '0')}`, title: 'Teste', description: '', status, questionCount })
+  const buckets = {
+    RASCUNHO: [...Array.from({ length: 100 }, (_, index) => row(index, 'RASCUNHO', 1)), row(100, 'RASCUNHO', 6)],
+    PENDENTE: [row(101, 'PENDENTE', 5), row(102, 'PENDENTE', 8)],
+    CONCLUIDO: [row(103, 'CONCLUIDO', 6), row(104, 'CONCLUIDO', 10)],
+  }
+  const calls = []
+  global.fetch = async url => {
+    const query = new URL(url).searchParams; calls.push(query)
+    const rows = buckets[query.get('status')], page = Number(query.get('page')), size = Number(query.get('size'))
+    return response({ items: rows.slice(page * size, (page + 1) * size), page, size, totalElements: rows.length, totalPages: Math.ceil(rows.length / size) })
+  }
+  const first = await api.listForms('Teste', '', 0, 2, undefined, { minimum: '5', maximum: '8' })
+  const second = await api.listForms('Teste', '', 1, 2, undefined, { minimum: '5', maximum: '8' })
+  assert.deepEqual([...first.items, ...second.items].map(item => item.id), [100, 101, 102, 103].map(number => row(number).id))
+  assert.equal(first.totalElements, 4); assert.equal(first.totalPages, 2)
+  assert.ok(calls.every(query => query.get('search') === 'Teste'))
+  assert.ok(calls.some(query => query.get('status') === 'RASCUNHO' && query.get('page') === '1'))
+  calls.length = 0
+  await assert.rejects(api.listForms('', '', 0, 4, undefined, { minimum: '10', maximum: '2' }), /máxima.*mínima/)
+  assert.equal(calls.length, 0)
+})
+
 test('seis endpoints usam Bearer, UUID, paginação zero e DTOs camelCase do Swagger', async () => {
   const calls = [], data = [{ items: [{ id, title: 'Inspeção', description: null, questionCount: 4, status: 'RASCUNHO' }], page: 1, size: 4, totalElements: 5, totalPages: 2 }, form, form, form, null, { ...form, status: 'PENDENTE' }]
   global.fetch = async (url, init) => { calls.push({ url, ...init }); const next = data.shift(); return init.method === 'DELETE' ? new Response(null, { status: 204 }) : response(next) }

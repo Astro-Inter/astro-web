@@ -809,10 +809,9 @@ test('evento em andamento remove as ações de editar e inativar sem enviar alte
   await act(async () => root.render(React.createElement(MemoryRouter, null, React.createElement(Page))))
   await act(async () => document.querySelector('.event-calendar-item--event').click())
   assert.equal(document.querySelector('.event-calendar-item--in-progress') !== null, true)
-  assert.doesNotMatch(document.querySelector('[role=menu]').textContent, /Editar|Inativar/)
-  assert.match(document.querySelector('[role=menu]').textContent, /Ver informações/)
+  assert.equal(document.querySelector('[role=menu]'), null)
   assert.equal(document.querySelector('#event-create-title'), null)
-  assert.equal(document.querySelector('[role=dialog]'), null)
+  assert.ok(document.querySelector('[role=dialog]'))
   assert.equal(mutations, 0)
 }))
 
@@ -910,5 +909,20 @@ test('concluídos, atrasados e inativos ficam cinza e sem ações de alteração
     await act(async () => root.render(React.createElement(Options, { now, event, closing: false, panelRef: { current: null }, style: {}, onClose() {}, onViewInformation() {}, onEdit() { assert.fail('Editar') }, onInactivate() { assert.fail('Inativar') } })))
     assert.match(document.body.textContent, /Ver informações/)
     assert.doesNotMatch(document.body.textContent, /Editar|Inativar/)
+  }
+}))
+
+test('eventos somente para consulta abrem informações diretamente, sem menu intermediário', () => withDom(async root => {
+  const now = new Date(), iso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  for (const [index, changes] of [{ status: 'CONCLUIDO' }, { status: 'CANCELADO', inactive: true }, { status: 'ATIVO', endTime: '00:00' }].entries()) {
+    const row = { id: '42:90:' + iso, eventId: '42', title: 'Evento para consulta', date: iso, category: 'event', startTime: '00:00', endTime: '23:59', ...changes }
+    const result = { events: [row], loading: false, error: '', retry() {}, retryDetails() {}, details: { data: { status: row.status, canEdit: false, eventClasses: [] }, loading: false, error: '' }, save() { assert.fail('Não deve alterar evento') }, cancel() { assert.fail('Não deve inativar evento') } }
+    const env = environment({ '../../hooks/useEvents': { useEvents: () => result, detailedCalendarEvent: entry => ({ ...entry, configuration: value }) } })
+    const Page = env.load('src/pages/mainEventScreen/index.tsx').default
+    await act(async () => root.render(React.createElement(MemoryRouter, { key: index }, React.createElement(Page))))
+    await act(async () => document.querySelector('.event-calendar-item--event').click())
+    assert.equal(document.querySelector('[role=menu]'), null)
+    assert.ok(document.querySelector('[role=dialog]'))
+    assert.equal(document.querySelector('#event-create-title'), null)
   }
 }))

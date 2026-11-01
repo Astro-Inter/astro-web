@@ -7,7 +7,9 @@ somente componentes. Mensagens antigas mantêm o texto e seus blocos originais.
 
 Contratos em `src/types/chatBlocks.ts`, validação em `src/utils/chatBlocks.ts`,
 memorização em `useChatBlocks`, renderização em `chatBlocks`, `chatBlockGraphic`
-e `chatBlockAvatar`; estilos em `styles/chatBlocks.css`.
+e `chatBlockAvatar`; tabela, cartões, contexto, ficha e resumo ficam em seus
+componentes `chatBlockTable`, `chatBlockIndicators`, `chatBlockContext`,
+`chatBlockUserProfile` e `chatBlockSetSummary`. Estilos em `styles/chatBlocks.css`.
 
 ## Tipos suportados
 
@@ -71,3 +73,12 @@ Com `npm run dev`, abrir `/tools/chat-blocks-preview/index.html` para homologaç
 visual isolada com dados fictícios e fixture validada pelos mesmos testes.
 Esse HTML não é entrada do build de produção. Evidências e limitações reais em
 [homologação da PR 70](homologacao-chat-pr70.md).
+
+## Limites do envelope e componentes legados
+
+A resposta aceita até dez blocos. Textos têm de 1 a 6.000 caracteres; gráficos
+admitem de 1 a 12 categorias e valores inteiros não negativos com soma segura.
+Galerias antigas continuam com até 50 pessoas, nome obrigatório, e-mail opcional
+até 320 caracteres e URL opcional até 8.192. Duplicatas de conteúdo têm chaves
+separadas. `useChatBlocks` memoriza o parsing; os gráficos decorativos têm uma
+lista textual adjacente, preservando acesso aos valores sem depender da imagem.

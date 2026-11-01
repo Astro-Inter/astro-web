@@ -4,6 +4,8 @@ import { listUnitNrOptions, listUnits } from './units'
 import { formApiStatuses, formRequest, isFormId, isFormReferenceId } from '../utils/formApi'
 import { isFormCardAppearance } from '../data/formCardAppearance'
 import { validateAndSanitizeFormFilters } from '../utils/formFilters'
+import { matchesCountRange, validateListFilters } from '../utils/listFilters'
+import type { FormQuestionFilters } from '../types/forms'
 import type { CreateFormValues, FormDetailsResponse, FormEditorOptions, FormManagerOptions, FormRecipientsResponse, FormsPageResponse, FormStatus, FormSummaryResponse } from '../types/forms'
 
 export class FormsApiError extends Error {
@@ -91,9 +93,26 @@ async function listFormsPage(search: string, status: FormStatus | '', page: numb
   return data
 }
 
-export async function listForms(search: string, status: FormStatus | '', page: number, size: number, signal?: AbortSignal): Promise<FormsPageResponse> {
+export async function listForms(search: string, status: FormStatus | '', page: number, size: number, signal?: AbortSignal, quantities?: FormQuestionFilters): Promise<FormsPageResponse> {
   const validation = validateAndSanitizeFormFilters({ search, status, page, size })
   if (!validation.values) throw new FormsApiError(`Filtros ou paginação de formulários inválidos. ${Object.values(validation.errors)[0]}`)
+  if (quantities && (quantities.minimum || quantities.maximum)) {
+    const errors = validateListFilters([{ id: 'minimum', label: 'Mínimo', kind: 'number' }, { id: 'maximum', label: 'Máximo', kind: 'number', minimumField: 'minimum' }], { ...quantities })
+    if (Object.keys(errors).length) throw new FormsApiError(Object.values(errors)[0])
+    // O endpoint não filtra quantidade de perguntas. Filtra o conjunto completo
+    // antes de paginar, para não ocultar resultados existentes em outras páginas.
+    const all: FormSummaryResponse[] = []
+    for (const bucket of (status ? [status] : ['draft', 'pending', 'completed']) as FormStatus[]) {
+      const first = await listFormsPage(search, bucket, 0, 100, signal)
+      all.push(...first.items)
+      for (let next = 1; next < first.totalPages; next++) {
+        signal?.throwIfAborted()
+        all.push(...(await listFormsPage(search, bucket, next, 100, signal)).items)
+      }
+    }
+    const matches = all.filter(form => matchesCountRange(form.questionCount, quantities.minimum, quantities.maximum))
+    return { items: matches.slice(page * size, (page + 1) * size), page, size, totalElements: matches.length, totalPages: Math.ceil(matches.length / size) }
+  }
   if (status) return listFormsPage(search, status, page, size, signal)
   // A API pagina por status. Compõe a página global nessa ordem sem carregar
   // todos os formulários nem ordenar somente os quatro cards já recebidos.

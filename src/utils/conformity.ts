@@ -1,9 +1,9 @@
 import type { Conformity, ConformityFilters, ConformityFormValues, ConformityOrigin, ConformityResponse, ConformityStatus } from '../types/conformity'
 
 export type ConformityValidationErrors = Partial<Record<keyof ConformityFormValues, string>>
-export type ConformityFilterErrors = Partial<Record<'from' | 'to', string>>
+export type ConformityFilterErrors = Partial<Record<'from' | 'to' | 'validity', string>>
 
-export const emptyConformityFilters: ConformityFilters = { nr: '', origin: '', from: '', to: '' }
+export const emptyConformityFilters: ConformityFilters = { validity: '', nr: '', origin: '', from: '', to: '' }
 
 export const conformityOriginLabels: Record<ConformityResponse['origin'], ConformityOrigin> = {
   EVENTO: 'Evento',
@@ -61,13 +61,15 @@ export function validateConformity(values: ConformityFormValues, employeeIds: re
 
 export function validateConformityFilters(filters: ConformityFilters, validDates: { from: boolean; to: boolean }): ConformityFilterErrors {
   const errors: ConformityFilterErrors = {}
+  if (filters.validity && !Object.hasOwn(conformityStatusLabels, filters.validity)) errors.validity = 'Selecione uma situação de validade válida.'
   if (!validDates.from) errors.from = 'Informe uma data válida no formato dd/mm/aaaa.'
   if (!validDates.to) errors.to = 'Informe uma data válida no formato dd/mm/aaaa.'
   if (!errors.from && !errors.to && filters.from && filters.to && filters.from > filters.to) errors.to = 'Deve ser após a data inicial.'
   return errors
 }
 
-export function matchesConformityFilters(conformity: Conformity, filters: ConformityFilters): boolean {
+export function matchesConformityFilters(conformity: Conformity & { status?: ConformityStatus }, filters: ConformityFilters): boolean {
+  if (filters.validity && (conformity.status ?? getConformityStatus(conformity.expiresAt)) !== filters.validity) return false
   if (filters.nr && conformity.nr !== filters.nr) return false
   if (filters.origin && conformity.origin !== filters.origin) return false
   if (!filters.from && !filters.to) return true

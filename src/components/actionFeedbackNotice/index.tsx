@@ -1,25 +1,28 @@
 import { useEffect, useState } from 'react';
-import { dismissActionNotice, type ActionNoticeTone } from '../../utils/actionFeedback';
+import { dismissActionNotice, leaveActionNotice, pauseActionNotice, type ActionNotice } from '../../utils/actionFeedback';
 import AstroIcon from '../astroIcon';
 
-interface NoticeProps { id: number; message: string; tone: ActionNoticeTone }
-function Notice({ id, message, tone }: NoticeProps) {
-  const [paused, setPaused] = useState(false)
-  const [leaving, setLeaving] = useState(false)
+function Notice({ id, message, tone, createdAt, expiresAt, pausedAt, leavingAt }: ActionNotice) {
+  const [mountedAt] = useState(Date.now)
+  const leaving = leavingAt !== null
   useEffect(() => {
-    if (paused && !leaving) return
+    if (pausedAt !== null && leavingAt === null) return
     const timer = window.setTimeout(() => {
-      if (leaving) dismissActionNotice(id)
-      else setLeaving(true)
-    }, leaving ? 180 : 5000)
+      if (leavingAt !== null) dismissActionNotice(id)
+      else leaveActionNotice(id)
+    }, Math.max(0, (leavingAt !== null ? leavingAt + 180 : expiresAt) - Date.now()))
     return () => window.clearTimeout(timer)
-  }, [id, leaving, paused])
-  return <div className="astro-action-notice astro-scale-90" data-leaving={leaving} data-tone={tone}
-    onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
-    onFocus={() => setPaused(true)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false) }}>
+  }, [expiresAt, id, leavingAt, pausedAt])
+  useEffect(() => () => {
+    pauseActionNotice(id, 'pointer', false)
+    pauseActionNotice(id, 'focus', false)
+  }, [id])
+  return <div className="astro-action-notice astro-scale-90" data-leaving={leaving} data-tone={tone} style={{ animationDelay: `${-Math.max(0, mountedAt - (leavingAt ?? createdAt))}ms` }}
+    onMouseEnter={() => pauseActionNotice(id, 'pointer', true)} onMouseLeave={() => pauseActionNotice(id, 'pointer', false)}
+    onFocus={() => pauseActionNotice(id, 'focus', true)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) pauseActionNotice(id, 'focus', false) }}>
     <span aria-hidden="true" className="astro-action-notice-icon"><AstroIcon name={tone === 'error' ? 'warning-circle' : 'check'} /></span>
     <p role={tone === 'error' ? 'alert' : 'status'} aria-live={tone === 'error' ? 'assertive' : 'polite'} aria-atomic="true">{message}</p>
-    <button aria-label="Fechar notificação" onClick={() => setLeaving(true)} type="button"><AstroIcon name="close" /></button>
+    <button aria-label="Fechar notificação" onClick={() => leaveActionNotice(id)} type="button"><AstroIcon name="close" /></button>
   </div>
 }
 export default Notice

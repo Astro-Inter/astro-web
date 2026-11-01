@@ -8,16 +8,17 @@ import FormCardSymbol from '../formCardSymbol'
 interface FormCardProps {
   form: FormSummary
   menuOpen: boolean
+  onOpen: () => void
   onOpenMenu: (event: MouseEvent<HTMLButtonElement>) => void
 }
 
-function FormCard({ form, menuOpen, onOpenMenu }: FormCardProps) {
+function FormCard({ form, menuOpen, onOpen, onOpenMenu }: FormCardProps) {
   return (
     <article aria-labelledby={`form-title-${form.id}`} className="form-card">
       <div className="form-card-heading">
         <FormCardSymbol appearance={form} />
         <div className="form-card-copy">
-          <h2 id={`form-title-${form.id}`}>{form.name}</h2>
+          <h2 id={`form-title-${form.id}`}><button type="button" className="form-card-open" aria-label={`Visualizar formulário ${form.name}`} onClick={onOpen}>{form.name}</button></h2>
           <p>{form.description}</p>
         </div>
         <button data-track-item={BUTTONS.comuns.acoes} aria-controls={menuOpen ? `form-options-${form.id}` : undefined} aria-expanded={menuOpen} aria-haspopup="menu" aria-label={`Opções para ${form.name}`} className="form-card-options" onClick={onOpenMenu} type="button">

@@ -13,7 +13,7 @@ export function useActionsMenu() {
     requestClose(() => {
       setOpenId(null)
       const queuedOpen = queuedOpenRef.current
-      if (restoreFocus && !queuedOpen) triggerRef.current?.focus()
+      if (restoreFocus && !queuedOpen) triggerRef.current?.focus({ preventScroll: true })
       const nextAction = queuedOpen ?? onFinished
       queuedOpenRef.current = null
       nextAction?.()

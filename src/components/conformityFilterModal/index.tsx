@@ -3,7 +3,7 @@ import { BUTTONS } from '../../gtm/buttons'
 import { useState, type FormEvent } from 'react'
 import type { ConformityFilters } from '../../types'
 import type { ConformityType } from '../../types/conformity'
-import { conformityOriginLabels, emptyConformityFilters, isConformityOrigin, validateConformityFilters, type ConformityFilterErrors } from '../../utils/conformity'
+import { conformityOriginLabels, conformityStatusLabels, emptyConformityFilters, isConformityOrigin, validateConformityFilters, type ConformityFilterErrors } from '../../utils/conformity'
 import AppModal from '../appModal'
 import FormDatePicker from '../formDatePicker'
 import PurpleButton from '../purpleButton'
@@ -67,6 +67,13 @@ function ConformityFilterModal({ type = 'COLABORADOR', filters, nrs, onApply, on
           <div className="position-dialog-field">
             <label htmlFor="conformity-filter-to" id="conformity-filter-to-label">Data de validade (fim)</label>
             <FormDatePicker error={errors.to} id="conformity-filter-to" labelledBy="conformity-filter-to-label" label="Data de validade final" onChange={(to) => update('to', to)} onValidityChange={(to) => setValidDates((current) => ({ ...current, to }))} value={values.to} />
+          </div>
+          <div className="position-dialog-field">
+            <label htmlFor="conformity-filter-validity" id="conformity-filter-validity-label">Validade</label>
+            <ToolbarSelect className="position-dialog-select" id="conformity-filter-validity" label="Validade" labelledBy="conformity-filter-validity-label" preferredPlacement="below" searchable={false} value={values.validity ?? ''} error={errors.validity} options={[
+              { value: '', label: 'Todas', tone: 'muted' as const },
+              ...Object.entries(conformityStatusLabels).map(([value, label]) => ({ value, label })),
+            ]} onValueChange={value => update('validity', Object.hasOwn(conformityStatusLabels, value) ? value as ConformityFilters['validity'] : '')} />
           </div>
         </div>
 

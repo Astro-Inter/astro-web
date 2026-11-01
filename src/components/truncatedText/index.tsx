@@ -160,17 +160,25 @@ function TruncatedText({ children, truncate = true, focusParent = false, nativeE
   }, [focusParent, hideTooltip, showTooltip])
 
   useEffect(() => {
-    if (!tooltipVisible) return
-
-    updateTooltipPosition()
-    const reposition = () => updateTooltipPosition()
+    if (tooltipMounted) updateTooltipPosition()
+    const reposition = () => { if (tooltipMounted) updateTooltipPosition() }
+    function dismissOnScroll() {
+      if (showTooltipTimeoutRef.current) clearTimeout(showTooltipTimeoutRef.current)
+      showTooltipTimeoutRef.current = null
+      if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current)
+      if (showTooltipFrameRef.current) cancelAnimationFrame(showTooltipFrameRef.current)
+      const tooltip = tooltipRef.current
+      if (tooltip?.hidePopover && tooltip.matches(':popover-open')) tooltip.hidePopover()
+      setTooltipVisible(false)
+      setTooltipMounted(false)
+    }
     window.addEventListener('resize', reposition)
-    window.addEventListener('scroll', reposition, true)
+    window.addEventListener('scroll', dismissOnScroll, true)
     return () => {
       window.removeEventListener('resize', reposition)
-      window.removeEventListener('scroll', reposition, true)
+      window.removeEventListener('scroll', dismissOnScroll, true)
     }
-  }, [tooltipVisible, updateTooltipPosition])
+  }, [tooltipMounted, updateTooltipPosition])
 
   useEffect(() => {
     if (!tooltipMounted) return

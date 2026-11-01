@@ -30,6 +30,22 @@ function OptionsPopup({ trackingName, ariaLabel, closing = false, id, items, onC
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   useEffect(() => {
+    function dismissOnViewportChange(event: Event) {
+      const panel = panelRef.current
+      if (!panel || panel.hidden || (event.target instanceof Node && panel.contains(event.target))) return
+      panel.hidden = true
+      onClose()
+    }
+
+    window.addEventListener('scroll', dismissOnViewportChange, true)
+    window.addEventListener('resize', dismissOnViewportChange)
+    return () => {
+      window.removeEventListener('scroll', dismissOnViewportChange, true)
+      window.removeEventListener('resize', dismissOnViewportChange)
+    }
+  }, [onClose, panelRef])
+
+  useEffect(() => {
     const opener = document.activeElement
     const panel = panelRef.current
     return () => {

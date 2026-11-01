@@ -6,7 +6,8 @@ import { BUTTONS } from '../../gtm/buttons'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, OptionsPopup, ToolbarSearch, ToolbarSelect } from '../../components'
+import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, OptionsPopup, ToolbarSearch } from '../../components'
+import ListFilterControl from '../../components/listFilterControl'
 import FormCard from '../../components/formCard'
 import FormCardAppearanceModal from '../../components/formCardAppearanceModal'
 import { formStatusLabels } from '../../data/forms'
@@ -17,14 +18,14 @@ import { useExitPresence } from '../../hooks/useExitPresence'
 import type { FormStatus, FormSummary } from '../../types/forms'
 
 const statusOptions = [
-  { value: '', label: 'Status', tone: 'muted' as const },
+  { value: '', label: 'Todos', tone: 'muted' as const },
   ...(['draft', 'pending', 'completed'] as const).map(value => ({ value, label: formStatusLabels[value] })),
 ]
 
 function MainFormScreenPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [filters, setFilters] = useState<{ search: string; status: FormStatus | ''; page: number }>({ search: '', status: '', page: 1 })
+  const [filters, setFilters] = useState<{ search: string; status: FormStatus | ''; page: number; minimum: string; maximum: string }>({ search: '', status: '', page: 1, minimum: '', maximum: '' })
   const [openId, setOpenId] = useState<string | null>(null)
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [pendingDeletion, setPendingDeletion] = useState<FormSummary | null>(null)
@@ -34,7 +35,7 @@ function MainFormScreenPage() {
     return state && typeof state === 'object' && 'message' in state && typeof state.message === 'string' ? state.message : ''
   })
   const [pageSize, setPageSize] = useState(4)
-  const { rows: forms, totalPages, totalElements, loading, error, retry, remove, saveAppearance } = useForms(filters.search, filters.status, filters.page, pageSize)
+  const { rows: forms, totalPages, totalElements, loading, error, retry, remove, saveAppearance } = useForms(filters.search, filters.status, filters.page, pageSize, { minimum: filters.minimum, maximum: filters.maximum })
   const contentRef = useRef<HTMLElement | null>(null)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const panelRef = useRef<HTMLDivElement | null>(null)
@@ -77,7 +78,7 @@ function MainFormScreenPage() {
   const closeMenu = useCallback((afterClose?: () => void, restoreFocus = true) => {
     requestClose(() => {
       setOpenId(null)
-      if (restoreFocus) triggerRef.current?.focus()
+      if (restoreFocus) triggerRef.current?.focus({ preventScroll: true })
       afterClose?.()
     })
   }, [requestClose])
@@ -111,7 +112,7 @@ function MainFormScreenPage() {
   const page = filters.page
   if (!loading && !error && page > pageCount) setFilters(current => ({ ...current, page: pageCount }))
   const skeleton = useExitPresence(pageSize, loading)
-  const results = useAnimatedResults(forms, `${loading ? 'loading' : 'ready'}:${JSON.stringify(forms.map(form => [form.id, form.name, form.icon, form.color]))}`, page, `${filters.search}|${filters.status}|${pageSize}`, true, loading)
+  const results = useAnimatedResults(forms, `${loading ? 'loading' : 'ready'}:${JSON.stringify(forms.map(form => [form.id, form.name, form.icon, form.color]))}`, page, `${filters.search}|${filters.status}|${filters.minimum}|${filters.maximum}|${pageSize}`, true, loading)
   const selected = forms.find(form => form.id === openId)
 
   return (
@@ -126,12 +127,16 @@ function MainFormScreenPage() {
           <div aria-label="Ações e filtros dos formulários" className="position-toolbar" role="group">
             <CompactPurpleButton data-track-action={BUTTONS.comuns.criar_forms} onClick={() => navigate('/createForms')} type="button"><AstroIcon name="plus" />Criar novo formulário</CompactPurpleButton>
             <ToolbarSearch label="Buscar formulários" placeholder="Buscar formulários..." value={filters.search} onChange={event => setFilters(current => ({ ...current, search: event.target.value.slice(0, 240), page: 1 }))} onClear={() => setFilters(current => ({ ...current, search: '', page: 1 }))} />
-            <div className="position-toolbar-selects"><ToolbarSelect searchable={false} className="forms-status-filter" trackingAction={BUTTONS.comuns.status} label="Filtrar por status" options={statusOptions} value={filters.status} onValueChange={status => setFilters(current => ({ ...current, status: status as FormStatus | '', page: 1 }))} /></div>
+            <div className="position-toolbar-selects"><ListFilterControl label="Filtrar formulários" fields={[
+              { id: 'status', label: 'Status', options: statusOptions },
+              { id: 'minimum', label: 'Quantidade mínima de perguntas', kind: 'number' },
+              { id: 'maximum', label: 'Quantidade máxima de perguntas', kind: 'number', minimumField: 'minimum' },
+            ]} values={{ status: filters.status, minimum: filters.minimum, maximum: filters.maximum }} onApply={values => setFilters(current => ({ ...current, status: values.status as FormStatus | '', minimum: values.minimum, maximum: values.maximum, page: 1 }))} /></div>
           </div>
           {skeleton.present && <ApiContentSkeleton label="Carregando formulários" variant="cards" cardCount={skeleton.value} className={skeleton.exiting ? 'forms-skeleton--exiting' : ''} />}
           {!skeleton.present && error && <div role="alert"><p>{error}</p><button onClick={retry} type="button">Tentar novamente</button></div>}
           <div hidden={skeleton.present || !!error} data-track-showcase={SHOWCASE_NAMES.lista_formularios} aria-busy={loading || skeleton.present || results.exiting} className={`forms-grid${results.changed ? ' forms-grid--animated' : ''}${results.direction ? ` forms-grid--${results.direction}` : ''}${results.exiting ? ' forms-grid--exiting' : ''}`} key={results.signature}>
-            {results.items.map(form => <FormCard key={form.id} form={form} menuOpen={openId === form.id} onOpenMenu={event => {
+            {results.items.map(form => <FormCard key={form.id} form={form} menuOpen={openId === form.id} onOpen={() => navigate(`/editForms?id=${encodeURIComponent(form.id)}&mode=view`)} onOpenMenu={event => {
               const trigger = event.currentTarget
               const open = () => { triggerRef.current = trigger; setMenuPosition(null); setOpenId(form.id) }
               if (openId === form.id) closeMenu()

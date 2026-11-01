@@ -15,6 +15,7 @@ interface FormDatePickerProps {
   error?: string
   animateError?: boolean
   escapeOverflow?: boolean
+  minDate?: string
 }
 
 const weekdays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
@@ -70,7 +71,7 @@ function sameDate(first: Date | null, second: Date) {
   return first !== null && first.getFullYear() === second.getFullYear() && first.getMonth() === second.getMonth() && first.getDate() === second.getDate()
 }
 
-function FormDatePicker({ id, label, labelledBy, onChange, onValidityChange, value, error, validate = true, escapeOverflow = false, animateError = false }: FormDatePickerProps) {
+function FormDatePicker({ id, label, labelledBy, onChange, onValidityChange, value, error, validate = true, escapeOverflow = false, animateError = false, minDate }: FormDatePickerProps) {
   const generatedId = useId()
   const calendarId = `${generatedId}-calendar`
   const containerRef = useRef<HTMLDivElement>(null)
@@ -78,6 +79,7 @@ function FormDatePicker({ id, label, labelledBy, onChange, onValidityChange, val
   const inputRef = useRef<HTMLInputElement>(null)
   const pendingFocusDate = useRef<string | null>(null)
   const selectedDate = parseIsoDate(value)
+  const minimumDate = minDate ? parseIsoDate(minDate) : null
   const [inputDraft, setInputDraft] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const [placement, setPlacement] = useState<'above' | 'below'>('below')
@@ -149,7 +151,8 @@ function FormDatePicker({ id, label, labelledBy, onChange, onValidityChange, val
 
   function openCalendar(focusDay = false) {
     if (closing) return
-    const dateToShow = parseDisplayDate(inputValue) ?? selectedDate ?? new Date()
+    const candidate = parseDisplayDate(inputValue) ?? selectedDate ?? new Date()
+    const dateToShow = minimumDate && toIsoDate(candidate) < toIsoDate(minimumDate) ? minimumDate : candidate
     if (focusDay) pendingFocusDate.current = toIsoDate(dateToShow)
     setVisibleMonth(startOfMonth(dateToShow))
     setOpen(true)
@@ -169,6 +172,7 @@ function FormDatePicker({ id, label, labelledBy, onChange, onValidityChange, val
 
   function chooseDate(date: Date) {
     const isoDate = toIsoDate(date)
+    if (minimumDate && isoDate < toIsoDate(minimumDate)) return
     setInputDraft(null)
     onChange(isoDate)
     onValidityChange?.(true)
@@ -212,6 +216,7 @@ function FormDatePicker({ id, label, labelledBy, onChange, onValidityChange, val
       next.setDate(Math.min(date.getDate(), new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate()))
     } else return
     event.preventDefault()
+    if (minimumDate && toIsoDate(next) < toIsoDate(minimumDate)) next.setTime(minimumDate.getTime())
     const button = calendarRef.current?.querySelector<HTMLButtonElement>(`[data-date="${toIsoDate(next)}"]`)
     if (button) button.focus({ preventScroll: true })
     else {
@@ -282,6 +287,7 @@ function FormDatePicker({ id, label, labelledBy, onChange, onValidityChange, val
               className={`create-forms-calendar-day${isSelected ? ' create-forms-calendar-day--selected' : ''}${isToday ? ' create-forms-calendar-day--today' : ''}`}
               key={date.getDate()}
               data-date={toIsoDate(date)}
+              disabled={Boolean(minimumDate && toIsoDate(date) < toIsoDate(minimumDate))}
               onClick={() => chooseDate(date)}
               onKeyDown={(event) => moveDayWithKeyboard(event, date)}
               type="button"
@@ -291,7 +297,7 @@ function FormDatePicker({ id, label, labelledBy, onChange, onValidityChange, val
 
         <div className="create-forms-calendar-footer">
           <span>{selectedDate ? dateFormatter.format(selectedDate) : 'Selecione uma data'}</span>
-          <button data-track-action={BUTTONS.comuns.hoje} onClick={() => chooseDate(new Date())} type="button">Hoje</button>
+          <button data-track-action={BUTTONS.comuns.hoje} disabled={Boolean(minimumDate && toIsoDate(today) < toIsoDate(minimumDate))} onClick={() => chooseDate(new Date())} type="button">Hoje</button>
         </div>
       </div>}
     </div>
