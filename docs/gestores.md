@@ -1,6 +1,6 @@
-# Gestores: despromoção para colaborador
+# Gestores: rebaixamento para colaborador
 
-A tela de gestores oferece a ação **Despromover para colaborador** no menu de
+A tela de gestores oferece a ação **Rebaixar para colaborador** no menu de
 cada gestor, nos estados ativo, desativado e pré-cadastrado. Uma confirmação
 identifica a pessoa e explica a preservação da conta, status, cargo, unidade e
 histórico. Cancelar não envia requisição.
@@ -22,7 +22,7 @@ fechamento/envios duplicados. Após sucesso, o foco retorna ao botão “Promove
 gestor”, pois a ação que abriu o modal deixa de existir junto com a linha removida.
 Ao cancelar, o foco volta ao botão de ações do gestor.
 
-A despromoção altera somente `GESTOR` para `COLABORADOR`; não ativa contas,
+O rebaixamento altera somente `GESTOR` para `COLABORADOR`; não ativa contas,
 não conclui pré-cadastro e não altera a conta do gestor do workspace. O acesso
 de gestor deixa de ser aceito nas próximas requisições protegidas, inclusive
 com um token emitido antes da alteração.
@@ -48,7 +48,10 @@ verificados separadamente; não houve nova publicação por esta mudança.
 - `node --test --test-concurrency=1 tests/*.test.cjs`: **589 aprovados**, zero falhas,
   nenhum ignorado.
 - Os três arquivos de testes de gestores também passaram isoladamente:
-  **23 aprovados**, incluindo contrato, estado e confirmação da despromoção.
+  **23 aprovados**, incluindo contrato, estado e confirmação do rebaixamento.
 - `npm run build`: aprovado com TypeScript e Vite.
 - `npm run lint`: aprovado.
 - `git diff --check`: aprovado.
+
+A terminologia apresentada é “Rebaixar para colaborador”. A rota técnica
+`PATCH /managers/{id}/demote` permanece a mesma para preservar a integração.

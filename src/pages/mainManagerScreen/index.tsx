@@ -192,7 +192,7 @@ function MainManagerScreenPage() {
               { trackingAction: BUTTONS.comuns.cancelar, id: 'cancel', label: 'Cancelar', separatorAfter: true, tone: 'muted', onSelect: () => actions.close() },
               { trackingAction: BUTTONS.comuns.informacoes, id: 'view', label: 'Ver mais informações', separatorAfter: true, onSelect: () => actions.close(() => { api.retryDetails(); setDialog({ kind: 'view', manager: openManager }) }) },
               { trackingAction: BUTTONS.comuns.editar, id: 'edit', label: 'Editar', separatorAfter: true, onSelect: () => actions.close(() => setDialog({ kind: 'edit-password', manager: openManager })) },
-              { trackingAction: BUTTONS.comuns.despromover, id: 'demote', label: 'Despromover para colaborador', separatorAfter: true, tone: 'danger', onSelect: () => actions.close(() => setDialog({ kind: 'demote', manager: openManager })) },
+              { trackingAction: BUTTONS.comuns.rebaixar, id: 'demote', label: 'Rebaixar para colaborador', separatorAfter: true, tone: 'danger', onSelect: () => actions.close(() => setDialog({ kind: 'demote', manager: openManager })) },
               { trackingAction: openManager.status === 'DESATIVADO'  ? BUTTONS.comuns.ativar : BUTTONS.comuns.inativar, id: 'toggle-status', label: openManager.status === 'DESATIVADO' ? 'Ativar' : 'Desativar', tone: openManager.status === 'DESATIVADO' ? 'default' : 'danger', onSelect: () => actions.close(() => {
                 if (openManager.status !== 'DESATIVADO') setDialog({ kind: 'deactivate', manager: openManager })
                 else void toggleStatus(openManager).then((error) => { if (error) setFeedback(error, 'error') })
@@ -266,9 +266,9 @@ function MainManagerScreenPage() {
         />
       )}
       {dialog?.kind === 'demote' && (
-        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_despromocao_gestor}
+        <ConfirmationModal trackingName={DIALOG_NAMES.confirmar_rebaixamento_gestor}
           backdrop="dimmed"
-          confirmLabel="Despromover"
+          confirmLabel="Rebaixar"
           description="O acesso de gestor será removido. A conta, o status, o cargo, a unidade e o histórico serão preservados."
           onCancel={() => {
             setDialog(null)
@@ -279,7 +279,7 @@ function MainManagerScreenPage() {
             setDialog(null)
             requestAnimationFrame(() => inviteOriginRef.current?.focus())
           }}
-          title={`Despromover ${dialog.manager.name} para colaborador?`}
+          title={`Rebaixar ${dialog.manager.name} para colaborador?`}
           tone="danger"
         />
       )}

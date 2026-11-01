@@ -33,9 +33,9 @@ export const DIALOGS = {
       }
     },
 
-    confirmarDespromocao: {
-      name: "confirmar_despromocao_gestor",
-      buttons: { cancelar: "cancelar", despromover: "despromover" }
+    confirmarRebaixamento: {
+      name: "confirmar_rebaixamento_gestor",
+      buttons: { cancelar: "cancelar", rebaixar: "rebaixar" }
     },
 
     confirmarInativacao: {
@@ -51,7 +51,7 @@ export const DIALOGS = {
       buttons: {
         informacoes: "informacoes",
         editar: "editar",
-        despromover: "despromover",
+        rebaixar: "rebaixar",
         inativar: "inativar"
       }
     }
@@ -353,7 +353,7 @@ export const DIALOG_NAMES = {
   "confirmar_inativacao_colaborador": "confirmar_inativacao_colaborador",
   "confirmar_inativacao_evento": "confirmar_inativacao_evento",
   "confirmar_inativacao_formulario": "confirmar_inativacao_formulario",
-  "confirmar_despromocao_gestor": "confirmar_despromocao_gestor",
+  "confirmar_rebaixamento_gestor": "confirmar_rebaixamento_gestor",
   "confirmar_inativacao_gestor": "confirmar_inativacao_gestor",
   "confirmar_inativacao_unidade": "confirmar_inativacao_unidade",
   "confirmar_logout": "confirmar_logout",
