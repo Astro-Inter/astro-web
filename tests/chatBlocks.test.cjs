@@ -232,7 +232,7 @@ test('fixture de homologação visual usa somente contratos reconhecidos', () =>
 
 test('controlador mantém POST/histórico, retoma sessão e isola troca de usuário com operação pendente', async () => withChatDom(async root => {
   const { act } = React, cache = new Map(), auth = { user: { uid: 'primeira' }, status: 'ready' }
-  const blocks = [indicators, localTable(100), chart, context], calls = []
+  const blocks = [indicators, localTable(100), chart, context, { ...userCard, foto: { ...userCard.foto, url: 'https://example.r2.cloudflarestorage.com/photo' } }], calls = []
   let state, pendingResolve, pendingSignal
   const services = {
     ChatApiError: class extends Error {},
@@ -268,6 +268,7 @@ test('controlador mantém POST/histórico, retoma sessão e isola troca de usuá
   await act(async () => state.sendMessage('Consultar'))
   const posted = document.getElementById('root').innerHTML
   assert.deepEqual(state.chat.messages[1].blocos, blocks)
+  assert.equal(document.querySelectorAll('img').length, 1)
   await act(async () => state.selectSession('sessao'))
   assert.equal(document.getElementById('root').innerHTML, posted)
   assert.deepEqual(state.chat.messages[0].blocos, blocks)
@@ -284,4 +285,5 @@ test('controlador mantém POST/histórico, retoma sessão e isola troca de usuá
   await act(async () => { pendingResolve({ session_id: 'sessao-antiga', blocos: blocks }); await operation })
   assert.equal(state.chat.messages.length, 0)
   assert.equal(document.querySelector('.chat-data-card'), null)
+  assert.equal(document.querySelector('img'), null)
 }))

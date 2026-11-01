@@ -91,26 +91,17 @@ do texto e na posição recebida. Aceita UUID, nome seguro `.pdf` (até 100), MI
 expiração ISO UTC e estado disponivel/expirado/indisponivel. O cartão omite o tamanho
 quando ausente; não estima nem converte arquivo para outro tipo.
 
-`useChatFileDownload` controla prazo, carregamento, erro e cancelamento. O botão
-só habilita com URL, estado disponível e prazo válido; expiração é reavaliada
-pelo relógio e quando a aba volta a receber foco/visibilidade. Histórico e lembrete
-mantêm o mesmo id/prazo recebido. O cliente nunca renova assinatura ou consulta o
-arquivo pelo id. Falha de geração sem bloco não produz cartão de sucesso.
+`useChatFileOpen` controla prazo e erro. O cartão oferece somente “Abrir PDF
+no navegador”, habilitado com URL, estado disponível e prazo válido. Expiração
+é reavaliada pelo relógio e ao recuperar foco/visibilidade. O clique revalida o
+prazo e abre a mesma URL recebida com noopener/noreferrer, sem token Astro.
+Não há download direto, fetch de arquivo, Blob ou renovação de assinatura.
+O usuário pode salvar pelo visualizador do navegador. Erros HTTP do armazenamento
+são apresentados pelo navegador; falha ao abrir produz alerta sem expor a URL.
+Histórico e lembrete mantêm id/prazo; falha de geração não fabrica cartão.
+Não há preview automático, URL no href do cartão, logs ou persistência local.
+Os ícones do cartão usam cor escura para contrastar com o fundo branco.
 
-`services/chatFiles.ts` recebe apenas a URL fornecida, em download iniciado por
-clique. Não usa o cliente autenticado Astro: credentials omit, no-referrer,
-no-store, sem Authorization ou cookies. Valida resposta PDF e limite de 2 MB,
-cria Blob temporário somente para salvar, e revoga seu object URL após uso.
-Não faz prefetch/preview automático nem coloca URL assinada em href do cartão,
-logs, analytics ou armazenamento. O cartão usa data-track-ignore. Erros de rede,
-CORS, HTTP, MIME ou tamanho produzem alerta sem incluir a URL no erro.
-
-O download direto precisa de GET permitido por CORS e Content-Type application/pdf.
-Se falhar, o alerta oferece “Abrir PDF no navegador”: uma ação explícita de
-navegação para a mesma URL, com noopener/noreferrer, sem token Astro, sem renovação
-e sem construir outra capacidade. Não faz preview automático. O usuário pode
-usar o download do visualizador do navegador; erros HTTP do armazenamento nessa
-navegação ficam a cargo do navegador. A alternativa desaparece ao expirar.
 A implementação mantém os componentes e contratos analíticos existentes, sem
 recalcular agregados a partir das linhas. A simulação visual específica está em
 `/tools/chat-contracts-preview/index.html` e não entra no build de produção.

@@ -25,7 +25,6 @@ function environment(overrides = {}) {
 const env = environment(), ChatBlocks = env.load('src/components/chatBlocks/index.tsx').default
 const { parseBlocks } = env.load('src/utils/chatBlocks.ts')
 const { chatFileState } = env.load('src/utils/chatFiles.ts')
-const { downloadChatFile } = env.load('src/services/chatFiles.ts')
 const file = scenarios.pdf.blocos[1]
 const html = blocks => renderToStaticMarkup(React.createElement(ChatBlocks, { blocks, fallback: '' }))
 
@@ -43,34 +42,16 @@ test('arquivo v1 valida o schema e mantém componentes reconhecidos entre tipos 
 test('cartão separa PDF do texto, omite tamanho nulo e não coloca a URL temporária no DOM', () => {
   const markup = html(scenarios.pdf.blocos)
   assert.ok(markup.indexOf('PDF gerado') < markup.indexOf('chat-file-card'))
-  assert.match(markup, /Baixar PDF/); assert.doesNotMatch(markup, /assinatura|https:\/\/files|kB/)
+  assert.match(markup, /Abrir PDF no navegador/); assert.doesNotMatch(markup, /assinatura|https:\/\/files|kB/)
   assert.match(html([{ ...file, tamanho_bytes: 76360 }]), /76,4 kB/)
   for (const state of [scenarios.expirado, scenarios.indisponivel]) assert.match(html(state.blocos), /disabled/)
   assert.equal(chatFileState({ ...file, url: null }), 'indisponivel')
   assert.equal(chatFileState({ ...file, estado: 'indisponivel', expira_em: '2020-01-01T00:00:00Z' }), 'indisponivel')
   assert.equal(chatFileState(file, Date.parse(file.expira_em)), 'expirado')
-  assert.doesNotMatch(html(scenarios.falha_pdf.blocos), /chat-file-card|Baixar PDF/)
+  assert.doesNotMatch(html(scenarios.falha_pdf.blocos), /chat-file-card|Abrir PDF no navegador/)
   const { chatMessageText } = env.load('src/utils/chatMessageText.ts')
   assert.equal(chatMessageText(undefined, [file]), file.nome)
   assert.deepEqual(scenarios.lembrar.blocos[1], file)
-})
-
-test('download explícito usa apenas URL recebida, sem token/cookies/referrer/cache e rejeita erros sem expor link', async t => {
-  const calls = []
-  t.mock.method(global, 'fetch', async (url, options) => { calls.push({ url, options }); return new Response('%PDF-1.4\nfixture', { headers: { 'Content-Type': 'application/pdf' } }) })
-  const blob = await downloadChatFile(file)
-  assert.equal(blob.type, 'application/pdf')
-  assert.equal(calls.length, 1); assert.equal(calls[0].url, file.url)
-  assert.deepEqual(calls[0].options.headers, { Accept: 'application/pdf' })
-  assert.equal(calls[0].options.credentials, 'omit'); assert.equal(calls[0].options.referrerPolicy, 'no-referrer'); assert.equal(calls[0].options.cache, 'no-store')
-  await assert.rejects(downloadChatFile({ ...file, estado: 'expirado' }), /Não foi possível/)
-  assert.equal(calls.length, 1)
-  for (const response of [new Response('negado', { status: 403 }), new Response('erro', { status: 500 }), new Response('<html>', { headers: { 'content-type': 'text/html' } }), new Response('', { headers: { 'content-type': 'application/pdf' } }), new Response('x', { headers: { 'content-type': 'application/pdf', 'content-length': '2000001' } }), new Response(new Uint8Array(2000001), { headers: { 'content-type': 'application/pdf' } })]) {
-    global.fetch = async () => response
-    await assert.rejects(downloadChatFile(file), error => !error.message.includes('assinatura') && /Não foi possível/.test(error.message))
-  }
-  global.fetch = async () => { throw Error(file.url) }
-  await assert.rejects(downloadChatFile(file), error => !error.message.includes(file.url))
 })
 
 async function withDom(run) {
@@ -82,45 +63,40 @@ async function withDom(run) {
   try { await run(root,dom) } finally { await act(async () => root.unmount()); dom.window.close(); Object.assign(global,previous) }
 }
 
-test('PDF não faz prefetch, baixa por clique uma vez, trata erro e expira enquanto a conversa está aberta', async t => withDom(async (root,dom) => {
-  let requests = 0, clicks = 0
-  t.mock.method(global,'fetch',async () => { requests++; return new Response('%PDF-1.4\nfixture', { headers: { 'content-type':'application/pdf' } }) })
-  t.mock.method(URL,'createObjectURL',()=>'blob:fixture')
-  t.mock.method(URL,'revokeObjectURL',()=>{})
-  dom.window.HTMLAnchorElement.prototype.click = function () { clicks++; assert.equal(this.download,file.nome); assert.equal(this.href,'blob:fixture') }
+test('PDF abre somente a URL recebida no navegador, sem fetch e sem renovação, e desabilita ao expirar', async t => withDom(async (root,dom) => {
+  let requests = 0, opened
+  t.mock.method(global, 'fetch', () => { requests++; throw Error('Não deve buscar o PDF') })
+  dom.window.open = (...args) => { opened = args }
   const short = { ...file, expira_em: new Date(Date.now()+60000).toISOString() }
   await act(async () => root.render(React.createElement(ChatBlocks,{blocks:[short],fallback:''})))
-  assert.equal(requests,0)
-  await act(async () => { document.querySelector('button').click(); document.querySelector('button').click() })
-  assert.equal(requests,1); assert.equal(clicks,1)
-  global.fetch=async()=>{requests++; throw Error('CORS/rede')}
-  await act(async()=>document.querySelector('button').click())
-  assert.match(document.querySelector('[role="alert"]').textContent,/Não foi possível baixar/)
-  let opened
-  dom.window.open = (...args) => { opened = args }
-  const beforeOpen = requests
-  await act(async()=>document.querySelectorAll('button')[1].click())
+  assert.equal(document.querySelectorAll('button').length, 1)
+  assert.match(document.querySelector('button').textContent, /Abrir PDF no navegador/)
+  assert.doesNotMatch(document.body.textContent, /Baixar PDF|Baixando|Não foi possível baixar/)
+  assert.equal(opened, undefined)
+  await act(async () => document.querySelector('button').click())
   assert.deepEqual(opened, [file.url, '_blank', 'noopener,noreferrer'])
-  assert.equal(requests, beforeOpen, 'abrir o mesmo arquivo não chama API nem usa outro link')
-  const after=Date.parse(short.expira_em)+1
-  t.mock.method(Date,'now',()=>after)
-  await act(async()=>window.dispatchEvent(new dom.window.Event('focus')))
-  assert.equal(document.querySelector('button').disabled,true)
-  assert.match(document.querySelector('[role="status"]').textContent,/Link expirado/)
-  assert.equal(document.querySelectorAll('button').length, 1, 'não oferece abertura de URL expirada')
-  assert.equal(dom.window.localStorage.length,0)
+  assert.equal(requests, 0)
+  const after = Date.parse(short.expira_em)+1
+  t.mock.method(Date, 'now', () => after)
+  await act(async () => window.dispatchEvent(new dom.window.Event('focus')))
+  assert.equal(document.querySelector('button').disabled, true)
+  assert.match(document.querySelector('[role="status"]').textContent, /Link expirado/)
+  assert.equal(dom.window.localStorage.length, 0)
 }))
 
-test('download pendente é cancelado ao desmontar e não dispara arquivo depois', async t=>withDom(async root=>{
-  let resolveDownload, signal, clicks=0
-  t.mock.method(global,'fetch',(_url,options)=>{signal=options.signal;return new Promise(resolve=>{resolveDownload=resolve})})
-  t.mock.method(URL,'createObjectURL',()=>{clicks++;return 'blob:fixture'})
-  await act(async()=>root.render(React.createElement(ChatBlocks,{blocks:[file],fallback:''})))
-  await act(async()=>document.querySelector('button').click())
-  await act(async()=>root.render(null))
-  assert.equal(signal.aborted,true)
-  await act(async()=>resolveDownload(new Response('%PDF-1.4',{headers:{'content-type':'application/pdf'}})))
-  assert.equal(clicks,0)
+test('PDF indisponível ou sem URL não abre e erro de abertura não expõe assinatura', async () => withDom(async (root,dom) => {
+  let calls = 0
+  dom.window.open = () => { calls++; throw Error(file.url) }
+  for (const invalid of [{ ...file, estado: 'indisponivel' }, { ...file, url: null }]) {
+    await act(async () => root.render(React.createElement(ChatBlocks,{blocks:[invalid],fallback:''})))
+    await act(async () => document.querySelector('button').click())
+    assert.equal(calls, 0)
+  }
+  await act(async () => root.render(React.createElement(ChatBlocks,{blocks:[file],fallback:''})))
+  await act(async () => document.querySelector('button').click())
+  assert.equal(calls, 1)
+  assert.match(document.querySelector('[role="alert"]').textContent, /Não foi possível abrir/)
+  assert.ok(!document.body.textContent.includes(file.url))
 }))
 
 test('fixtures novas preservam contratos: homônimos, 12 meses zero, vazio e 100 → 500',()=>{

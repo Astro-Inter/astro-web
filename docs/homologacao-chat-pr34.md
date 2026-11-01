@@ -1,5 +1,11 @@
 # Homologação web — contratos da API PR 34
 
+> Registro da homologação inicial. Após teste do usuário, o cartão passou a
+> oferecer somente “Abrir PDF no navegador”, sem download direto/fetch/Blob.
+> O hook atual é `useChatFileOpen`; os testes atuais constam na descrição da PR.
+> Os resultados HTTP e capturas abaixo são históricos, anteriores a esse ajuste.
+
+
 Data: 01/11/2026, America/Sao_Paulo. Código baseado na main web `0fbda2d`.
 A árvore original de formulários/dashboards com alterações locais foi preservada;
 a implementação está em worktree independente. Sem merge ou deploy nesta entrega.
