@@ -17,7 +17,7 @@ function ListFilterControl({ label, fields, values, onApply }: ListFilterControl
   const count = fields.filter(field => Boolean(values[field.id])).length
   return <>
     <button type="button" className="conformity-filter-button" ref={trigger} aria-label={`${label}${count ? `, ${count} ${count === 1 ? 'filtro ativo' : 'filtros ativos'}` : ''}`} aria-haspopup="dialog" aria-expanded={open} data-track-action={BUTTONS.comuns.filtro} onClick={() => { setDraft(values); setErrors({}); setOpen(true) }}>
-      Filtros{count > 0 && <span aria-hidden="true">({count})</span>}<AstroIcon name="chevron-down" />
+      Filtros{count > 0 && <span aria-hidden="true">({count})</span>}<AstroIcon name="filter" />
     </button>
     {open && <AppModal title="Filtros" className="position-dialog invite-manager-dialog conformity-filter-modal" onClose={() => { setOpen(false); trigger.current?.focus() }}>
       {dismiss => <form ref={form} autoComplete="off" noValidate data-track-submit={BUTTONS.comuns.aplicar_filtros} onSubmit={event => {

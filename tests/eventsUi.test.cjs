@@ -894,7 +894,7 @@ test('relógio atualiza o bloqueio no início e no término mesmo sem sair da te
   } finally { Date.now = originalNow; window.setTimeout = originalTimer; window.clearTimeout = originalClear }
 }))
 
-test('concluídos, atrasados e inativos ficam cinza e sem ações de alteração em todas as visões', () => withDom(async root => {
+test('concluídos, atrasados e inativos mantêm consulta e distinguem inativação em todas as visões', () => withDom(async root => {
   const env = environment(), Calendar = env.load('src/components/eventCalendar/index.tsx').default, Options = env.load('src/components/eventOptionsModal/index.tsx').default
   const now = new Date('2099-11-05T12:00:00').getTime()
   const base = { id: 'history', eventId: '42', category: 'event', title: 'Histórico', date: '2099-11-05', startTime: '08:00', endTime: '10:00', status: 'ATIVO' }
@@ -904,6 +904,7 @@ test('concluídos, atrasados e inativos ficam cinza e sem ações de alteração
       const buttons = [...document.querySelectorAll('button')].filter(button => button.getAttribute('aria-label')?.includes('Histórico'))
       assert.ok(buttons.length)
       assert.ok(buttons.every(button => button.classList.contains('event-calendar-item--read-only')))
+      assert.ok(buttons.every(button => button.classList.contains('event-calendar-item--inactive') === Boolean(event.inactive || event.status === 'CANCELADO')))
       assert.ok(buttons.every(button => /apenas para consulta/.test(button.title)))
     }
     await act(async () => root.render(React.createElement(Options, { now, event, closing: false, panelRef: { current: null }, style: {}, onClose() {}, onViewInformation() {}, onEdit() { assert.fail('Editar') }, onInactivate() { assert.fail('Inativar') } })))
@@ -924,5 +925,26 @@ test('eventos somente para consulta abrem informações diretamente, sem menu in
     assert.equal(document.querySelector('[role=menu]'), null)
     assert.ok(document.querySelector('[role=dialog]'))
     assert.equal(document.querySelector('#event-create-title'), null)
+  }
+}))
+
+test('cada turma mantém sua cor sem bloquear as próximas turmas do mesmo evento', () => withDom(async root => {
+  const Calendar = environment().load('src/components/eventCalendar/index.tsx').default
+  const periods = [
+    { startDate: '2099-11-01T08:00:00', endDate: '2099-11-01T10:00:00' },
+    { startDate: '2099-11-02T08:00:00', endDate: '2099-11-02T18:00:00' },
+    { startDate: '2099-11-03T08:00:00', endDate: '2099-11-03T10:00:00' },
+  ]
+  const events = periods.map((period, index) => ({ id: `42:${90 + index}:${period.startDate.slice(0, 10)}`, eventId: '42', title: `Turma ${index + 1}`, category: 'event', status: 'ATIVO', date: period.startDate.slice(0, 10), startTime: period.startDate.slice(11, 16), endTime: period.endDate.slice(11, 16), eventPeriod: period, eventPeriods: periods }))
+  for (const view of ['month', 'week', 'year']) {
+    await act(async () => root.render(React.createElement(Calendar, { events, month: new Date(2099, 10, 2), now: new Date('2099-11-02T12:00:00').getTime(), view, onMonthChange() {}, onOpenOptions() {}, selectedEventId: null })))
+    const buttons = [...document.querySelectorAll('button.event-calendar-item')]
+    const group = number => buttons.filter(button => button.getAttribute('aria-label').startsWith(`Turma ${number},`))
+    assert.ok(group(1).length && group(2).length && group(3).length)
+    assert.ok(group(1).every(button => button.classList.contains('event-calendar-item--read-only') && !button.classList.contains('event-calendar-item--in-progress')))
+    assert.ok(group(2).every(button => button.classList.contains('event-calendar-item--in-progress')))
+    assert.ok(group(3).every(button => !button.classList.contains('event-calendar-item--read-only') && !button.classList.contains('event-calendar-item--in-progress')))
+    assert.ok(group(1).every(button => button.getAttribute('aria-haspopup') === 'dialog'))
+    assert.ok(group(3).every(button => button.getAttribute('aria-haspopup') === 'menu'))
   }
 }))

@@ -16,6 +16,8 @@ import type { WorkspaceSettingsNavigationState } from '../../types/workspaceSett
 import { canAccessPage, hasWorkspaceAccess } from '../../utils/accessControl'
 
 type AccountPopup = 'view-password' | 'view' | 'edit-password' | 'edit' | 'replace' | 'logout' | null
+const managerSupportEmail = `mailto:app.4str0@gmail.com?subject=${encodeURIComponent('Gestor do workspace inativo ou inacessível')}&body=${encodeURIComponent('Olá, equipe Astro.\n\nO gestor do workspace não está mais ativo ou está inacessível. Solicito a análise da situação e da substituição do responsável.\n\nNome do workspace:\nNome ou e-mail do gestor atual:\nCPF ou e-mail do novo gestor:\nMotivo da solicitação:\n\nAnexarei as evidências que justificam esta solicitação.')}`
+
 function AccountScreen() {
   const { pending: logoutPending, submit: submitLogout } = useLogout()
   const navigate = useNavigate()
@@ -24,7 +26,6 @@ function AccountScreen() {
   const { data: profile, loading, error: profileError, retry, photoUpdate, uploadPhoto, refreshPhoto, applyProfile } = useAccountProfile()
   const [popup, setPopup] = useState<AccountPopup>(null)
   const isWorkspaceManager = hasWorkspaceAccess(user?.accountType)
-  const [emailPreview, setEmailPreview] = useState(false)
   const triggerIdRef = useRef('')
   const from = (location.state as WorkspaceSettingsNavigationState | null)?.from
   const returnPath = from && !['/mainAccountScreen', '/mainWorkspaceSettingsScreen'].includes(from)
@@ -75,9 +76,8 @@ function AccountScreen() {
             ? 'Ao transferir a responsabilidade, você continuará como gestor e perderá apenas as permissões exclusivas de responsável pelo workspace. O novo responsável assumirá o gerenciamento de acessos e das configurações do workspace. Para transferir novamente, será necessária uma nova ação do responsável atual.'
             : 'Caso o gestor do workspace precise ser substituído ou esteja inacessível, clique no botão abaixo para nos enviar um e-mail. Para que a equipe Astro possa analisar o caso, certifique-se de informar o CPF ou o e-mail do novo gestor e anexar as evidências que justificam a solicitação.'}</p>
           <div className="account-transfer-actions">
-            {isWorkspaceManager ? <CompactPurpleButton data-track-action={BUTTONS.comuns.substituir} aria-haspopup="dialog" id="account-transfer-action" onClick={event => openPopup('replace', event.currentTarget)} variant="danger">Substituir</CompactPurpleButton> : <CompactPurpleButton data-track-action={BUTTONS.comuns.enviar_email} id="account-transfer-action" onClick={() => setEmailPreview(true)}>Enviar email</CompactPurpleButton>}
+            {isWorkspaceManager ? <CompactPurpleButton data-track-action={BUTTONS.comuns.substituir} aria-haspopup="dialog" id="account-transfer-action" onClick={event => openPopup('replace', event.currentTarget)} variant="danger">Substituir</CompactPurpleButton> : <a className="astro-action astro-action--compact" data-track-action={BUTTONS.comuns.enviar_email} href={managerSupportEmail} id="account-transfer-action">Enviar email</a>}
           </div>
-          {emailPreview && <p className="account-email-preview" role="status">Informe o CPF ou o e-mail do novo gestor e as evidências da solicitação.</p>}
         </section>
         <div className="account-logout-action"><CompactPurpleButton data-track-action={BUTTONS.comuns.sair} aria-haspopup="dialog" aria-busy={logoutPending} disabled={logoutPending} id="account-logout-action" onClick={event => openPopup('logout', event.currentTarget)} variant="danger">Sair da conta</CompactPurpleButton></div>
         </div>

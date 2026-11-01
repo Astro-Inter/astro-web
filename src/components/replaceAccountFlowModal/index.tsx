@@ -15,11 +15,12 @@ interface ReplaceAccountFlowModalProps {
   onCancel: () => void
   onReplaced: (managerId: string) => void
   initialReplacementId?: string
+  loading?: boolean
 }
 
 type ReplacementStep = 'selection' | 'confirmation' | 'password'
 
-function ReplaceAccountFlowModal({ collaborators, onCancel, onReplaced, initialReplacementId = '' }: ReplaceAccountFlowModalProps) {
+function ReplaceAccountFlowModal({ collaborators, onCancel, onReplaced, initialReplacementId = '', loading = false }: ReplaceAccountFlowModalProps) {
   const [step, setStep] = useState<ReplacementStep>('selection')
   const [replacementId, setReplacementId] = useState(initialReplacementId)
   const replacement = collaborators.find(person => person.id === replacementId)
@@ -37,6 +38,10 @@ function ReplaceAccountFlowModal({ collaborators, onCancel, onReplaced, initialR
     document.querySelector<HTMLElement>('.account-replace-flow-modal[open] .astro-modal-title')?.focus({ preventScroll: true })
   }, [step])
 
+  useLayoutEffect(() => {
+    actionRef.current = onReplaced
+  }, [onReplaced])
+
   function changeStep(next: ReplacementStep) {
     if (replacement) animatePopupChange(() => setStep(next))
   }
@@ -48,7 +53,7 @@ function ReplaceAccountFlowModal({ collaborators, onCancel, onReplaced, initialR
   return (
     <AppModal trackingName={({ selection: DIALOG_NAMES.selecionar_gestor_workspace, confirmation: DIALOG_NAMES.confirmar_substituicao_gestor, password: DIALOG_NAMES.confirmar_senha })[step]} className={`account-replace-flow-modal ${stepClasses[step]}`} dismissible={confirmation.status !== 'success'} onDismissRequest={() => { if (!replacedRef.current) confirmation.cancel() }} onClose={() => confirmation.consumeConfirmation() ? actionRef.current(replacementId) : onCancel()} preservePageScroll title={title}>
       {dismiss => <>
-        {step === 'selection' && <AccountManagerSelectionForm collaborators={collaborators} onCancel={dismiss} onChange={setReplacementId} onContinue={() => changeStep('confirmation')} value={replacementId} />}
+        {step === 'selection' && <AccountManagerSelectionForm collaborators={collaborators} loading={loading} onCancel={dismiss} onChange={setReplacementId} onContinue={() => changeStep('confirmation')} value={replacementId} />}
         {step === 'confirmation' && replacement && <>
           <p className="astro-confirmation-description">Novo gestor: <strong>{replacement.name}</strong><span>{replacement.email}</span></p>
           <p className="astro-confirmation-description">Você passará a gestor e perderá as permissões exclusivas de responsável pelo workspace.</p>

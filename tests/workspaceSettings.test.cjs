@@ -663,3 +663,24 @@ test('planilha nas configurações valida ao selecionar, bloqueia erro e reutili
   assert.equal(reads, 1)
   assert.equal(requests, 1, 'Ainda não salva antes da confirmação')
 }))
+
+test('transferência abre o popup de seleção com skeleton e mantém o mesmo diálogo ao carregar gestores', async () => withDOM(async (root, env) => {
+  let resolveManagers
+  global.fetch = () => new Promise(resolve => { resolveManagers = resolve })
+  const Modal = env.load('src/components/workspaceManagerTransferModal/index.tsx').default
+  await act(async () => root.render(React.createElement(Modal, { onClose() {} })))
+  const dialog = document.querySelector('dialog')
+  assert.equal(dialog.getAttribute('aria-label'), 'Selecione o novo gestor do workspace')
+  assert.equal(document.querySelector('form').getAttribute('aria-busy'), 'true')
+  assert.ok(document.querySelector('.api-skeleton-control'))
+  assert.equal(document.querySelector('button[type="submit"]').disabled, true)
+  assert.ok([...document.querySelectorAll('button')].some(button => button.textContent === 'Cancelar' && !button.disabled))
+  assert.equal(document.querySelector('.action-loading'), null)
+  await act(async () => resolveManagers(response([
+    { id_usuario: 42, nome: 'Ana', email: 'ana@example.com', unidade_id: 12, unidade: 'Filial', status: 'ATIVO' },
+  ])))
+  assert.equal(document.querySelector('dialog'), dialog)
+  assert.equal(document.querySelector('form').getAttribute('aria-busy'), 'false')
+  assert.equal(document.querySelector('.api-skeleton-control'), null)
+  assert.equal(document.querySelector('option[value="42"]').textContent, 'ana@example.com')
+}))

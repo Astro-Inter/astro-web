@@ -70,11 +70,15 @@ export function eventDateLabel(date: string): string {
 
 export function calendarEventPeriods(event: CalendarEvent): readonly { startDate: string; endDate: string }[] {
   if (event.category === 'today') return []
-  if (event.eventPeriods?.length) return event.eventPeriods
-  if (event.configuration) return Object.values(event.configuration.schedules).map(schedule => ({
-    startDate: schedule.originalStart ?? `${schedule.date}T${schedule.startTime}`,
-    endDate: schedule.originalEnd ?? `${schedule.endDate || schedule.date}T${schedule.endTime}`,
-  }))
+  if (event.eventPeriod) return [event.eventPeriod]
+  if (event.configuration) {
+    const schedules = event.configuration.schedules
+    const schedule = schedules[event.id.split(':')[1]] ?? Object.values(schedules).find(item => item.date === event.date && item.startTime === event.startTime)
+    if (schedule) return [{
+      startDate: schedule.originalStart ?? `${schedule.date}T${schedule.startTime}`,
+      endDate: schedule.originalEnd ?? `${schedule.endDate || schedule.date}T${schedule.endTime}`,
+    }]
+  }
   return [{ startDate: `${event.date}T${event.startTime}`, endDate: `${event.date}T${event.endTime}` }]
 }
 
@@ -91,6 +95,6 @@ export function calendarEventReadOnlyReason(event: CalendarEvent, now = Date.now
   if (event.inactive || event.status === 'CANCELADO') return 'Evento inativado. Disponível apenas para consulta.'
   if (event.status === 'CONCLUIDO') return 'Evento concluído. Disponível apenas para consulta.'
   if (calendarEventInProgress(event, now)) return 'Em andamento. Edição e inativação indisponíveis.'
-  if (new Date(event.eventPeriod?.endDate ?? `${event.date}T${event.endTime}`).getTime() <= now) return 'Prazo encerrado. Disponível apenas para consulta.'
+  if (new Date(calendarEventPeriods(event)[0]?.endDate ?? `${event.date}T${event.endTime}`).getTime() <= now) return 'Prazo encerrado. Disponível apenas para consulta.'
   return ''
 }

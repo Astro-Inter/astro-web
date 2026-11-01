@@ -20,12 +20,12 @@ function WorkspaceManagerTransferModal({ onClose }: WorkspaceManagerTransferModa
     description={transfer.submission.error}
     confirmLabel="Tentar novamente" cancelLabel="Voltar" onCancel={transfer.editSelection}
     onConfirm={() => transfer.save(transfer.selectedId)} onConfirmed={onClose} />
-  if (transfer.loading || transfer.error || transfer.submission.pending || !transfer.managers.length) return <AppModal title="Substituir responsável pelo workspace" onClose={onClose} dismissible={!transfer.submission.pending}>
-    <WorkspaceQueryFeedback loading={transfer.loading || transfer.submission.pending} error={transfer.error} onRetry={transfer.retry} />
+  if (transfer.error || transfer.submission.pending || (!transfer.loading && !transfer.managers.length)) return <AppModal title="Substituir responsável pelo workspace" onClose={onClose} dismissible={!transfer.submission.pending}>
+    <WorkspaceQueryFeedback loading={transfer.submission.pending} error={transfer.error} onRetry={transfer.retry} />
     {!transfer.loading && !transfer.error && !transfer.submission.pending && <p role="status">Não há outro gestor ativo disponível.</p>}
     {!transfer.submission.pending && <button type="button" className="astro-modal-cancel" onClick={onClose}>Cancelar</button>}
   </AppModal>
-  return <ReplaceAccountFlowModal collaborators={transfer.managers} initialReplacementId={transfer.selectedId}
+  return <ReplaceAccountFlowModal collaborators={transfer.managers} initialReplacementId={transfer.selectedId} loading={transfer.loading}
     onCancel={onClose} onReplaced={id => { void transfer.save(id) }} />
 }
 
