@@ -119,7 +119,12 @@ test('dropdown usa opções de Colaborador de um cargo real e mantém NRs ainda 
   const controller = new AbortController()
   assert.deepEqual(await api.listEventNrs(controller.signal), [{ code: 6, title: 'EPI' }, { code: 10, title: 'Eletricidade' }])
   for (const call of calls) { assert.equal(call.headers.Authorization, 'Bearer firebase-token'); assert.equal(call.signal, controller.signal) }
-  for (const call of calls.filter(call => call.url.pathname.startsWith('/roles'))) assert.equal(call.url.searchParams.get('firebase_uid'), 'manager/uid')
+  const roleCalls = calls.filter(call => call.url.pathname.startsWith('/roles'))
+  assert.deepEqual(roleCalls.map(call => call.url.pathname), ['/roles', '/roles/8/nrs/options'])
+  for (const call of roleCalls) {
+    assert.equal(call.url.search, '')
+    assert.equal(call.body, undefined)
+  }
 })
 
 test('catálogo de colaborador vazio ou erro não libera o catálogo completo de NRs', async () => {
