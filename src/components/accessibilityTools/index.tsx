@@ -4,6 +4,7 @@ import { useAuthentication } from '../../hooks/useAuthentication'
 import AccessibilityPanel from '../accessibilityPanel'
 import ReadingGuide from '../readingGuide'
 import FaceNavigationOverlay from '../faceNavigationOverlay'
+import VoiceInputControls from '../voiceInputControls'
 
 function AccessibilityTools() {
   const { preferences, panelOpen, openPanel } = useAccessibility()
@@ -13,6 +14,7 @@ function AccessibilityTools() {
   return <>
     {panelOpen && <AccessibilityPanel />}
     {preferences.readingGuide && <ReadingGuide />}
+    {preferences.voiceSearch && <VoiceInputControls />}
     <FaceNavigationOverlay face={face} />
     {face.error && !panelOpen && <div className="a11y-global-error" role="alert">{face.error}<button onClick={openPanel} type="button">Abrir acessibilidade</button><button onClick={face.stop} type="button">Fechar aviso</button></div>}
   </>

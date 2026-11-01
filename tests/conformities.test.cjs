@@ -103,6 +103,20 @@ test('lista origens reais do backend juntas sem recusar a lista e preserva o ví
   await assert.rejects(api.getConformity('42'), /dados inválidos/)
 })
 
+test('validade filtra pelo status exibido e combina NR, origem e intervalo de datas', () => {
+  const list = [
+    { id: '1', nr: 'NR 10', origin: 'Manual', expiresAt: '2099-12-31', status: 'valid' },
+    { id: '2', nr: 'NR 10', origin: 'Manual', expiresAt: '2099-12-30', status: 'expired' },
+    { id: '3', nr: 'NR 12', origin: 'Evento', expiresAt: null, status: 'no-expiry' },
+  ]
+  for (const [validity, expected] of [['valid', ['1']], ['expired', ['2']], ['no-expiry', ['3']], ['', ['1', '2', '3']]]) {
+    assert.deepEqual(list.filter(item => validation.matchesConformityFilters(item, { ...validation.emptyConformityFilters, validity })).map(item => item.id), expected)
+  }
+  const combined = { ...validation.emptyConformityFilters, validity: 'valid', nr: 'NR 10', origin: 'Manual', from: '2099-12-31', to: '2099-12-31' }
+  assert.deepEqual(list.filter(item => validation.matchesConformityFilters(item, combined)).map(item => item.id), ['1'])
+  assert.ok(validation.validateConformityFilters({ ...combined, validity: 'desconhecida' }, { from: true, to: true }).validity)
+})
+
 test('preserva o status calculado pelo servidor, histórico e dados de identidade sem calcular pelo relógio local', async () => {
   for (const [status, expected] of [['Vencida', 'expired'], ['Válida', 'valid'], ['Sem validade', 'no-expiry']]) {
     global.fetch = async () => respond({ ...row, status, applicable: false, expiresAt: null, profilePhotoUrl: 'https://example.test/avatar.png' })

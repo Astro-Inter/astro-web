@@ -6,6 +6,7 @@ import AnimatedFieldError from '../../components/animatedFieldError'
 import CreateEventFlowModal from '../../components/createEventFlowModal'
 import EventActionPendingModal, { type EventAction } from '../../components/eventActionPendingModal'
 import EventCalendar from '../../components/eventCalendar'
+import EventCalendarLegend from '../../components/eventCalendarLegend'
 import EventDetailsModal from '../../components/eventDetailsModal'
 import EventOptionsModal from '../../components/eventOptionsModal'
 import { BUTTONS } from '../../gtm/buttons'
@@ -62,7 +63,7 @@ function EventScreenContent() {
   const closeMenu = useCallback((afterClose?: () => void, restoreFocus = true) => {
     requestClose(() => {
       setOpenId(null)
-      if (restoreFocus) triggerRef.current?.focus()
+      if (restoreFocus) triggerRef.current?.focus({ preventScroll: true })
       afterClose?.()
     })
   }, [requestClose])
@@ -146,6 +147,17 @@ function EventScreenContent() {
 
   function openOptions(event: CalendarEvent, trigger: HTMLButtonElement) {
     if (event.category === 'today') return
+    if (calendarEventReadOnlyReason(event, eventTime)) {
+      const showInformation = () => {
+        triggerRef.current = trigger
+        setOpenId(null)
+        setCancellationReason('')
+        setEventAction({ action: 'information', event })
+      }
+      if (openId) closeMenu(showInformation, false)
+      else showInformation()
+      return
+    }
     const open = () => {
       triggerRef.current = trigger
       setMenuPosition(null)
@@ -217,6 +229,7 @@ function EventScreenContent() {
               <EventCalendar now={eventTime} loading={calendarLoading} events={displayedCalendar.events} month={displayedCalendar.month} view={displayedCalendar.view} onMonthChange={amount => changeCalendar(() => { setOpenId(null); setMonth(current => shiftCalendarPeriod(current, view, amount)) })} onOpenOptions={openOptions} selectedEventId={openId} savedEventId={savedEventId} />
             </div>
           </div>
+          <EventCalendarLegend />
           {!calendarLoading && !calendarResults.exiting && <p className="sr-only" role="status">{visiblePeriodCount} eventos visíveis neste período.</p>}
         </section>
       </main>

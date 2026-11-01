@@ -10,6 +10,7 @@ import FormField from '../formField'
 import { postalCodeFieldError } from '../../utils/postalCodeFeedback'
 import { normalizeUnitName } from '../../utils/workspaceUnits'
 import { validateWorkspaceUnit } from '../../utils/workspaceSettings'
+import ActionLoading from '../actionLoading'
 
 interface AddressFormProps {
   onComplete: (units: WorkspaceUnitAddress[]) => void
@@ -51,7 +52,8 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
         <p>Informe o endereço de cada unidade para que<br className="set-address-desktop-break" /> possamos identificar sua localização.</p>
       </header>
 
-      <form data-track-submit={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.finalizar_workspace} ref={formRef} className="set-address-form" noValidate onSubmit={async (event) => {
+      <ActionLoading active={addresses.validatingPostalCodes} />
+      <form aria-busy={addresses.validatingPostalCodes} inert={addresses.validatingPostalCodes} data-track-submit={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.finalizar_workspace} ref={formRef} className="set-address-form" noValidate onSubmit={async (event) => {
         event.preventDefault()
         if (postalCode.status === 'loading' || addresses.validatingPostalCodes) return
         const nextErrors: typeof unitErrors = {}
@@ -69,19 +71,17 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
           requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>('input[aria-invalid="true"]')?.focus())
           return
         }
-        if (!settingsMode) {
-          const postalErrors = await addresses.validatePostalCodes(address.units)
-          if (!postalErrors) return
-          const invalidPostalUnit = address.units.find(unit => postalErrors[unit.id])
-          if (invalidPostalUnit) {
-            for (const unit of address.units) {
-              if (postalErrors[unit.id]) nextErrors[unit.id].cep = postalErrors[unit.id]
-            }
-            setUnitErrors({ ...nextErrors })
-            if (invalidPostalUnit.id !== activeUnit.id) changeUnit(() => addresses.selectUnit(invalidPostalUnit.id))
-            requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>('#unit-cep')?.focus())
-            return
+        const postalErrors = await addresses.validatePostalCodes(address.units)
+        if (!postalErrors) return
+        const invalidPostalUnit = address.units.find(unit => postalErrors[unit.id])
+        if (invalidPostalUnit) {
+          for (const unit of address.units) {
+            if (postalErrors[unit.id]) nextErrors[unit.id].cep = postalErrors[unit.id]
           }
+          setUnitErrors({ ...nextErrors })
+          if (invalidPostalUnit.id !== activeUnit.id) changeUnit(() => addresses.selectUnit(invalidPostalUnit.id))
+          requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>('#unit-cep')?.focus())
+          return
         }
         onComplete(address.units)
       }}>

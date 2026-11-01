@@ -54,7 +54,7 @@ function MainConformityScreenPage() {
 
   const normalizedSearch = filters.search.trim().toLocaleLowerCase('pt-BR')
   const visibleConformities = conformities.filter((conformity) => conformity.employeeName.toLocaleLowerCase('pt-BR').includes(normalizedSearch) && matchesConformityFilters(conformity, filters))
-  const activeFilterCount = [filters.nr, filters.origin, filters.from || filters.to].filter(Boolean).length
+  const activeFilterCount = [filters.validity, filters.nr, filters.origin, filters.from || filters.to].filter(Boolean).length
   const openConformity = visibleConformities.find((conformity) => conformity.id === actions.openId)
 
   function showSavedConformity(conformityId: string | null, message: string) {

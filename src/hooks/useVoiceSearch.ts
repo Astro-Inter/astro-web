@@ -36,12 +36,12 @@ export function useVoiceSearch(onResult: (text: string) => void, disabled = fals
       const recognition = createVoiceRecognition()
       recognitionRef.current = recognition
       activeRef.current = true
-      setState({ listening: true, message: 'Ouvindo. Diga o que deseja buscar.', error: '' })
+      setState({ listening: true, message: 'Ouvindo. Pode falar.', error: '' })
       recognition.onresult = event => {
         if (!activeRef.current || recognitionRef.current !== recognition) return
         const text = event.results[0]?.[0]?.transcript?.trim() ?? ''
         if (text) onResultRef.current(text)
-        setState(current => ({ ...current, message: text ? `Busca reconhecida: ${text}.` : 'Nenhuma fala foi reconhecida.' }))
+        setState(current => ({ ...current, message: text ? `Texto reconhecido: ${text}.` : 'Nenhuma fala foi reconhecida.' }))
       }
       recognition.onerror = event => {
         if (recognitionRef.current !== recognition) return

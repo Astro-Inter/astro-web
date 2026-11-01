@@ -73,33 +73,31 @@ function analyzeSpreadsheet(data: ArrayBuffer, managerEmail: string, importMode:
     if (name.length < 2 || name.length > (importMode ? 255 : 80)) {
       throw new Error(`Linha ${rowNumber}: preencha a unidade com um nome de 2 a ${importMode ? 255 : 80} caracteres na planilha.`)
     }
-    if (!importMode) {
-      const fieldValue = (field: string): string => String(row[requiredColumns.get(field)!] ?? '').trim()
-      for (const field of ['nome', 'cargo']) {
-        if (fieldValue(field).length < 2 || fieldValue(field).length > 255) {
-          throw new Error(`Linha ${rowNumber}: preencha o ${field} com 2 a 255 caracteres.`)
-        }
+    const fieldValue = (field: string): string => String(row[requiredColumns.get(field)!] ?? '').trim()
+    for (const field of ['nome', 'cargo']) {
+      if (fieldValue(field).length < 2 || fieldValue(field).length > 255) {
+        throw new Error(`Linha ${rowNumber}: preencha o ${field} com 2 a 255 caracteres.`)
       }
-      const email = fieldValue('email')
-      if (email.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        throw new Error(`Linha ${rowNumber}: informe um e-mail válido.`)
-      }
-      const normalizedEmail = email.toLowerCase()
-      if (emailRows.has(normalizedEmail)) throw new Error(`Linha ${rowNumber}: e-mail duplicado na planilha (também na linha ${emailRows.get(normalizedEmail)}).`)
-      emailRows.set(normalizedEmail, rowNumber)
-      emails.push({ row: rowNumber, email: normalizedEmail })
-      const isManager = normalizedEmail === managerEmail.trim().toLowerCase()
-      const cpf = fieldValue('cpf')
-      if ((!isManager || cpf) && !isValidCpf(cpf)) throw new Error(`Linha ${rowNumber}: informe um CPF válido.`)
-      if (cpf) {
-        const normalizedCpf = cpf.replace(/[.\s-]/g, '')
-        if (cpfRows.has(normalizedCpf)) throw new Error(`Linha ${rowNumber}: CPF duplicado na planilha (também na linha ${cpfRows.get(normalizedCpf)}).`)
-        cpfRows.set(normalizedCpf, rowNumber)
-      }
-      const modality = fieldValue('modalidade')
-      if ((!isManager || modality) && !['presencial', 'remoto', 'hibrido'].includes(normalizeUnitName(modality))) {
-        throw new Error(`Linha ${rowNumber}: informe a modalidade Presencial, Remoto ou Híbrido.`)
-      }
+    }
+    const email = fieldValue('email')
+    if (email.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new Error(`Linha ${rowNumber}: informe um e-mail válido.`)
+    }
+    const normalizedEmail = email.toLowerCase()
+    if (emailRows.has(normalizedEmail)) throw new Error(`Linha ${rowNumber}: e-mail duplicado na planilha (também na linha ${emailRows.get(normalizedEmail)}).`)
+    emailRows.set(normalizedEmail, rowNumber)
+    emails.push({ row: rowNumber, email: normalizedEmail })
+    const isManager = !importMode && normalizedEmail === managerEmail.trim().toLowerCase()
+    const cpf = fieldValue('cpf')
+    if ((!isManager || cpf) && !isValidCpf(cpf)) throw new Error(`Linha ${rowNumber}: informe um CPF válido.`)
+    if (cpf) {
+      const normalizedCpf = cpf.replace(/[.\s-]/g, '')
+      if (cpfRows.has(normalizedCpf)) throw new Error(`Linha ${rowNumber}: CPF duplicado na planilha (também na linha ${cpfRows.get(normalizedCpf)}).`)
+      cpfRows.set(normalizedCpf, rowNumber)
+    }
+    const modality = fieldValue('modalidade')
+    if ((!isManager || modality) && !['presencial', 'remoto', 'hibrido'].includes(normalizeUnitName(modality))) {
+      throw new Error(`Linha ${rowNumber}: informe a modalidade Presencial, Remoto ou Híbrido.`)
     }
     const key = normalizeUnitName(name)
     if (!names.has(key)) names.set(key, name)

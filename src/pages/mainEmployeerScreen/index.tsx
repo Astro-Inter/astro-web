@@ -6,7 +6,8 @@ import { BUTTONS } from '../../gtm/buttons'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router-dom'
-import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, OptionsPopup, ToolbarSearch, TruncatedText } from '../../components'
+import ListFilterControl from '../../components/listFilterControl'
 import CollaboratorDialog from '../../components/collaboratorDialog'
 import CollaboratorIdentity from '../../components/collaboratorIdentity'
 import type { DataTableColumn } from '../../components/dataTable'
@@ -19,7 +20,7 @@ import { collaboratorStatusLabels, collaboratorStatusNoticeLabels } from '../../
 import { iconAsset } from '../../utils/iconAsset'
 
 const statusFilterOptions = [
-  { value: '', label: 'Status', triggerLabel: 'Status', tone: 'muted' as const },
+  { value: '', label: 'Todos', triggerLabel: 'Status', tone: 'muted' as const },
   ...Object.entries(collaboratorStatusLabels).map(([value, label]) => ({ value, label })),
 ]
 
@@ -32,7 +33,7 @@ function MainEmployeerScreenPage() {
   const location = useLocation()
   const inviteOriginRef = useRef<HTMLButtonElement | null>(null)
   const savedTimerRef = useRef<number | null>(null)
-  const [filters, setFilters] = useState({ search: '', position: '', status: '' })
+  const [filters, setFilters] = useState({ search: '', position: '', status: '', unit: '' })
   const [inviteOpen, setInviteOpen] = useState(() => location.state?.openCreate === true)
   const [dialog, setDialog] = useState<EmployeeDialogState | null>(null)
   const detailId = dialog && ['view', 'edit', 'confirm-edit'].includes(dialog.kind) ? dialog.employee.id : undefined
@@ -48,13 +49,16 @@ function MainEmployeerScreenPage() {
   }, [])
 
   const positionFilterOptions = [
-    { value: '', label: 'Cargos', triggerLabel: 'Cargos', tone: 'muted' as const },
+    { value: '', label: 'Todos', triggerLabel: 'Cargos', tone: 'muted' as const },
     ...[...new Map(employees.map((employee) => [employee.roleId, { value: employee.roleId, label: employee.position }])).values()].sort((a, b) => a.label.localeCompare(b.label, 'pt-BR')),
   ]
   const normalizedSearch = filters.search.trim().toLocaleLowerCase('pt-BR')
+  const unitFilterOptions = [{ value: '', label: 'Todas', tone: 'muted' as const },
+    ...[...new Map(employees.map(employee => [employee.unitId, { value: employee.unitId, label: employee.unit }])).values()].sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'))]
   const visibleEmployees = employees.filter((employee) => `${employee.name} ${employee.email}`.toLocaleLowerCase('pt-BR').includes(normalizedSearch)
     && (!filters.position || employee.roleId === filters.position)
-    && (!filters.status || employee.status === filters.status))
+    && (!filters.status || employee.status === filters.status)
+    && (!filters.unit || employee.unitId === filters.unit))
   const openEmployee = visibleEmployees.find((employee) => employee.id === actions.openId)
 
   async function inviteEmployee(values: CollaboratorFormValues): Promise<string | null> {
@@ -175,8 +179,11 @@ function MainEmployeerScreenPage() {
             />
 
             <div className="position-toolbar-selects">
-              <ToolbarSelect trackingAction={BUTTONS.comuns.cargo} label="Filtrar por cargo" onValueChange={(position) => setFilters((current) => ({ ...current, position }))} options={positionFilterOptions} value={filters.position} />
-              <ToolbarSelect trackingAction={BUTTONS.comuns.status} label="Filtrar por status" onValueChange={(status) => setFilters((current) => ({ ...current, status }))} options={statusFilterOptions} value={filters.status} />
+              <ListFilterControl label="Filtrar colaboradores" fields={[
+                { id: 'unit', label: 'Unidade', options: unitFilterOptions },
+                { id: 'position', label: 'Cargo', options: positionFilterOptions },
+                { id: 'status', label: 'Status', options: statusFilterOptions },
+              ]} values={{ unit: filters.unit, position: filters.position, status: filters.status }} onApply={values => setFilters(current => ({ ...current, unit: values.unit, position: values.position, status: values.status }))} />
             </div>
           </div>
 

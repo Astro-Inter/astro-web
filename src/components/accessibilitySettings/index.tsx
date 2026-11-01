@@ -1,4 +1,5 @@
-import { useId, useState, type CSSProperties } from 'react'
+import { useId, type CSSProperties } from 'react'
+import { useActionFeedback } from '../../hooks/useActionFeedback'
 import { useAccessibility } from '../../hooks/useAccessibility'
 import { useAccessibilityRuntime } from '../../hooks/useAccessibilityRuntime'
 import type { AccessibilityPreferences } from '../../types/accessibility'
@@ -12,7 +13,7 @@ function AccessibilitySettings({ onDone }: AccessibilitySettingsProps) {
   const { preferences, update, reset } = useAccessibility()
   const { face, libras } = useAccessibilityRuntime()
   const idPrefix = useId()
-  const [message, setMessage] = useState('')
+  const notify = useActionFeedback()
   const toggle = (key: keyof Pick<AccessibilityPreferences, 'dyslexicFont' | 'highContrast' | 'readingGuide' | 'reduceMotion' | 'voiceSearch' | 'libras'>, label: string, description?: string) =>
     <div className="a11y-option">
       <span>{label}{description && <small>{description}</small>}</span>
@@ -40,7 +41,7 @@ function AccessibilitySettings({ onDone }: AccessibilitySettingsProps) {
       <section className="a11y-fieldset" aria-labelledby={`${idPrefix}-search-title`}>
         <h3 className="a11y-section-title" id={`${idPrefix}-search-title`}>Pesquisa</h3>
         <div className="a11y-fields">
-          {toggle('voiceSearch', 'Pesquisa por voz', 'Mostrar o botão de microfone nos campos de busca.')}
+          {toggle('voiceSearch', 'Entrada por voz', 'Mostrar o microfone nos campos editáveis e nas buscas.')}
         </div>
       </section>
       <section className="a11y-fieldset" aria-labelledby={`${idPrefix}-colors-title`}>
@@ -86,9 +87,8 @@ function AccessibilitySettings({ onDone }: AccessibilitySettingsProps) {
         <p className="a11y-hint">A pesquisa por voz depende do reconhecimento de voz do navegador. Ao ativar e usar o microfone, o áudio pode ser processado pelo serviço do navegador.</p>
         <p className="a11y-hint">Atalho: Alt + A abre este painel. Tab navega pelos controles e Escape fecha o painel.</p>
       </div>
-      {message && <p role="status">{message}</p>}
       <div className="a11y-actions">
-        <button className="astro-modal-cancel" onClick={() => { face.stop(); reset(); setMessage('Preferências restauradas para o padrão Astro.') }} type="button">Restaurar padrão</button>
+        <button className="astro-modal-cancel" onClick={() => { face.stop(); reset(); notify('Preferências restauradas para o padrão Astro.') }} type="button">Restaurar padrão</button>
         {onDone && <button className="astro-action" onClick={onDone} type="button">Concluir</button>}
       </div>
   </div>
