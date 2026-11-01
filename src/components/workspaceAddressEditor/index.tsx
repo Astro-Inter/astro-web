@@ -12,7 +12,6 @@ function WorkspaceAddressEditor({ units }: WorkspaceAddressEditorProps) {
   return <>
     <WorkspaceSettingsBackButton screen="backAdressesModalWeb" hasChanges={editor.hasChanges} />
     <AddressForm settingsMode addresses={editor.addresses} onComplete={() => setConfirming(true)} />
-    {editor.message && <p role="status">{editor.message}</p>}
     {confirming && <WorkspaceSettingsSaveModal section="addresses" onCancel={() => setConfirming(false)} onSave={editor.save} />}
   </>
 }

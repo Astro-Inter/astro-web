@@ -3,6 +3,12 @@
 .main-event-screen .position-toolbar-selects > .astro-toolbar-select { width: calc(10.5rem * var(--astro-scale)); }
 
 .event-board { min-width: 0; }
+.event-calendar-legend { margin-top: calc(1rem * var(--astro-scale)); color: var(--astro-text); }
+.event-calendar-legend ul { display: flex; flex-wrap: wrap; align-items: center; gap: calc(.75rem * var(--astro-scale)) calc(1.5rem * var(--astro-scale)); margin: 0; padding: 0; list-style: none; }
+.event-calendar-legend li { display: inline-flex; align-items: center; gap: calc(.5rem * var(--astro-scale)); }
+.event-calendar-legend li { font-size: var(--astro-label-font-size); }
+.event-calendar-legend-swatch { display: inline-block; flex: none; width: calc(.75rem * var(--astro-scale)); height: calc(.75rem * var(--astro-scale)); border-radius: calc(.2rem * var(--astro-scale)); }
+.event-calendar-legend p { margin: calc(.6rem * var(--astro-scale)) 0 0; color: var(--astro-placeholder); font-size: var(--astro-label-font-size); line-height: 1.5; }
 
 
 
@@ -42,10 +48,7 @@
 .event-calendar-item { display: flex; align-items: center; justify-content: center; width: 100%; min-height: calc(2.2rem * var(--astro-scale)); overflow: hidden; padding: calc(0.45rem * var(--astro-scale)) calc(0.7rem * var(--astro-scale)); border: 0; border-radius: calc(0.2rem * var(--astro-scale)); color: #fff; font-family: inherit; font-size: var(--astro-control-font-size); font-weight: 500; line-height: 1.2; text-align: center; cursor: pointer; transition: filter 220ms ease; }
 .event-calendar-item-label { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .event-calendar-item--today { background: #176b54; }
-.event-calendar-item--color-0 { background: #6248a0; }
-.event-calendar-item--color-1 { background: #8e673f; }
-.event-calendar-item--color-2 { background: #236a80; }
-.event-calendar-item--color-3 { background: #42683f; }
+.event-calendar-item--scheduled { background: #6248a0; }
 .event-calendar-item--inactive { color: #fff; background: var(--astro-danger); }
 .event-calendar-item:not(.event-calendar-item--static):hover, .event-calendar-item[aria-expanded='true'] { filter: brightness(0.91); }
 .event-calendar-item--static { cursor: default; }

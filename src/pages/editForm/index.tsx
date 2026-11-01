@@ -26,6 +26,7 @@ function EditFormPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const formId = searchParams.get('id') ?? ''
+  const viewing = searchParams.get('mode') === 'view'
   const { values, setValues, options, detail, loading, error: loadError, saving, locked, retry, retryManagers, save } = useFormEditor(formId)
   const [showAddQuestion, setShowAddQuestion] = useState(false)
   const [showBackConfirmation, setShowBackConfirmation] = useState(false)
@@ -136,7 +137,7 @@ function EditFormPage() {
   }
 
   function confirmSave(publishing = false) {
-    if (loading || loadError || saving || locked || leaving) return
+    if (viewing || loading || loadError || saving || locked || leaving) return
     if (removingQuestionIdsRef.current.size) { setValidationError('Aguarde a remoção da pergunta antes de salvar.'); return }
     setValidationAttempt({ values, draft: detail?.status === 'RASCUNHO' && !publishing })
     if (!deadlineValid) return
@@ -156,12 +157,12 @@ function EditFormPage() {
     <div className={`create-forms-page edit-forms-page astro-scale-90${leaving ? ' create-forms-page--leaving' : ''}`}>
       <button data-track-action={BUTTONS.comuns.acoes}
         aria-controls={menuOpen ? 'edit-forms-options' : undefined}
-        aria-expanded={menuOpen}
-        aria-haspopup="menu"
-        aria-label="Voltar e abrir opções do formulário"
+        aria-expanded={viewing ? undefined : menuOpen}
+        aria-haspopup={viewing ? undefined : 'menu'}
+        aria-label={viewing ? 'Voltar aos formulários' : 'Voltar e abrir opções do formulário'}
         className="payment-back-button"
         disabled={saving}
-        onClick={openMenu}
+        onClick={viewing ? () => navigate('/mainFormScreen') : openMenu}
         ref={menuTriggerRef}
         type="button"
       >
@@ -172,16 +173,16 @@ function EditFormPage() {
       </header>
 
       <main data-track-page={true} className="create-forms-main edit-forms-main">
-        <h1>Editar formulário</h1>
+        <h1>{viewing ? 'Visualizar formulário' : 'Editar formulário'}</h1>
         {loadError && <div role="alert"><p>{loadError}</p><button type="button" onClick={retry}>Tentar novamente</button></div>}
-        {locked && <p role="status">Este formulário está concluído ou já recebeu respostas e está disponível somente para consulta.</p>}
+        {locked && !viewing && <p role="status">Este formulário está concluído ou já recebeu respostas e está disponível somente para consulta.</p>}
         <ActionLoading active={loading || options.managersLoading || saving} />
         <form hidden={loading} data-track-submit={BUTTONS.comuns.salvar_alteracoes} noValidate onSubmit={(event) => {
           event.preventDefault()
           confirmSave()
         }}>
           {validationError && <p className="form-validation-error" role="alert">{validationError}</p>}
-          <fieldset aria-label="Definição do formulário" className="forms-editor-fields" disabled={loading || !!loadError || saving || locked || leaving} aria-busy={loading || saving}>
+          <fieldset aria-label="Definição do formulário" className="forms-editor-fields" disabled={viewing || loading || !!loadError || saving || locked || leaving} aria-busy={loading || saving}>
           <section aria-labelledby="edit-forms-initial-title" className="create-forms-card">
             <h2 id="edit-forms-initial-title">Informações do formulário</h2>
             <FormInformationFields errors={fieldErrors} prefix="edit-forms" values={values} setValues={setValues} options={options} onDeadlineValidityChange={setDeadlineValid} onRetryManagers={retryManagers} />
@@ -198,6 +199,7 @@ function EditFormPage() {
                 tabIndex={-1}
               >
                 <FormQuestionCard
+                  readOnly={viewing}
                   error={fieldErrors[`questions.${index}`]}
                   index={renderedQuestions.slice(0, index).filter((item) => !['nr', 'unit'].includes(item.kind)).length}
                   onChange={updateQuestion}
@@ -214,14 +216,14 @@ function EditFormPage() {
 
 
 
-          <div className="create-forms-footer edit-forms-footer">
+          {!viewing && <div className="create-forms-footer edit-forms-footer">
             <button data-track-action={BUTTONS.comuns.adicionar_pergunta} className="create-forms-add-question" onClick={() => setShowAddQuestion(true)} type="button">
               <AstroIcon className="create-forms-add-question-icon" name="plus-square" />
               Adicionar pergunta
             </button>
             <PurpleButton data-track-action={BUTTONS.comuns.salvar_alteracoes} type="submit"><AstroIcon name="file-plus" />Salvar alterações</PurpleButton>
             {detail?.status === 'RASCUNHO' && <PurpleButton type="button" onClick={() => confirmSave(true)}>Publicar formulário</PurpleButton>}
-          </div>
+          </div>}
           </fieldset>
         </form>
       </main>

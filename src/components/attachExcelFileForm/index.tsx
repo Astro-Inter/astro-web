@@ -19,9 +19,10 @@ interface AttachExcelFileFormProps {
   readingError?: string
   onSelectionChange?: (file: File | null) => void
   onFileRemove?: () => void
+  onValidateFile?: (file: File) => Promise<boolean>
 }
 
-function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = null, reading = false, readingError = '', onSelectionChange, onFileRemove }: AttachExcelFileFormProps) {
+function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = null, reading = false, readingError = '', onSelectionChange, onFileRemove, onValidateFile }: AttachExcelFileFormProps) {
   const explanationTrigger = useRef<HTMLButtonElement>(null)
   const [selection, setSelection] = useState<SpreadsheetSelection>({ file: initialFile, error: '' })
   const [isExplanationOpen, setIsExplanationOpen] = useState(false)
@@ -36,6 +37,7 @@ function AttachExcelFileForm({ onContinue, settingsMode = false, initialFile = n
     const result = validateSpreadsheetFile(file, (settingsMode ? 10 : 5) * 1024 * 1024)
     setSelection(result.valid ? { file: result.file, error: '' } : { file: null, error: result.message })
     onSelectionChange?.(result.valid ? result.file : null)
+    if (result.valid && onValidateFile) void onValidateFile(result.file)
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {

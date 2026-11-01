@@ -4,15 +4,16 @@ import { deleteForm, listForms } from '../services/forms'
 import { formSummary } from '../utils/formApi'
 import { validateAndSanitizeFormFilters } from '../utils/formFilters'
 import { saveFormCardAppearance } from '../services/formCardAppearance'
-import type { FormCardAppearance, FormStatus, FormSummary } from '../types/forms'
+import type { FormCardAppearance, FormQuestionFilters, FormStatus, FormSummary } from '../types/forms'
 
 interface FormsState { key: string; rows: FormSummary[]; totalPages: number; totalElements: number; loading: boolean; error: string }
 interface FormsResult extends Omit<FormsState, 'key'> { retry: () => void; remove: (id: string) => Promise<void>; saveAppearance: (id: string, appearance: FormCardAppearance) => Promise<void> }
-export function useForms(search: string, status: FormStatus | '', page: number, size: number): FormsResult {
+export function useForms(search: string, status: FormStatus | '', page: number, size: number, quantities?: FormQuestionFilters): FormsResult {
   const { user } = useAuthentication()
   const uid = user?.uid
   const [attempt, setAttempt] = useState(0)
-  const key = JSON.stringify([uid, search, status, page, size, attempt])
+  const minimum = quantities?.minimum ?? '', maximum = quantities?.maximum ?? ''
+  const key = JSON.stringify([uid, search, status, page, size, minimum, maximum, attempt])
   const [state, setState] = useState<FormsState>({ key: '', rows: [], totalPages: 0, totalElements: 0, loading: true, error: '' })
   const mutation = useRef<AbortController | null>(null)
   useEffect(() => () => { mutation.current?.abort(); mutation.current = null }, [uid])
@@ -27,14 +28,14 @@ export function useForms(search: string, status: FormStatus | '', page: number, 
         return
       }
       const filters = validation.values
-      void listForms(filters.search, filters.status, filters.page, filters.size, controller.signal).then(data => {
+      void listForms(filters.search, filters.status, filters.page, filters.size, controller.signal, { minimum, maximum }).then(data => {
         if (!controller.signal.aborted) setState({ key, rows: data.items.map(formSummary), totalPages: data.totalPages, totalElements: data.totalElements, loading: false, error: '' })
       }).catch((error: unknown) => {
         if (!controller.signal.aborted) setState({ key, rows: [], totalPages: 0, totalElements: 0, loading: false, error: error instanceof Error ? error.message : 'Não foi possível carregar os formulários.' })
       })
     }, 250)
     return () => { window.clearTimeout(timer); controller.abort() }
-  }, [uid, key, search, status, page, size])
+  }, [uid, key, search, status, page, size, minimum, maximum])
   return {
     ...(state.key === key ? state : { rows: [], totalPages: 0, totalElements: 0, loading: true, error: '' }),
     retry: () => setAttempt(value => value + 1),

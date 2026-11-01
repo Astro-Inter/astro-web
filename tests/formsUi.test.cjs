@@ -271,7 +271,7 @@ test('paginação remota recua após excluir o último item; filtro de status vo
   await mount(root, Page, '/mainFormScreen'); await waitForList()
   await click('Próxima página'); await waitForList()
   assert.equal(env.calls.filter(c => c.name === 'listForms').at(-1).args[2], 1)
-  await click('Abrir opções de Filtrar por status'); await click('Pendente'); await waitForList()
+  await click('Filtrar formulários'); await click('Abrir opções de Status'); await click('Pendente'); await click('Aplicar filtros'); await waitForList()
   assert.deepEqual(env.calls.filter(c => c.name === 'listForms').at(-1).args.slice(0, 4), ['', 'pending', 0, 4])
   await click('Próxima página'); await waitForList()
   env.services.listForms = async (_search, _status, page, size) => ({ items: page === 0 ? [{ id, title: 'Outro formulário', description: '', status: 'PENDENTE', questionCount: 1 }] : [], page, size, totalPages: 1, totalElements: 4 })
@@ -391,7 +391,7 @@ test('menu de formulário pendente não oferece prévia nem análise em desenvol
   env.services.listForms = async (_search, _status, page, size) => ({ items: [{ id, title: 'Inspeção API', description: 'Dados reais', status: 'PENDENTE', questionCount: 1 }], page, size, totalPages: 1, totalElements: 1 })
   await mount(root, Page, '/mainFormScreen'); await waitForList()
   const card = document.querySelector('.form-card')
-  assert.equal(card.querySelectorAll('button').length, 1)
+  assert.equal(card.querySelectorAll('button').length, 2)
   assert.equal(document.querySelector('a[href*="preview=1"]'), null)
   assert.equal(document.querySelector('[role="menu"]'), null)
   await click('Opções para Inspeção API')
@@ -400,6 +400,35 @@ test('menu de formulário pendente não oferece prévia nem análise em desenvol
   assert.doesNotMatch(menu.textContent, /Ver respostas|prévia/)
   assert.equal(document.getElementById('location').textContent, '/mainFormScreen')
   assert.equal(env.calls.some(call => ['getForm', 'updateForm', 'publishForm', 'deleteForm'].includes(call.name)), false)
+}))
+
+test('clicar no card abre consulta do formulário e os três pontos continuam independentes', async () => withDom(async root => {
+  const env = environment(), Page = env.load('src/pages/mainFormScreen/index.tsx').default
+  await mount(root, Page, '/mainFormScreen'); await waitForList()
+  await click('Opções para Inspeção API')
+  assert.ok(document.querySelector('[role=menu]'))
+  assert.equal(document.getElementById('location').textContent, '/mainFormScreen')
+  await click('Cancelar')
+  await click('Visualizar formulário Inspeção API')
+  assert.equal(document.getElementById('location').textContent, `/editForms?id=${id}&mode=view`)
+}))
+
+test('visualização consulta dados sem mostrar ações de edição e volta sem confirmar descarte', async () => withDom(async root => {
+  const env = environment(), Page = env.load('src/pages/editForm/index.tsx').default
+  await mount(root, Page, `/editForms?id=${id}&mode=view`)
+  assert.equal(document.querySelector('h1').textContent, 'Visualizar formulário')
+  assert.equal(document.querySelector('.forms-editor-fields').disabled, true)
+  assert.equal(document.querySelector('.create-forms-question-actions'), null)
+  assert.equal(document.querySelector('.create-forms-drag-handle'), null)
+  assert.equal(document.querySelector('.edit-forms-footer'), null)
+  await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
+  assert.equal(env.calls.some(call => ['createForm', 'updateForm', 'publishForm'].includes(call.name)), false)
+  assert.equal(document.querySelector('[role=dialog]'), null)
+  const titles = env.load('src/utils/pageTitle.ts')
+  assert.equal(titles.getPageTitle('/editForms', '?mode=view'), 'Visualizar formulário')
+  await click('Voltar aos formulários')
+  assert.equal(document.getElementById('location').textContent, '/mainFormScreen')
+  assert.equal(document.querySelector('[role=dialog]'), null)
 }))
 
 test('produção não oferece prévia nem análise de formulário ainda pendente', async () => withDom(async root => {
@@ -417,7 +446,7 @@ test('respondidos oferecem apenas cancelar e ver respostas, sem edição, person
   const env = environment(), Page = env.load('src/pages/mainFormScreen/index.tsx').default
   env.services.listForms = async (_search, _status, page, size) => ({ items: [{ id, title: 'Inspeção API', description: 'Dados reais', status: 'CONCLUIDO', questionCount: 1 }], page, size, totalPages: 1, totalElements: 1 })
   await mount(root, Page, '/mainFormScreen'); await waitForList()
-  assert.equal(document.querySelector('.form-card').querySelectorAll('button').length, 1)
+  assert.equal(document.querySelector('.form-card').querySelectorAll('button').length, 2)
   await click('Opções para Inspeção API')
   const menu = document.querySelector('[role="menu"]')
   assert.deepEqual([...menu.querySelectorAll('[role="menuitem"]')].map(item => item.getAttribute('aria-label')), ['Cancelar', 'Ver respostas'])

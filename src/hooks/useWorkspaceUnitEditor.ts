@@ -8,7 +8,6 @@ export function useWorkspaceUnitEditor(initialUnits: WorkspaceUnitAddress[]) {
   const addresses = useWorkspaceAddresses(initialUnits)
   const baseline = useRef(new Map(initialUnits.filter(unit => unit.persistedId).map(unit => [unit.id, workspaceUnitSnapshot(unit)])))
   const [draftBaseline, setDraftBaseline] = useState(() => new Map(addresses.address.units.map(unit => [unit.id, workspaceUnitSnapshot(unit)])))
-  const [message, setMessage] = useState('')
   const request = useRef<AbortController | null>(null)
   useEffect(() => () => request.current?.abort(), [])
   async function save(): Promise<string | null> {
@@ -27,16 +26,14 @@ export function useWorkspaceUnitEditor(initialUnits: WorkspaceUnitAddress[]) {
         baseline.current.set(unit.id, workspaceUnitSnapshot(saved))
         setDraftBaseline(current => new Map(current).set(unit.id, workspaceUnitSnapshot(saved)))
       }
-      setMessage('Unidades atualizadas.')
       return null
     } catch (error: unknown) {
       const details = error instanceof Error ? error.message : 'Não foi possível salvar as unidades.'
       const message = `As unidades são salvas individualmente. As já confirmadas foram mantidas; confira as demais antes de reenviar. ${details}`
-      if (!controller.signal.aborted) setMessage(message)
       return message
     } finally { if (request.current === controller) request.current = null }
   }
   const hasChanges = addresses.address.units.length !== draftBaseline.size
     || addresses.address.units.some(unit => draftBaseline.get(unit.id) !== workspaceUnitSnapshot(unit))
-  return { addresses, save, message, hasChanges }
+  return { addresses, save, hasChanges }
 }

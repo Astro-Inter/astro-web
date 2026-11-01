@@ -7,14 +7,16 @@ import { iconAsset } from '../../utils/iconAsset'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
-import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, RegulatoryStandardsDialog, OptionsPopup, PositionDialog, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, EditRegulatoryStandardsDialog, RegulatoryStandardsDialog, OptionsPopup, PositionDialog, ToolbarSearch, TruncatedText } from '../../components'
+import ListFilterControl from '../../components/listFilterControl'
+import { matchesCountRange } from '../../utils/listFilters'
 import { usePositions } from '../../hooks/usePositions'
 import { useRoleNrRecommendations } from '../../hooks/useRoleNrRecommendations'
 import type { DataTableColumn } from '../../components/dataTable'
 import type { Position, PositionFormValues } from '../../types'
 
 const statusFilterOptions = [
-  { value: '', label: 'Status', triggerLabel: 'Status', tone: 'muted' as const },
+  { value: '', label: 'Todos', triggerLabel: 'Status', tone: 'muted' as const },
   { value: 'active', label: 'Ativo' },
   { value: 'inactive', label: 'Inativo' },
 ]
@@ -28,7 +30,7 @@ function MainPositionScreenPage() {
   const actionsTriggerRef = useRef<HTMLButtonElement | null>(null)
   const actionsPanelRef = useRef<HTMLDivElement | null>(null)
   const queuedActionsRef = useRef<(() => void) | null>(null)
-  const [filters, setFilters] = useState({ search: '', status: '' })
+  const [filters, setFilters] = useState({ search: '', status: '', minimum: '', maximum: '' })
   const [dialog, setDialog] = useState<PositionDialogState | null>(null)
   const [nrsPosition, setNrsPosition] = useState<Position | null>(null)
   const [nrsEditing, setNrsEditing] = useState(false)
@@ -73,7 +75,7 @@ function MainPositionScreenPage() {
     requestActionsClose(() => {
       setOpenActionsId(null)
       const queuedAction = queuedActionsRef.current
-      if (restoreFocus && !queuedAction) actionsTriggerRef.current?.focus()
+      if (restoreFocus && !queuedAction) actionsTriggerRef.current?.focus({ preventScroll: true })
       const nextAction = queuedAction ?? onFinished
       queuedActionsRef.current = null
       nextAction?.()
@@ -120,6 +122,7 @@ function MainPositionScreenPage() {
     const normalizedSearch = filters.search.trim().toLocaleLowerCase('pt-BR')
     return position.name.toLocaleLowerCase('pt-BR').includes(normalizedSearch)
       && (!filters.status || (filters.status === 'active') === position.active)
+      && matchesCountRange(position.collaboratorCount, filters.minimum, filters.maximum)
   })
   const openPosition = visiblePositions.find((position) => position.id === openActionsId)
 
@@ -243,7 +246,11 @@ function MainPositionScreenPage() {
             />
 
             <div className="position-toolbar-selects">
-              <ToolbarSelect trackingAction={BUTTONS.comuns.status} label="Filtrar por status" onValueChange={(status) => setFilters((current) => ({ ...current, status }))} options={statusFilterOptions} value={filters.status} />
+              <ListFilterControl label="Filtrar cargos" fields={[
+                { id: 'status', label: 'Status', options: statusFilterOptions },
+                { id: 'minimum', label: 'Quantidade mínima de colaboradores', kind: 'number' },
+                { id: 'maximum', label: 'Quantidade máxima de colaboradores', kind: 'number', minimumField: 'minimum' },
+              ]} values={{ status: filters.status, minimum: filters.minimum, maximum: filters.maximum }} onApply={values => setFilters(current => ({ ...current, status: values.status, minimum: values.minimum, maximum: values.maximum }))} />
             </div>
           </div>
 

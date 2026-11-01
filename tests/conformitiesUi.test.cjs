@@ -80,6 +80,24 @@ test('filtro de unidades oferece Manual e Formulário e aplica a origem', async 
   } finally { await env.close() }
 })
 
+test('validade oferece todas as situações, aplica somente ao confirmar e é removida ao limpar', async () => {
+  for (const type of ['COLABORADOR', 'UNIDADE']) {
+    const applied = []
+    const env = await setup('conformityFilterModal', { type, filters: { validity: '', nr: '', origin: '', from: '', to: '' }, nrs: ['NR 10'], onClose() {}, onApply: values => applied.push(values) })
+    try {
+      assert.deepEqual([...env.document.getElementById('conformity-filter-validity').options].map(option => option.textContent), ['Todas', 'Válida', 'Vencida', 'Sem validade'])
+      await env.select('conformity-filter-validity', 'expired')
+      assert.equal(applied.length, 0)
+      await env.submit()
+      assert.equal(applied[0].validity, 'expired')
+      await act(async () => [...env.document.querySelectorAll('button')].find(button => button.textContent === 'Limpar filtros').click())
+      assert.equal(applied[1].validity, '')
+      assert.equal(applied[1].from, '')
+      assert.equal(applied[1].to, '')
+    } finally { await env.close() }
+  }
+})
+
 test('formulário aguarda a API, bloqueia envio duplo e mantém os campos após erro acessível', async () => {
   const pending = deferred()
   let calls = 0

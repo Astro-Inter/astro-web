@@ -108,6 +108,11 @@ test('opção longa mostra tooltip no foco do botão sem criar outro ponto de ta
     await React.act(async () => document.querySelector('button').focus())
     assert.equal(document.querySelector('[role="tooltip"]').textContent, label)
     assert.equal(document.activeElement.tagName, 'BUTTON')
+    await React.act(async () => window.dispatchEvent(new dom.window.Event('scroll')))
+    assert.equal(document.querySelector('[role="tooltip"]'), null)
+    assert.equal(document.activeElement.tagName, 'BUTTON')
+    await React.act(async () => { document.querySelector('button').blur(); document.querySelector('button').focus() })
+    assert.equal(document.querySelector('[role="tooltip"]').textContent, label)
     await React.act(async () => document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true })))
     assert.equal(document.querySelector('[role="tooltip"]'), null)
   } finally {
@@ -147,6 +152,10 @@ test('texto em duas linhas aguarda o hover, cancela passagem rápida e preserva 
     await React.act(async () => t.mock.timers.tick(700))
     assert.equal(document.querySelector('[role="tooltip"]'), null)
     await React.act(async () => text.dispatchEvent(new dom.window.MouseEvent('mouseover', { bubbles: true })))
+    await React.act(async () => window.dispatchEvent(new dom.window.Event('scroll')))
+    await React.act(async () => t.mock.timers.tick(700))
+    assert.equal(document.querySelector('[role="tooltip"]'), null)
+    await React.act(async () => text.dispatchEvent(new dom.window.MouseEvent('mouseover', { bubbles: true })))
     await React.act(async () => t.mock.timers.tick(699))
     assert.equal(document.querySelector('[role="tooltip"]'), null)
     await React.act(async () => t.mock.timers.tick(1))
@@ -161,6 +170,116 @@ test('texto em duas linhas aguarda o hover, cancela passagem rápida e preserva 
     assert.equal(text.getAttribute('data-truncated'), 'false')
     assert.equal(text.hasAttribute('tabindex'), false)
     assert.equal(document.querySelector('[role="tooltip"]'), null)
+  } finally {
+    await React.act(async () => root.unmount()); dom.window.close()
+    for (const name of names) { if (previous[name]) Object.defineProperty(global, name, previous[name]); else delete global[name] }
+  }
+})
+
+test('calendário bloqueia dias anteriores ao mínimo inclusive por teclado e atalho Hoje', async () => {
+  const dom = new JSDOM('<div id="root"></div>')
+  const names = ['window', 'document', 'Node', 'HTMLElement', 'getComputedStyle', 'IS_REACT_ACT_ENVIRONMENT']
+  const previous = Object.fromEntries(names.map(name => [name, Object.getOwnPropertyDescriptor(global, name)]))
+  Object.assign(global, { window: dom.window, document: dom.window.document, Node: dom.window.Node, HTMLElement: dom.window.HTMLElement, getComputedStyle: dom.window.getComputedStyle.bind(dom.window), IS_REACT_ACT_ENVIRONMENT: true })
+  window.matchMedia = () => ({ matches: true })
+  const Picker = load(path.resolve('src/components/formDatePicker/index.tsx')).default
+  const root = createRoot(document.getElementById('root')), changes = []
+  try {
+    await React.act(async () => root.render(React.createElement(Picker, { id: 'date', label: 'Data', value: '2099-11-20', minDate: '2099-11-20', onChange: value => changes.push(value) })))
+    await React.act(async () => document.querySelector('.create-forms-date-trigger').click())
+    const before = document.querySelector('[data-date="2099-11-19"]'), minimum = document.querySelector('[data-date="2099-11-20"]')
+    assert.equal(before.disabled, true)
+    assert.equal(minimum.disabled, false)
+    const today = document.querySelector('.create-forms-calendar-footer button')
+    assert.equal(today.disabled, true)
+    await React.act(async () => { before.click(); today.click() })
+    assert.deepEqual(changes, [])
+    await React.act(async () => minimum.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, cancelable: true })))
+    assert.equal(document.activeElement, minimum)
+    await React.act(async () => minimum.click())
+    assert.deepEqual(changes, ['2099-11-20'])
+  } finally {
+    await React.act(async () => root.unmount()); dom.window.close()
+    for (const name of names) { if (previous[name]) Object.defineProperty(global, name, previous[name]); else delete global[name] }
+  }
+})
+
+test('painel facial recolhe e reabre sem desmontar a câmera nem a mira', async () => {
+  const dom = new JSDOM('<div id="root"></div>')
+  const names = ['window', 'document', 'Node', 'Element', 'HTMLDialogElement', 'MutationObserver', 'IS_REACT_ACT_ENVIRONMENT']
+  const previous = Object.fromEntries(names.map(name => [name, Object.getOwnPropertyDescriptor(global, name)]))
+  for (const name of names) global[name] = name === 'IS_REACT_ACT_ENVIRONMENT' ? true : name === 'window' ? dom.window : name === 'document' ? dom.window.document : dom.window[name]
+  const Overlay = load(path.resolve('src/components/faceNavigationOverlay/index.tsx')).default
+  const root = createRoot(document.getElementById('root'))
+  let stops = 0, previewMounts = 0
+  const face = { status: 'active', message: 'Navegação ativa', calibrate() {}, togglePause() {}, stop() { stops++ }, attachPreview: element => { if (element) previewMounts++ }, attachCursor() {} }
+  try {
+    await React.act(async () => root.render(React.createElement(Overlay, { face })))
+    const toggle = document.querySelector('.a11y-face-panel-toggle'), preview = document.querySelector('.a11y-face-preview'), cursor = document.querySelector('.a11y-face-cursor')
+    const controls = document.getElementById(toggle.getAttribute('aria-controls'))
+    await React.act(async () => toggle.click())
+    assert.equal(controls.hasAttribute('inert'), true)
+    assert.equal(controls.getAttribute('aria-hidden'), 'true')
+    assert.equal(toggle.getAttribute('aria-expanded'), 'false')
+    assert.equal(document.querySelector('.a11y-face-preview'), preview)
+    assert.equal(document.querySelector('.a11y-face-cursor'), cursor)
+    await React.act(async () => toggle.click())
+    assert.equal(controls.hasAttribute('inert'), false)
+    assert.equal(controls.getAttribute('aria-hidden'), 'false')
+    assert.equal(toggle.getAttribute('aria-expanded'), 'true')
+    assert.equal(stops, 0)
+    assert.equal(previewMounts, 1)
+  } finally {
+    await React.act(async () => root.unmount()); dom.window.close()
+    for (const name of names) { if (previous[name]) Object.defineProperty(global, name, previous[name]); else delete global[name] }
+  }
+})
+
+test('ditado cobre campos dinâmicos e popups sem duplicar buscas, preserva React e remove controles ao desativar', async () => {
+  const dom = new JSDOM('<div id="root"></div>', { pretendToBeVisual: true })
+  const names = ['window','document','Node','Element','HTMLElement','HTMLInputElement','HTMLTextAreaElement','HTMLDialogElement','MutationObserver','ResizeObserver','Event','innerWidth','innerHeight','getComputedStyle','requestAnimationFrame','cancelAnimationFrame','IS_REACT_ACT_ENVIRONMENT']
+  const previous = Object.fromEntries(names.map(name => [name, Object.getOwnPropertyDescriptor(global, name)]))
+  for (const name of names) Object.defineProperty(global, name, { configurable: true, writable: true, value: name === 'window' ? dom.window : dom.window[name] })
+  Object.assign(global, { IS_REACT_ACT_ENVIRONMENT: true, ResizeObserver: class { observe() {} unobserve() {} disconnect() {} }, getComputedStyle: dom.window.getComputedStyle.bind(dom.window), requestAnimationFrame: callback => setTimeout(callback, 0), cancelAnimationFrame: clearTimeout })
+  Object.defineProperty(dom.window.HTMLElement.prototype, 'getBoundingClientRect', { value() { return { left: 10, right: 310, top: 20, bottom: 70, width: 300, height: 50 } } })
+  Object.defineProperty(dom.window.HTMLElement.prototype, 'offsetWidth', { get() { return 300 } })
+  let recognition, aborted = 0
+  const received = []
+  window.SpeechRecognition = class { constructor() { recognition = this } start() {} abort() { aborted++ } }
+  const Controls = load(path.resolve('src/components/voiceInputControls/index.tsx')).default
+  const root = createRoot(document.getElementById('root'))
+  function Form({ enabled = true }) {
+    const [name, setName] = React.useState('')
+    return React.createElement(React.Fragment, null,
+      React.createElement('label', { htmlFor: 'voice-name' }, 'Nome'), React.createElement('input', { id: 'voice-name', maxLength: 5, style: { paddingRight: '12px' }, value: name, onChange: event => { received.push(event.target.value); setName(event.target.value) } }),
+      React.createElement('label', { htmlFor: 'voice-description' }, 'Descrição'), React.createElement('textarea', { id: 'voice-description' }),
+      React.createElement('input', { type: 'password', 'aria-label': 'Senha' }), React.createElement('input', { readOnly: true, 'aria-label': 'Bloqueado' }),
+      React.createElement('fieldset', { disabled: true }, React.createElement('input', { 'aria-label': 'Desativado' })),
+      React.createElement('div', { className: 'astro-toolbar-search' }, React.createElement('input', { type: 'search', 'aria-label': 'Busca existente' })),
+      enabled && React.createElement(Controls))
+  }
+  const settle = () => React.act(async () => { await new Promise(resolve => setTimeout(resolve, 20)) })
+  try {
+    await React.act(async () => root.render(React.createElement(Form)))
+    await settle()
+    assert.equal(document.querySelectorAll('.astro-field-voice').length, 2)
+    const name = document.getElementById('voice-name')
+    assert.equal(name.style.paddingRight, '48px')
+    await React.act(async () => document.querySelector('[aria-label="Preencher por voz: Nome"]').click())
+    await React.act(async () => recognition.onresult({ results: [[{ transcript: 'Amanda Lima' }]] }))
+    assert.deepEqual(received, ['Amand'])
+    assert.equal(name.value, 'Amand')
+    const dialog = document.createElement('dialog'); dialog.open = true
+    dialog.innerHTML = '<label for="inside-voice">Título</label><input id="inside-voice">'
+    await React.act(async () => document.body.append(dialog)); await settle()
+    assert.equal(document.querySelectorAll('.astro-field-voice').length, 1)
+    assert.ok(dialog.querySelector('[aria-label="Preencher por voz: Título"]'))
+    assert.ok(aborted > 0)
+    await React.act(async () => dialog.remove()); await settle()
+    assert.equal(document.querySelectorAll('.astro-field-voice').length, 2)
+    await React.act(async () => root.render(React.createElement(Form, { enabled: false })))
+    assert.equal(document.querySelector('.astro-field-voice'), null)
+    assert.equal(name.style.paddingRight, '12px')
   } finally {
     await React.act(async () => root.unmount()); dom.window.close()
     for (const name of names) { if (previous[name]) Object.defineProperty(global, name, previous[name]); else delete global[name] }

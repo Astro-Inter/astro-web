@@ -50,11 +50,11 @@ test('microfone começa oculto, habilita nas acessibilidades e aborta ao desativ
   const render = async () => React.act(async () => root.render(React.createElement(Provider, null,
     React.createElement(Settings), ...['Colaboradores', 'Dashboards'].map(label => React.createElement(Search, { key: label, label, value: '', onChange: event => results.push(event.target.value) })),
   )))
-  const toggle = async () => React.act(async () => document.querySelector('input[aria-label="Pesquisa por voz"]').click())
+  const toggle = async () => React.act(async () => document.querySelector('input[aria-label="Entrada por voz"]').click())
   const microphones = () => document.querySelectorAll('.astro-toolbar-search-voice')
   try {
     await render()
-    assert.equal(document.querySelector('input[aria-label="Pesquisa por voz"]').checked, false)
+    assert.equal(document.querySelector('input[aria-label="Entrada por voz"]').checked, false)
     assert.equal(microphones().length, 0); assert.equal(recognizers.length, 0)
     await toggle(); assert.equal(microphones().length, 2); assert.equal(recognizers.length, 0)
     assert.equal(JSON.parse(localStorage.getItem('astro-accessibility')).preferences.voiceSearch, true)

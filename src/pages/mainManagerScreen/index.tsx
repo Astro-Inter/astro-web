@@ -5,7 +5,8 @@ import { DIALOG_NAMES } from '../../gtm/dialogs'
 import { BUTTONS } from '../../gtm/buttons'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, OptionsPopup, ToolbarSearch, ToolbarSelect, TruncatedText } from '../../components'
+import { AppSidebar, AstroIcon, CompactPurpleButton, ConfirmationModal, DataTable, OptionsPopup, ToolbarSearch, TruncatedText } from '../../components'
+import ListFilterControl from '../../components/listFilterControl'
 import ManagerDetailsModal from '../../components/managerDetailsModal'
 import CollaboratorIdentity from '../../components/collaboratorIdentity'
 import InviteManagerDialog from '../../components/inviteManagerDialog'
@@ -18,7 +19,7 @@ import { collaboratorStatusLabels, collaboratorStatusNoticeLabels } from '../../
 import { iconAsset } from '../../utils/iconAsset'
 
 const statusFilterOptions = [
-  { value: '', label: 'Status', triggerLabel: 'Status', tone: 'muted' as const },
+  { value: '', label: 'Todos', triggerLabel: 'Status', tone: 'muted' as const },
   ...Object.entries(collaboratorStatusLabels).map(([value, label]) => ({ value, label })),
 ]
 
@@ -46,7 +47,7 @@ function MainManagerScreenPage() {
   }, [])
 
   const unitFilterOptions = [
-    { value: '', label: 'Unidade', triggerLabel: 'Unidade', tone: 'muted' as const },
+    { value: '', label: 'Todas', triggerLabel: 'Unidade', tone: 'muted' as const },
     ...[...new Map(managers.map((manager) => [manager.unitId, { value: manager.unitId, label: manager.unit }])).values()].sort((a, b) => a.label.localeCompare(b.label, 'pt-BR')),
   ]
   const normalizedSearch = filters.search.trim().toLocaleLowerCase('pt-BR')
@@ -163,8 +164,10 @@ function MainManagerScreenPage() {
             />
 
             <div className="position-toolbar-selects">
-              <ToolbarSelect trackingAction={BUTTONS.comuns.unidade} label="Filtrar por unidade" onValueChange={(unit) => setFilters((current) => ({ ...current, unit }))} options={unitFilterOptions} value={filters.unit} />
-              <ToolbarSelect trackingAction={BUTTONS.comuns.status} label="Filtrar por status" onValueChange={(status) => setFilters((current) => ({ ...current, status }))} options={statusFilterOptions} value={filters.status} />
+              <ListFilterControl label="Filtrar gestores" fields={[
+                { id: 'unit', label: 'Unidade', options: unitFilterOptions },
+                { id: 'status', label: 'Status', options: statusFilterOptions },
+              ]} values={{ unit: filters.unit, status: filters.status }} onApply={values => setFilters(current => ({ ...current, unit: values.unit, status: values.status }))} />
             </div>
           </div>
 

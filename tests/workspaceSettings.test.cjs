@@ -41,7 +41,7 @@ function environment(overrides = {}) {
 const unit = { unitId: 12, workspaceId: 3, name: 'Filial', status: 'Ativo', collaboratorCount: 10,
   postalCode: '01234567', state: 'SP', city: 'São Paulo', neighborhood: 'Centro', street: 'Rua Exemplo', number: null, addressLine2: null }
 const address = { id: 12, persistedId: 12, name: 'Filial', cep: '01234-567', state: 'SP', city: 'São Paulo', neighborhood: 'Centro', street: 'Rua Exemplo', number: '10A', complement: '' }
-const company = { id: 3, name: 'Empresa Exemplo', cnpj: '12345678000199' }
+const company = { id: 3, name: 'Empresa Exemplo', cnpj: '12345678000195' }
 const result = { created: 5, updated: 2, unchanged: 10, unitsCreated: 1, rolesCreated: 2, ignored: [{ row: 4, field: 'cpf', message: 'Linha idêntica repetida' }] }
 const response = (data, status = 200) => Response.json({ success: true, data, errors: null }, { status })
 
@@ -55,7 +55,7 @@ test('empresa, unidades e transferência usam envelope único, Bearer e IDs corr
     return response(init.method === 'GET' ? [unit] : { ...unit, number: '10A' }, init.method === 'POST' ? 201 : 200)
   }
   assert.deepEqual(await api.getWorkspace(), company)
-  await api.updateWorkspace({ name: ' Empresa Exemplo ', cnpj: '12.345.678/0001-99' })
+  await api.updateWorkspace({ name: ' Empresa Exemplo ', cnpj: '12.345.678/0001-95' })
   const [legacy] = await units.listUnitAddresses()
   assert.equal(legacy.number, '')
   assert.equal(legacy.cep, '01234567')
@@ -112,7 +112,7 @@ test('valida campos e arquivo antes de enviar, preservando zeros iniciais e núm
   const env = environment(), api = env.load('src/services/workspaceSettings.ts'), units = env.load('src/services/units.ts')
   let calls = 0
   global.fetch = async () => { calls++; return response(null) }
-  for (const invalid of [{ ...company, name: 'A' }, { ...company, name: 'x'.repeat(256) }, { ...company, cnpj: '123' }]) await assert.rejects(api.updateWorkspace(invalid))
+  for (const invalid of [{ ...company, name: 'A' }, { ...company, name: 'x'.repeat(256) }, { ...company, cnpj: '123' }, { ...company, cnpj: '12345678000199' }, { ...company, cnpj: '00000000000000' }]) await assert.rejects(api.updateWorkspace(invalid))
   for (const invalid of [{ ...address, number: '' }, { ...address, number: 'x'.repeat(31) }, { ...address, state: 'XX' }, { ...address, cep: '1234567' }, { ...address, city: 'A' }]) await assert.rejects(units.saveUnitAddress(invalid))
   await assert.rejects(api.importWorkspace(new File(['x'], 'equipe.csv'), []))
   await assert.rejects(api.importWorkspace(new File([new Uint8Array(10 * 1024 * 1024 + 1)], 'equipe.xls'), []))
@@ -126,7 +126,7 @@ test('valida campos e arquivo antes de enviar, preservando zeros iniciais e núm
 test('leitura compartilhada da importação aceita planilha sem gestor e mantém regra do cadastro inicial', () => {
   const { utils, write } = require('xlsx'), { extractSpreadsheetUnitNames } = environment().load('src/utils/excelUnits.ts')
   const book = utils.book_new()
-  utils.book_append_sheet(book, utils.aoa_to_sheet([['Nome', 'CPF', 'Email', 'Unidade', 'Cargo', 'Modalidade'], ['Ana', '01234567890', 'ana@example.com', 'Filial', 'Analista', 'Híbrido']]), 'Equipe')
+  utils.book_append_sheet(book, utils.aoa_to_sheet([['Nome', 'CPF', 'Email', 'Unidade', 'Cargo', 'Modalidade'], ['Ana', '52998224725', 'ana@example.com', 'Filial', 'Analista', 'Híbrido']]), 'Equipe')
   const buffer = write(book, { type: 'array', bookType: 'xlsx' })
   assert.deepEqual(extractSpreadsheetUnitNames(buffer, '', true), ['Filial'])
   assert.throws(() => extractSpreadsheetUnitNames(buffer, 'gestor@example.com'), /gestor/i)
@@ -142,10 +142,10 @@ async function withDOM(run) {
   try { await run(root, environment()) } finally { await act(async () => root.unmount()); Object.assign(global, previous); dom.window.close() }
 }
 
-test('cadastro valida o CNPJ ao continuar, foca o campo e só avança depois de corrigir', async () => withDOM(async (root, env) => {
+for (const settingsMode of [false, true]) test(`CNPJ bloqueia avanço inválido e aceita correção em ${settingsMode ? 'atualização' : 'cadastro'}`, async () => withDOM(async (root, env) => {
   const Form = env.load('src/components/companyInformationForm/index.tsx').default
   const advances = []
-  await act(async () => root.render(React.createElement(Form, { initialCompany: { name: 'Empresa', cnpj: '23.542.345/3252-34' }, onContinue: value => advances.push(value) })))
+  await act(async () => root.render(React.createElement(Form, { settingsMode, initialCompany: { name: 'Empresa', cnpj: '23.542.345/3252-34' }, onContinue: value => advances.push(value) })))
   await act(async () => document.querySelector('button[type="submit"]').click())
   const input = document.getElementById('company-cnpj')
   assert.equal(advances.length, 0)
@@ -187,7 +187,7 @@ test('endereço bloqueia UF inválida no campo antes de finalizar e libera após
   assert.equal(completions[0][0].state, 'SP')
 }))
 
-test('finalizar verifica CEP de todas as unidades e mantém erro no campo até corrigir', async () => withDOM(async (root, env) => {
+for (const settingsMode of [false, true]) test(`CEP de todas as unidades validado antes de ${settingsMode ? 'salvar atualização' : 'finalizar cadastro'}`, async () => withDOM(async (root, env) => {
   const Form = env.load('src/components/addressForm/index.tsx').default
   const { useWorkspaceAddresses } = env.load('src/hooks/useWorkspaceAddresses.ts')
   const completions = [], calls = []
@@ -202,7 +202,7 @@ test('finalizar verifica CEP de todas as unidades e mantém erro no campo até c
       { ...address, id: 13, name: 'Outra unidade', cep: '54532-523' },
     ])
     React.useEffect(() => { addresses = currentAddresses }, [currentAddresses])
-    return React.createElement(Form, { addresses: currentAddresses, onComplete: units => completions.push(units) })
+    return React.createElement(Form, { settingsMode, addresses: currentAddresses, onComplete: units => completions.push(units) })
   }
   await act(async () => root.render(React.createElement(Harness)))
   const submit = () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
@@ -276,7 +276,7 @@ test('empresa carrega dados reais, preserva formulário após erro e navega só 
   const save = () => [...document.querySelectorAll('dialog button')].find(button => button.textContent === 'Salvar')
   await act(async () => save().click())
   assert.match(document.querySelector('dialog').textContent, /CNPJ em conflito/)
-  assert.equal(document.querySelector('#company-cnpj').value, '12.345.678/0001-99')
+  assert.equal(document.querySelector('#company-cnpj').value, '12.345.678/0001-95')
   assert.equal(env.navigations.length, 0)
   const feedback = env.load('src/utils/actionFeedback.ts')
   assert.equal(feedback.getActionFeedback().notices.some(notice => notice.tone === 'success'), false)
@@ -307,7 +307,7 @@ test('empresa distingue alteração real de máscara e restauração dos valores
   function Harness() { editor = env.load('src/hooks/useWorkspaceCompany.ts').useWorkspaceCompany(); return null }
   await act(async () => root.render(React.createElement(Harness)))
   assert.equal(editor.hasChanges, false)
-  await act(async () => editor.setCompany({ ...company, cnpj: '12.345.678/0001-99' }))
+  await act(async () => editor.setCompany({ ...company, cnpj: '12.345.678/0001-95' }))
   assert.equal(editor.hasChanges, false)
   await act(async () => editor.setCompany({ ...company, name: 'Empresa alterada' }))
   assert.equal(editor.hasChanges, true)
@@ -446,8 +446,8 @@ test('importação identifica só unidades novas, preserva arquivo e endereços 
   const { utils, write } = require('xlsx'), book = utils.book_new()
   utils.book_append_sheet(book, utils.aoa_to_sheet([
     ['Nome', 'CPF', 'Email', 'Unidade', 'Cargo', 'Modalidade'],
-    ['Ana', '01234567890', 'ana@example.com', ' filial ', 'Analista', 'Remoto'],
-    ['Bia', '12345678901', 'bia@example.com', 'Nova', 'Analista', 'Híbrido'],
+    ['Ana', '52998224725', 'ana@example.com', ' filial ', 'Analista', 'Remoto'],
+    ['Bia', '11144477735', 'bia@example.com', 'Nova', 'Analista', 'Híbrido'],
   ]), 'Equipe')
   const file = new File([write(book, { type: 'array', bookType: 'xlsx' })], 'equipe.xlsx')
   let importer, writes = 0, reads = 0
@@ -610,4 +610,56 @@ test('selecionar Excel valida imediatamente com loading, bloqueia erro e só nav
   await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
   assert.deepEqual(navigations, ['/setAddress'])
   assert.equal(reads, 1, 'Continuar reutiliza a validação do mesmo arquivo')
+}))
+
+test('importação valida CPF, e-mail, nomes, modalidade e duplicidade antes de aceitar a planilha', () => {
+  const { utils, write } = require('xlsx'), { extractSpreadsheetUnitNames } = environment().load('src/utils/excelUnits.ts')
+  const header = ['Nome', 'CPF', 'Email', 'Unidade', 'Cargo', 'Modalidade']
+  const person = ['Ana Lima', '529.982.247-25', 'ana@example.com', 'Filial', 'Analista', 'Híbrido']
+  function parse(rows) {
+    const book = utils.book_new(); utils.book_append_sheet(book, utils.aoa_to_sheet([header, ...rows]), 'Equipe')
+    return extractSpreadsheetUnitNames(write(book, { type: 'array', bookType: 'xlsx' }), '', true)
+  }
+  assert.deepEqual(parse([person]), ['Filial'])
+  for (const [column, value, message] of [[0, 'A', /Linha 2.*nome/], [1, '000.000.000-00', /Linha 2.*CPF válido/], [2, 'invalido', /Linha 2.*e-mail válido/], [4, '', /Linha 2.*cargo/], [5, 'Outro', /Linha 2.*modalidade/]]) {
+    const invalid = [...person]; invalid[column] = value
+    assert.throws(() => parse([invalid]), message)
+  }
+  assert.throws(() => parse([person, [...person]]), /Linha 3.*e-mail duplicado/)
+  const duplicateCpf = [...person]; duplicateCpf[2] = 'outra@example.com'
+  assert.throws(() => parse([person, duplicateCpf]), /Linha 3.*CPF duplicado/)
+})
+
+test('planilha nas configurações valida ao selecionar, bloqueia erro e reutiliza a análise antes de confirmar', async () => withDOM(async (root, env) => {
+  const { utils, write } = require('xlsx')
+  let requests = 0
+  global.fetch = async (_url, init) => { requests++; assert.equal(init.method, 'GET'); return response([unit]) }
+  const Page = env.load('src/pages/workspaceSpreadsheetSettings/index.tsx').default
+  function file(cpf) {
+    const book = utils.book_new()
+    utils.book_append_sheet(book, utils.aoa_to_sheet([['Nome', 'CPF', 'Email', 'Unidade', 'Cargo', 'Modalidade'], ['Ana Lima', cpf, 'ana@example.com', 'Filial', 'Analista', 'Híbrido']]), 'Equipe')
+    return new File([write(book, { type: 'array', bookType: 'xlsx' })], 'equipe.xlsx')
+  }
+  await act(async () => root.render(React.createElement(Page)))
+  const select = async selected => {
+    const input = document.querySelector('input[type=file]')
+    Object.defineProperty(input, 'files', { configurable: true, value: [selected] })
+    await act(async () => input.dispatchEvent(new window.Event('change', { bubbles: true })))
+    await act(async () => new Promise(resolve => setTimeout(resolve, 40)))
+  }
+  await select(file('000.000.000-00'))
+  assert.match(document.getElementById('spreadsheet-error').textContent, /Linha 2.*CPF válido/)
+  assert.equal(document.querySelector('dialog[open]'), null)
+  assert.equal(requests, 0)
+  const valid = file('529.982.247-25'), read = valid.arrayBuffer.bind(valid)
+  let reads = 0
+  valid.arrayBuffer = () => { reads++; return read() }
+  await select(valid)
+  assert.equal(document.getElementById('spreadsheet-error'), null)
+  assert.equal(requests, 1)
+  assert.equal(document.querySelector('dialog[open]'), null)
+  await act(async () => document.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })))
+  assert.ok(document.querySelector('dialog[open]'))
+  assert.equal(reads, 1)
+  assert.equal(requests, 1, 'Ainda não salva antes da confirmação')
 }))

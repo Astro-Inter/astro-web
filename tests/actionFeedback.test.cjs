@@ -246,6 +246,8 @@ test('notificação sobrevive à origem, pausa com foco, fecha com animação e 
   const dom = new JSDOM('<div id="root"></div>')
   const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
   Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+  const originalNow = Date.now
+  Date.now = () => 100000
   let sequence = 0; const timers = new Map()
   dom.window.setTimeout = (callback, delay) => { const id = ++sequence; timers.set(id, { callback, delay }); return id }
   dom.window.clearTimeout = id => timers.delete(id)
@@ -281,7 +283,7 @@ test('notificação sobrevive à origem, pausa com foco, fecha com animação e 
     await React.act(async () => store.notifyAction('Não foi possível salvar.', 'error'))
     assert.match(document.querySelector('.astro-action-notice [role=alert]').textContent, /Não foi possível/)
     assert.ok(document.querySelector('.astro-action-notice .astro-icon--warning-circle'))
-  } finally { await React.act(async () => root.unmount()); dom.window.close(); Object.assign(global, previous) }
+  } finally { Date.now = originalNow; await React.act(async () => root.unmount()); dom.window.close(); Object.assign(global, previous) }
 })
 
 test('impedimento de ativação gera aviso temporário sem erro inline, mantém o popup e permite nova tentativa', async () => {
@@ -536,5 +538,50 @@ test('Home, dashboards e perfil aguardam a saída e entram sem carregando de nav
       assert.equal(feedback.getActionFeedback().pending, 0)
       dom.window.close(); Object.assign(global, previous)
     }
+  }
+})
+
+test('abrir e fechar popups preserva o prazo restante e a saída da notificação', async () => {
+  const dom = new JSDOM('<div id="root"></div>')
+  const previous = { window: global.window, document: global.document, IS_REACT_ACT_ENVIRONMENT: global.IS_REACT_ACT_ENVIRONMENT }
+  Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true })
+  const originalNow = Date.now
+  let now = 100000, sequence = 0
+  Date.now = () => now
+  const timers = new Map()
+  window.setTimeout = (callback, delay) => { const id = ++sequence; timers.set(id, { callback, delay }); return id }
+  window.clearTimeout = id => timers.delete(id)
+  const env = environment(), store = env.load('src/utils/actionFeedback.ts'), Host = env.load('src/components/actionFeedbackHost/index.tsx').default
+  const root = createRoot(document.getElementById('root'))
+  const dialog = document.createElement('dialog')
+  document.body.append(dialog)
+  const duration = () => [...timers.values()].map(timer => timer.delay)
+  async function toggle(open) {
+    await React.act(async () => {
+      if (open) dialog.setAttribute('open', ''); else dialog.removeAttribute('open')
+      dialog.dispatchEvent(new window.Event(open ? 'toggle' : 'close'))
+    })
+  }
+  try {
+    await React.act(async () => root.render(React.createElement(Host)))
+    await React.act(async () => store.notifyAction('Alterações salvas.'))
+    assert.deepEqual(duration(), [5000])
+    now += 4000; await toggle(true)
+    assert.deepEqual(duration(), [1000])
+    assert.equal(document.querySelector('.astro-action-notice').style.animationDelay, '-4000ms')
+    now += 500; await toggle(false)
+    assert.deepEqual(duration(), [500])
+    assert.equal(document.querySelector('.astro-action-notice').style.animationDelay, '-4500ms')
+    now += 500
+    await React.act(async () => [...timers.values()][0].callback())
+    assert.equal(document.querySelector('.astro-action-notice').dataset.leaving, 'true')
+    now += 90; await toggle(true)
+    assert.deepEqual(duration(), [90])
+    assert.equal(document.querySelector('.astro-action-notice').style.animationDelay, '-90ms')
+    now += 90
+    await React.act(async () => [...timers.values()][0].callback())
+    assert.equal(store.getActionFeedback().notices.length, 0)
+  } finally {
+    await React.act(async () => root.unmount()); dom.window.close(); Date.now = originalNow; Object.assign(global, previous)
   }
 })

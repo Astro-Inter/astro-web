@@ -92,6 +92,24 @@ html[data-astro-contrast='true'] .a11y-settings { --a11y-range-active: #ffe16b; 
 .astro-toolbar-voice-error { position: absolute; z-index: 5; top: calc(100% + .35rem); left: 0; width: max-content; max-width: min(25rem, 85vw); padding: .65rem .8rem; border: 1px solid var(--astro-primary-error); border-radius: .45rem; color: var(--astro-text); background: var(--astro-background); font-size: .875rem; line-height: 1.4; }
 .a11y-face-panel { position: fixed; z-index: 2147483646; right: 1rem; top: 1rem; width: min(26rem, calc(100% - 2rem)); box-sizing: border-box; max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 1.5rem; border: 0; border-radius: .625rem; color: var(--astro-text); background: #332754; box-shadow: 0 16px 44px rgb(0 0 0 / 22%); font-family: Montserrat, sans-serif; }
 .a11y-face-header { display: flex; align-items: center; gap: 1rem; }
+.astro-field-voice { position: fixed; inset: auto; z-index: 2147483645; display: grid; place-items: center; width: 32px; height: 32px; min-height: 0; margin: 0; padding: 4px; border: 0; border-radius: var(--astro-control-radius); color: var(--astro-text); background: transparent; cursor: pointer; }
+.astro-field-voice:disabled { opacity: .4; cursor: not-allowed; }
+.astro-field-voice svg { display: block; width: 100%; height: 100%; }
+.astro-field-voice:hover:not(:disabled) { background: rgb(0 0 0 / 12%); }
+.astro-field-voice:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: -2px; }
+.astro-field-voice[aria-pressed='true'] { color: #e1acff; background: #332754; }
+.a11y-face-panel { transition: width 180ms ease, padding 180ms ease; }
+.a11y-face-panel.a11y-face-panel--collapsed { width: min(13rem, calc(100% - 2rem)); padding: .5rem; overflow: hidden; }
+.a11y-face-panel-toggle { display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; min-height: 2.5rem; margin: 0 0 1rem; padding: 0; border: 0; border-radius: var(--astro-control-radius); color: var(--astro-text); background: transparent; font: inherit; font-size: 1.1rem; font-weight: 600; text-align: left; cursor: pointer; }
+.a11y-face-panel-toggle .astro-icon { width: 1.125rem; height: 1.125rem; flex: none; transform: rotate(180deg); transition: transform 180ms ease, filter 140ms ease; }
+.a11y-face-panel-toggle:hover { background: transparent; }
+.a11y-face-panel-toggle:hover .astro-icon { filter: brightness(.72); }
+.a11y-face-panel-toggle:focus-visible { outline: 2px solid var(--astro-focus-border); outline-offset: 2px; }
+.a11y-face-panel--collapsed .a11y-face-panel-toggle { width: 100%; margin: 0; padding: .5rem; font-size: .875rem; }
+.a11y-face-panel--collapsed .a11y-face-panel-toggle .astro-icon { transform: rotate(0deg); }
+.a11y-face-panel-body { display: grid; grid-template-rows: 1fr; opacity: 1; transition: grid-template-rows 180ms ease, opacity 140ms ease; }
+.a11y-face-panel-content { min-height: 0; overflow: hidden; }
+.a11y-face-panel--collapsed .a11y-face-panel-body { grid-template-rows: 0fr; opacity: 0; }
 .a11y-face-copy { min-width: 0; flex: 1; }
 .a11y-face-panel h2 { margin: 0; font-size: 1.1rem; font-weight: 600; line-height: 1.3; letter-spacing: -.035em; }
 .a11y-face-panel p { margin: .35rem 0 0; color: #c4bdd4; font-size: .875rem; line-height: 1.5; }

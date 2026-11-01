@@ -6,7 +6,13 @@
 .forms-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: calc(1.5rem * var(--astro-scale)); row-gap: calc(0.75rem * var(--astro-scale)); }
 .forms-grid[hidden] { display: none; }
 .main-form-screen .forms-skeleton--exiting { pointer-events: none; animation: astro-route-exit 180ms ease-in both; }
-.form-card { min-width: 0; padding: calc(2rem * var(--astro-scale)); border-radius: calc(0.85rem * var(--astro-scale)); background: #211b40; }
+.form-card { position: relative; min-width: 0; padding: calc(2rem * var(--astro-scale)); border-radius: calc(0.85rem * var(--astro-scale)); background: #211b40; transition: background-color 180ms ease; }
+.form-card:has(.form-card-open:is(:hover, :focus-visible)) { background: var(--a11y-surface, #272046); }
+.form-card-open { display: block; width: 100%; padding: 0; border: 0; color: inherit; background: transparent; text-align: left; font: inherit; cursor: pointer; }
+.form-card-open::after { position: absolute; inset: 0; border-radius: calc(.85rem * var(--astro-scale)); content: ''; }
+.form-card:has(.form-card-open:focus-visible) { outline: 2px solid var(--astro-focus-border); outline-offset: 3px; }
+.form-card-open:focus-visible { outline: none; }
+.form-card .form-card-options { position: relative; z-index: 1; }
 .form-card-heading { display: flex; align-items: flex-start; gap: calc(1rem * var(--astro-scale)); }
 .form-card-icon { display: grid; place-items: center; flex: none; width: calc(3.4rem * var(--astro-scale)); height: calc(3.4rem * var(--astro-scale)); border-radius: var(--astro-control-radius); }
 .form-card-icon .astro-icon { width: var(--astro-icon-lg); height: var(--astro-icon-lg); object-fit: contain; filter: brightness(0) invert(1); opacity: 1; }
@@ -30,8 +36,8 @@
 .form-card-color-choice { display: grid; place-items: center; width: calc(var(--astro-control-height) + .15rem * var(--astro-scale)); height: auto; aspect-ratio: 1; border: 2px solid transparent; border-radius: var(--astro-control-radius); box-sizing: border-box; }
 .form-card-appearance-option > input:checked + .form-card-color-choice { border-color: var(--astro-text); }
 .form-card-color-choice .astro-icon { width: var(--astro-icon-md); height: var(--astro-icon-md); filter: brightness(0) invert(1); }
-@media (prefers-reduced-motion: reduce) { .form-card-icon-choice { transition: none; } }
-html[data-astro-reduced-motion='true'] .form-card-icon-choice { transition: none; }
+@media (prefers-reduced-motion: reduce) { .form-card, .form-card-icon-choice { transition: none; } }
+html[data-astro-reduced-motion='true'] :is(.form-card, .form-card-icon-choice) { transition: none; }
 .form-card-icon--purple { background: #a42be1; }
 .form-card-icon--pink { background: #ed007f; }
 .form-card-icon--blue { background: #429dc5; }

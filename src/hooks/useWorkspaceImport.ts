@@ -34,7 +34,10 @@ export function useWorkspaceImport() {
     controller.current = request
     setState({ file, units: null, reading: true, error: '', rows: [], result: null })
     try {
-      const [names, existing] = await Promise.all([readImportSpreadsheetUnitNames(file), listUnitAddresses(request.signal)])
+      await new Promise<void>(resolve => setTimeout(resolve, 0))
+      const names = await readImportSpreadsheetUnitNames(file)
+      request.signal.throwIfAborted()
+      const existing = await listUnitAddresses(request.signal)
       request.signal.throwIfAborted()
       const existingNames = new Set(existing.map(unit => normalizeUnitName(unit.name)))
       const newNames = names.filter(name => !existingNames.has(normalizeUnitName(name)))
