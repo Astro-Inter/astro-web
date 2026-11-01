@@ -8,11 +8,11 @@ export interface AccountProfile {
 }
 
 export interface AccountProfileResponse {
-  nome: string
+  name: string
   email: string | null
-  cargo: string | null
-  unidade: string | null
-  modalidade: string | null
+  roleName: string | null
+  unitName: string | null
+  workModel: string | null
   profilePhotoUrl: string | null
 }
 

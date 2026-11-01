@@ -25,8 +25,8 @@ const api = loadTs(path.join(__dirname, '../src/services/collaborators.ts'))
 const validation = loadTs(path.join(__dirname, '../src/utils/collaborator.ts'))
 const originalFetch = global.fetch
 afterEach(() => { global.fetch = originalFetch; auth.currentUser = user })
-const summary = { id_usuario: 42, nome: 'Ana Silva', email: 'ana@example.com', cargo_id: 5, cargo: 'Analista', unidade_id: 8, unidade: 'São Paulo', status: 'ATIVO', profilePhotoUrl: null, avatarInitials: 'AS' }
-const details = { ...summary, cpf: '52998224725', modalidade: 'HIBRIDO', workspace_id: 1 }
+const summary = { id: 42, name: 'Ana Silva', email: 'ana@example.com', roleId: 5, roleName: 'Analista', unitId: 8, unitName: 'São Paulo', status: 'ATIVO', profilePhotoUrl: null, avatarInitials: 'AS' }
+const details = { ...summary, cpf: '52998224725', workModel: 'HIBRIDO', workspaceId: 1 }
 const values = { name: ' Ana Silva ', email: ' ANA@example.com ', cpf: '529.982.247-25', roleId: '5', unitId: '8', modality: 'HIBRIDO', status: 'ATIVO' }
 function respond(data, status = 200) { return new Response(JSON.stringify({ success: true, data }), { status }) }
 
@@ -46,7 +46,7 @@ test('reenvia a chave pelo ID com Bearer, sem aceitar destinatário ou retornar 
 
 test('conecta os cinco endpoints com Bearer e os DTOs do Swagger, sem UID, senha ou dados de autenticação', async () => {
   const calls = []
-  const responses = [[summary], details, { ...details, status: 'PRE_CADASTRADO' }, { ...details, nome: 'Ana Souza' }, { ...details, status: 'DESATIVADO' }]
+  const responses = [[summary], details, { ...details, status: 'PRE_CADASTRADO' }, { ...details, name: 'Ana Souza' }, { ...details, status: 'DESATIVADO' }]
   global.fetch = async (url, init) => { calls.push({ url, ...init }); return respond(responses.shift(), init.method === 'POST' ? 201 : 200) }
   const list = await api.listCollaborators()
   assert.equal(list[0].roleId, '5')
@@ -86,9 +86,9 @@ test('preserva os três status e a foto; detalhes ausentes e DTOs malformados s�
   }
   global.fetch = async () => respond({ ...details, cpf: 123 })
   await assert.rejects(api.getCollaborator('42'), /CPF.*formato inválido/)
-  global.fetch = async () => respond({ ...details, modalidade: 'ONLINE' })
+  global.fetch = async () => respond({ ...details, workModel: 'ONLINE' })
   await assert.rejects(api.getCollaborator('42'), /modalidade inválida/)
-  for (const malformed of [null, {}, [null], [{ ...summary, status: 'inativo' }], [{ ...summary, unidade_id: 0 }]]) {
+  for (const malformed of [null, {}, [null], [{ ...summary, status: 'inativo' }], [{ ...summary, unitId: 0 }]]) {
     global.fetch = async () => respond(malformed)
     await assert.rejects(api.listCollaborators(), /inválid/)
   }
@@ -106,7 +106,7 @@ test('PUT mantém status de pré-cadastro; PATCH envia o destino explicitamente 
 
 test('abre detalhes com CPF e modalidade nulos, vazios ou ausentes sem inventar informações', async () => {
   for (const missing of [null, '', undefined]) {
-    global.fetch = async () => respond({ ...details, cpf: missing, modalidade: missing })
+    global.fetch = async () => respond({ ...details, cpf: missing, workModel: missing })
     const collaborator = await api.getCollaborator('42')
     assert.equal(collaborator.cpf, '')
     assert.equal(collaborator.modality, '')
@@ -122,7 +122,7 @@ test('abre detalhes com CPF e modalidade nulos, vazios ou ausentes sem inventar 
 
 test('alterar status aceita detalhes com campos opcionais nulos e salvar continua exigindo CPF/modalidade válidos', async () => {
   const calls = []
-  global.fetch = async (_url, init) => { calls.push(init); return respond({ ...details, cpf: null, modalidade: null, status: 'DESATIVADO' }) }
+  global.fetch = async (_url, init) => { calls.push(init); return respond({ ...details, cpf: null, workModel: null, status: 'DESATIVADO' }) }
   const updated = await api.changeCollaboratorStatus('42', 'DESATIVADO')
   assert.equal(updated.status, 'DESATIVADO')
   assert.equal(updated.cpf, '')
@@ -136,7 +136,7 @@ test('visualização e edição renderizam registros sem CPF/modalidade com camp
   const React = require('react')
   const { renderToStaticMarkup } = require('react-dom/server')
   const Form = loadTs(path.join(__dirname, '../src/components/collaboratorForm/index.tsx')).default
-  global.fetch = async () => respond({ ...details, cpf: null, modalidade: null })
+  global.fetch = async () => respond({ ...details, cpf: null, workModel: null })
   const collaborator = await api.getCollaborator('42')
   const render = mode => renderToStaticMarkup(React.createElement(Form, {
     collaborator, mode, options: { positions: [], units: [] }, disabled: false, saving: false,

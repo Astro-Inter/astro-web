@@ -21,7 +21,7 @@ async function requestRoles<T>(path: string, method = 'GET', payload?: object, s
     const response = await fetch(url, {
       method, signal,
       headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...(method !== 'GET' ? { 'Content-Type': 'application/json' } : {}) },
-      ...(method !== 'GET' ? { body: JSON.stringify({ firebase_uid: user.uid, ...payload }) } : {}),
+      ...(method !== 'GET' ? { body: JSON.stringify({ firebaseUid: user.uid, ...payload }) } : {}),
     })
     const text = await response.text()
     let body: unknown = null
@@ -45,19 +45,19 @@ function rolePath(id: string): string {
   return `/roles/${id}`
 }
 
-function positionPayload(values: PositionFormValues): { nome: string; status: string } {
+function positionPayload(values: PositionFormValues): { name: string; status: string } {
   const errors = validatePosition(values, values.active ? 'active' : 'inactive')
   if (Object.keys(errors).length) throw new RolesApiError(errors.name ?? errors.status ?? 'Cargo inválido.')
-  return { nome: values.name.trim(), status: values.active ? 'ativo' : 'inativo' }
+  return { name: values.name.trim(), status: values.active ? 'ativo' : 'inativo' }
 }
 
 function toPosition(role: RoleResponse): Position {
-  if (!role || !Number.isSafeInteger(role.id_cargo) || role.id_cargo <= 0 || typeof role.nome !== 'string'
-    || !Number.isSafeInteger(role.quantidade_colaboradores) || role.quantidade_colaboradores < 0
+  if (!role || !Number.isSafeInteger(role.roleId) || role.roleId <= 0 || typeof role.name !== 'string'
+    || !Number.isSafeInteger(role.collaboratorCount) || role.collaboratorCount < 0
     || typeof role.status !== 'string' || !['ativo', 'inativo'].includes(role.status.trim().toLowerCase())) {
     throw new RolesApiError('A API retornou dados inválidos para o cargo.')
   }
-  return { id: String(role.id_cargo), name: role.nome, collaboratorCount: role.quantidade_colaboradores, active: role.status.trim().toLowerCase() === 'ativo' }
+  return { id: String(role.roleId), name: role.name, collaboratorCount: role.collaboratorCount, active: role.status.trim().toLowerCase() === 'ativo' }
 }
 
 export async function listRoles(signal?: AbortSignal): Promise<Position[]> {
@@ -87,7 +87,7 @@ function validateNr(nr: number, description: string): void {
 export async function listRoleNrs(id: string, signal?: AbortSignal): Promise<RoleNrResponse[]> {
   const data = await requestRoles<RoleNrResponse[]>(`${rolePath(id)}/nrs`, 'GET', undefined, signal)
   if (!Array.isArray(data)) throw new RolesApiError('A API retornou uma lista de NRs inválida.')
-  data.forEach((row) => validateNr(row.codigo_nr, row.descricao))
+  data.forEach((row) => validateNr(row.nrCode, row.description))
   return data
 }
 
@@ -95,8 +95,8 @@ export async function listRoleNrOptions(id: string, signal?: AbortSignal): Promi
   const data = await requestRoles<RoleNrOptionResponse[]>(`${rolePath(id)}/nrs/options`, 'GET', undefined, signal)
   if (!Array.isArray(data)) throw new RolesApiError('A API retornou opções de NRs inválidas.')
   data.forEach((row) => {
-    validateNr(row.nr, row.descricao)
-    if (typeof row.ativo !== 'boolean') throw new RolesApiError('A API retornou um vínculo de NR inválido.')
+    validateNr(row.nr, row.description)
+    if (typeof row.active !== 'boolean') throw new RolesApiError('A API retornou um vínculo de NR inválido.')
   })
   return data
 }

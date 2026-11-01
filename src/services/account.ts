@@ -17,15 +17,15 @@ const modalities: Record<string, string> = { PRESENCIAL: 'Presencial', HIBRIDO: 
 function toAccountProfile(value: unknown): AccountProfile {
   if (typeof value !== 'object' || value === null) throw new AccountApiError('A API retornou dados inválidos para sua conta.')
   const data = value as Partial<AccountProfileResponse>
-  if (typeof data.nome !== 'string' || !data.nome.trim()
-    || [data.email, data.cargo, data.unidade, data.modalidade, data.profilePhotoUrl].some(field => field != null && typeof field !== 'string')) {
+  if (typeof data.name !== 'string' || !data.name.trim()
+    || [data.email, data.roleName, data.unitName, data.workModel, data.profilePhotoUrl].some(field => field != null && typeof field !== 'string')) {
     throw new AccountApiError('A API retornou dados inválidos para sua conta.')
   }
-  const modality = data.modalidade?.trim() ?? ''
+  const modality = data.workModel?.trim() ?? ''
   const photoUrl = data.profilePhotoUrl?.trim()
   return {
-    name: data.nome.trim(), email: data.email?.trim() ?? '', position: data.cargo?.trim() ?? '',
-    units: data.unidade?.trim() ?? '', modality: Object.hasOwn(modalities, modality) ? modalities[modality] : modality,
+    name: data.name.trim(), email: data.email?.trim() ?? '', position: data.roleName?.trim() ?? '',
+    units: data.unitName?.trim() ?? '', modality: Object.hasOwn(modalities, modality) ? modalities[modality] : modality,
     photoUrl: photoUrl && /^https?:\/\//i.test(photoUrl) ? photoUrl : undefined,
   }
 }
@@ -78,13 +78,13 @@ function toAccountDetails(value: unknown): AccountDetails {
   const data = value as Record<string, unknown>
   if ((data.cpf != null && typeof data.cpf !== 'string')
     || [data.roleId, data.unitId].some(id => id != null && (!Number.isSafeInteger(id) || Number(id) <= 0))
-    || (data.modalidade != null && !['HIBRIDO', 'REMOTO', 'PRESENCIAL'].includes(String(data.modalidade)))) {
+    || (data.workModel != null && !['HIBRIDO', 'REMOTO', 'PRESENCIAL'].includes(String(data.workModel)))) {
     throw new AccountApiError('A API retornou detalhes inválidos para sua conta.')
   }
   const cpf = typeof data.cpf === 'string' ? data.cpf.trim() : ''
   return { ...profile, cpf: /^\d{11}$/.test(cpf) ? formatCpfCnpj(cpf) : cpf,
     roleId: data.roleId == null ? '' : String(data.roleId), unitId: data.unitId == null ? '' : String(data.unitId),
-    workModel: data.modalidade == null ? '' : data.modalidade as AccountDetails['workModel'] }
+    workModel: data.workModel == null ? '' : data.workModel as AccountDetails['workModel'] }
 }
 
 export async function getAccountDetails(signal?: AbortSignal): Promise<AccountDetails> {

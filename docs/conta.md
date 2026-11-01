@@ -23,3 +23,5 @@ O upload aceita JPEG, PNG ou WebP não vazio, de até 5 MB. O arquivo original �
 Se a consulta do resumo falhar depois do upload, **Atualizar foto** repete somente o GET. Sair da tela ou trocar de sessão cancela operações pendentes e descarta respostas antigas; cancelar a requisição no navegador não desfaz uma gravação já recebida pelo servidor.
 
 A transferência de responsável usa seu fluxo próprio, sem chamar o endpoint de edição do perfil. A página é remontada quando o UID muda, fechando modais da sessão anterior.
+
+Os DTOs de resposta usam name, roleName, unitName e workModel. Consulte a [migração JSON SCRUM-684](migracao-campos-json-scrum684.md) para os contratos compartilhados e as exceções de query string.

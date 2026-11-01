@@ -21,14 +21,14 @@ export interface UnitResponse {
 
 export interface UnitNrResponse {
   nr: number
-  descricao: string
+  description: string
 }
 
 export interface UnitNrOptionResponse extends UnitNrResponse {
-  ativo: boolean
+  active: boolean
 }
 
 export interface UnitNrRequest {
   nr: number
-  ativo: boolean
+  active: boolean
 }

@@ -54,7 +54,7 @@ test('erro no modal mantém seleção para retry e reabrir consulta os vínculos
   // JSDOM não mede texto; o truncamento visual não faz parte deste fluxo.
   dom.window.HTMLCanvasElement.prototype.getContext = () => null
   const env = environment()
-  let options = [{ nr: 6, descricao: 'EPI', ativo: true }, { nr: 17, descricao: 'Ergonomia', ativo: false }]
+  let options = [{ nr: 6, description: 'EPI', active: true }, { nr: 17, description: 'Ergonomia', active: false }]
   const calls = [], writes = []
   let recommendations = 0
   global.fetch = async (url, init) => {
@@ -72,14 +72,14 @@ test('erro no modal mantém seleção para retry e reabrir consulta os vínculos
         quantidade: 1, nrs_sugeridas: [{ numero: 17, nome: 'Ergonomia', justificativa: 'Há trabalho administrativo na unidade.', confianca: 'alta' }] })
     }
     if (init.method === 'POST') {
-      const body = JSON.parse(init.body)
+      const body = JSON.parse(init.body).nrs
       assert.ok(Array.isArray(body))
       writes.push(body)
       if (writes.length === 1) return new Response(JSON.stringify({ success: false, message: 'Não foi possível salvar as NRs.' }), { status: 422 })
-      options = options.map(row => ({ ...row, ativo: body.find(item => item.nr === row.nr).ativo }))
+      options = options.map(row => ({ ...row, active: body.find(item => item.nr === row.nr).active }))
       return new Response(JSON.stringify({ success: true, data: null }))
     }
-    const data = pathname.endsWith('/associated') ? options.filter(row => row.ativo).map(({ nr, descricao }) => ({ nr, descricao }))
+    const data = pathname.endsWith('/associated') ? options.filter(row => row.active).map(({ nr, description }) => ({ nr, description }))
       : pathname.endsWith('/nrs') ? options : [{ unitId: 42, name: 'Unidade API', collaboratorCount: 2, status: 'ativo' }]
     return new Response(JSON.stringify({ success: true, data }))
   }
@@ -110,10 +110,10 @@ test('erro no modal mantém seleção para retry e reabrir consulta os vínculos
     assert.match(confirmation.querySelector('[role="alert"]').textContent, /Não foi possível salvar/)
     assert.equal(confirmation.open, true)
     assert.deepEqual(switches.map(input => input.checked), [false, true])
-    assert.deepEqual(options.map(row => row.ativo), [true, false])
+    assert.deepEqual(options.map(row => row.active), [true, false])
     await click('Salvar', confirmation)
     await act(async () => { await new Promise(resolve => setTimeout(resolve, 100)) })
-    assert.deepEqual(writes, [[{ nr: 6, ativo: false }, { nr: 17, ativo: true }], [{ nr: 6, ativo: false }, { nr: 17, ativo: true }]])
+    assert.deepEqual(writes, [[{ nr: 6, active: false }, { nr: 17, active: true }], [{ nr: 6, active: false }, { nr: 17, active: true }]])
     const viewer = document.querySelector('dialog[aria-label="NRs de Unidade API"]')
     assert.match(viewer.textContent, /NR 17/)
     assert.doesNotMatch(viewer.textContent, /NR 6/)

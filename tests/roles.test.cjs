@@ -22,21 +22,21 @@ const api = loadTs(path.join(__dirname, '../src/services/roles.ts'))
 const originalFetch = global.fetch
 const user = auth.currentUser
 afterEach(() => { global.fetch = originalFetch; auth.currentUser = user })
-const role = { id_cargo: 42, id_workspace: 3, nome: 'Gerente', quantidade_colaboradores: 5, status: 'ativo' }
+const role = { roleId: 42, workspaceId: 3, name: 'Gerente', collaboratorCount: 5, status: 'ativo' }
 const values = { name: ' Gerente ', active: true }
 function respond(data) { return new Response(JSON.stringify({ success: true, data }), { status: 200 }) }
 
 test('conecta os sete endpoints com token, UID e DTOs do Swagger', async () => {
   const calls = []
-  const responses = [[role], null, { ...role, nome: 'Diretor' }, false, [{ codigo_nr: 6, descricao: 'EPI' }], [{ nr: 6, descricao: 'EPI', ativo: true }], null]
+  const responses = [[role], null, { ...role, name: 'Diretor' }, false, [{ nrCode: 6, description: 'EPI' }], [{ nr: 6, description: 'EPI', active: true }], null]
   global.fetch = async (url, init) => { calls.push({ url, ...init }); return respond(responses.shift()) }
   assert.deepEqual(await api.listRoles(), [{ id: '42', name: 'Gerente', collaboratorCount: 5, active: true }])
   await api.createRole(values)
   assert.equal((await api.updateRole('42', { name: 'Diretor', active: true })).name, 'Diretor')
   assert.equal(await api.toggleRoleStatus('42'), false)
-  assert.equal((await api.listRoleNrs('42'))[0].codigo_nr, 6)
-  assert.equal((await api.listRoleNrOptions('42'))[0].ativo, true)
-  await api.updateRoleNrs('42', [{ nr: 6, ativo: false }, { nr: 10, ativo: true }])
+  assert.equal((await api.listRoleNrs('42'))[0].nrCode, 6)
+  assert.equal((await api.listRoleNrOptions('42'))[0].active, true)
+  await api.updateRoleNrs('42', [{ nr: 6, active: false }, { nr: 10, active: true }])
   assert.deepEqual(calls.map(c => [c.method, new URL(c.url).pathname]), [
     ['GET', '/roles'], ['POST', '/roles'], ['PUT', '/roles/42'], ['PATCH', '/roles/42/status'],
     ['GET', '/roles/42/nrs'], ['GET', '/roles/42/nrs/options'], ['POST', '/roles/42/nrs'],
@@ -44,11 +44,11 @@ test('conecta os sete endpoints com token, UID e DTOs do Swagger', async () => {
   for (const call of calls) {
     assert.equal(call.headers.Authorization, 'Bearer firebase-token')
     if (call.method === 'GET') { assert.equal(new URL(call.url).searchParams.get('firebase_uid'), 'gestor/uid'); assert.equal(call.body, undefined) }
-    else assert.equal(JSON.parse(call.body).firebase_uid, 'gestor/uid')
+    else assert.equal(JSON.parse(call.body).firebaseUid, 'gestor/uid')
   }
-  assert.deepEqual(JSON.parse(calls[1].body), { firebase_uid: 'gestor/uid', nome: 'Gerente', status: 'ativo' })
-  assert.deepEqual(JSON.parse(calls[3].body), { firebase_uid: 'gestor/uid' })
-  assert.deepEqual(JSON.parse(calls[6].body).nrs, [{ nr: 6, ativo: false }, { nr: 10, ativo: true }])
+  assert.deepEqual(JSON.parse(calls[1].body), { firebaseUid: 'gestor/uid', name: 'Gerente', status: 'ativo' })
+  assert.deepEqual(JSON.parse(calls[3].body), { firebaseUid: 'gestor/uid' })
+  assert.deepEqual(JSON.parse(calls[6].body).nrs, [{ nr: 6, active: false }, { nr: 10, active: true }])
 })
 
 test('recusas HTTP e success false preservam erros da API; respostas inválidas são rejeitadas', async () => {
@@ -71,7 +71,7 @@ test('validação e sessão ausente impedem envio de dados inválidos', async ()
   global.fetch = async () => { calls++; return respond(null) }
   await assert.rejects(api.createRole({ name: ' ', active: true }), /2 caracteres/)
   await assert.rejects(api.updateRole('cargo-local', values), /Identificador/)
-  await assert.rejects(api.updateRoleNrs('42', [{ nr: 6, ativo: true }, { nr: 6, ativo: false }]), /Seleção/)
+  await assert.rejects(api.updateRoleNrs('42', [{ nr: 6, active: true }, { nr: 6, active: false }]), /Seleção/)
   auth.currentUser = null
   await assert.rejects(api.listRoles(), /Entre na sua conta/)
   assert.equal(calls, 0)

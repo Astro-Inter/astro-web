@@ -1,23 +1,23 @@
 export interface RoleResponse {
-  id_cargo: number
-  id_workspace: number
-  nome: string
-  quantidade_colaboradores: number
+  roleId: number
+  workspaceId: number
+  name: string
+  collaboratorCount: number
   status: string
 }
 
 export interface RoleNrResponse {
-  codigo_nr: number
-  descricao: string
+  nrCode: number
+  description: string
 }
 
 export interface RoleNrOptionResponse {
   nr: number
-  descricao: string
-  ativo: boolean
+  description: string
+  active: boolean
 }
 
 export interface RoleNrRequest {
   nr: number
-  ativo: boolean
+  active: boolean
 }

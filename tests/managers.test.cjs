@@ -26,14 +26,14 @@ const validation = loadTs(path.join(__dirname, '../src/utils/collaborator.ts'))
 const originalFetch = global.fetch
 afterEach(() => { global.fetch = originalFetch; auth.currentUser = user })
 
-const summary = { id_usuario: 42, nome: 'Ana Silva', email: 'ana@example.test', unidade_id: 8, unidade: 'São Paulo', status: 'ATIVO' }
-const details = { ...summary, cargo_id: 5, cargo: 'Analista', cpf: '52998224725', modalidade: 'HIBRIDO', workspace_id: 1 }
+const summary = { id: 42, name: 'Ana Silva', email: 'ana@example.test', unitId: 8, unitName: 'São Paulo', status: 'ATIVO' }
+const details = { ...summary, roleId: 5, roleName: 'Analista', cpf: '52998224725', workModel: 'HIBRIDO', workspaceId: 1 }
 const values = { name: ' Ana Silva ', email: ' ANA@example.test ', cpf: '529.982.247-25', roleId: '5', unitId: '8', modality: 'HIBRIDO', status: 'ATIVO' }
 function respond(data, status = 200) { return new Response(JSON.stringify({ success: true, data }), { status }) }
 
 test('conecta os cinco endpoints com Bearer, IDs e DTOs do Swagger, preservando o ID ao promover', async () => {
   const calls = []
-  const responses = [[summary], details, details, { ...details, nome: 'Ana Souza' }, { ...details, status: 'DESATIVADO' }]
+  const responses = [[summary], details, details, { ...details, name: 'Ana Souza' }, { ...details, status: 'DESATIVADO' }]
   global.fetch = async (url, init) => { calls.push({ url, ...init }); return respond(responses.shift()) }
   assert.equal((await api.listManagers())[0].unitId, '8')
   assert.equal((await api.getManager('42')).cpf, '529.982.247-25')
@@ -49,7 +49,7 @@ test('conecta os cinco endpoints com Bearer, IDs e DTOs do Swagger, preservando 
     if (call.method === 'GET') assert.equal(call.body, undefined)
   }
   assert.deepEqual(JSON.parse(calls[2].body), { collaboratorId: 42, status: 'ATIVO' })
-  assert.deepEqual(JSON.parse(calls[3].body), { nome: 'Ana Silva', email: 'ana@example.test', cpf: '52998224725', roleId: 5, unitId: 8, modalidade: 'HIBRIDO', status: 'ATIVO' })
+  assert.deepEqual(JSON.parse(calls[3].body), { name: 'Ana Silva', email: 'ana@example.test', cpf: '52998224725', roleId: 5, unitId: 8, workModel: 'HIBRIDO', status: 'ATIVO' })
   assert.deepEqual(JSON.parse(calls[4].body), { status: 'DESATIVADO' })
 })
 
@@ -111,7 +111,7 @@ test('foto ausente ou com protocolo inválido usa fallback e campos malformados 
 
 test('detalhes toleram campos opcionais ausentes; edição exige CPF e modalidade válidos', async () => {
   for (const missing of [null, '', undefined]) {
-    global.fetch = async () => respond({ ...details, cpf: missing, modalidade: missing })
+    global.fetch = async () => respond({ ...details, cpf: missing, workModel: missing })
     const manager = await api.getManager('42')
     assert.equal(manager.cpf, '')
     assert.equal(manager.modality, '')
@@ -131,11 +131,11 @@ test('detalhes toleram campos opcionais ausentes; edição exige CPF e modalidad
 })
 
 test('valida respostas e preserva erros de conflito, permissão e sessão', async () => {
-  for (const malformed of [null, {}, [null], [{ ...summary, status: 'inativo' }], [{ ...summary, unidade_id: 0 }]]) {
+  for (const malformed of [null, {}, [null], [{ ...summary, status: 'inativo' }], [{ ...summary, unitId: 0 }]]) {
     global.fetch = async () => respond(malformed)
     await assert.rejects(api.listManagers(), /inválid/)
   }
-  global.fetch = async () => respond({ ...details, cargo_id: 0 })
+  global.fetch = async () => respond({ ...details, roleId: 0 })
   await assert.rejects(api.getManager('42'), /detalhes inválidos/)
   global.fetch = async () => new Response(JSON.stringify({ success: false, errors: ['Colaborador precisa estar ativo.'] }), { status: 409 })
   await assert.rejects(api.promoteManager({ collaboratorId: '42', status: 'active' }), /precisa estar ativo/)

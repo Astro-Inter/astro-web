@@ -180,13 +180,13 @@ export async function getFormOptions(signal?: AbortSignal): Promise<FormEditorOp
   if (firebaseAuth.currentUser !== user) throw new FormsApiError('Sua sessão mudou. Entre novamente.')
   const activeUnits = units.filter(unit => unit.active)
   // O catálogo de opções de uma unidade contém todas as NRs de usabilidade Empresa.
-  // "ativo" indica apenas a associação à unidade, não a classificação da NR.
+  // "active" indica apenas a associação à unidade, não a classificação da NR.
   const nrs = activeUnits[0] ? await listUnitNrOptions(activeUnits[0].id, signal) : []
   signal?.throwIfAborted()
   if (firebaseAuth.currentUser !== user) throw new FormsApiError('Sua sessão mudou. Entre novamente.')
   return {
     ...recipients,
     units: activeUnits.map(unit => ({ value: unit.id, label: unit.name })),
-    nrs: nrs.map(nr => ({ value: String(nr.nr), label: `NR ${nr.nr} — ${nr.descricao}` })),
+    nrs: nrs.map(nr => ({ value: String(nr.nr), label: `NR ${nr.nr} — ${nr.description}` })),
   }
 }

@@ -12,7 +12,7 @@ const { act } = React
 
 const user = { uid: 'current-manager', getIdToken: async () => 'firebase-token' }
 const auth = { currentUser: user }
-const profileResponse = { nome: ' Rosa Maduda ', email: 'rosa@example.test', cargo: 'Gestor de Segurança', unidade: 'Matriz São Paulo', modalidade: 'PRESENCIAL', profilePhotoUrl: 'https://images.example.test/photo?signature=temporary' }
+const profileResponse = { name: ' Rosa Maduda ', email: 'rosa@example.test', roleName: 'Gestor de Segurança', unitName: 'Matriz São Paulo', workModel: 'PRESENCIAL', profilePhotoUrl: 'https://images.example.test/photo?signature=temporary' }
 const originalFetch = global.fetch
 afterEach(() => { global.fetch = originalFetch; auth.currentUser = user })
 
@@ -71,14 +71,14 @@ test('consulta o próprio perfil com Bearer e mapeia os dados reais sem senha ou
 })
 
 test('aceita e-mail e dados profissionais ausentes e descarta URL de foto insegura', async () => {
-  global.fetch = async () => respond({ ...profileResponse, email: null, cargo: null, unidade: null, modalidade: null, profilePhotoUrl: 'javascript:alert(1)' })
+  global.fetch = async () => respond({ ...profileResponse, email: null, roleName: null, unitName: null, workModel: null, profilePhotoUrl: 'javascript:alert(1)' })
   const profile = await api.getAccountProfile()
   assert.equal(profile.email, '')
   assert.equal(profile.photoUrl, undefined)
   assert.equal(profile.position, '')
   assert.equal(profile.units, '')
   assert.equal(profile.modality, '')
-  global.fetch = async () => respond({ ...profileResponse, modalidade: 'HIBRIDO', profilePhotoUrl: null })
+  global.fetch = async () => respond({ ...profileResponse, workModel: 'HIBRIDO', profilePhotoUrl: null })
   assert.equal((await api.getAccountDetails()).modality, 'Híbrido')
   for (const email of [undefined, '', '   ']) {
     global.fetch = async () => respond({ ...profileResponse, email })
@@ -95,7 +95,7 @@ test('trata sessão ausente, HTTP, resposta inválida e rede sem recorrer ao per
     global.fetch = async () => new Response('', { status })
     await assert.rejects(api.getAccountProfile(), message)
   }
-  for (const body of [null, {}, { success: true, data: null }, { success: true, data: { ...profileResponse, nome: '' } }, { success: true, data: { ...profileResponse, unidade: [] } }]) {
+  for (const body of [null, {}, { success: true, data: null }, { success: true, data: { ...profileResponse, name: '' } }, { success: true, data: { ...profileResponse, unitName: [] } }]) {
     global.fetch = async () => new Response(JSON.stringify(body))
     await assert.rejects(api.getAccountProfile(), /inválid/)
   }
@@ -114,7 +114,7 @@ test('descarta o perfil se a sessão mudar durante a leitura e preserva cancelam
 
 test('detalhes usam a nova rota, formatam CPF e preservam IDs; PUT envia somente os seis campos em inglês', async () => {
   const values = { name: ' Rosa Maduda ', cpf: '529.982.247-25', email: ' ROSA@example.test ', roleId: '7', unitId: '8', workModel: 'HIBRIDO' }
-  const response = { ...profileResponse, cpf: '52998224725', roleId: 7, unitId: 8, modalidade: 'HIBRIDO' }
+  const response = { ...profileResponse, cpf: '52998224725', roleId: 7, unitId: 8, workModel: 'HIBRIDO' }
   global.fetch = async (url, init) => {
     assert.equal(url, 'https://api.example.test/user/me/account-details')
     assert.equal(init.headers.Authorization, 'Bearer firebase-token')
@@ -216,13 +216,13 @@ function Modal({ children, title, onClose }) {
   return React.createElement('section', { role: 'dialog', 'aria-label': title }, typeof children === 'function' ? children(onClose) : children)
 }
 
-const completeProfile = { name: 'Rosa Maduda', email: profileResponse.email, position: profileResponse.cargo, units: profileResponse.unidade, modality: 'Presencial', photoUrl: profileResponse.profilePhotoUrl, cpf: '', roleId: '1', unitId: '1', workModel: 'PRESENCIAL' }
+const completeProfile = { name: 'Rosa Maduda', email: profileResponse.email, position: profileResponse.roleName, units: profileResponse.unitName, modality: 'Presencial', photoUrl: profileResponse.profilePhotoUrl, cpf: '', roleId: '1', unitId: '1', workModel: 'PRESENCIAL' }
 
 test('Ver tudo apresenta os campos da API, foto e CPF vazio, sem campo de senha', () => {
   let details = completeProfile
   const env = environment({ '../appModal': { __esModule: true, default: Modal }, '../../hooks/useAccountDetails': { useAccountDetails: () => ({ data: details, roles: [], units: [], submission: { pending: false } }) } })
   const Details = env.load('src/components/accountDetailsModal/index.tsx').default
-  const profile = { name: 'Rosa Maduda', email: profileResponse.email, position: profileResponse.cargo, units: profileResponse.unidade, modality: 'Presencial', photoUrl: profileResponse.profilePhotoUrl }
+  const profile = { name: 'Rosa Maduda', email: profileResponse.email, position: profileResponse.roleName, units: profileResponse.unitName, modality: 'Presencial', photoUrl: profileResponse.profilePhotoUrl }
   const markup = renderToStaticMarkup(React.createElement(Details, { profile, onCancel() {} }))
   const dom = new JSDOM(markup)
   assert.equal(dom.window.document.querySelectorAll('input').length, 6)
@@ -258,7 +258,7 @@ test('ambos os gestores carregam o perfil; erro permite tentar novamente, troca 
   })
   const Page = env.load('src/pages/mainAccountScreen/index.tsx').default
   const render = () => root.render(React.createElement(MemoryRouter, { initialEntries: ['/mainAccountScreen'] }, React.createElement(Page)))
-  const profile = { name: 'Rosa Maduda', email: profileResponse.email, position: profileResponse.cargo, units: profileResponse.unidade, modality: 'Presencial', photoUrl: profileResponse.profilePhotoUrl }
+  const profile = { name: 'Rosa Maduda', email: profileResponse.email, position: profileResponse.roleName, units: profileResponse.unitName, modality: 'Presencial', photoUrl: profileResponse.profilePhotoUrl }
   try {
     await act(async () => render())
     assert.match(document.querySelector('[role=status]').textContent, /Carregando/)
@@ -316,7 +316,7 @@ test('troca de foto mantém a atual durante upload, compartilha o resultado e re
   global.window = dom.window; global.document = dom.window.document; global.IS_REACT_ACT_ENVIRONMENT = true
   const root = createRoot(document.getElementById('root'))
   const context = { user: { uid: 'manager', accountType: 'GESTOR' } }
-  const profile = { name: 'Rosa Maduda', email: profileResponse.email, position: profileResponse.cargo, units: profileResponse.unidade, modality: 'Presencial', photoUrl: profileResponse.profilePhotoUrl }
+  const profile = { name: 'Rosa Maduda', email: profileResponse.email, position: profileResponse.roleName, units: profileResponse.unitName, modality: 'Presencial', photoUrl: profileResponse.profilePhotoUrl }
   const uploads = [], reads = []
   let read = async () => profile
   let send = deferred()

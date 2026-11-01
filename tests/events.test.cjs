@@ -98,8 +98,8 @@ test('seis endpoints administrativos usam token, parâmetros locais e payloads d
 
 test('NRs e candidatos preservam HIBRIDO e dados ausentes', async () => {
   global.fetch = async url => response(new URL(url).pathname === '/nrs' ? [{ code: 10, title: 'Eletricidade' }]
-    : new URL(url).pathname === '/roles' ? [{ id_cargo: 7, nome: 'Operador', quantidade_colaboradores: 1, status: 'ativo' }]
-      : [{ nr: 10, descricao: 'Eletricidade', ativo: true }])
+    : new URL(url).pathname === '/roles' ? [{ roleId: 7, name: 'Operador', collaboratorCount: 1, status: 'ativo' }]
+      : [{ nr: 10, description: 'Eletricidade', active: true }])
   assert.deepEqual(await api.listEventNrs(), [{ code: 10, title: 'Eletricidade' }])
   global.fetch = async () => response([{ id: 11, name: 'Ana', email: null, roleId: null, roleName: null, unitId: null, unitName: null, workModel: 'HIBRIDO' }])
   const [candidate] = await api.listEventCandidates()
@@ -112,9 +112,9 @@ test('dropdown usa opções de Colaborador de um cargo real e mantém NRs ainda 
   global.fetch = async (url, init) => {
     const parsed = new URL(url); calls.push({ ...init, url: parsed })
     if (parsed.pathname === '/nrs') return response([{ code: 6, title: 'EPI' }, { code: 10, title: 'Eletricidade' }, { code: 17, title: 'Ergonomia' }])
-    if (parsed.pathname === '/roles') return response([{ id_cargo: 3, nome: 'Inativo', quantidade_colaboradores: 0, status: 'inativo' }, { id_cargo: 8, nome: 'Operador', quantidade_colaboradores: 2, status: 'ativo' }])
+    if (parsed.pathname === '/roles') return response([{ roleId: 3, name: 'Inativo', collaboratorCount: 0, status: 'inativo' }, { roleId: 8, name: 'Operador', collaboratorCount: 2, status: 'ativo' }])
     assert.equal(parsed.pathname, '/roles/8/nrs/options')
-    return response([{ nr: 6, descricao: 'EPI', ativo: false }, { nr: 10, descricao: 'Eletricidade', ativo: true }])
+    return response([{ nr: 6, description: 'EPI', active: false }, { nr: 10, description: 'Eletricidade', active: true }])
   }
   const controller = new AbortController()
   assert.deepEqual(await api.listEventNrs(controller.signal), [{ code: 6, title: 'EPI' }, { code: 10, title: 'Eletricidade' }])
@@ -127,7 +127,7 @@ test('catálogo de colaborador vazio ou erro não libera o catálogo completo de
   global.fetch = async url => {
     const pathname = new URL(url).pathname
     if (pathname === '/nrs') return response([{ code: 17, title: 'Ergonomia' }])
-    if (pathname === '/roles') return response(hasRole ? [{ id_cargo: 8, nome: 'Operador', quantidade_colaboradores: 2, status: 'ativo' }] : [])
+    if (pathname === '/roles') return response(hasRole ? [{ roleId: 8, name: 'Operador', collaboratorCount: 2, status: 'ativo' }] : [])
     if (fail) throw new TypeError('Offline')
     return response([])
   }

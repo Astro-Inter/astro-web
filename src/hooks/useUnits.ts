@@ -61,7 +61,7 @@ export function useUnits(unitId?: string): UnitsResult {
     Promise.all([listUnitNrs(unitId, controller.signal), listUnitNrOptions(unitId, controller.signal)]).then(([linked, options]) => {
       if (!controller.signal.aborted) setNrs({
         key: nrsKey,
-        rows: linked.map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.descricao })),
+        rows: linked.map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.description })),
         options, loading: false, error: '',
       })
     }).catch((error: unknown) => {
@@ -97,12 +97,12 @@ export function useUnits(unitId?: string): UnitsResult {
     if (enabledIds.some((nr) => !nrs.options.some((row) => String(row.nr) === nr))) return 'Seleção de NRs inválida.'
     return mutate(async () => {
       const enabled = new Set(enabledIds)
-      const options = nrs.options.map((row) => ({ ...row, ativo: enabled.has(String(row.nr)) }))
-      const selection = options.map(({ nr, ativo }) => ({ nr, ativo }))
+      const options = nrs.options.map((row) => ({ ...row, active: enabled.has(String(row.nr)) }))
+      const selection = options.map(({ nr, active }) => ({ nr, active }))
       const validationError = validateNrSelection(selection)
       if (validationError) throw new Error(validationError)
       await updateUnitNrs(id, selection)
-      if (mounted.current) setNrs((current) => current.key === nrsKey ? { ...current, options, rows: options.filter((row) => row.ativo).map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.descricao })) } : current)
+      if (mounted.current) setNrs((current) => current.key === nrsKey ? { ...current, options, rows: options.filter((row) => row.active).map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.description })) } : current)
     })
   }
 

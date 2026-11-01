@@ -96,7 +96,7 @@ function validateNr(nr: number, description: string): void {
 export async function listUnitNrs(id: string, signal?: AbortSignal): Promise<UnitNrResponse[]> {
   const data = await requestUnits<UnitNrResponse[]>(`${unitPath(id)}/nrs/associated`, 'GET', undefined, signal)
   if (!Array.isArray(data)) throw new UnitsApiError('A API retornou uma lista de NRs inválida.')
-  data.forEach((row) => validateNr(row?.nr, row?.descricao))
+  data.forEach((row) => validateNr(row?.nr, row?.description))
   return data
 }
 
@@ -104,8 +104,8 @@ export async function listUnitNrOptions(id: string, signal?: AbortSignal): Promi
   const data = await requestUnits<UnitNrOptionResponse[]>(`${unitPath(id)}/nrs`, 'GET', undefined, signal)
   if (!Array.isArray(data)) throw new UnitsApiError('A API retornou opções de NRs inválidas.')
   data.forEach((row) => {
-    validateNr(row?.nr, row?.descricao)
-    if (typeof row.ativo !== 'boolean') throw new UnitsApiError('A API retornou um vínculo de NR inválido.')
+    validateNr(row?.nr, row?.description)
+    if (typeof row.active !== 'boolean') throw new UnitsApiError('A API retornou um vínculo de NR inválido.')
   })
   return data
 }
@@ -113,5 +113,5 @@ export async function listUnitNrOptions(id: string, signal?: AbortSignal): Promi
 export async function updateUnitNrs(id: string, nrs: UnitNrRequest[]): Promise<void> {
   const error = validateNrSelection(nrs)
   if (error) throw new UnitsApiError(error)
-  await requestUnits<void>(`${unitPath(id)}/nrs`, 'POST', nrs)
+  await requestUnits<void>(`${unitPath(id)}/nrs`, 'POST', { nrs })
 }

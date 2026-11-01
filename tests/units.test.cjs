@@ -28,13 +28,13 @@ function respond(data) { return new Response(JSON.stringify({ success: true, dat
 
 test('conecta os cinco endpoints de unidades com token e contratos do Swagger', async () => {
   const calls = []
-  const responses = [[unit], false, [{ nr: 6, descricao: 'EPI' }], [{ nr: 6, descricao: 'EPI', ativo: true }], null]
+  const responses = [[unit], false, [{ nr: 6, description: 'EPI' }], [{ nr: 6, description: 'EPI', active: true }], null]
   global.fetch = async (url, init) => { calls.push({ url, ...init }); return respond(responses.shift()) }
   assert.deepEqual(await api.listUnits(), [{ id: '42', name: 'Swift Pirituba', collaboratorCount: 530, active: true }])
   assert.equal(await api.toggleUnitStatus('42'), false)
-  assert.deepEqual(await api.listUnitNrs('42'), [{ nr: 6, descricao: 'EPI' }])
-  assert.equal((await api.listUnitNrOptions('42'))[0].ativo, true)
-  await api.updateUnitNrs('42', [{ nr: 6, ativo: false }, { nr: 10, ativo: true }])
+  assert.deepEqual(await api.listUnitNrs('42'), [{ nr: 6, description: 'EPI' }])
+  assert.equal((await api.listUnitNrOptions('42'))[0].active, true)
+  await api.updateUnitNrs('42', [{ nr: 6, active: false }, { nr: 10, active: true }])
   assert.deepEqual(calls.map(c => [c.method, new URL(c.url).pathname]), [
     ['GET', '/units'], ['PATCH', '/units/42/status'], ['GET', '/units/42/nrs/associated'],
     ['GET', '/units/42/nrs'], ['POST', '/units/42/nrs'],
@@ -44,7 +44,7 @@ test('conecta os cinco endpoints de unidades com token e contratos do Swagger', 
     assert.equal(new URL(call.url).search, '')
   }
   assert.equal(calls[1].body, undefined)
-  assert.deepEqual(JSON.parse(calls[4].body), [{ nr: 6, ativo: false }, { nr: 10, ativo: true }])
+  assert.deepEqual(JSON.parse(calls[4].body).nrs, [{ nr: 6, active: false }, { nr: 10, active: true }])
 })
 
 test('erros HTTP, recusa da API e respostas inválidas são tratados', async () => {
@@ -60,7 +60,7 @@ test('erros HTTP, recusa da API e respostas inválidas são tratados', async () 
   await assert.rejects(api.toggleUnitStatus('42'), /status inválido/)
   global.fetch = async () => respond([{ ...unit, status: 'desconhecido' }])
   await assert.rejects(api.listUnits(), /dados inválidos/)
-  global.fetch = async () => respond([{ nr: 6, descricao: 'EPI', ativo: 'true' }])
+  global.fetch = async () => respond([{ nr: 6, description: 'EPI', active: 'true' }])
   await assert.rejects(api.listUnitNrOptions('42'), /vínculo/)
 })
 
@@ -68,10 +68,10 @@ test('validação e sessão ausente impedem requisições indevidas', async () =
   let calls = 0
   global.fetch = async () => { calls++; return respond(null) }
   await assert.rejects(api.toggleUnitStatus('unidade-local'), /Identificador/)
-  await assert.rejects(api.updateUnitNrs('42', [{ nr: 6, ativo: true }, { nr: 6, ativo: false }]), /Seleção/)
-  await assert.rejects(api.updateUnitNrs('42', [{ nr: -1, ativo: true }]), /Seleção/)
-  await assert.rejects(api.updateUnitNrs('42', [{ nr: 6, ativo: 'true' }]), /Seleção/)
-  await assert.rejects(api.updateUnitNrs('42', [{ nr: 1.5, ativo: false }]), /Seleção/)
+  await assert.rejects(api.updateUnitNrs('42', [{ nr: 6, active: true }, { nr: 6, active: false }]), /Seleção/)
+  await assert.rejects(api.updateUnitNrs('42', [{ nr: -1, active: true }]), /Seleção/)
+  await assert.rejects(api.updateUnitNrs('42', [{ nr: 6, active: 'true' }]), /Seleção/)
+  await assert.rejects(api.updateUnitNrs('42', [{ nr: 1.5, active: false }]), /Seleção/)
   auth.currentUser = null
   await assert.rejects(api.listUnits(), /Entre na sua conta/)
   assert.equal(calls, 0)
@@ -94,13 +94,13 @@ test('cancelamento durante obtenção do token impede iniciar uma consulta', asy
   assert.equal(calls, 0)
 })
 
-test('envia array vazio diretamente, com JSON e Bearer, sem UID', async () => {
+test('envia lista vazia no envelope nrs, com JSON e Bearer, sem UID', async () => {
   global.fetch = async (url, init) => {
     assert.equal(url, 'https://api.example.test/units/42/nrs')
     assert.equal(init.method, 'POST')
     assert.equal(init.headers.Authorization, 'Bearer firebase-token')
     assert.equal(init.headers['Content-Type'], 'application/json')
-    assert.equal(init.body, '[]')
+    assert.deepEqual(JSON.parse(init.body), { nrs: [] })
     return respond(null)
   }
   await api.updateUnitNrs('42', [])

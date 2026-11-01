@@ -62,7 +62,7 @@ export function usePositions(roleId?: string): PositionsResult {
     Promise.all([listRoleNrs(roleId, controller.signal), listRoleNrOptions(roleId, controller.signal)]).then(([linked, options]) => {
       if (!controller.signal.aborted) setNrs({
         key: nrsKey,
-        rows: linked.map((row) => ({ id: String(row.codigo_nr), code: `NR ${row.codigo_nr}`, description: row.descricao })),
+        rows: linked.map((row) => ({ id: String(row.nrCode), code: `NR ${row.nrCode}`, description: row.description })),
         options, loading: false, error: '',
       })
     }).catch((error: unknown) => {
@@ -114,12 +114,12 @@ export function usePositions(roleId?: string): PositionsResult {
   async function saveNrs(id: string, enabledIds: string[]): Promise<string | null> {
     return mutate(async () => {
       const enabled = new Set(enabledIds)
-      const options = nrs.options.map((row) => ({ ...row, ativo: enabled.has(String(row.nr)) }))
-      const selection = options.map(({ nr, ativo }) => ({ nr, ativo }))
+      const options = nrs.options.map((row) => ({ ...row, active: enabled.has(String(row.nr)) }))
+      const selection = options.map(({ nr, active }) => ({ nr, active }))
       const validationError = validateNrSelection(selection)
       if (validationError) throw new Error(validationError)
       await updateRoleNrs(id, selection)
-      if (mounted.current) setNrs((current) => ({ ...current, options, rows: options.filter((row) => row.ativo).map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.descricao })) }))
+      if (mounted.current) setNrs((current) => ({ ...current, options, rows: options.filter((row) => row.active).map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.description })) }))
     })
   }
 
