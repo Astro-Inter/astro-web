@@ -178,7 +178,7 @@ test('destinatários usam endpoint próprio, filtram o próprio gestor e preserv
   const calls = []
   global.fetch = async url => {
     const pathname = new URL(url).pathname; calls.push(pathname)
-    return response(pathname === '/units/3/nrs' ? [{ nr: 1, descricao: 'Disposições gerais', ativo: false }] : pathname === '/units' ? [
+    return response(pathname === '/units/3/nrs' ? [{ nr: 1, description: 'Disposições gerais', active: false }] : pathname === '/units' ? [
       { unitId: 3, name: 'Ativa', collaboratorCount: 0, status: 'ativo' }, { unitId: 4, name: 'Inativa', collaboratorCount: 0, status: 'inativo' },
     ] : { currentManagerId: 7, items: [
       { id: 7, name: 'Eu mesmo', unitName: 'Sede' }, { id: 8, name: 'Ana', unitName: 'Ativa' },
@@ -202,7 +202,7 @@ test('formulários usam somente o catálogo Empresa de uma unidade ativa e mant�
       { unitId: 4, name: 'Filial', collaboratorCount: 0, status: 'ativo' },
     ])
     assert.equal(pathname, '/units/3/nrs')
-    return response([{ nr: 1, descricao: 'Disposições gerais', ativo: false }, { nr: 5, descricao: 'CIPA', ativo: true }])
+    return response([{ nr: 1, description: 'Disposições gerais', active: false }, { nr: 5, description: 'CIPA', active: true }])
   }
   assert.deepEqual((await api.getFormOptions(controller.signal)).nrs, [
     { value: '1', label: 'NR 1 — Disposições gerais' }, { value: '5', label: 'NR 5 — CIPA' },

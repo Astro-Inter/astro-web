@@ -46,30 +46,30 @@ function managerPath(id: string): string {
 }
 
 function toManager(row: ManagerSummaryResponse): ManagerSummary {
-  if (!row || !Number.isSafeInteger(row.id_usuario) || row.id_usuario <= 0
-    || !Number.isSafeInteger(row.unidade_id) || row.unidade_id <= 0
-    || typeof row.nome !== 'string' || typeof row.email !== 'string' || typeof row.unidade !== 'string'
+  if (!row || !Number.isSafeInteger(row.id) || row.id <= 0
+    || !Number.isSafeInteger(row.unitId) || row.unitId <= 0
+    || typeof row.name !== 'string' || typeof row.email !== 'string' || typeof row.unitName !== 'string'
     || !['PRE_CADASTRADO', 'ATIVO', 'DESATIVADO'].includes(row.status)
     || (row.profilePhotoUrl != null && typeof row.profilePhotoUrl !== 'string')
     || (row.avatarInitials != null && typeof row.avatarInitials !== 'string')) {
     throw new ManagersApiError('A API retornou dados inválidos para o gestor.')
   }
-  return { id: String(row.id_usuario), name: row.nome, email: row.email, unitId: String(row.unidade_id), unit: row.unidade, status: row.status,
+  return { id: String(row.id), name: row.name, email: row.email, unitId: String(row.unitId), unit: row.unitName, status: row.status,
     profilePhotoUrl: row.profilePhotoUrl && /^https?:\/\//i.test(row.profilePhotoUrl) ? row.profilePhotoUrl : null,
     avatarInitials: row.avatarInitials || null }
 }
 
 function toDetails(row: ManagerDetailsResponse): ManagerDetails {
   const manager = toManager(row)
-  if (!Number.isSafeInteger(row.cargo_id) || row.cargo_id <= 0 || typeof row.cargo !== 'string'
+  if (!Number.isSafeInteger(row.roleId) || row.roleId <= 0 || typeof row.roleName !== 'string'
     || (row.cpf != null && typeof row.cpf !== 'string')
-    || (row.modalidade != null && row.modalidade !== '' && !['HIBRIDO', 'REMOTO', 'PRESENCIAL'].includes(row.modalidade))) {
+    || (row.workModel != null && row.workModel !== '' && !['HIBRIDO', 'REMOTO', 'PRESENCIAL'].includes(row.workModel))) {
     throw new ManagersApiError('A API retornou detalhes inválidos para o gestor.')
   }
   const cpf = row.cpf?.trim() ?? ''
   const digits = cpf.replace(/[.\-\s]/g, '')
-  return { ...manager, roleId: String(row.cargo_id), position: row.cargo, cpf: /^\d{11}$/.test(digits) ? formatCpfCnpj(digits) : cpf,
-    modality: row.modalidade || '' }
+  return { ...manager, roleId: String(row.roleId), position: row.roleName, cpf: /^\d{11}$/.test(digits) ? formatCpfCnpj(digits) : cpf,
+    modality: row.workModel || '' }
 }
 
 export async function listManagers(signal?: AbortSignal): Promise<ManagerSummary[]> {
@@ -92,8 +92,8 @@ export async function promoteManager(values: ManagerInviteValues): Promise<Manag
 export async function updateManager(id: string, values: ManagerFormValues): Promise<ManagerDetails> {
   const errors = validateCollaborator(values)
   if (Object.keys(errors).length) throw new ManagersApiError(Object.values(errors).join(' '))
-  const payload: UpdateManagerRequest = { nome: values.name.trim(), cpf: values.cpf.replace(/[.\-\s]/g, ''), email: values.email.trim().toLowerCase(),
-    roleId: Number(values.roleId), unitId: Number(values.unitId), modalidade: values.modality as UpdateManagerRequest['modalidade'], status: values.status }
+  const payload: UpdateManagerRequest = { name: values.name.trim(), cpf: values.cpf.replace(/[.\-\s]/g, ''), email: values.email.trim().toLowerCase(),
+    roleId: Number(values.roleId), unitId: Number(values.unitId), workModel: values.modality as UpdateManagerRequest['workModel'], status: values.status }
   return toDetails(await requestManagers<ManagerDetailsResponse>(managerPath(id), 'PUT', payload))
 }
 

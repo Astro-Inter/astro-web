@@ -1,17 +1,17 @@
 import type { CollaboratorDetails, CollaboratorDetailsResponse, CollaboratorFormValues, CollaboratorSummaryResponse } from './collaborator'
 
-export type ManagerSummaryResponse = Pick<CollaboratorSummaryResponse, 'id_usuario' | 'nome' | 'email' | 'unidade_id' | 'unidade' | 'status' | 'profilePhotoUrl' | 'avatarInitials'>
+export type ManagerSummaryResponse = Pick<CollaboratorSummaryResponse, 'id' | 'name' | 'email' | 'unitId' | 'unitName' | 'status' | 'profilePhotoUrl' | 'avatarInitials'>
 export interface ManagerDetailsResponse extends CollaboratorDetailsResponse {}
 export type ManagerSummary = Pick<CollaboratorDetails, 'id' | 'name' | 'email' | 'unitId' | 'unit' | 'status' | 'profilePhotoUrl' | 'avatarInitials'>
 export interface ManagerDetails extends CollaboratorDetails {}
 export interface ManagerFormValues extends CollaboratorFormValues {}
 export interface UpdateManagerRequest {
-  nome: string
+  name: string
   cpf: string
   email: string
   roleId: number
   unitId: number
-  modalidade: 'HIBRIDO' | 'REMOTO' | 'PRESENCIAL'
+  workModel: 'HIBRIDO' | 'REMOTO' | 'PRESENCIAL'
   status: ManagerFormValues['status']
 }
 export interface PromoteManagerRequest {

@@ -45,17 +45,17 @@ function collaboratorPath(id: string): string {
 }
 
 function toCollaborator(row: CollaboratorSummaryResponse): Collaborator {
-  if (!row || !Number.isSafeInteger(row.id_usuario) || row.id_usuario <= 0
-    || !Number.isSafeInteger(row.cargo_id) || row.cargo_id <= 0 || !Number.isSafeInteger(row.unidade_id) || row.unidade_id <= 0
-    || typeof row.nome !== 'string' || typeof row.email !== 'string' || typeof row.cargo !== 'string' || typeof row.unidade !== 'string'
+  if (!row || !Number.isSafeInteger(row.id) || row.id <= 0
+    || !Number.isSafeInteger(row.roleId) || row.roleId <= 0 || !Number.isSafeInteger(row.unitId) || row.unitId <= 0
+    || typeof row.name !== 'string' || typeof row.email !== 'string' || typeof row.roleName !== 'string' || typeof row.unitName !== 'string'
     || !['PRE_CADASTRADO', 'ATIVO', 'DESATIVADO'].includes(row.status)
     || (row.profilePhotoUrl != null && typeof row.profilePhotoUrl !== 'string')
     || (row.avatarInitials != null && typeof row.avatarInitials !== 'string')
     || (row.canManage != null && typeof row.canManage !== 'boolean')) {
     throw new CollaboratorsApiError('A API retornou dados inválidos para o colaborador.')
   }
-  return { id: String(row.id_usuario), name: row.nome, email: row.email, roleId: String(row.cargo_id), position: row.cargo,
-    unitId: String(row.unidade_id), unit: row.unidade, status: row.status,
+  return { id: String(row.id), name: row.name, email: row.email, roleId: String(row.roleId), position: row.roleName,
+    unitId: String(row.unitId), unit: row.unitName, status: row.status,
     profilePhotoUrl: row.profilePhotoUrl && /^https?:\/\//i.test(row.profilePhotoUrl) ? row.profilePhotoUrl : null,
     avatarInitials: row.avatarInitials || null, canManage: row.canManage === true }
 }
@@ -67,12 +67,12 @@ function toDetails(row: CollaboratorDetailsResponse): CollaboratorDetails {
   if (row.cpf != null && typeof row.cpf !== 'string') {
     throw new CollaboratorsApiError('A API retornou o CPF do colaborador em um formato inválido.')
   }
-  if (row.modalidade != null && row.modalidade !== '' && !['HIBRIDO', 'REMOTO', 'PRESENCIAL'].includes(row.modalidade)) {
+  if (row.workModel != null && row.workModel !== '' && !['HIBRIDO', 'REMOTO', 'PRESENCIAL'].includes(row.workModel)) {
     throw new CollaboratorsApiError('A API retornou uma modalidade inválida para o colaborador.')
   }
   const cpf = row.cpf?.trim() ?? ''
   const digits = cpf.replace(/[.\-\s]/g, '')
-  return { ...collaborator, cpf: /^\d{11}$/.test(digits) ? formatCpfCnpj(digits) : cpf, modality: row.modalidade || '' }
+  return { ...collaborator, cpf: /^\d{11}$/.test(digits) ? formatCpfCnpj(digits) : cpf, modality: row.workModel || '' }
 }
 
 function collaboratorPayload(values: CollaboratorFormValues): CreateCollaboratorRequest {

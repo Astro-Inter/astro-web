@@ -367,8 +367,8 @@ test('transferência filtra gestores ativos, envia ID, confirma perda de acesso 
   global.fetch = async (url, init) => {
     calls.push([new URL(url).pathname, init.body])
     return url.endsWith('/managers') ? response([
-      { id_usuario: 42, nome: 'Ana', email: 'ana@example.com', unidade_id: 12, unidade: 'Filial', status: 'ATIVO' },
-      { id_usuario: 99, nome: 'Inativo', email: 'inativo@example.com', unidade_id: 12, unidade: 'Filial', status: 'DESATIVADO' },
+      { id: 42, name: 'Ana', email: 'ana@example.com', unitId: 12, unitName: 'Filial', status: 'ATIVO' },
+      { id: 99, name: 'Inativo', email: 'inativo@example.com', unitId: 12, unitName: 'Filial', status: 'DESATIVADO' },
     ]) : response({ workspaceId: 3, previousManagerId: 8, newManagerId: 42 })
   }
   const Modal = env.load('src/components/workspaceManagerTransferModal/index.tsx').default
@@ -391,7 +391,7 @@ test('conflito de transferência explica o bloqueio sem misturar aviso de permis
   const message = 'O workspace deve ter um único gestor responsável para realizar a transferência'
   global.fetch = async (url) => {
     if (url.endsWith('/managers')) return response([
-      { id_usuario: 42, nome: 'Ana', email: 'ana@example.com', unidade_id: 12, unidade: 'Filial', status: 'ATIVO' },
+      { id: 42, name: 'Ana', email: 'ana@example.com', unitId: 12, unitName: 'Filial', status: 'ATIVO' },
     ])
     writes++
     return Response.json({ success: false, message, data: null, errors: [message] }, { status: 409 })
@@ -677,7 +677,7 @@ test('transferência abre o popup de seleção com skeleton e mantém o mesmo di
   assert.ok([...document.querySelectorAll('button')].some(button => button.textContent === 'Cancelar' && !button.disabled))
   assert.equal(document.querySelector('.action-loading'), null)
   await act(async () => resolveManagers(response([
-    { id_usuario: 42, nome: 'Ana', email: 'ana@example.com', unidade_id: 12, unidade: 'Filial', status: 'ATIVO' },
+    { id: 42, name: 'Ana', email: 'ana@example.com', unitId: 12, unitName: 'Filial', status: 'ATIVO' },
   ])))
   assert.equal(document.querySelector('dialog'), dialog)
   assert.equal(document.querySelector('form').getAttribute('aria-busy'), 'false')

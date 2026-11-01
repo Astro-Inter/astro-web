@@ -43,8 +43,8 @@ function MainPositionScreenPage() {
   const api = usePositions(nrsPosition?.id)
   const recommendations = useRoleNrRecommendations(nrsEditing ? nrsPosition?.id : undefined)
   const { positions } = api
-  const nrOptionRows = api.nrs.options.map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.descricao }))
-  const enabledNrIds = api.nrs.options.filter((row) => row.ativo).map((row) => String(row.nr))
+  const nrOptionRows = api.nrs.options.map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.description }))
+  const enabledNrIds = api.nrs.options.filter((row) => row.active).map((row) => String(row.nr))
   const [editorDimmed, setEditorDimmed] = useState(false)
   const [editorClosing, setEditorClosing] = useState(false)
   const [savedPositionId, setSavedPositionId] = useState<string | null>(null)

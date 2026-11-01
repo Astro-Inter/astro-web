@@ -41,8 +41,8 @@ function MainUnitScreenPage() {
   const api = useUnits(nrs.unit?.id)
   const recommendations = useUnitNrRecommendations(nrs.editing ? nrs.unit?.id : undefined)
   const { units } = api
-  const nrOptionRows = api.nrs.options.map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.descricao }))
-  const enabledNrIds = api.nrs.options.filter((row) => row.ativo).map((row) => String(row.nr))
+  const nrOptionRows = api.nrs.options.map((row) => ({ id: String(row.nr), code: `NR ${row.nr}`, description: row.description }))
+  const enabledNrIds = api.nrs.options.filter((row) => row.active).map((row) => String(row.nr))
   const [savedNrIds, setSavedNrIds] = useState<string[]>([])
   const [pendingDeactivation, setPendingDeactivation] = useState<Unit | null>(null)
   const [savedUnitId, setSavedUnitId] = useState<string | null>(null)

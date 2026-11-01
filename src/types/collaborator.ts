@@ -5,13 +5,13 @@ export type CollaboratorStatus = 'PRE_CADASTRADO' | 'ATIVO' | 'DESATIVADO'
 export type CollaboratorModality = 'HIBRIDO' | 'REMOTO' | 'PRESENCIAL'
 
 export interface CollaboratorSummaryResponse {
-  id_usuario: number
-  nome: string
+  id: number
+  name: string
   email: string
-  cargo_id: number
-  cargo: string
-  unidade_id: number
-  unidade: string
+  roleId: number
+  roleName: string
+  unitId: number
+  unitName: string
   status: CollaboratorStatus
   profilePhotoUrl?: string | null
   avatarInitials?: string | null
@@ -20,8 +20,8 @@ export interface CollaboratorSummaryResponse {
 
 export interface CollaboratorDetailsResponse extends CollaboratorSummaryResponse {
   cpf?: string | null
-  modalidade?: CollaboratorModality | '' | null
-  workspace_id: number
+  workModel?: CollaboratorModality | '' | null
+  workspaceId: number
 }
 
 export interface Collaborator {

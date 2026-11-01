@@ -103,7 +103,7 @@ export async function listEventNrs(signal?: AbortSignal): Promise<EventNrOption[
   if (firebaseAuth.currentUser !== user) throw new EventsApiError('Sua sessão mudou. Entre novamente para acessar os eventos.')
   if (!Array.isArray(data) || data.some(row => !row || !validId(row.code) || typeof row.title !== 'string')) throw new EventsApiError('A API retornou NRs inválidas.')
   // As opções de qualquer cargo contêm todo o catálogo de usabilidade Colaborador.
-  // "ativo" informa apenas o vínculo com aquele cargo e não filtra este dropdown.
+  // "active" informa apenas o vínculo com aquele cargo e não filtra este dropdown.
   const role = roles.find(item => item.active) ?? roles[0]
   if (!role) return []
   const options = await listRoleNrOptions(role.id, signal)
