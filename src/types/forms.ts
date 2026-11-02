@@ -1,3 +1,5 @@
+import type { FormReviewStatus } from './formReview'
+
 export type FormQuestionKind = 'option' | 'text' | 'photo' | 'date' | 'nr' | 'unit'
 
 export interface FormQuestion {
@@ -36,6 +38,7 @@ export interface FormSummary {
   description: string
   questionCount: number
   status: FormStatus
+  reviewStatus?: FormReviewStatus
   icon: FormCardIcon
   color: FormCardColor
 }
@@ -96,6 +99,7 @@ export interface FormDetailsResponse {
 export interface FormSummaryResponse {
   id: string; title: string | null; description: string | null; questionCount: number; status: FormApiStatus
   appearance?: FormCardAppearance | null
+  reviewStatus?: FormReviewStatus
 }
 export interface FormsPageResponse {
   items: FormSummaryResponse[]; page: number; size: number; totalElements: number; totalPages: number

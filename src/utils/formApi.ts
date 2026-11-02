@@ -13,7 +13,7 @@ export const isFormReferenceId = (id: string): boolean => /^[1-9]\d*$/.test(id) 
 export function formSummary(row: FormSummaryResponse): FormSummary {
   const appearance = row.appearance
   return { id: row.id, name: row.title || 'Formulário sem título', description: row.description ?? '', questionCount: row.questionCount,
-    status: statuses[row.status], icon: appearance?.icon ?? 'document', color: appearance?.color ?? (row.status === 'CONCLUIDO' ? 'green' : row.status === 'RASCUNHO' ? 'blue' : 'purple') }
+    status: statuses[row.status], reviewStatus: row.reviewStatus, icon: appearance?.icon ?? 'document', color: appearance?.color ?? (row.status === 'CONCLUIDO' ? 'green' : row.status === 'RASCUNHO' ? 'blue' : 'purple') }
 }
 
 export function formValues(row: FormDetailsResponse): CreateFormValues {

@@ -57,7 +57,8 @@ const nullableText = (value: unknown) => value === null || typeof value === 'str
 const validStatus = (value: string) => ['RASCUNHO', 'PENDENTE', 'CONCLUIDO'].includes(value)
 const validDate = (value: string | null) => value === null || (/^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value)
 const validAppearance = (value: unknown) => value == null || isFormCardAppearance(value)
-const validSummary = (row: FormSummaryResponse) => row && validAppearance(row.appearance) && isFormId(row.id) && nullableText(row.title) && nullableText(row.description)
+const validSummary = (row: FormSummaryResponse) => row && (row.reviewStatus === undefined || ['awaiting_response', 'awaiting_review', 'approved', 'rejected'].includes(row.reviewStatus))
+  && validAppearance(row.appearance) && isFormId(row.id) && nullableText(row.title) && nullableText(row.description)
   && Number.isSafeInteger(row.questionCount) && row.questionCount >= 0 && row.questionCount <= 100 && validStatus(row.status)
 
 export function parseFormDetails(row: FormDetailsResponse): FormDetailsResponse {

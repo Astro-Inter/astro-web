@@ -577,3 +577,29 @@ test('layout de formulários mede uma vez por quadro, adapta a página e cancela
   await flushFrame()
   assert.equal(layoutReads, beforeUnmount)
 }))
+
+test('cards respondidos mostram aprovado, reprovado ou aguardando análise sem consultar rascunhos', async () => withDom(async root => {
+  const env = environment(), Card = env.load('src/components/formCard/index.tsx').default
+  const base = { id, name: 'Inspeção', description: '', questionCount: 1, icon: 'document', color: 'purple' }
+  for (const [status, label] of [['approved', 'Aprovado'], ['rejected', 'Reprovado'], ['awaiting_review', 'Aguardando análise']]) {
+    await act(async () => root.render(React.createElement(Card, { key: status, form: { ...base, status: 'completed', reviewStatus: status }, menuOpen: false, onOpen() {}, onOpenMenu() {} })))
+    assert.match(document.body.textContent, new RegExp(label))
+    assert.doesNotMatch(document.body.textContent, /Respondido/)
+    assert.equal(document.querySelectorAll('.form-card-status').length, 1)
+  }
+  const previousCalls = env.calls.length
+  for (const status of ['draft', 'pending']) {
+    await act(async () => root.render(React.createElement(Card, { form: { ...base, status }, menuOpen: false, onOpen() {}, onOpenMenu() {} })))
+    assert.equal(document.querySelector('[role="status"]'), null)
+  }
+  assert.equal(env.calls.length, previousCalls)
+}))
+
+test('card sem campo de análise mantém conteúdo e não faz consultas adicionais', async () => withDom(async root => {
+  const env = environment(), Card = env.load('src/components/formCard/index.tsx').default
+  const props = { form: { id, name: 'Inspeção', description: '', questionCount: 1, icon: 'document', color: 'purple', status: 'completed' }, menuOpen: false, onOpen() {}, onOpenMenu() {} }
+  await act(async () => root.render(React.createElement(Card, props)))
+  assert.match(document.body.textContent, /Inspeção.*Análise indisponível/s)
+  assert.equal(document.querySelectorAll('.form-card-status').length, 1)
+  assert.equal(env.calls.length, 0)
+}))

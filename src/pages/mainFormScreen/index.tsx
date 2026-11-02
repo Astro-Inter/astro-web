@@ -126,7 +126,7 @@ function MainFormScreenPage() {
   const page = filters.page
   if (!loading && !error && page > pageCount) setFilters(current => ({ ...current, page: pageCount }))
   const skeleton = useExitPresence(pageSize, loading)
-  const results = useAnimatedResults(forms, `${loading ? 'loading' : 'ready'}:${JSON.stringify(forms.map(form => [form.id, form.name, form.icon, form.color]))}`, page, `${filters.search}|${filters.status}|${filters.minimum}|${filters.maximum}|${pageSize}`, true, loading)
+  const results = useAnimatedResults(forms, `${loading ? 'loading' : 'ready'}:${JSON.stringify(forms.map(form => [form.id, form.name, form.icon, form.color, form.status, form.reviewStatus]))}`, page, `${filters.search}|${filters.status}|${filters.minimum}|${filters.maximum}|${pageSize}`, true, loading)
   const selected = forms.find(form => form.id === openId)
 
   return (
