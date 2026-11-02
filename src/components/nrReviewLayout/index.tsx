@@ -7,7 +7,7 @@ interface NrReviewLayoutProps { title: string; description?: string; backTo?: st
 export default function NrReviewLayout({ title, description = 'Revise as análises geradas pela IA antes de publicar no catálogo.', backTo, children }: NrReviewLayoutProps) {
   return <div className={`nr-review-screen${backTo ? ' nr-review-screen--detail' : ''}`}>
     <AdminHeader />
-    <main id="main-content" className="nr-review-main astro-scale-90">
+    <main id="conteudo-principal" className="nr-review-main astro-scale-90" tabIndex={-1}>
       <div className="nr-review-container position-content">
       {backTo && <Link className="nr-review-back" to={backTo}><AstroIcon name="back" />Voltar à listagem</Link>}
       <header className="position-heading nr-review-heading">

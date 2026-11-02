@@ -223,11 +223,11 @@ test('área administrativa mostra marca e saída sem informações da conta ou m
   assert.equal(document.querySelector('[role="dialog"]'), null)
 }))
 
-test('list shows pagination, filters and empty results in the DOM', async () => withPage('/admin/nrs/pending', async () => {
+test('list shows every result in the scrollable grid, filters and empty results in the DOM', async () => withPage('/admin/nrs/pending', async () => {
   assert.match(document.body.textContent, /6 resultado/)
-  assert.equal(document.querySelectorAll('tbody tr').length, 5)
-  await click('Próxima página')
-  assert.match(document.body.textContent, /Página 2 de 2/)
+  assert.equal(document.querySelectorAll('tbody tr').length, 6)
+  assert.ok(document.querySelector('.nr-catalog-grid .astro-data-table-scroll'))
+  assert.equal(document.querySelector('.nr-review-pagination'), null)
   await click('Limpar filtros')
   await chooseFilter('nr-usability', 'Empresa')
   assert.match(document.body.textContent, /2 resultado/)

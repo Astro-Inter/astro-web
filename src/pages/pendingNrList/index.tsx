@@ -15,7 +15,6 @@ import { filterPendingNrs, nrDemoScenario, nrReviewLink, parseNrId } from '../..
 import type { NrDocument, NrReviewFilters } from '../../types/nrReview'
 
 const initialFilters: NrReviewFilters = { search: '', usability: '', revoked: '', page: 1 }
-const pageSize = 5
 export default function PendingNrListPage() {
   const [params, setParams] = useSearchParams()
   const { id: routeId } = useParams<{ id: string }>()
@@ -32,9 +31,6 @@ export default function PendingNrListPage() {
   }
   const documents = data?.candidates.map(item => item.document) ?? []
   const filtered = filterPendingNrs(documents, filters)
-  const pages = Math.max(1, Math.ceil(filtered.length / pageSize))
-  const page = Math.min(filters.page, pages)
-  const rows = filtered.slice((page - 1) * pageSize, page * pageSize)
   function filter(field: 'search' | 'usability' | 'revoked', value: string): void { setFilters(current => ({ ...current, [field]: value, page: 1 })) }
   const columns: readonly DataTableColumn<NrDocument>[] = [
     { id: 'number', label: 'Norma', width: '6rem', rowHeader: true, render: item => <strong className="nr-review-code">NR-{item._id}</strong> },
@@ -59,14 +55,9 @@ export default function PendingNrListPage() {
       <button className="nr-review-clear" type="button" onClick={() => setFilters(initialFilters)}><AstroIcon name="reload" />Limpar filtros</button>
     </section>
     {error ? <NrLoadError title="Não foi possível carregar as NRs pendentes" message={error} onRetry={retry} /> : <>
-      <DataTable ariaLabel="NRs aguardando revisão" columns={columns} rows={rows} loading={loading} getRowKey={item => String(item._id)} emptyMessage={documents.length ? 'Nenhum resultado para os filtros selecionados.' : 'Nenhuma NR aguardando revisão.'} />
+      <div className="nr-catalog-grid"><DataTable ariaLabel="NRs aguardando revisão" columns={columns} rows={filtered} loading={loading} getRowKey={item => String(item._id)} emptyMessage={documents.length ? 'Nenhum resultado para os filtros selecionados.' : 'Nenhuma NR aguardando revisão.'} /></div>
       <footer className="nr-review-table-footer">
       <p role="status">{loading ? 'Carregando NRs pendentes…' : `${filtered.length} resultado(s)`}</p>
-      {!loading && filtered.length > 0 && <nav className="nr-review-pagination" aria-label="Paginação das NRs">
-        <button type="button" disabled={page <= 1} onClick={() => setFilters(current => ({ ...current, page: page - 1 }))}>Página anterior</button>
-        <span aria-current="page">Página {page} de {pages}</span>
-        <button type="button" disabled={page >= pages} onClick={() => setFilters(current => ({ ...current, page: page + 1 }))}>Próxima página</button>
-      </nav>}
       </footer>
     </>}
     {selected !== undefined && <NrReviewModal key={`${scenario}-${selected}`} id={selected} scenario={scenario} onClose={closeReview} onApproved={(id, synchronized) => {
