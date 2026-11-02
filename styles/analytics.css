@@ -22,6 +22,22 @@
 .analytics-page .analytics-filters { padding: var(--create-forms-card-padding); padding-top: calc(var(--create-forms-card-padding) - .45rem * var(--astro-scale)); }
 .analytics-filters label, .analytics-filter-field { flex: 1; min-width: 9rem; }
 .analytics-filters .analytics-note { display: block; margin-top: var(--create-forms-stack-gap); }
+.analytics-filters .create-forms-date-picker { anchor-scope: --analytics-filter-date; }
+.analytics-filters .create-forms-date-control { anchor-name: --analytics-filter-date; }
+.analytics-filters .create-forms-calendar[popover] {
+  position: fixed;
+  position-anchor: --analytics-filter-date;
+  inset: auto;
+  top: calc(anchor(bottom) + .45rem);
+  left: anchor(left);
+  width: anchor-size(width);
+  max-width: anchor-size(width);
+  margin: 0;
+}
+.analytics-filters .create-forms-date-picker[data-placement='above'] .create-forms-calendar[popover] {
+  top: calc(anchor(top) - .45rem);
+  translate: 0 -100%;
+}
 .analytics-view-heading { align-items: end; }
 .analytics-view-heading h2 { margin: 0; color: var(--astro-text); font-size: calc(1.55rem * var(--astro-scale)); font-weight: 600; line-height: 1.25; }
 .analytics-view-name { flex: 1; max-width: 30rem; }

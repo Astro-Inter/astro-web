@@ -78,5 +78,5 @@ test('avatar trata carregamento, ausência de foto, falha de imagem e nova foto'
   profile.error = 'Falha ao consultar a conta.'
   await act(async () => render())
   assert.equal(document.querySelector('.manager-avatar').textContent, 'AS')
-  assert.equal(document.querySelector('[role=status]').textContent, 'Foto indisponível')
+  assert.equal(document.querySelector('[role=alert]').textContent, 'Foto indisponível')
 }))

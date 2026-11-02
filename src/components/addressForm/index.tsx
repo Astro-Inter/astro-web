@@ -1,16 +1,13 @@
 import { BUTTONS } from '../../gtm/buttons'
-import { useRef, useState } from 'react'
 import type { useWorkspaceAddresses } from '../../hooks/useWorkspaceAddresses'
 import { formatCep, formatState, handleMaskedInput } from '../../utils/inputFormatting'
 import AstroIcon from '../astroIcon'
 import PurpleButton from '../purpleButton'
-import { validateRegistrationUnitFields } from '../../utils/workspaceRegistration'
-import type { WorkspaceAddressField, WorkspaceUnitAddress } from '../../types/address'
+import type { WorkspaceUnitAddress } from '../../types/address'
 import FormField from '../formField'
 import { postalCodeFieldError } from '../../utils/postalCodeFeedback'
-import { normalizeUnitName } from '../../utils/workspaceUnits'
-import { validateWorkspaceUnit } from '../../utils/workspaceSettings'
 import ActionLoading from '../actionLoading'
+import { useAddressForm } from '../../hooks/useAddressForm'
 
 interface AddressFormProps {
   onComplete: (units: WorkspaceUnitAddress[]) => void
@@ -20,30 +17,9 @@ interface AddressFormProps {
 }
 
 function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = false, addresses }: AddressFormProps) {
-  const { address, activeIndex, activeUnit, changeField, addUnit, removeUnit, moveUnit, postalCode } = addresses
-  const [unitErrors, setUnitErrors] = useState<Record<number, Partial<Record<WorkspaceAddressField, string>>>>({})
-  const formRef = useRef<HTMLFormElement>(null)
-  const validateUnit = settingsMode ? validateWorkspaceUnit : validateRegistrationUnitFields
-  const currentValidation = validateUnit(activeUnit)
-  const errors: Partial<Record<WorkspaceAddressField, string>> = {}
-  for (const field of Object.keys(unitErrors[activeUnit.id] ?? {}) as WorkspaceAddressField[]) {
-    if (!unitErrors[activeUnit.id]?.[field]) continue
-    if (currentValidation[field]) errors[field] = currentValidation[field]
-    else if (field === 'cep') errors.cep = unitErrors[activeUnit.id].cep
-    else if (field === 'name' && address.units.some(unit => unit.id !== activeUnit.id && normalizeUnitName(unit.name) === normalizeUnitName(activeUnit.name))) errors.name = unitErrors[activeUnit.id].name
-  }
-  const [hasChangedUnit, setHasChangedUnit] = useState(false)
+  const { address, activeIndex, activeUnit, addUnit, removeUnit, moveUnit, postalCode } = addresses
+  const { formRef, errors, hasChangedUnit, changeUnit, updateField, submit } = useAddressForm({ addresses, settingsMode, onComplete })
   const importedUnit = activeUnit.source === 'spreadsheet'
-
-  function changeUnit(action: () => void) {
-    setHasChangedUnit(true)
-    action()
-  }
-
-  function updateField(field: WorkspaceAddressField, value: string) {
-    changeField(field, value)
-    setUnitErrors(current => ({ ...current, [activeUnit.id]: { ...current[activeUnit.id], [field]: undefined } }))
-  }
 
   return (
     <section className="set-address-content astro-scale-90" aria-labelledby="set-address-title">
@@ -53,38 +29,7 @@ function AddressForm({ onComplete, settingsMode = false, unitsFromSpreadsheet = 
       </header>
 
       <ActionLoading active={addresses.validatingPostalCodes} />
-      <form aria-busy={addresses.validatingPostalCodes} inert={addresses.validatingPostalCodes} data-track-submit={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.finalizar_workspace} ref={formRef} className="set-address-form" noValidate onSubmit={async (event) => {
-        event.preventDefault()
-        if (postalCode.status === 'loading' || addresses.validatingPostalCodes) return
-        const nextErrors: typeof unitErrors = {}
-        const names = new Set<string>()
-        for (const unit of address.units) {
-          nextErrors[unit.id] = validateUnit(unit)
-          const name = normalizeUnitName(unit.name)
-          if (names.has(name)) nextErrors[unit.id].name = 'O nome da unidade já foi usado. Escolha um nome diferente.'
-          names.add(name)
-        }
-        setUnitErrors(nextErrors)
-        const invalidUnit = address.units.find(unit => Object.keys(nextErrors[unit.id] ?? {}).length)
-        if (invalidUnit) {
-          if (invalidUnit.id !== activeUnit.id) changeUnit(() => addresses.selectUnit(invalidUnit.id))
-          requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>('input[aria-invalid="true"]')?.focus())
-          return
-        }
-        const postalErrors = await addresses.validatePostalCodes(address.units)
-        if (!postalErrors) return
-        const invalidPostalUnit = address.units.find(unit => postalErrors[unit.id])
-        if (invalidPostalUnit) {
-          for (const unit of address.units) {
-            if (postalErrors[unit.id]) nextErrors[unit.id].cep = postalErrors[unit.id]
-          }
-          setUnitErrors({ ...nextErrors })
-          if (invalidPostalUnit.id !== activeUnit.id) changeUnit(() => addresses.selectUnit(invalidPostalUnit.id))
-          requestAnimationFrame(() => formRef.current?.querySelector<HTMLInputElement>('#unit-cep')?.focus())
-          return
-        }
-        onComplete(address.units)
-      }}>
+      <form aria-busy={addresses.validatingPostalCodes} inert={addresses.validatingPostalCodes} data-track-submit={settingsMode ? BUTTONS.comuns.salvar_alteracoes : BUTTONS.comuns.finalizar_workspace} ref={formRef} className="set-address-form" noValidate onSubmit={submit}>
         <div className="set-address-carousel">
           <button data-track-action={BUTTONS.comuns.sede_anterior}
             aria-label="Sede anterior"
