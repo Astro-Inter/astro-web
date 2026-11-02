@@ -2,15 +2,16 @@ import { BUTTONS } from '../../gtm/buttons'
 import CompactPurpleButton from '../compactPurpleButton'
 import ComplianceDonutChart from '../complianceDonutChart'
 import HomeLoadingContent from '../homeLoadingContent'
-import type { ComplianceOverview } from '../../types/home'
+import type { ComplianceOverview, ComplianceStatus } from '../../types/home'
 
 interface ComplianceOverviewCardProps {
   overview?: ComplianceOverview
   loading?: boolean
   onViewDashboards?: () => void
+  onSelectCompliance?: (status: ComplianceStatus) => void
 }
 
-function ComplianceOverviewCard({ overview, loading = false, onViewDashboards }: ComplianceOverviewCardProps) {
+function ComplianceOverviewCard({ overview, loading = false, onViewDashboards, onSelectCompliance }: ComplianceOverviewCardProps) {
   return (
     <article aria-labelledby="compliance-overview-title" className="home-card compliance-overview">
       <header className="compliance-overview-header">
@@ -46,8 +47,10 @@ function ComplianceOverviewCard({ overview, loading = false, onViewDashboards }:
         <ul aria-label="Legenda do gráfico" className="compliance-legend">
           {overview?.slices.map((slice) => (
             <li key={slice.status}>
+              <button data-track-action={BUTTONS.comuns.filtro} aria-label={`Ver conformidades: ${slice.label}`} className="compliance-legend-action" disabled={!onSelectCompliance} onClick={() => onSelectCompliance?.(slice.status)} type="button">
               <i aria-hidden="true" className={`compliance-legend-dot compliance-legend-dot--${slice.status}`} />
-              {slice.label}
+              <span className="compliance-legend-label">{slice.label}</span>
+              </button>
             </li>
           ))}
         </ul>

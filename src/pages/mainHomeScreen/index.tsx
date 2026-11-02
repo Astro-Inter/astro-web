@@ -5,6 +5,7 @@ import { quickActions } from '../../data/home'
 import { useWorkspaceHome } from '../../hooks/useWorkspaceHome'
 import HomeProfileLink from '../../components/homeProfileLink'
 import HomeDashboardSkeleton from '../../components/homeDashboardSkeleton'
+import { homeConformityPath } from '../../utils/conformityNavigation'
 
 function MainHomeScreenPage() {
   const navigate = useNavigate()
@@ -25,7 +26,7 @@ function MainHomeScreenPage() {
 
           <section aria-labelledby="home-dashboards-title" aria-busy={loading} className="home-section">
             <h2 id="home-dashboards-title">Dashboards</h2>
-            {(loading || data) && <HomeDashboardSkeleton loading={loading} data={data} onViewDashboards={() => navigate('/mainDashboardsScreen')} />}
+            {(loading || data) && <HomeDashboardSkeleton loading={loading} data={data} onViewDashboards={() => navigate('/mainDashboardsScreen')} onSelectCompliance={status => { if (data) navigate(homeConformityPath(status, data.referenceDate)) }} />}
             {error && <div className="home-card home-api-feedback"><p role="alert">{error}</p><button data-track-action={BUTTONS.comuns.tentar_novamente} className="astro-action" onClick={retry} type="button">Tentar novamente</button></div>}
 
           </section>

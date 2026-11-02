@@ -303,3 +303,37 @@ test('listagem preserva reviewStatus e rejeita decisões inválidas', async () =
   reviewStatus = 'APROVADO'
   await assert.rejects(api.listForms('', 'completed', 0, 4))
 })
+
+test('aprovado e reprovado filtram a decisão em todas as páginas e combinam com quantidade de perguntas', async () => {
+  const decisions = ['approved', 'rejected', 'awaiting_review', undefined]
+  const rows = Array.from({ length: 205 }, (_, index) => ({
+    id: `550e8400-e29b-41d4-a716-${String(index).padStart(12, '0')}`, title: 'Inspeção', description: '',
+    questionCount: index % 10, status: 'CONCLUIDO', reviewStatus: decisions[index % decisions.length],
+  }))
+  const queries = []
+  global.fetch = async url => {
+    const query = new URL(url).searchParams
+    queries.push(query)
+    assert.equal(query.get('status'), 'CONCLUIDO')
+    const page = Number(query.get('page')), size = Number(query.get('size'))
+    return response({ items: rows.slice(page * size, (page + 1) * size), page, size, totalElements: rows.length, totalPages: Math.ceil(rows.length / size) })
+  }
+  for (const status of ['approved', 'rejected']) {
+    const matches = rows.filter(row => row.reviewStatus === status)
+    const result = await api.listForms(' Inspeção ', status, 1, 4)
+    assert.deepEqual(result.items, matches.slice(4, 8))
+    assert.equal(result.totalElements, matches.length)
+    assert.equal(result.totalPages, Math.ceil(matches.length / 4))
+    const limited = await api.listForms('', status, 0, 4, undefined, { minimum: '3', maximum: '6' })
+    const expected = matches.filter(row => row.questionCount >= 3 && row.questionCount <= 6)
+    assert.deepEqual(limited.items, expected.slice(0, 4))
+    assert.equal(limited.totalElements, expected.length)
+  }
+  assert.ok(queries.some(query => query.get('page') === '2'))
+  assert.ok(queries.some(query => query.get('search') === 'Inspeção'))
+  global.fetch = async url => {
+    const query = new URL(url).searchParams
+    return response({ items: [], page: 0, size: Number(query.get('size')), totalElements: 0, totalPages: 0 })
+  }
+  assert.deepEqual(await api.listForms('', 'approved', 0, 4), { items: [], page: 0, size: 4, totalElements: 0, totalPages: 0 })
+})

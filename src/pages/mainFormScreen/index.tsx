@@ -15,17 +15,19 @@ import { useForms } from '../../hooks/useForms'
 import { useAnimatedClose } from '../../hooks/useAnimatedClose'
 import { useAnimatedResults } from '../../hooks/useAnimatedResults'
 import { useExitPresence } from '../../hooks/useExitPresence'
-import type { FormStatus, FormSummary } from '../../types/forms'
+import type { FormFilterStatus, FormSummary } from '../../types/forms'
+import { reviewStatusLabels } from '../../utils/formReview'
 
 const statusOptions = [
   { value: '', label: 'Todos', tone: 'muted' as const },
-  ...(['draft', 'pending', 'completed'] as const).map(value => ({ value, label: formStatusLabels[value] })),
+  ...(['draft', 'pending'] as const).map(value => ({ value, label: formStatusLabels[value] })),
+  ...(['approved', 'rejected'] as const).map(value => ({ value, label: reviewStatusLabels[value] })),
 ]
 
 function MainFormScreenPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [filters, setFilters] = useState<{ search: string; status: FormStatus | ''; page: number; minimum: string; maximum: string }>({ search: '', status: '', page: 1, minimum: '', maximum: '' })
+  const [filters, setFilters] = useState<{ search: string; status: FormFilterStatus | ''; page: number; minimum: string; maximum: string }>({ search: '', status: '', page: 1, minimum: '', maximum: '' })
   const [openId, setOpenId] = useState<string | null>(null)
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [pendingDeletion, setPendingDeletion] = useState<FormSummary | null>(null)
@@ -145,7 +147,7 @@ function MainFormScreenPage() {
               { id: 'status', label: 'Status', options: statusOptions },
               { id: 'minimum', label: 'Quantidade mínima de perguntas', kind: 'number' },
               { id: 'maximum', label: 'Quantidade máxima de perguntas', kind: 'number', minimumField: 'minimum' },
-            ]} values={{ status: filters.status, minimum: filters.minimum, maximum: filters.maximum }} onApply={values => setFilters(current => ({ ...current, status: values.status as FormStatus | '', minimum: values.minimum, maximum: values.maximum, page: 1 }))} /></div>
+            ]} values={{ status: filters.status, minimum: filters.minimum, maximum: filters.maximum }} onApply={values => setFilters(current => ({ ...current, status: values.status as FormFilterStatus | '', minimum: values.minimum, maximum: values.maximum, page: 1 }))} /></div>
           </div>
           {skeleton.present && <ApiContentSkeleton label="Carregando formulários" variant="cards" cardCount={skeleton.value} className={skeleton.exiting ? 'forms-skeleton--exiting' : ''} />}
           {!skeleton.present && error && <div role="alert"><p>{error}</p><button onClick={retry} type="button">Tentar novamente</button></div>}

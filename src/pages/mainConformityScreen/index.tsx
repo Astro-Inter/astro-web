@@ -9,7 +9,8 @@ import CollaboratorIdentity from '../../components/collaboratorIdentity'
 import type { DataTableColumn } from '../../components/dataTable'
 import { useActionsMenu } from '../../hooks'
 import { useConformities } from '../../hooks/useConformities'
-import type { ConformityDetails as Conformity, ConformityFilters, ConformityFormValues, ConformityType } from '../../types/conformity'
+import { useConformityListFilters } from '../../hooks/useConformityListFilters'
+import type { ConformityDetails as Conformity, ConformityFormValues, ConformityType } from '../../types/conformity'
 import { conformityStatusLabels, emptyConformityFilters, formatConformityDate, matchesConformityFilters } from '../../utils/conformity'
 import { iconAsset } from '../../utils/iconAsset'
 
@@ -32,7 +33,7 @@ function MainConformityScreenPage() {
   const [type, setType] = useState<ConformityType>('COLABORADOR')
   const isUnit = type === 'UNIDADE'
   const subjectLabel = isUnit ? 'Unidade' : 'Colaborador'
-  const [filters, setFilters] = useState<ConformityFilters & { search: string }>({ ...emptyConformityFilters, search: '' })
+  const [filters, setFilters] = useConformityListFilters()
   const [addFlow, setAddFlow] = useState(closedAddFlow)
   const [filterOpen, setFilterOpen] = useState(false)
   const [dialog, setDialog] = useState<ConformityDialogState | null>(null)
