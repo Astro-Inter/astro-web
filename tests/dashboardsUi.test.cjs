@@ -620,3 +620,29 @@ test('entrada aguarda os dados dentro da galeria com skeleton e sem bloquear na 
     assert.equal(loads, 1)
   }, false, env => { env.services.load = () => { loads++; return request.promise } })
 })
+
+test('falha na atualização anuncia erro; tentar novamente apresenta carregamento e troca o alerta pelos dados', async () => withPage(async env => {
+  // Reabre somente o conteúdo do workspace para exercitar a consulta após a entrada.
+  const Workspace = env.load('src/pages/workspaceDashboards/index.tsx').default
+  const host = document.createElement('div'); document.body.append(host)
+  const root = require('react-dom/client').createRoot(host)
+  let loads = 0
+  const pending = deferred()
+  env.services.load = async () => {
+    loads++
+    if (loads === 1) throw new Error('Conexão interrompida.')
+    return pending.promise
+  }
+  try {
+    await act(async () => root.render(h(Workspace, { identity: { userId: '1', workspaceId: '1', role: 'GESTOR_WORKSPACE' } })))
+    assert.match(host.querySelector('[role="alert"]').textContent, /Conexão interrompida/)
+    await click('Tentar novamente', host)
+    assert.equal(host.querySelector('[role="alert"]'), null)
+    assert.match(host.querySelector('[role="status"]').textContent, /Carregando/)
+    await act(async () => pending.resolve([]))
+    await act(async () => new Promise(resolve => setTimeout(resolve, 200)))
+    assert.equal(loads, 2)
+    assert.equal(host.querySelector('[role="alert"]'), null)
+    assert.ok(host.querySelector('[aria-label="Abrir visão Visão geral"]'))
+  } finally { await act(async () => root.unmount()); host.remove() }
+}, false))

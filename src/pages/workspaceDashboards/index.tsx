@@ -27,6 +27,12 @@ function template(view: AnalyticsView, filters = defaultAnalyticsFilters()): Das
   return { name: view === 'visao-geral' ? 'Visão geral' : 'Eventos', config: { filters, widgets: templateWidgets(view) } }
 }
 interface WorkspaceDashboardsProps { identity: AnalyticsIdentity; initialSaved?: SavedDashboard[] }
+interface SavedDashboardsState {
+  items: SavedDashboard[]
+  error: string
+  loading: boolean
+  attempt: number
+}
 
 function WorkspaceDashboards({ identity, initialSaved }: WorkspaceDashboardsProps) {
   const [draft, setDraft] = useState<DashboardDraft>(() => template('visao-geral'))
@@ -34,11 +40,13 @@ function WorkspaceDashboards({ identity, initialSaved }: WorkspaceDashboardsProp
   const [filters, setFilters] = useState<AnalyticsFilters>(draft.config.filters)
   const [templateView, setTemplateView] = useState<AnalyticsView | null>('visao-geral')
   const [selected, setSelected] = useState<SavedDashboard | null>(null)
-  const [saved, setSaved] = useState<SavedDashboard[]>(initialSaved ?? [])
-  const [savedError, setSavedError] = useState('')
-  const [savedLoading, setSavedLoading] = useState(!initialSaved)
-  const [savedAttempt, setSavedAttempt] = useState(0)
-  const reloadSaved = useCallback(() => { setSavedLoading(true); setSavedError(''); setSavedAttempt(value => value + 1) }, [])
+  const [savedState, setSavedState] = useState<SavedDashboardsState>(() => ({
+    items: initialSaved ?? [], error: '', loading: !initialSaved, attempt: 0,
+  }))
+  const { items: saved, error: savedError, loading: savedLoading, attempt: savedAttempt } = savedState
+  const reloadSaved = useCallback(() => {
+    setSavedState(current => ({ ...current, loading: true, error: '', attempt: current.attempt + 1 }))
+  }, [])
   const [opened, setOpened] = useState(false)
   const galleryTrigger = useRef<HTMLButtonElement | null>(null)
   const galleryScroll = useRef(0)
@@ -74,7 +82,7 @@ function WorkspaceDashboards({ identity, initialSaved }: WorkspaceDashboardsProp
     const request = initialSaved && savedAttempt === 0 ? Promise.resolve(initialSaved) : loadSavedDashboards(identity, controller.signal)
     request.then(items => {
       if (!controller.signal.aborted) {
-        setSaved(items); setSavedLoading(false)
+        setSavedState(current => ({ ...current, items, loading: false, error: '' }))
         if (initialSelection.current) {
           initialSelection.current = false
           const overview = items.find(item => item.name.trim().toLocaleLowerCase('pt-BR') === 'visão geral')
@@ -85,7 +93,9 @@ function WorkspaceDashboards({ identity, initialSaved }: WorkspaceDashboardsProp
         }
       }
     }).catch((failure: unknown) => {
-      if (!controller.signal.aborted) { setSavedError(failure instanceof Error ? failure.message : 'Não foi possível carregar as visões salvas.'); setSavedLoading(false) }
+      if (!controller.signal.aborted) setSavedState(current => ({ ...current, loading: false,
+        error: failure instanceof Error ? failure.message : 'Não foi possível carregar as visões salvas.',
+      }))
     })
     return () => controller.abort()
   }, [identity, savedAttempt, initialSaved])
@@ -128,9 +138,9 @@ function WorkspaceDashboards({ identity, initialSaved }: WorkspaceDashboardsProp
       const result = await saveDashboard({ ...next, name: next.name.trim() }, existing, identity, controller.signal)
       controller.signal.throwIfAborted()
       const stored = { name: result.name, config: result.config }
-      setSaved(items => [result, ...items.filter(item => item.id !== result.id)])
+      setSavedState(current => ({ ...current, error: '', items: [result, ...current.items.filter(item => item.id !== result.id)] }))
       setSelected(result); setDraft(stored); setBaseline(JSON.stringify(stored))
-      setFilters(current => JSON.stringify(current) === JSON.stringify(draft.config.filters) ? result.config.filters : current); setTemplateView(null); setSavedError(''); setFeedback(message)
+      setFilters(current => JSON.stringify(current) === JSON.stringify(draft.config.filters) ? result.config.filters : current); setTemplateView(null); setFeedback(message)
     } finally {
       if (mutation.current === controller) mutation.current = null
       if (!controller.signal.aborted) setBusy(false)
@@ -162,7 +172,7 @@ function WorkspaceDashboards({ identity, initialSaved }: WorkspaceDashboardsProp
       controller.signal.throwIfAborted()
       const remaining = saved.filter(item => item.id !== pendingDeletion.id)
       const overview = remaining.find(item => item.name.trim().toLocaleLowerCase('pt-BR') === 'visão geral')
-      setSaved(remaining)
+      setSavedState(current => ({ ...current, items: current.items.filter(item => item.id !== pendingDeletion.id) }))
       const next = overview ? { name: overview.name, config: structuredClone(overview.config) } : template('visao-geral', draft.config.filters)
       setSelected(overview ?? null); setDraft(next); setBaseline(JSON.stringify(next)); setFilters(next.config.filters); setTemplateView(overview ? null : 'visao-geral'); setEditing(false); setOpened(false); setEditor(undefined); setFeedback('Visão excluída com sucesso.')
       return null
@@ -218,7 +228,7 @@ function WorkspaceDashboards({ identity, initialSaved }: WorkspaceDashboardsProp
       onCancel={() => { setPendingDeletion(null); requestAnimationFrame(() => { if (deletionTrigger.current?.isConnected) deletionTrigger.current.focus() }) }}
       onConfirm={remove}
       onConfirmed={() => { setPendingDeletion(null); requestAnimationFrame(() => headingRef.current?.focus()) }} />}
-    {savedError && <div className="analytics-feedback analytics-feedback--subtle" role="status"><p>Suas visões salvas não foram carregadas. {savedError}</p><button type="button" onClick={() => setSavedAttempt(n => n + 1)}>Tentar novamente</button></div>}
+    {savedError && <div className="analytics-feedback analytics-feedback--subtle" role="alert"><p>Suas visões salvas não foram carregadas. {savedError}</p><button type="button" onClick={reloadSaved}>Tentar novamente</button></div>}
     {opened && <div className="analytics-content analytics-dashboard-detail">
     <form className="create-forms-card analytics-filters" onSubmit={event => {
       event.preventDefault(); if (!validAnalyticsFilters(filters)) { setError('Informe datas válidas, com início anterior ao fim e intervalo de até 366 dias.'); return }

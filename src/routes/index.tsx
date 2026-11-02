@@ -1,9 +1,11 @@
 import { Route, Routes, useLocation, type Location } from 'react-router-dom'
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, useTransition } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, useTransition } from 'react'
 import PrivateRoute from '../components/privateRoute'
 import GuestRoute from '../components/guestRoute'
 import { useAuthentication } from '../hooks/useAuthentication'
 import RouteErrorBoundary from '../components/routeErrorBoundary'
+import InitialLoadingState from '../components/initialLoadingState'
+import { focusRouteHeading } from '../utils/routeFocus'
 
 const LoadingScreenPage = lazy(() => import('../pages/loadingScreen'))
 const MainHomeScreenPage = lazy(() => import('../pages/mainHomeScreen'))
@@ -99,6 +101,7 @@ function AppRoutes() {
   const exiting = location.key !== displayedLocation.key
   const [, startTransition] = useTransition()
   const routeRef = useRef<HTMLDivElement>(null)
+  const clearRouteFocus = useRef<(() => void) | null>(null)
   const tabChangeRef = useRef(false)
   const [tabChange, setTabChange] = useState(false)
   const [tabFallback, setTabFallback] = useState(false)
@@ -227,22 +230,26 @@ function AppRoutes() {
     return () => { cancelled = true }
   }, [displayedLocation.key, exiting, leavingKey, location, startTransition])
 
-  useLayoutEffect(() => {
+  // A ref só recebe o elemento quando o conteúdo suspenso está no DOM.
+  // Um efeito no pai pode executar ainda no fallback e perder o título da página.
+  const attachRoute = useCallback((element: HTMLDivElement | null) => {
+    clearRouteFocus.current?.()
+    clearRouteFocus.current = null
+    routeRef.current = element
+    if (!element) return
     window.scrollTo({ top: tabChangeRef.current ? tabScrollRef.current : 0, behavior: 'instant' })
-    const heading = routeRef.current?.querySelector('h1')
-    if (heading) {
-      heading.tabIndex = -1
-      heading.focus({ preventScroll: true })
-    }
+    clearRouteFocus.current = focusRouteHeading(element)
     const committed = tabCommitRef.current
     tabCommitRef.current = null
     committed?.()
-  }, [displayedLocation.key])
+  }, [])
 
   return (
-    <Suspense fallback={null}>
+    <>
+    <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{exiting ? 'Carregando próxima página…' : ''}</span>
+    <Suspense fallback={<InitialLoadingState />}>
     <RouteErrorBoundary key={renderedLocation.key}>
-    <div data-track-route={renderedLocation.pathname} data-track-search={renderedLocation.search} data-track-visit={renderedLocation.key} className={`astro-route-transition${homeDestinations.has(renderedLocation.pathname) ? ' astro-route-transition--home-destination' : ''}${tabChange ? ' astro-route-transition--tab-change' : ''}${tabChange && tabFallback ? ' astro-route-transition--tab-fallback' : ''}${isSettingsLocation(renderedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={renderedLocation.key} ref={routeRef}>
+    <div data-track-route={renderedLocation.pathname} data-track-search={renderedLocation.search} data-track-visit={renderedLocation.key} className={`astro-route-transition${homeDestinations.has(renderedLocation.pathname) ? ' astro-route-transition--home-destination' : ''}${tabChange ? ' astro-route-transition--tab-change' : ''}${tabChange && tabFallback ? ' astro-route-transition--tab-fallback' : ''}${isSettingsLocation(renderedLocation) ? ' astro-route-transition--settings-page' : ''}${exiting ? ' astro-route-transition--exiting' : ''}${exiting && leavingKey === location.key ? ' astro-route-transition--settings-leaving' : ''}`} key={renderedLocation.key} ref={attachRoute}>
       <Routes location={renderedLocation}>
         <Route element={<RouteContent />}>
           <Route path="/forgotPassword" element={<ForgotPasswordPage />} />
@@ -298,6 +305,7 @@ function AppRoutes() {
     </div>
     </RouteErrorBoundary>
     </Suspense>
+    </>
   )
 }
 

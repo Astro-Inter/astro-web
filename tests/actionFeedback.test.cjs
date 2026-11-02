@@ -322,7 +322,7 @@ test('impedimento de ativação gera aviso temporário sem erro inline, mantém 
 })
 
 
-test('rotas suspensas não inserem carregamento genérico antes do carregamento próprio da tela', async () => {
+test('rotas suspensas anunciam a espera, reutilizam o spinner existente e focam o título ao carregar', async () => {
   const { MemoryRouter } = require('react-router-dom')
   for (const [pathname, page, authenticated] of [['/mainHomeScreen', 'mainHomeScreen', true], ['/mainEventScreen', 'mainEventScreen', true], ['/createForms', 'createForm', true], ['/', 'login', false]]) {
     const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
@@ -342,9 +342,16 @@ test('rotas suspensas não inserem carregamento genérico antes do carregamento 
       assert.equal(document.querySelector('.login-loading-spinner'), null, pathname)
       assert.equal(document.querySelector('.api-loading-cards'), null)
       assert.equal(document.querySelector('.app-sidebar'), null)
+      assert.ok([...document.querySelectorAll('[role="status"]')].some(node => /Carregando/.test(node.textContent)), pathname)
+      if (pathname === '/') {
+        await React.act(async () => new Promise(resolve => setTimeout(resolve, 550)))
+        assert.ok(document.querySelector('.login-loading-spinner'))
+      }
       await React.act(async () => { ready = true; resolve() })
       assert.equal(document.querySelector('.route-loading'), null)
+      assert.equal(document.querySelector('.login-loading-spinner'), null)
       assert.equal(document.querySelector('h1').textContent, `Destino ${pathname}`)
+      assert.equal(document.activeElement, document.querySelector('h1'), pathname)
     } finally { await React.act(async () => root.unmount()); dom.window.close(); Object.assign(global, previous) }
   }
 })
@@ -372,10 +379,12 @@ test('troca para rota ainda suspensa mantém a tela anterior até o carregamento
     assert.equal(document.querySelector('.route-loading'), null)
     assert.equal(document.querySelector('.api-loading-cards'), null)
     assert.equal(document.querySelector('.login-loading-spinner'), null)
+    assert.ok([...document.querySelectorAll('[role="status"]')].some(node => /Carregando próxima página/.test(node.textContent)))
     await React.act(async () => { ready = true; resolve() })
     assert.equal(document.getElementById('previous-screen'), null)
     assert.ok(document.getElementById('destination-loading'))
     assert.equal(document.querySelector('h1').textContent, 'Eventos')
+    assert.equal(document.activeElement, document.querySelector('h1'))
     assert.ok(document.querySelector('.astro-route-content--workspace #destination-loading'))
   } finally { await React.act(async () => root.unmount()); dom.window.close(); Object.assign(global, previous) }
 })

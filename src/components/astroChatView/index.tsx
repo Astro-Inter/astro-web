@@ -122,7 +122,6 @@ function AstroChatView() {
         </section>
       ) : (
         <button data-track-action={BUTTONS.comuns.ia}
-          aria-controls="astro-chat-window"
           aria-expanded="false"
           aria-label="Abrir chat do Astro"
           className="astro-chat-launcher"

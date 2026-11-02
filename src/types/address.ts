@@ -20,6 +20,9 @@ export interface WorkspaceAddressState {
 
 export type WorkspaceAddressField = Exclude<keyof WorkspaceUnitAddress, 'id' | 'source' | 'persistedId'>
 
+export type WorkspaceAddressErrors = Partial<Record<WorkspaceAddressField, string>>
+export type WorkspaceUnitErrors = Record<number, WorkspaceAddressErrors>
+
 export type PostalAddress = Pick<WorkspaceUnitAddress, 'state' | 'city' | 'neighborhood' | 'street'>
 
 export interface PostalCodeLookupState {

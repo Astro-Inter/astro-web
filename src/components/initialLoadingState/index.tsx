@@ -16,7 +16,8 @@ function InitialLoadingState({ error = '', planet = false }: InitialLoadingState
   }, [])
 
   if (error) return <SessionErrorState error={error} />
-  return visible ? <LoadingScreenState label="Carregando" planet={planet} /> : null
+  return visible ? <LoadingScreenState label="Carregando" planet={planet} />
+    : <span className="sr-only" role="status" aria-live="polite">Carregando…</span>
 }
 
 export default InitialLoadingState

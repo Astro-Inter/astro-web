@@ -16,7 +16,7 @@ function HomeProfileLink({ name, photoUrl, loading, error = '' }: HomeProfileLin
       : name ? <CollaboratorIdentity key={name} large name={name} photoUrl={photoUrl ?? null} initials={null} />
         : <AstroIcon name="account" />}
   </Link>
-  {error && <span className="home-profile-error" role="status">Foto indisponível</span>}
+  {error && <span className="home-profile-error" role="alert">Foto indisponível</span>}
   </div>
 }
 
