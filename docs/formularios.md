@@ -31,3 +31,15 @@ Rascunhos novos são salvos na API. O editor não carrega rascunhos antigos comp
 ## Respostas
 
 A análise de respostas está descrita em validacao-formularios.md. A aparência do formulário e os nomes físicos da coleção MongoDB são documentados ali; os DTOs HTTP continuam em camelCase.
+
+## Decisão de análise nos cards
+
+A listagem usa `reviewStatus` de `GET /forms` para mostrar um único selo nos
+formulários respondidos: Aprovado, Reprovado ou Aguardando análise. O selo
+Respondido não é exibido junto à decisão. Os cards não consultam
+`GET /forms/{id}/responses`; esse endpoint continua no fluxo de análise detalhada.
+
+A API precisa disponibilizar o novo campo na listagem. Enquanto uma versão
+anterior não o retornar, o card mostra Análise indisponível. Rascunhos e pendentes
+mantêm seus selos atuais. O filtro Respondido continua incluindo todas as
+análises; edição e exclusão continuam usando o status principal.

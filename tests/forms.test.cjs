@@ -290,3 +290,16 @@ test('aparência inválida é rejeitada e título permite 100 caracteres sem met
   global.fetch = async () => response({ ...form, appearance: null })
   assert.equal(utils.formValues(await api.getForm(id)).appearance, undefined)
 })
+
+test('listagem preserva reviewStatus e rejeita decisões inválidas', async () => {
+  const row = { id, title: 'Inspeção', description: '', questionCount: 1, status: 'CONCLUIDO' }
+  let reviewStatus
+  global.fetch = async () => response({ items: [{ ...row, reviewStatus }], page: 0, size: 4, totalElements: 1, totalPages: 1 })
+  for (const status of ['awaiting_response', 'awaiting_review', 'approved', 'rejected', undefined]) {
+    reviewStatus = status
+    const page = await api.listForms('', 'completed', 0, 4)
+    assert.equal(utils.formSummary(page.items[0]).reviewStatus, status)
+  }
+  reviewStatus = 'APROVADO'
+  await assert.rejects(api.listForms('', 'completed', 0, 4))
+})

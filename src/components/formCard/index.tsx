@@ -4,6 +4,7 @@ import AstroIcon from '../astroIcon'
 import { formStatusLabels } from '../../data/forms'
 import type { FormSummary } from '../../types/forms'
 import FormCardSymbol from '../formCardSymbol'
+import { reviewStatusLabels } from '../../utils/formReview'
 
 interface FormCardProps {
   form: FormSummary
@@ -27,7 +28,10 @@ function FormCard({ form, menuOpen, onOpen, onOpenMenu }: FormCardProps) {
       </div>
       <div className="form-card-badges">
         <span>{form.questionCount} perguntas</span>
-        <span className={`form-card-status form-card-status--${form.status}`}><i aria-hidden="true" />{formStatusLabels[form.status]}</span>
+        {form.status !== 'completed' && <span className={`form-card-status form-card-status--${form.status}`}><i aria-hidden="true" />{formStatusLabels[form.status]}</span>}
+        {form.status === 'completed' && <span role="status" className={`form-card-status form-card-status--${form.reviewStatus ?? 'unavailable'}`}>
+          <i aria-hidden="true" />{form.reviewStatus ? reviewStatusLabels[form.reviewStatus] : 'Análise indisponível'}
+        </span>}
       </div>
     </article>
   )

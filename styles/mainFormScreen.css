@@ -110,3 +110,7 @@ html[data-astro-reduced-motion='true'] .main-form-screen .forms-skeleton--exitin
 .main-form-screen .forms-status-filter .astro-toolbar-select-toggle { top: 50%; right: calc(0.4rem * var(--astro-scale)); width: var(--astro-control-icon-hit-size); height: var(--astro-control-icon-hit-size); transform: translateY(-50%); }
 .main-form-screen .forms-status-filter .astro-toolbar-select-toggle .astro-icon { width: calc(1.125rem * var(--astro-scale)); height: calc(1.125rem * var(--astro-scale)); }
 @media (max-width: 680px) { .main-form-screen .position-toolbar-selects > .forms-status-filter { width: 100%; } }
+
+.form-card-status--approved i { background: #79dba4; }
+.form-card-status--rejected i { background: #ff9caa; }
+.form-card-status--awaiting_review i { background: #e6dd80; }

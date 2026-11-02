@@ -281,3 +281,7 @@ html[data-astro-vision]:not([data-astro-vision='default']) {
   outline-color: var(--astro-error-focus-border) !important;
   box-shadow: none;
 }
+
+html[data-astro-vision]:not([data-astro-vision='default']) .form-card-status--approved i { background: var(--a11y-success); }
+html[data-astro-vision]:not([data-astro-vision='default']) .form-card-status--rejected i { background: var(--a11y-error); }
+html[data-astro-vision]:not([data-astro-vision='default']) .form-card-status--awaiting_review i { background: var(--a11y-warning); }
