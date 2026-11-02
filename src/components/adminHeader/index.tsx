@@ -18,7 +18,7 @@ export default function AdminHeader() {
         </button>
       </div>
     </header>
-    {confirmingLogout && <ConfirmationModal title="Tem certeza que deseja sair da conta?" confirmLabel="Sair" backdrop="dimmed" onCancel={() => setConfirmingLogout(false)} onConfirm={async () => { await logout.submit(); return null }} onConfirmed={() => setConfirmingLogout(false)} />}
+    {confirmingLogout && <ConfirmationModal title="Tem certeza que deseja sair da conta?" confirmLabel="Sair" tone="danger" backdrop="dimmed" onCancel={() => setConfirmingLogout(false)} onConfirm={async () => { await logout.submit(); return null }} onConfirmed={() => setConfirmingLogout(false)} />}
     {logout.error && <p className="nr-admin-session-error" role="alert">{logout.error}</p>}
   </>
 }

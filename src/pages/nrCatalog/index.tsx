@@ -27,11 +27,11 @@ export default function NrCatalogPage() {
     setFilters(current => ({ ...current, [field]: value }))
   }
   const columns: readonly DataTableColumn<NrDocument>[] = [
-    { id: 'number', label: 'Norma', width: '12%', rowHeader: true, render: row => <strong className="nr-review-code">NR-{row._id}</strong> },
-    { id: 'name', label: 'Nome', width: '34%', render: row => row.nome },
-    { id: 'usability', label: 'Usabilidade', render: row => row.usabilidade },
-    { id: 'date', label: 'Data da fonte', render: row => row.ultima_atualizacao },
-    { id: 'status', label: 'Revogação', render: row => <span className={`position-status${row.revogada ? '' : ' position-status--active'}`}>{row.revogada ? 'Revogada' : 'Não revogada'}</span> },
+    { id: 'number', label: 'Norma', width: '6rem', rowHeader: true, render: row => <strong className="nr-review-code">NR-{row._id}</strong> },
+    { id: 'name', label: 'Nome', render: row => <span className="nr-review-name">{row.nome}</span> },
+    { id: 'usability', label: 'Usabilidade', width: '9rem', render: row => row.usabilidade },
+    { id: 'date', label: 'Data da fonte', width: '9.5rem', render: row => <span className="nr-review-date">{row.ultima_atualizacao}</span> },
+    { id: 'status', label: 'Revogação', width: '10rem', render: row => <span className={`position-status${row.revogada ? '' : ' position-status--active'}`}>{row.revogada ? 'Revogada' : 'Não revogada'}</span> },
     { id: 'actions', label: 'Ação', width: '5rem', className: 'nr-review-action-cell', render: row => <button aria-label={`Consultar NR-${row._id}`} title={`Consultar NR-${row._id}`} aria-haspopup="dialog" className="nr-review-row-action nr-review-row-action--icon" type="button" onClick={() => { setNotice(''); setSelected(row) }}><AstroIcon name="document-lines" /></button> },
   ]
   return <NrReviewLayout title="Catálogo de NRs" description="Consulte as normas do catálogo e mantenha suas informações atualizadas.">
@@ -49,7 +49,7 @@ export default function NrCatalogPage() {
       <div className="nr-catalog-grid">
         <DataTable ariaLabel="Catálogo atual de NRs" columns={columns} rows={rows} getRowKey={row => String(row._id)} loading={catalog.loading} emptyMessage={catalog.rows.length ? 'Nenhum resultado para os filtros selecionados.' : 'Nenhuma NR no catálogo.'} />
       </div>
-      <p role="status">{catalog.loading ? 'Carregando catálogo…' : `${rows.length} resultado(s)`}</p>
+      <div className="nr-review-table-footer"><p role="status">{catalog.loading ? 'Carregando catálogo…' : `${rows.length} resultado(s)`}</p></div>
     </>}
     {selected && <NrCatalogEditor key={`${scenario}-${selected._id}`} document={selected} onClose={() => setSelected(null)} onSave={async (document, expected) => {
       await catalog.save(document, expected)
