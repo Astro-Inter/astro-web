@@ -30,6 +30,51 @@ const details = { ...summary, cpf: '52998224725', workModel: 'HIBRIDO', workspac
 const values = { name: ' Ana Silva ', email: ' ANA@example.com ', cpf: '529.982.247-25', roleId: '5', unitId: '8', modality: 'HIBRIDO', status: 'ATIVO' }
 function respond(data, status = 200) { return new Response(JSON.stringify({ success: true, data }), { status }) }
 
+test('aceita os campos camelCase publicados pela API em listagem, detalhes e respostas de gravação', async () => {
+  const published = { id: 42, name: 'Ana Silva', email: 'ana@example.com', roleId: 5, roleName: 'Analista', unitId: 8,
+    unitName: 'São Paulo', status: 'ATIVO', profilePhotoUrl: 'https://example.com/avatar.png', avatarInitials: 'AS', canManage: true }
+  const publishedDetails = { ...published, cpf: '52998224725', workModel: 'HIBRIDO', workspaceId: 1 }
+  const calls = []
+  const responses = [[published], publishedDetails, { ...publishedDetails, status: 'PRE_CADASTRADO' },
+    { ...publishedDetails, name: 'Ana Souza' }, { ...publishedDetails, status: 'DESATIVADO' }]
+  global.fetch = async (url, init) => { calls.push({ url, ...init }); return respond(responses.shift()) }
+  const [row] = await api.listCollaborators(undefined, true)
+  assert.deepEqual(row, { id: '42', name: 'Ana Silva', email: 'ana@example.com', roleId: '5', position: 'Analista', unitId: '8',
+    unit: 'São Paulo', status: 'ATIVO', profilePhotoUrl: published.profilePhotoUrl, avatarInitials: 'AS', canManage: true })
+  const detail = await api.getCollaborator('42')
+  assert.equal(detail.cpf, '529.982.247-25')
+  assert.equal(detail.modality, 'HIBRIDO')
+  assert.equal(detail.canManage, true)
+  assert.equal((await api.createCollaborator(values)).status, 'PRE_CADASTRADO')
+  assert.equal((await api.updateCollaborator('42', values)).name, 'Ana Souza')
+  assert.equal((await api.changeCollaboratorStatus('42', 'DESATIVADO')).status, 'DESATIVADO')
+  assert.equal(new URL(calls[0].url).search, '?excludeSelf=true')
+  assert.deepEqual(JSON.parse(calls[2].body), { name: 'Ana Silva', cpf: '52998224725', email: 'ana@example.com', roleId: 5, unitId: 8, workModel: 'HIBRIDO' })
+})
+
+test('mantém validação dos dados e permissões também no contrato camelCase', async () => {
+  const published = { id: 42, name: 'Ana Silva', email: 'ana@example.com', roleId: 5, roleName: 'Analista', unitId: 8,
+    unitName: 'São Paulo', status: 'ATIVO' }
+  for (const canManage of [true, false, undefined]) {
+    global.fetch = async () => respond([{ ...published, canManage }])
+    assert.equal((await api.listCollaborators())[0].canManage, canManage === true)
+  }
+  for (const changes of [{ id: 0 }, { roleId: '5' }, { unitId: null }, { status: 'INATIVO' }, { canManage: 'true' }]) {
+    global.fetch = async () => respond([{ ...published, ...changes }])
+    await assert.rejects(api.listCollaborators(), /inválid/)
+  }
+  for (const missing of [null, '', undefined]) {
+    global.fetch = async () => respond({ ...published, cpf: missing, workModel: missing, workspaceId: 1 })
+    const detail = await api.getCollaborator('42')
+    assert.equal(detail.cpf, '')
+    assert.equal(detail.modality, '')
+  }
+  global.fetch = async () => respond({ ...published, cpf: 123, workModel: 'HIBRIDO' })
+  await assert.rejects(api.getCollaborator('42'), /CPF.*formato inválido/)
+  global.fetch = async () => respond({ ...published, workModel: 'ONLINE' })
+  await assert.rejects(api.getCollaborator('42'), /modalidade inválida/)
+})
+
 test('reenvia a chave pelo ID com Bearer, sem aceitar destinatário ou retornar token', async () => {
   const calls = []
   global.fetch = async (url, init) => { calls.push({ url, ...init }); return respond(null, 202) }

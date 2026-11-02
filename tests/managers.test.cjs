@@ -269,3 +269,29 @@ test('rebaixamento usa PATCH autenticado sem corpo, valida ID e preserva erros d
     await assert.rejects(api.demoteManager('42'), /Gestor indisponível/)
   }
 })
+
+test('carrega gestores com o contrato camelCase publicado e preserva os detalhes e vínculos', async () => {
+  const current = { id: 42, name: 'Ana Silva', email: 'ana@example.test', unitId: 8, unitName: 'São Paulo', status: 'ATIVO', profilePhotoUrl: null, avatarInitials: 'AS' }
+  const currentDetails = { ...current, cpf: '52998224725', workModel: 'HIBRIDO', roleId: 5, roleName: 'Analista', workspaceId: 1 }
+  global.fetch = async url => respond(url.endsWith('/managers') ? [current] : currentDetails)
+  const [manager] = await api.listManagers()
+  assert.equal(manager.id, '42')
+  assert.equal(manager.name, current.name)
+  assert.equal(manager.unitId, '8')
+  assert.equal(manager.unit, current.unitName)
+  assert.equal(manager.status, 'ATIVO')
+  assert.equal(manager.avatarInitials, 'AS')
+  const detail = await api.getManager('42')
+  assert.equal(detail.cpf, '529.982.247-25')
+  assert.equal(detail.roleId, '5')
+  assert.equal(detail.position, currentDetails.roleName)
+  assert.equal(detail.modality, 'HIBRIDO')
+  for (const invalid of [{ id: 0 }, { unitId: null }, { status: 'invalid' }, { name: null }, { profilePhotoUrl: 123 }]) {
+    global.fetch = async () => respond([{ ...current, ...invalid }])
+    await assert.rejects(api.listManagers(), /dados inválidos/)
+  }
+  for (const invalid of [{ roleId: null }, { roleName: null }, { workModel: 'INVALIDO' }]) {
+    global.fetch = async () => respond({ ...currentDetails, ...invalid })
+    await assert.rejects(api.getManager('42'), /detalhes inválidos/)
+  }
+})

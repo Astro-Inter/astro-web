@@ -26,7 +26,8 @@ export interface CreateFormValues {
 }
 
 export type FormStatus = 'pending' | 'completed' | 'draft'
-export interface FormListFilters { search: string; status: FormStatus | ''; page: number; size: number }
+export type FormFilterStatus = FormStatus | Extract<FormReviewStatus, 'approved' | 'rejected'>
+export interface FormListFilters { search: string; status: FormFilterStatus | ''; page: number; size: number }
 export interface FormQuestionFilters { minimum: string; maximum: string }
 export type FormCardIcon = 'document' | 'calendar' | 'feedback' | 'person-outline' | 'security' | 'check' | 'building' | 'collaborators' | 'position' | 'clock'
 export type FormCardColor = 'purple' | 'pink' | 'blue' | 'green' | 'teal' | 'indigo' | 'orange' | 'rose' | 'violet' | 'slate'

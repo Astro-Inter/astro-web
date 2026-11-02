@@ -4,11 +4,11 @@ import { deleteForm, listForms } from '../services/forms'
 import { formSummary } from '../utils/formApi'
 import { validateAndSanitizeFormFilters } from '../utils/formFilters'
 import { saveFormCardAppearance } from '../services/formCardAppearance'
-import type { FormCardAppearance, FormQuestionFilters, FormStatus, FormSummary } from '../types/forms'
+import type { FormCardAppearance, FormFilterStatus, FormQuestionFilters, FormSummary } from '../types/forms'
 
 interface FormsState { key: string; rows: FormSummary[]; totalPages: number; totalElements: number; loading: boolean; error: string }
 interface FormsResult extends Omit<FormsState, 'key'> { retry: () => void; remove: (id: string) => Promise<void>; saveAppearance: (id: string, appearance: FormCardAppearance) => Promise<void> }
-export function useForms(search: string, status: FormStatus | '', page: number, size: number, quantities?: FormQuestionFilters): FormsResult {
+export function useForms(search: string, status: FormFilterStatus | '', page: number, size: number, quantities?: FormQuestionFilters): FormsResult {
   const { user } = useAuthentication()
   const uid = user?.uid
   const [attempt, setAttempt] = useState(0)

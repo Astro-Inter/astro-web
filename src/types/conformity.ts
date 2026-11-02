@@ -63,6 +63,8 @@ export interface ConformityFilters {
   to: string
 }
 
+export interface ConformityListFilters extends ConformityFilters { search: string }
+
 export interface ConformityFormValues {
   employeeId: string
   nr: string
