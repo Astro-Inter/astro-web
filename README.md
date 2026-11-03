@@ -2,8 +2,6 @@
 
 Aplicação publicada: [Astro Web — GitHub Pages](https://astro-inter.github.io/astro-web/).
 
-[Critérios de Aplicações Dinâmicas e roteiro de demonstração](docs/conformidade-dad.md).
-
 Interface do Astro, feita com Vite, React, TypeScript e React Router. O login usa Firebase Authentication; cadastro inicial, home, cargos, unidades e colaboradores usam a API principal. Pagamento e outras telas internas continuam demonstrativos.
 
 ## Executar e verificar
@@ -147,8 +145,6 @@ createForms grava astro-created-form e astro-create-forms-draft com _versao: 1 e
 | M12 | Carregamento, resultado/sucesso e erro no DOM nos fluxos integrados; cancelamento e recuperação cobertos por testes. |
 | M13 | GitHub Pages publicado; link no início deste README. |
 | M14 | Histórico com mais de 20 commits convencionais entre setembro e outubro de 2026, cobrindo mais de quatro semanas. |
-
-Context, reducer, hooks canceláveis, carregamento por página, persistência versionada e validações estão descritos em [Conformidade DAD](docs/conformidade-dad.md). As demonstrações com React DevTools Profiler e leitor de tela fazem parte do roteiro de apresentação.
 
 ## Verificação manual
 
