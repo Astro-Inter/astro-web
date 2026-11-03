@@ -26,32 +26,3 @@ O rebaixamento altera somente `GESTOR` para `COLABORADOR`; não ativa contas,
 não conclui pré-cadastro e não altera a conta do gestor do workspace. O acesso
 de gestor deixa de ser aceito nas próximas requisições protegidas, inclusive
 com um token emitido antes da alteração.
-
-## Verificação
-
-- `node --test tests/managers.test.cjs tests/managersController.test.cjs tests/managersDemotionUi.test.cjs`:
-  contrato sem corpo, Bearer, IDs inválidos, falhas HTTP, concorrência de envios,
-  remoção somente após sucesso, atualização dos candidatos, troca de sessão,
-  confirmação/cancelamento para os três status e destino do foco após remoção.
-- `npm run build`: tipagem TypeScript e bundle Vite.
-- `npm run lint`: padrões estáticos do projeto.
-
-A demanda preserva os critérios DAD M04/M05 (tipagem e API em services),
-M06/M07/M08 (estado imutável, efeitos com dependências e IDs estáveis),
-M11/M12 (controles semânticos, foco, carregamento/sucesso/erro) e E03
-(descarte de respostas de sessões anteriores). Os testes do fluxo usam serviços
-simulados. A navegação manual autenticada e o uso de leitor de tela devem ser
-verificados separadamente; não houve nova publicação por esta mudança.
-
-## Resultado local em 01/11/2026
-
-- `node --test --test-concurrency=1 tests/*.test.cjs`: **589 aprovados**, zero falhas,
-  nenhum ignorado.
-- Os três arquivos de testes de gestores também passaram isoladamente:
-  **23 aprovados**, incluindo contrato, estado e confirmação do rebaixamento.
-- `npm run build`: aprovado com TypeScript e Vite.
-- `npm run lint`: aprovado.
-- `git diff --check`: aprovado.
-
-A terminologia apresentada é “Rebaixar para colaborador”. A rota técnica
-`PATCH /managers/{id}/demote` permanece a mesma para preservar a integração.

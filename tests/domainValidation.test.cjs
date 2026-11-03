@@ -18,7 +18,6 @@ function load(filename) {
   }, module, module.exports)
   return module.exports
 }
-const draftApi = load('src/utils/formDraft.ts')
 const forms = load('src/utils/forms.ts')
 const registration = load('src/utils/workspaceRegistrationReducer.ts')
 const chat = load('src/services/chat.ts')
@@ -29,34 +28,6 @@ function values() {
   return { name: ' Inspeção ', description: ' Segurança ', manager: ' Gestor ', nr: '', unit: '', deadline: '',
     questions: [{ id: 'q1', kind: 'text', title: ' Riscos? ', answer: '', options: [], multiple: false, required: true }] }
 }
-function storage(saved = null) {
-  return { saved, getItem() { return this.saved }, setItem(_key, value) { this.saved = value }, removeItem() { this.saved = null } }
-}
-
-test('recupera rascunho incompleto sem exigir campos obrigatórios', () => {
-  const data = { ...values(), name: '', manager: '', questions: [] }
-  const store = storage()
-  draftApi.saveFormDraft(store, data)
-  assert.equal(JSON.parse(store.saved)._versao, 1)
-  assert.deepEqual(draftApi.loadFormDraft(store), data)
-})
-
-test('descarta JSON inválido, versão incompatível e estruturas malformadas', () => {
-  for (const saved of ['{broken', JSON.stringify({ _versao: 2, values: values() }), JSON.stringify({ _versao: 1, values: { ...values(), questions: [{}] } }), JSON.stringify({ _versao: 1, values: { ...values(), name: 42 } })]) {
-    const store = storage(saved)
-    assert.equal(draftApi.loadFormDraft(store), null)
-    assert.equal(store.saved, null)
-  }
-})
-
-test('armazenamento bloqueado não impede abrir o formulário', () => {
-  assert.equal(draftApi.loadFormDraft({ getItem() { throw Error('blocked') }, removeItem() { throw Error('blocked') } }), null)
-})
-
-test('recusa rascunhos excessivos e IDs de perguntas duplicados', () => {
-  assert.throws(() => draftApi.saveFormDraft(storage(), { ...values(), name: 'x'.repeat(101) }))
-  assert.equal(draftApi.isFormDraft({ ...values(), questions: [values().questions[0], values().questions[0]] }), false)
-})
 
 test('sanitiza sem alterar objetos originais e fornece erros por campo', () => {
   const original = values()

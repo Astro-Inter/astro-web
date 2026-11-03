@@ -1,5 +1,3 @@
-.manager-identity { display: flex; align-items: center; gap: calc(0.6rem * var(--astro-scale)); min-width: 0; }
-.manager-identity .astro-truncated-text { flex: 1; }
 .manager-avatar { display: grid; flex: none; place-items: center; width: calc(2.5rem * var(--astro-scale)); height: calc(2.5rem * var(--astro-scale)); aspect-ratio: 1; overflow: hidden; border-radius: 50%; color: var(--astro-text); background: #573d93; font-size: calc(0.85rem * var(--astro-scale)); font-weight: 600; line-height: 1; }
 @media (min-width: 1025px) {
   .main-manager-screen .position-main { padding-block: clamp(2.5rem, 6vh, 5rem); }
@@ -10,18 +8,8 @@
 .collaborator-identity--large .manager-avatar { font-size: calc(2rem * var(--astro-scale)); }
 .collaborator-identity .manager-avatar img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: cover; object-position: center; border-radius: inherit; }
 .main-collaborator-screen .position-status { padding-inline: calc(0.6rem * var(--astro-scale)); }
-.collaborator-skeleton-row { animation: page-enter 180ms ease both; }
-.collaborator-skeleton { display: block; height: 1em; border-radius: var(--astro-control-radius); background: linear-gradient(100deg, rgb(182 178 195 / 8%) 20%, rgb(182 178 195 / 18%) 45%, rgb(182 178 195 / 8%) 70%); background-size: 240% 100%; animation: collaborator-skeleton-shimmer 1.6s ease-in-out infinite; }
-.collaborator-skeleton-avatar { flex: none; width: calc(2.5rem * var(--astro-scale)); height: calc(2.5rem * var(--astro-scale)); border-radius: 50%; }
-.collaborator-skeleton-name { width: 65%; }
-.collaborator-skeleton-email { width: 85%; }
-.collaborator-skeleton-position { width: 65%; }
-.collaborator-skeleton-status { width: 75%; height: calc(2rem * var(--astro-scale)); border-radius: 999px; }
-.collaborator-skeleton-actions { width: calc(2rem * var(--astro-scale)); height: calc(2rem * var(--astro-scale)); margin-inline: auto; }
-@keyframes collaborator-skeleton-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 .main-collaborator-screen[data-collaborators-loading="false"] .astro-data-table tbody { animation: page-enter 300ms ease both; }
 @media (prefers-reduced-motion: reduce) {
-  .collaborator-skeleton-row, .collaborator-skeleton,
   .main-collaborator-screen[data-collaborators-loading] .astro-data-table tbody { animation: none; }
 }
 .manager-details-modal .field-group [role="alert"], .manager-details-form-error { color: var(--astro-error-text); font-size: var(--astro-label-font-size); line-height: 1.2; }

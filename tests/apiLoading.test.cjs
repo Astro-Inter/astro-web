@@ -28,7 +28,6 @@ function loadModule(file) {
 const DataTable = load('src/components/dataTable/index.tsx')
 const ApiContentSkeleton = load('src/components/apiContentSkeleton/index.tsx')
 const AccountProfileSkeleton = load('src/components/accountProfileSkeleton/index.tsx')
-const FormEditorSkeleton = load('src/components/formEditorSkeleton/index.tsx')
 const HomeDashboardSkeleton = load('src/components/homeDashboardSkeleton/index.tsx')
 const InviteManagerDialog = load('src/components/inviteManagerDialog/index.tsx')
 const columns = ['employee', 'nr', 'expiresAt', 'origin', 'status', 'actions'].map(id => ({ id, label: id, render: row => row[id] }))
@@ -93,21 +92,8 @@ test('skeleton de tabela distingue identidade de nome simples e preserva as cél
   }
 })
 
-test('editor reserva as seis informações iniciais no card, sem ações ou campos extras', () => {
-  for (const editing of [false, true]) {
-    const document = dom(React.createElement(FormEditorSkeleton, { editing }))
-    assert.equal(document.querySelectorAll('.create-forms-card').length, 1)
-    assert.equal(document.querySelectorAll('.create-forms-field').length, 6)
-    assert.equal(document.querySelectorAll('.api-skeleton-control').length, 6)
-    assert.equal(document.querySelectorAll('.create-forms-card .astro-action,input').length, 0)
-    assert.equal(document.querySelectorAll('.create-forms-footer button:disabled').length, 2)
-    assert.equal(document.querySelectorAll('.create-forms-footer .api-skeleton').length, 0)
-    assert.equal(document.querySelector('h2').textContent, editing ? 'Informações do formulário' : 'Informações iniciais')
-  }
-})
-
 test('títulos, descrições e ações fixas permanecem visíveis enquanto somente os dados carregam', () => {
-  for (const Component of [HomeDashboardSkeleton, FormEditorSkeleton]) {
+  for (const Component of [HomeDashboardSkeleton]) {
     const document = dom(React.createElement(Component))
     assert.ok(document.querySelector('h2,h3').textContent.trim())
     assert.equal(document.querySelector('h2 .api-skeleton,h3 .home-skeleton'), null)

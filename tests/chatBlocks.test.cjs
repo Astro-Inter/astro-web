@@ -225,8 +225,8 @@ test('prévia do POST e histórico usa blocos sem depender de resposta legada', 
   assert.equal(chatMessageText('Antigo', [{ tipo: 'texto', conteudo: 'Atual' }]), 'Atual')
 })
 
-test('fixture de homologação visual usa somente contratos reconhecidos', () => {
-  const fixture = JSON.parse(fs.readFileSync('tools/chat-blocks-preview/fixture.json', 'utf8').replace(/^\uFEFF/, ''))
+test('dados de teste dos blocos usam somente contratos reconhecidos', () => {
+  const fixture = JSON.parse(fs.readFileSync('tests/fixtures/chatBlocks.json', 'utf8').replace(/^\uFEFF/, ''))
   assert.equal(parseBlocks(fixture).length, fixture.length)
 })
 
