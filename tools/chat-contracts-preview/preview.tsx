@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import ChatBlocks from '../../src/components/chatBlocks'
 import type { ChatBlock } from '../../src/types/chatBlocks'
-import scenariosJson from './scenarios.json'
+import scenariosJson from '../../tests/fixtures/chatContracts.json'
 import '../../styles/chatBlocks.css'
 import './preview.css'
 interface Scenario { question: string; blocos?: unknown; error?: string; status?: number }

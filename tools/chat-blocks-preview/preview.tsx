@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import ChatBlocks from '../../src/components/chatBlocks'
 import '../../styles/chatBlocks.css'
 import './preview.css'
-import fixture from './fixture.json'
+import fixture from '../../tests/fixtures/chatBlocks.json'
 export default function Preview() {
   const [visible, setVisible] = useState(true)
   const [snapshot, setSnapshot] = useState(0)

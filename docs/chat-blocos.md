@@ -69,10 +69,7 @@ não são persistidas pelo chat. Autorização, bloqueios e confirmações ficam
 sem rede, isolamento e invariância dos agregados. Exercita também o controlador
 com POST/histórico simulados, retomada de sessão e troca de usuário durante envio.
 
-Com `npm run dev`, abrir `/tools/chat-blocks-preview/index.html` para homologação
-visual isolada com dados fictícios e fixture validada pelos mesmos testes.
-Esse HTML não é entrada do build de produção. Evidências e limitações reais em
-[homologação da PR 70](homologacao-chat-pr70.md).
+Os dados de teste estão em `tests/fixtures/chatBlocks.json` e `tests/fixtures/chatContracts.json`.
 
 ## Limites do envelope e componentes legados
 
@@ -102,6 +99,4 @@ Histórico e lembrete mantêm id/prazo; falha de geração não fabrica cartão.
 Não há preview automático, URL no href do cartão, logs ou persistência local.
 Os ícones do cartão usam cor escura para contrastar com o fundo branco.
 
-A implementação mantém os componentes e contratos analíticos existentes, sem
-recalcular agregados a partir das linhas. A simulação visual específica está em
-`/tools/chat-contracts-preview/index.html` e não entra no build de produção.
+A implementação mantém os componentes e contratos analíticos existentes, sem recalcular agregados a partir das linhas.

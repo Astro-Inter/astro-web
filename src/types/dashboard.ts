@@ -1,31 +1,3 @@
-export interface DashboardSeries {
-  id: string
-  label: string
-  color: 'cream' | 'lavender' | 'purple' | 'teal'
-}
-
-export interface DashboardCategory {
-  id: string
-  label: string
-  values: readonly number[]
-}
-
-export interface DashboardChartData {
-  id: string
-  title: string
-  unit: string
-  maximum: number
-  series: readonly DashboardSeries[]
-  categories: readonly DashboardCategory[]
-}
-
-export interface DashboardMetric {
-  id: string
-  label: string
-  value: number
-  suffix?: string
-}
-
 export type AnalyticsView = 'visao-geral' | 'eventos'
 export type ChartKind = 'bar' | 'line' | 'pie'
 export interface AnalyticsFilters { start: string; end: string; granularity: 'dia' | 'semana' | 'mes' | 'ano' }

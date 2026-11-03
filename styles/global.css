@@ -609,7 +609,6 @@ textarea::selection {
   }
 }
 
-.route-loading { display: grid; min-height: 100dvh; padding: 2rem; place-items: center; color: var(--astro-text); background: var(--astro-background); }
 
 /* Animate page content, keeping the background and fixed controls opaque. */
 .astro-route-transition { min-height: 100dvh; }

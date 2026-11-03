@@ -45,17 +45,9 @@
 .astro-truncated-tooltip--visible { opacity: 1; }
 .astro-truncated-tooltip--multiline { max-height: calc(100dvh - 1rem); overflow-y: auto; white-space: pre-line; }
 .astro-data-table-empty { padding: 2rem 1rem !important; color: var(--astro-data-table-text, #c9c4d3); text-align: center; }
-.workspace-skeleton-row { animation: page-enter 180ms ease both; }
-.workspace-skeleton { display: block; height: 1em; border-radius: var(--astro-control-radius); background: linear-gradient(100deg, rgb(182 178 195 / 8%) 20%, rgb(182 178 195 / 18%) 45%, rgb(182 178 195 / 8%) 70%); background-size: 240% 100%; animation: workspace-skeleton-shimmer 1.6s ease-in-out infinite; }
-.workspace-skeleton-name { width: 65%; }
-.workspace-skeleton-count { width: 50%; }
-.workspace-skeleton-status { width: 75%; height: calc(2rem * var(--astro-scale)); border-radius: 999px; }
-.workspace-skeleton-actions { width: calc(2rem * var(--astro-scale)); height: calc(2rem * var(--astro-scale)); margin-inline: auto; }
-@keyframes workspace-skeleton-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 .main-position-screen[data-table-loading="false"] .position-content > .astro-data-table-shell .astro-data-table tbody { animation: page-enter 300ms ease both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .workspace-skeleton-row, .workspace-skeleton,
   .main-position-screen[data-table-loading] .position-content > .astro-data-table-shell .astro-data-table tbody { animation: none; }
   .astro-data-table tbody tr.astro-data-table-row--saved > :is(th, td) { animation: none; background-color: rgb(143 0 196 / 10%); }
   .astro-data-table tbody tr.astro-data-table-row--saved .astro-truncated-text { animation: none; }

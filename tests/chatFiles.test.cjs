@@ -3,7 +3,7 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs'), path = require('node:path'), ts = require('typescript')
 const React = require('react'), { act } = React
 const { renderToStaticMarkup } = require('react-dom/server'), { JSDOM } = require('jsdom')
-const scenarios = JSON.parse(fs.readFileSync('tools/chat-contracts-preview/scenarios.json', 'utf8'))
+const scenarios = JSON.parse(fs.readFileSync('tests/fixtures/chatContracts.json', 'utf8'))
 function environment(overrides = {}) {
   const cache = new Map()
   function load(file) {
