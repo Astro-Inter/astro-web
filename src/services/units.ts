@@ -113,5 +113,5 @@ export async function listUnitNrOptions(id: string, signal?: AbortSignal): Promi
 export async function updateUnitNrs(id: string, nrs: UnitNrRequest[]): Promise<void> {
   const error = validateNrSelection(nrs)
   if (error) throw new UnitsApiError(error)
-  await requestUnits<void>(`${unitPath(id)}/nrs`, 'POST', { nrs })
+  await requestUnits<void>(`${unitPath(id)}/nrs`, 'POST', nrs)
 }

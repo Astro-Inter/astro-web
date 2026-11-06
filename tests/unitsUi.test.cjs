@@ -72,8 +72,8 @@ test('erro no modal mantém seleção para retry e reabrir consulta os vínculos
         quantidade: 1, nrs_sugeridas: [{ numero: 17, nome: 'Ergonomia', justificativa: 'Há trabalho administrativo na unidade.', confianca: 'alta' }] })
     }
     if (init.method === 'POST') {
-      const body = JSON.parse(init.body).nrs
-      assert.ok(Array.isArray(body))
+      const body = JSON.parse(init.body)
+      assert.ok(Array.isArray(body), 'A API de unidades recebe uma lista direta, sem envelope nrs')
       writes.push(body)
       if (writes.length === 1) return new Response(JSON.stringify({ success: false, message: 'Não foi possível salvar as NRs.' }), { status: 422 })
       options = options.map(row => ({ ...row, active: body.find(item => item.nr === row.nr).active }))
