@@ -44,7 +44,7 @@ test('conecta os cinco endpoints de unidades com token e contratos do Swagger', 
     assert.equal(new URL(call.url).search, '')
   }
   assert.equal(calls[1].body, undefined)
-  assert.deepEqual(JSON.parse(calls[4].body).nrs, [{ nr: 6, active: false }, { nr: 10, active: true }])
+  assert.deepEqual(JSON.parse(calls[4].body), [{ nr: 6, active: false }, { nr: 10, active: true }])
 })
 
 test('erros HTTP, recusa da API e respostas inválidas são tratados', async () => {
@@ -94,13 +94,13 @@ test('cancelamento durante obtenção do token impede iniciar uma consulta', asy
   assert.equal(calls, 0)
 })
 
-test('envia lista vazia no envelope nrs, com JSON e Bearer, sem UID', async () => {
+test('envia lista vazia diretamente, com JSON e Bearer, sem UID', async () => {
   global.fetch = async (url, init) => {
     assert.equal(url, 'https://api.example.test/units/42/nrs')
     assert.equal(init.method, 'POST')
     assert.equal(init.headers.Authorization, 'Bearer firebase-token')
     assert.equal(init.headers['Content-Type'], 'application/json')
-    assert.deepEqual(JSON.parse(init.body), { nrs: [] })
+    assert.deepEqual(JSON.parse(init.body), [])
     return respond(null)
   }
   await api.updateUnitNrs('42', [])
